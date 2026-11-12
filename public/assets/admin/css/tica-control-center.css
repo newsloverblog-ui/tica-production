@@ -1,0 +1,341 @@
+/* Tica control center — shared admin and organizer UI system. */
+:root {
+  --tica-blue: #285faa;
+  --tica-blue-strong: #1f4b88;
+  --tica-blue-soft: #edf3fb;
+  --tica-sky: #296f93;
+  --accent-50: #FEF7EE;
+  --accent-100: #FCEBD7;
+  --accent-300: #F2C594;
+  --accent-500: #E39A55;
+  --accent-700: #B4682E;
+  --tica-orange: var(--accent-500);
+  --tica-orange-strong: var(--accent-700);
+  --tica-navy: #0b2447;
+  --tica-ink: #0b2447;
+  --tica-muted: #667085;
+  --tica-bg: #f6f7f9;
+  --tica-surface: #ffffff;
+  --tica-border: #e4e8f0;
+  --tica-success: #16855b;
+  --tica-warning: #b85f00;
+  --tica-danger: #c9364b;
+  --tica-radius-sm: 10px;
+  --tica-radius: 16px;
+  --tica-radius-lg: 24px;
+  --tica-shadow-sm: 0 1px 2px rgba(23, 32, 51, .05);
+  --tica-shadow: 0 12px 32px rgba(23, 32, 51, .08);
+  --tica-focus: 0 0 0 3px rgba(40, 95, 170, .2);
+}
+
+html { scroll-padding-top: 96px; }
+
+body.tica-control-center {
+  background: var(--tica-bg) !important;
+  color: var(--tica-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.tica-control-center a,
+.tica-control-center button,
+.tica-control-center .btn { touch-action: manipulation; }
+.tica-control-center button:not(:disabled),
+.tica-control-center .btn:not(:disabled),
+.tica-control-center a[href] { cursor: pointer; }
+
+.tica-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  z-index: 10000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--tica-ink);
+  color: #fff;
+  transform: translate(-50%, -160%);
+  transition: transform .18s ease;
+}
+.tica-skip-link:focus { color: #fff; transform: translate(-50%, 0); }
+
+.tica-control-center .main-header,
+.tica-control-center .logo-header,
+.tica-control-center .navbar-header {
+  background: rgba(255, 255, 255, .96) !important;
+  border-bottom: 1px solid var(--tica-border);
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+}
+
+.tica-control-center .navbar-brand { max-height: 38px; object-fit: contain; }
+.tica-logo-word { color:#0b2447; font-size:24px; font-weight:850; letter-spacing:-.055em; }
+.tica-control-center .navbar-header { min-height: 70px; }
+.tica-control-center .navbar-header .container-fluid { min-height: 70px; }
+.tica-topbar-context { align-items: center; gap: 12px; color: var(--tica-ink); }
+.tica-topbar-context strong { font-size: 14px; }
+.tica-topbar-context a { color: var(--tica-muted); font-size: 12px; font-weight: 600; }
+.tica-topbar-context a:hover { color: var(--tica-blue); }
+.tica-topbar-kicker { padding: 5px 8px; border-radius: 7px; background: var(--tica-blue-soft); color: var(--tica-blue-strong); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+
+.tica-control-center .sidebar {
+  background: var(--tica-navy) !important;
+  border-right: 0;
+  box-shadow: 8px 0 30px rgba(0, 34, 68, .08);
+}
+.tica-control-center .sidebar .sidebar-wrapper { padding-bottom: 32px; }
+.tica-organizer-brand { display:flex; flex-direction:column; gap:1px; margin:24px 24px 14px; color:#fff !important; text-decoration:none !important; }
+.tica-organizer-brand strong { color:#fff; font-size:25px; font-weight:850; letter-spacing:-.05em; line-height:1; }
+.tica-organizer-brand span { color:rgba(255,255,255,.55); font-size:9px; font-weight:800; letter-spacing:.18em; }
+.tica-control-center .sidebar .user { border-bottom: 1px solid rgba(255,255,255,.12); }
+.tica-control-center .sidebar .user .info > a > span,
+.tica-control-center .sidebar .user .info .user-level,
+.tica-control-center .sidebar .user .info a,
+.tica-control-center .sidebar .nav > .nav-item a p,
+.tica-control-center .sidebar .nav > .nav-item a i,
+.tica-control-center .sidebar .nav-collapse .sub-item,
+.tica-control-center .sidebar .caret { color: rgba(255,255,255,.82) !important; }
+.tica-control-center .sidebar .user .info .user-level { color: rgba(255,255,255,.58) !important; }
+
+.tica-control-center .sidebar .nav > .nav-item > a {
+  min-height: 46px;
+  margin: 3px 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  transition: background-color .18s ease, color .18s ease;
+}
+.tica-control-center .sidebar .nav > .nav-item > a:hover,
+.tica-control-center .sidebar .nav > .nav-item.active > a {
+  background: rgba(255, 255, 255, .12) !important;
+}
+.tica-control-center .sidebar .nav > .nav-item.active > a::before {
+  content: "";
+  width: 3px;
+  height: 22px;
+  border-radius: 8px;
+  background: var(--tica-orange);
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.tica-control-center .sidebar .nav-collapse li a { margin: 2px 14px 2px 30px; border-radius: 8px; }
+.tica-control-center .sidebar .nav-collapse li.active > a,
+.tica-control-center .sidebar .nav-collapse li a:hover { background: rgba(255,255,255,.08); }
+.tica-control-center .sidebar-search {
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+}
+.tica-control-center .sidebar-search::placeholder { color: rgba(255,255,255,.56); }
+.tica-control-center .sidebar .sidebar-content > .nav > .row:first-child { display:none; }
+.tica-topbar-create { min-height:44px !important; padding:0 20px !important; border-radius:999px !important; }
+
+.tica-control-center .main-panel { background: var(--tica-bg); }
+.tica-control-center .content { background: transparent; }
+.tica-control-center .page-inner { padding: 28px 32px 48px; }
+.tica-control-center h1,
+.tica-control-center h2,
+.tica-control-center h3,
+.tica-control-center h4,
+.tica-control-center h5,
+.tica-control-center h6,
+.tica-control-center .card-title { color: var(--tica-ink); font-family: inherit; letter-spacing: -.025em; }
+
+.tica-workspace-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 2px 0 24px;
+  padding: 24px 28px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(17, 28, 47, .08);
+  border-radius: var(--tica-radius-lg);
+  background: linear-gradient(120deg, #fff 0%, #fff 55%, #eef4fb 100%);
+  box-shadow: var(--tica-shadow-sm);
+}
+.tica-workspace-hero::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -54px;
+  top: -78px;
+  border-radius: 50%;
+  background: rgba(40,95,170,.08);
+}
+.tica-eyebrow { margin: 0 0 5px; color: var(--tica-blue-strong); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.tica-workspace-hero h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); font-weight: 750; }
+.tica-workspace-hero .tica-lede { max-width: 660px; margin: 7px 0 0; color: var(--tica-muted); }
+.tica-quick-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; position: relative; z-index: 1; }
+
+.tica-priority-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.tica-priority-card { display: flex; align-items: flex-start; gap: 13px; min-width: 0; padding: 18px; border: 1px solid var(--tica-border); border-radius: 14px; background: var(--tica-surface); box-shadow: var(--tica-shadow-sm); color: var(--tica-ink); transition: border-color .18s ease, box-shadow .18s ease; }
+a.tica-priority-card:hover { border-color: rgba(40,95,170,.34); box-shadow: 0 8px 24px rgba(23,32,51,.08); color: var(--tica-ink); text-decoration: none; }
+.tica-priority-icon { display: inline-grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; border-radius: 10px; background: #edf2f6; color: var(--tica-navy); }
+.tica-priority-icon.is-orange { background: var(--accent-50); color: var(--accent-700); }
+.tica-priority-icon.is-success { background: #e9f7f1; color: var(--tica-success); }
+.tica-priority-icon.is-danger { background: #fff0f2; color: var(--tica-danger); }
+.tica-priority-card p { margin: 0 0 3px; color: var(--tica-muted); font-size: 11px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+.tica-priority-card strong { display: block; color: var(--tica-ink); font-size: 20px; line-height: 1.25; }
+.tica-priority-card small { display: block; margin-top: 4px; color: var(--tica-muted); font-size: 11px; line-height: 1.35; }
+
+.tica-control-center .btn { min-height: 42px; border-radius: 10px; font-weight: 650; }
+.tica-control-center .btn-primary,
+.tica-control-center .btn-success { background: var(--tica-blue) !important; border-color: var(--tica-blue) !important; color: #fff !important; }
+.tica-control-center .btn-primary:hover,
+.tica-control-center .btn-success:hover { background: var(--tica-blue-strong) !important; border-color: var(--tica-blue-strong) !important; }
+.tica-control-center .btn-warning { background: #f3f6fa !important; border-color: #d8dee8 !important; color: var(--tica-ink) !important; }
+.tica-control-center .btn-secondary,
+.tica-control-center .btn-info {
+  background: var(--tica-navy) !important;
+  border-color: var(--tica-navy) !important;
+  color: #fff !important;
+}
+.tica-control-center .btn-secondary:hover,
+.tica-control-center .btn-secondary:focus,
+.tica-control-center .btn-info:hover,
+.tica-control-center .btn-info:focus {
+  background: #153b6b !important;
+  border-color: #153b6b !important;
+  color: #fff !important;
+}
+.tica-control-center .btn-outline-primary { color: var(--tica-ink); border-color: #cdd3dc; background: #fff; }
+.tica-control-center .btn-outline-primary:hover { background: var(--tica-blue-soft); color: var(--tica-blue-strong); }
+
+.tica-control-center .card {
+  border: 1px solid var(--tica-border);
+  border-radius: var(--tica-radius);
+  background: var(--tica-surface);
+  box-shadow: var(--tica-shadow-sm);
+}
+.tica-control-center .card-header { padding: 20px 22px; border-color: var(--tica-border); background: transparent; }
+.tica-control-center .card-body { padding: 22px; }
+.tica-control-center .dashboard-items { margin-left: -10px; margin-right: -10px; }
+.tica-control-center .dashboard-items > [class*="col-"] { padding-left: 10px; padding-right: 10px; }
+.tica-organizer .dashboard-items > .col-xl-3 { display: none; }
+.tica-control-center .dashboard-items .card-stats { min-height: 142px; overflow: hidden; position: relative; }
+.tica-control-center .dashboard-items .card-stats::after {
+  content: "";
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  right: -32px;
+  top: -32px;
+  border-radius: 50%;
+  background: rgba(40,95,170,.08);
+}
+.tica-control-center .card-stats .icon-big i { color: var(--tica-blue-strong) !important; font-size: 30px; }
+.tica-control-center .card-stats .card-category { color: var(--tica-muted) !important; font-weight: 600; }
+.tica-control-center .card-stats .card-title { font-size: 24px; font-weight: 750; }
+
+.tica-control-center .table-responsive { border-radius: var(--tica-radius); border: 1px solid var(--tica-border); }
+.tica-control-center table { color: var(--tica-ink); }
+.tica-control-center table thead th { background: #f8f9fc; border-color: var(--tica-border); color: #49536a; font-size: 11px; letter-spacing: .055em; text-transform: uppercase; }
+.tica-control-center table td { border-color: var(--tica-border); vertical-align: middle; }
+.tica-control-center table,
+.tica-priority-card strong,
+.tica-control-center .card-stats .card-title { font-variant-numeric: tabular-nums; }
+.tica-control-center .form-control,
+.tica-control-center .custom-select,
+.tica-control-center .select2-selection { min-height: 44px; border-color: #d6dce7 !important; border-radius: 10px !important; background-color: #fff; color: var(--tica-ink); }
+.tica-control-center .form-control:focus,
+.tica-control-center .custom-select:focus,
+.tica-control-center .select2-container--focus .select2-selection { border-color: var(--tica-blue) !important; box-shadow: var(--tica-focus) !important; }
+.tica-control-center label { color: #3c465c; font-weight: 650; }
+
+.tica-control-center .tica-state-select {
+  min-width: 112px;
+  padding-right: 30px;
+  font-weight: 750;
+  color: var(--tica-ink) !important;
+}
+.tica-control-center .tica-state-select.is-positive {
+  background-color: #e9f7f1 !important;
+  border-color: #b9e4d3 !important;
+  color: #116744 !important;
+}
+.tica-control-center .tica-state-select.is-warning {
+  background-color: var(--accent-100) !important;
+  border-color: var(--accent-300) !important;
+  color: var(--accent-700) !important;
+}
+.tica-control-center .tica-state-select.is-negative {
+  background-color: #fff0f2 !important;
+  border-color: #f5c7ce !important;
+  color: #a82d40 !important;
+}
+.tica-control-center .dropdown-menu {
+  padding: 8px;
+  border: 1px solid var(--tica-border);
+  border-radius: 12px;
+  background: var(--tica-surface);
+  box-shadow: var(--tica-shadow);
+}
+.tica-control-center .dropdown-item {
+  padding: 9px 11px;
+  border-radius: 8px;
+  color: var(--tica-ink);
+  font-weight: 600;
+}
+.tica-control-center .dropdown-item:hover,
+.tica-control-center .dropdown-item:focus {
+  background: var(--tica-blue-soft);
+  color: var(--tica-ink);
+}
+
+.tica-control-center a:focus-visible,
+.tica-control-center button:focus-visible,
+.tica-control-center input:focus-visible,
+.tica-control-center select:focus-visible,
+.tica-control-center textarea:focus-visible { outline: 2px solid var(--tica-blue) !important; outline-offset: 2px; box-shadow: var(--tica-focus); }
+
+.tica-control-center[data-background-color="dark"] {
+  --tica-bg: #081426;
+  --tica-surface: #0e1d32;
+  --tica-ink: #f5f7ff;
+  --tica-muted: #a9b3c8;
+  --tica-border: #22334e;
+}
+.tica-control-center[data-background-color="dark"] .main-header,
+.tica-control-center[data-background-color="dark"] .logo-header,
+.tica-control-center[data-background-color="dark"] .navbar-header { background: rgba(8,20,38,.96) !important; }
+.tica-control-center[data-background-color="dark"] .tica-workspace-hero { background: linear-gradient(120deg, #101f36, #101f36 68%, #352319); }
+.tica-control-center[data-background-color="dark"] .form-control,
+.tica-control-center[data-background-color="dark"] .custom-select { background: #0b192c; border-color: #2a3b57 !important; color: #f5f7ff; }
+.tica-control-center[data-background-color="dark"] table thead th { background: #10213a; color: #c7d0e2; }
+.tica-control-center[data-background-color="dark"] .dropdown-menu { background: #0e1d32; }
+.tica-control-center[data-background-color="dark"] .dropdown-item { color: #f5f7ff; }
+.tica-control-center[data-background-color="dark"] .dropdown-item:hover,
+.tica-control-center[data-background-color="dark"] .dropdown-item:focus { background: #172a45; }
+
+@media (max-width: 991.98px) {
+  .tica-control-center .page-inner { padding: 20px 18px 38px; }
+  .tica-workspace-hero { align-items: flex-start; flex-direction: column; padding: 22px; }
+  .tica-quick-actions { justify-content: flex-start; width: 100%; }
+  .tica-control-center .navbar-header { min-height: 62px; }
+  .tica-priority-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+  .tica-control-center { font-size: 16px; }
+  .tica-control-center .page-inner { padding: 16px 12px 32px; }
+  .tica-workspace-hero { border-radius: 18px; padding: 19px; }
+  .tica-quick-actions .btn { flex: 1 1 100%; }
+  .tica-priority-grid { grid-template-columns: 1fr; }
+  .tica-control-center .card-header,
+  .tica-control-center .card-body { padding: 17px; }
+  .tica-control-center .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tica-control-center *, .tica-control-center *::before, .tica-control-center *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

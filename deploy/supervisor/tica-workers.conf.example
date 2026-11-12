@@ -1,0 +1,36 @@
+; Copy to /etc/supervisor/conf.d/tica-workers.conf and replace placeholders.
+; Keep payments isolated so exports and email cannot starve transaction work.
+
+[program:tica-payments]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/tica/current/artisan queue:work redis --queue=payments --sleep=1 --backoff=5 --timeout=300 --max-time=3600 --memory=256
+directory=/var/www/tica/current
+user=www-data
+numprocs=2
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stopwaitsecs=360
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/tica-payments.log
+stdout_logfile_maxbytes=50MB
+stdout_logfile_backups=5
+environment=APP_ENV="production"
+
+[program:tica-default]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/tica/current/artisan queue:work redis --queue=default --sleep=2 --backoff=10 --timeout=900 --max-time=3600 --memory=384
+directory=/var/www/tica/current
+user=www-data
+numprocs=2
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stopwaitsecs=960
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/tica-default.log
+stdout_logfile_maxbytes=50MB
+stdout_logfile_backups=5
+environment=APP_ENV="production"

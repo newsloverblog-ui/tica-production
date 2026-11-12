@@ -1,0 +1,3 @@
+# Install for the application user with `crontab -e` after replacing the path.
+# Use exactly one scheduler leader; Laravel's overlap locks require shared cache.
+* * * * * cd /var/www/tica/current && /usr/bin/php artisan schedule:run >> /dev/null 2>&1

@@ -1,0 +1,1066 @@
+/* TICA design applied to Tica's admin panel (/admin/*). Loaded last; it
+   restyles the existing markup, so permissions and menus are unchanged. */
+@font-face{font-family:'Montserrat';src:url('../fonts/montserrat-latin.woff2') format('woff2');font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2122}
+@font-face{font-family:'Montserrat';src:url('../fonts/montserrat-currency.woff2') format('woff2');font-weight:100 900;font-display:swap;unicode-range:U+20A0-20C0}
+
+body.tica-admin{
+  --tint:#F3F6FB;--indigo:#0B2447;--indigo-2:#0F4C9E;--camwood:#E39A55;--peach:#FEF7EE;--ink:#0B2447;--soft:#526079;--line:#E2E8F1;
+  background:var(--tint)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;font-size:15px;-webkit-font-smoothing:antialiased
+}
+body.tica-admin h1,body.tica-admin h2,body.tica-admin h3,body.tica-admin h4,body.tica-admin h5,body.tica-admin .card-title,body.tica-admin .page-title{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;color:var(--ink)!important;letter-spacing:-.015em}
+
+/* top bar: the design's white header */
+body.tica-admin .main-header,body.tica-admin .logo-header,body.tica-admin .navbar-header{background:#fff!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+body.tica-admin .logo-header .logo img{height:36px;width:auto}
+body.tica-admin .tica-topbar-context strong{font-weight:700}
+body.tica-admin .tica-topbar-kicker{color:var(--camwood)}
+
+/* content */
+body.tica-admin .main-panel{background:var(--tint)}
+body.tica-admin .page-inner{padding:clamp(20px,3vw,40px)!important;max-width:1240px}
+body.tica-admin .page-header{margin-bottom:16px}
+body.tica-admin .page-header .page-title,body.tica-admin .page-inner>h1,body.tica-admin .page-inner h4.page-title{font-size:clamp(24px,2.6vw,32px)!important;font-weight:700!important}
+body.tica-admin .breadcrumbs{border-left-color:var(--line)!important}
+body.tica-admin .breadcrumbs a,body.tica-admin .breadcrumbs li{color:var(--soft)!important;font-size:13px}
+body.tica-admin .card{background:#fff!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:none!important;margin-bottom:12px}
+body.tica-admin .card-header{background:#fff!important;border-bottom:1px solid var(--line)!important;padding:18px 20px!important}
+body.tica-admin .card-title{font-size:18px!important;font-weight:700!important}
+body.tica-admin .card-body{padding:20px!important}
+body.tica-admin .card-footer{background:#fff!important;border-top:1px solid var(--line)!important}
+
+/* buttons: the design's pills */
+body.tica-admin .btn{border-radius:999px!important;font:700 14px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;padding:12px 20px!important;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:none!important;transition:transform .15s,background-color .15s}
+body.tica-admin .btn:hover{transform:translateY(-1px)}
+body.tica-admin .btn-sm,body.tica-admin .btn-xs{min-height:34px;padding:8px 14px!important;font-size:13px!important}
+body.tica-admin .btn-primary,body.tica-admin .btn-success,body.tica-admin .btn-secondary.btn-round{background:var(--camwood)!important;border-color:var(--camwood)!important;color:var(--ink)!important}
+body.tica-admin .btn-primary:hover,body.tica-admin .btn-success:hover{background:#244AB7!important;border-color:#244AB7!important}
+body.tica-admin .btn-info,body.tica-admin .btn-secondary,body.tica-admin .btn-light,body.tica-admin .btn-default,body.tica-admin [class*=btn-outline]{background:#fff!important;border:1.5px solid #BAC8D9!important;color:var(--indigo)!important}
+body.tica-admin .btn-info:hover,body.tica-admin .btn-secondary:hover,body.tica-admin [class*=btn-outline]:hover{border-color:var(--indigo)!important}
+body.tica-admin .btn-danger{background:#fff!important;border:1.5px solid #F4B8B0!important;color:#B42318!important}
+body.tica-admin .btn-warning{background:var(--peach)!important;border-color:#FDD3B0!important;color:#9A3412!important}
+
+/* forms: the design's inputs */
+body.tica-admin label,body.tica-admin .form-label{font-weight:600;font-size:14px;color:var(--ink)}
+body.tica-admin .form-control,body.tica-admin .custom-select,body.tica-admin select.form-control,body.tica-admin .select2-container .select2-selection--single{min-height:46px;border:1.5px solid #C5CBD6!important;border-radius:10px!important;background:#fff!important;color:var(--ink)!important;font:500 15px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;box-shadow:none!important}
+body.tica-admin textarea.form-control{min-height:110px;padding-top:12px}
+body.tica-admin .form-control:focus{border-color:var(--indigo-2)!important;box-shadow:0 0 0 3px rgba(15,76,158,.15)!important}
+body.tica-admin .form-group{padding:6px 0!important}
+body.tica-admin .form-text,body.tica-admin small.text-muted,body.tica-admin .text-muted{color:var(--soft)!important}
+
+/* tables, badges, tabs, alerts */
+body.tica-admin .table{color:var(--ink)}
+body.tica-admin .table thead th{background:var(--tint)!important;border-bottom:1px solid var(--line)!important;border-top:0!important;font-size:12px!important;font-weight:700!important;letter-spacing:.04em;text-transform:uppercase;color:var(--soft)!important}
+body.tica-admin .table td,body.tica-admin .table th{border-color:var(--line)!important;padding:12px 14px!important;vertical-align:middle}
+body.tica-admin .badge{border-radius:999px;font:700 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;padding:6px 10px}
+body.tica-admin .badge-success{background:#DCFAE6!important;color:#067647!important}
+body.tica-admin .badge-warning{background:var(--peach)!important;color:#9A3412!important}
+body.tica-admin .badge-danger{background:#FEE4E2!important;color:#B42318!important}
+body.tica-admin .badge-primary,body.tica-admin .badge-info{background:#EAF0FA!important;color:var(--indigo-2)!important}
+body.tica-admin .nav-pills .nav-link.active,body.tica-admin .nav-tabs .nav-link.active{background:var(--indigo-2)!important;color:#fff!important;border-radius:999px}
+body.tica-admin .alert{border-radius:12px;border:1px solid var(--line)}
+body.tica-admin a{color:var(--indigo-2)}
+body.tica-admin .footer{background:transparent!important;border-top:1px solid var(--line)}
+
+
+/* the design is light: dark-theme surfaces are repainted */
+body.tica-admin[data-background-color],body.tica-admin .main-panel,body.tica-admin .content{background:var(--tint)!important}
+body.tica-admin .main-header [data-background-color],body.tica-admin .navbar-header{background:#fff!important}
+body.tica-admin .main-header form[action$="change-theme"],body.tica-admin .main-header form[action*="change_theme"]{display:none!important}
+body.tica-admin .navbar-header .topbar-nav .nav-link,body.tica-admin .navbar-header i{color:var(--ink)!important}
+
+/* sidebar: the design's organiser-style menu */
+body.tica-admin .sidebar{background:#fff!important;border-right:1px solid var(--line);box-shadow:none!important}
+body.tica-admin .sidebar .sidebar-content{padding:18px 12px 24px!important}
+body.tica-admin .sidebar .user{margin:0 4px 10px!important;padding:2px 6px 14px!important;border-bottom:1px solid var(--line)!important}
+body.tica-admin .sidebar .user .info a,body.tica-admin .sidebar .user .info a>span{color:var(--ink)!important;font-weight:700!important;font-size:15px!important}
+body.tica-admin .sidebar .user .info .user-level{color:var(--soft)!important;font-weight:600!important;font-size:12px!important}
+body.tica-admin .sidebar .user .info .nav a,body.tica-admin .sidebar .user .info .nav button{color:var(--soft)!important;font-weight:500!important;font-size:14px!important;background:none;border:0}
+body.tica-admin .sidebar .sidebar-search{min-height:40px;border-radius:999px!important;background:var(--tint)!important;border:1px solid var(--line)!important;font-size:14px!important}
+body.tica-admin .sidebar .nav>.nav-item{margin:0!important}
+body.tica-admin .sidebar .nav>.nav-item>a,body.tica-admin .sidebar .nav>.nav-item>button{display:flex!important;align-items:center;gap:12px;min-height:44px;padding:0 12px!important;margin:0!important;border-radius:9px!important;background:none!important;box-shadow:none!important;color:var(--soft)!important}
+body.tica-admin .sidebar .nav>.nav-item>a p{color:inherit!important;font:500 15px/1.25 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;margin:0!important;white-space:normal}
+body.tica-admin .sidebar .nav>.nav-item>a i{color:inherit!important;margin:0!important}
+body.tica-admin .sidebar .nav>.nav-item>a i{font-size:17px!important;width:20px;text-align:center;margin-right:0!important}
+body.tica-admin .sidebar .nav>.nav-item>a:hover{background:var(--tint)!important;color:var(--ink)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a,body.tica-admin .sidebar .nav>.nav-item.submenu>a{background:#EAF0FA!important;color:var(--indigo-2)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a p{font-weight:700!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:before{display:none!important}
+body.tica-admin .sidebar .nav>.nav-item>a .caret{margin-left:auto;border-top-color:currentColor!important}
+body.tica-admin .sidebar .nav-collapse{margin:2px 0 6px!important;padding:0!important}
+body.tica-admin .sidebar .nav-collapse li a{min-height:36px;display:flex!important;align-items:center;padding:0 12px 0 44px!important;border-radius:9px;margin:0!important}
+body.tica-admin .sidebar .nav-collapse li a .sub-item{color:var(--soft)!important;font:500 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;margin:0!important}
+body.tica-admin .sidebar .nav-collapse li a .sub-item:before{display:none!important}
+body.tica-admin .sidebar .nav-collapse li a:hover{background:var(--tint)!important}
+body.tica-admin .sidebar .nav-collapse li.active>a .sub-item,body.tica-admin .sidebar .nav-collapse li a:hover .sub-item{color:var(--indigo-2)!important;font-weight:700!important}
+body.tica-admin .sidebar .nav-section{padding:14px 12px 4px!important}
+body.tica-admin .sidebar .nav-section .text-section{font-size:11px!important;font-weight:700!important;letter-spacing:.08em;color:#8592A8!important}
+
+/* dashboard hero, priority cards and stat cards in the design's style */
+body.tica-admin .tica-workspace-hero{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:16px!important}
+body.tica-admin .tica-workspace-hero:before,body.tica-admin .tica-workspace-hero:after{display:none!important}
+body.tica-admin .tica-workspace-hero h1,body.tica-admin .tica-workspace-hero h2{color:var(--ink)!important}
+body.tica-admin .tica-workspace-hero .tica-lede,body.tica-admin .tica-workspace-hero p{color:var(--soft)!important}
+body.tica-admin .tica-eyebrow{color:var(--camwood)!important;font-weight:700;letter-spacing:.1em}
+body.tica-admin .tica-priority-card{background:#fff!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:none!important;color:var(--ink)!important}
+body.tica-admin .tica-priority-card *{color:inherit}
+body.tica-admin .tica-priority-card small,body.tica-admin .tica-priority-card p{color:var(--soft)!important}
+body.tica-admin .card-stats{background:#fff!important;border:1px solid var(--line)!important;color:var(--ink)!important}
+body.tica-admin .card-stats .card-category{color:var(--soft)!important;font-size:13px!important;font-weight:500!important;text-transform:none}
+body.tica-admin .card-stats .card-title{color:var(--ink)!important;font-size:26px!important;font-weight:700!important;font-variant-numeric:tabular-nums}
+body.tica-admin .card-stats .icon-big{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#EAF0FA;color:var(--indigo-2)!important;font-size:18px!important}
+body.tica-admin .card-stats .icon-big i{color:var(--indigo-2)!important}
+body.tica-admin .card-stats.card-earning .icon-big,body.tica-admin .card-stats.card-warning .icon-big{background:var(--peach)}
+body.tica-admin .card-stats.card-earning .icon-big i,body.tica-admin .card-stats.card-warning .icon-big i{color:#C2410C!important}
+body.tica-admin .card-stats.card-success .icon-big{background:#DCFAE6}
+body.tica-admin .card-stats.card-success .icon-big i{color:#067647!important}
+body.tica-admin .card-stats:before,body.tica-admin .card-stats:after{display:none!important}
+body.tica-admin .tica-workspace-hero .tica-eyebrow{color:var(--camwood)!important}
+body.tica-admin :where(p,span,a,li,td,th,label,small,button,input,select,textarea,h1,h2,h3,h4,h5,h6,div,strong,b,em,dt,dd,.btn){font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
+body.tica-admin .tica-topbar-context strong{color:var(--ink)!important}
+body.tica-admin .tica-topbar-context a{color:var(--indigo-2)!important}
+body.tica-admin .logo-header{border-bottom:1px solid var(--line)!important;border-right:1px solid var(--line)!important}
+body.tica-admin .logo-header .logo img{height:36px;width:auto;max-width:none}
+body.tica-admin .logo-header .navbar-toggler i,body.tica-admin .logo-header .topbar-toggler i,body.tica-admin .logo-header .btn-toggle i{color:var(--ink)!important}
+html body.tica-admin .main-header,html body.tica-admin[data-background-color] .main-header{background:#fff!important}
+body.tica-admin .sidebar .nav>.nav-item>a p{flex:1;min-width:0;font-size:14.5px!important}
+body.tica-admin .sidebar .nav{padding:0!important;margin:0!important}
+body.tica-admin .sidebar .nav>.nav-item>a{gap:10px!important;width:100%}
+body.tica-admin .sidebar .nav>.nav-item>a p{font-size:14px!important}
+body.tica-admin .sidebar .nav>.nav-item{padding:0!important}
+body.tica-admin .table .form-control,body.tica-admin .table select{min-height:36px!important;padding:4px 28px 4px 10px!important;font-size:13px!important;min-width:96px}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item>a[aria-expanded=true]{background:#EAF0FA!important;color:var(--indigo-2)!important;box-shadow:none!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a i,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a .caret,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a i{color:var(--indigo-2)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item>a i{color:var(--soft)}
+
+/* ===== TICA admin: purpose-led sidebar ===== */
+body.tica-admin .sidebar.tsa{width:268px}
+body.tica-admin .tsa .sidebar-content{display:flex;flex-direction:column;gap:12px;padding:16px 12px 28px!important}
+body.tica-admin .tsa-me{border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,var(--indigo),var(--indigo-2));color:#fff}
+body.tica-admin .tsa-me summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;list-style:none}
+body.tica-admin .tsa-me summary::-webkit-details-marker{display:none}
+body.tica-admin .tsa-av{flex:none;width:38px;height:38px;border-radius:10px;background:var(--camwood);color:var(--ink);display:grid;place-items:center;font:800 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-style:normal}
+body.tica-admin .tsa-me summary>span{flex:1;min-width:0}
+body.tica-admin .tsa-me b{display:block;color:#fff!important;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.tica-admin .tsa-me small{display:block;color:#C9D6EC!important;font-size:12px;font-weight:600}
+body.tica-admin .tsa-me .tsa-chev{width:16px;height:16px;fill:none;stroke:#C9D6EC;stroke-width:2;transition:transform .2s}
+body.tica-admin .tsa-me[open] .tsa-chev{transform:rotate(180deg)}
+body.tica-admin .tsa-me-menu{display:grid;padding:4px 8px 10px;border-top:1px solid rgba(255,255,255,.14)}
+body.tica-admin .tsa-me-menu a,body.tica-admin .tsa-me-menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;color:#fff!important;font:600 13.5px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;cursor:pointer;text-decoration:none}
+body.tica-admin .tsa-me-menu a:hover,body.tica-admin .tsa-me-menu button:hover{background:rgba(255,255,255,.1)}
+body.tica-admin .tsa-find{position:relative;display:block;margin:0}
+body.tica-admin .tsa-find svg{position:absolute;left:12px;top:50%;width:16px;height:16px;transform:translateY(-50%);fill:none;stroke:#8592A8;stroke-width:2}
+body.tica-admin .tsa-find input{width:100%;height:40px;border:1px solid var(--line);border-radius:999px;background:var(--tint);padding:0 14px 0 36px;font:500 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
+body.tica-admin .tsa-find input:focus{outline:none;border-color:var(--indigo-2);box-shadow:0 0 0 3px rgba(15,76,158,.15);background:#fff}
+body.tica-admin .tsa-nav{display:grid;gap:4px}
+body.tica-admin .tsa-sec{display:grid;gap:2px;padding-bottom:6px}
+body.tica-admin .tsa-sec[hidden],body.tica-admin .tsa-nav [hidden]{display:none!important}
+body.tica-admin .tsa-h{margin:10px 12px 4px!important;font:700 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;letter-spacing:.09em;text-transform:uppercase;color:#8592A8!important}
+body.tica-admin .tsa-link{display:flex;align-items:center;gap:11px;min-height:42px;padding:0 12px;border-radius:10px;color:#3A4A66!important;font:600 14.5px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;text-decoration:none!important;cursor:pointer;list-style:none;position:relative}
+body.tica-admin summary.tsa-link::-webkit-details-marker{display:none}
+body.tica-admin .tsa-link>svg{flex:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.tica-admin .tsa-link>span{flex:1;min-width:0}
+body.tica-admin .tsa-link .tsa-chev{width:15px;height:15px;stroke-width:2;color:#8592A8;transition:transform .2s}
+body.tica-admin .tsa-grp[open]>.tsa-link .tsa-chev{transform:rotate(90deg)}
+body.tica-admin .tsa-link:hover{background:var(--tint);color:var(--ink)!important}
+body.tica-admin a.tsa-link.on,body.tica-admin .tsa-grp.on>.tsa-link{background:#EAF0FA;color:var(--indigo-2)!important}
+body.tica-admin a.tsa-link.on:before,body.tica-admin .tsa-grp.on>.tsa-link:before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--camwood)}
+body.tica-admin .tsa-sub{display:grid;gap:1px;margin:2px 0 6px 21px;padding-left:12px;border-left:1.5px solid var(--line)}
+body.tica-admin .tsa-sub a{display:block;padding:8px 10px;border-radius:8px;color:var(--soft)!important;font:500 14px/1.25 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;text-decoration:none!important}
+body.tica-admin .tsa-sub a:hover{background:var(--tint);color:var(--ink)!important}
+body.tica-admin .tsa-sub a.on{color:var(--indigo-2)!important;font-weight:700;background:#F5F8FD}
+body.tica-admin .tsa-none{margin:8px 12px;color:var(--soft);font-size:14px}
+body.tica-admin .tsa-new{margin-top:4px;width:100%}
+
+/* ===== Shared page header, alerts ===== */
+body.tica-admin .ta-head,body.tica-admin .tad-sec-h{margin-bottom:18px}
+body.tica-admin .ta-kicker,body.tica-admin .tad-kicker{margin:0 0 6px!important;font:700 12px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;letter-spacing:.1em;text-transform:uppercase;color:var(--camwood)!important}
+body.tica-admin .ta-head h1{margin:0 0 6px;font-size:clamp(26px,3vw,34px)!important;font-weight:800!important}
+body.tica-admin .ta-head p{margin:0;max-width:44em;color:var(--soft)!important;font-size:15.5px;line-height:1.55}
+body.tica-admin .ta-alert{border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14px}
+body.tica-admin .ta-alert.bad{background:#FEF3F2;border:1px solid #FECDCA;color:#912018}
+body.tica-admin .ta-alert ul{margin:6px 0 0;padding-left:18px}
+
+/* ===== Platform settings ===== */
+body.tica-admin .ta-set{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:start}
+body.tica-admin .ta-set>.ta-more{grid-column:2}
+body.tica-admin .ta-toc{position:sticky;top:90px;display:grid;gap:2px;grid-row:span 2}
+body.tica-admin .ta-toc a{padding:9px 12px;border-radius:9px;color:var(--soft)!important;font-weight:600;font-size:14px;text-decoration:none}
+body.tica-admin .ta-toc a:hover{background:#fff;color:var(--indigo-2)!important}
+body.tica-admin .ta-forms{display:grid;gap:16px;min-width:0}
+body.tica-admin .ta-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;scroll-margin-top:90px}
+body.tica-admin .ta-card-h{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+body.tica-admin .ta-card-h h2{margin:2px 0 4px;font-size:19px!important;font-weight:700!important}
+body.tica-admin .ta-card-h p{margin:0;color:var(--soft)!important;font-size:14.5px;line-height:1.5}
+body.tica-admin .ta-ic{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+body.tica-admin .ta-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.tica-admin .ta-ic.orange{background:var(--peach);color:#C2410C}
+body.tica-admin .ta-ic.blue{background:#E0EEFF;color:#1D5FC0}
+body.tica-admin .ta-ic.green{background:#DCFAE6;color:#14853D}
+body.tica-admin .ta-ic.purple{background:#EDE9FE;color:#6D3FE0}
+body.tica-admin .ta-row,body.tica-admin .ta-list li{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 0;border-top:1px solid var(--line)}
+body.tica-admin .ta-list{list-style:none;margin:0;padding:0}
+body.tica-admin .ta-row label,body.tica-admin .ta-row .ta-l,body.tica-admin .ta-list label{display:block;margin:0 0 2px;font-weight:700;font-size:15px;color:var(--ink)}
+body.tica-admin .ta-row small,body.tica-admin .ta-list small{display:block;color:var(--soft);font-size:13.5px;line-height:1.45;max-width:36em}
+body.tica-admin .ta-pct{position:relative;width:140px;flex:none}
+body.tica-admin .ta-pct input{padding-right:34px!important;font-weight:700!important;font-size:18px!important;text-align:right}
+body.tica-admin .ta-pct span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--soft)}
+body.tica-admin .ta-seg{display:inline-flex;flex:none;padding:4px;border-radius:999px;background:var(--tint);border:1px solid var(--line)}
+body.tica-admin .ta-seg label{margin:0}
+body.tica-admin .ta-seg input{position:absolute;opacity:0;pointer-events:none}
+body.tica-admin .ta-seg span{display:block;padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;color:var(--soft);cursor:pointer;white-space:nowrap}
+body.tica-admin .ta-seg input:checked+span{background:var(--indigo);color:#fff}
+body.tica-admin .ta-seg input:focus-visible+span{outline:3px solid var(--camwood);outline-offset:2px}
+body.tica-admin .ta-seg input:disabled+span{opacity:.45;cursor:not-allowed}
+body.tica-admin .ta-example{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 4px;padding:12px 16px;border-radius:12px;background:var(--peach);border:1px solid #FDD3B0;font-size:14px}
+body.tica-admin .ta-example span{color:#9A3412;font-weight:600}
+body.tica-admin .ta-example b{color:var(--ink);font-weight:700}
+body.tica-admin .ta-sw{flex:none;appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:999px;background:#C5CBD6;position:relative;cursor:pointer;transition:background .2s;margin:0}
+body.tica-admin .ta-sw:before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(11,36,71,.25);transition:transform .2s}
+body.tica-admin .ta-sw:checked{background:var(--indigo-2)}
+body.tica-admin .ta-sw:checked:before{transform:translateX(20px)}
+body.tica-admin .ta-sw:focus-visible{outline:3px solid var(--camwood);outline-offset:2px}
+body.tica-admin .ta-note{margin:0 0 14px;padding:10px 14px;border-radius:10px;background:var(--tint);color:var(--soft)!important;font-size:13.5px}
+body.tica-admin .ta-curs{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+body.tica-admin .ta-cur{display:flex;gap:10px;align-items:flex-start;margin:0;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s}
+body.tica-admin .ta-cur:hover{border-color:#B9C9E4}
+body.tica-admin .ta-cur:has(input:checked){border-color:var(--indigo-2);background:#F5F8FD}
+body.tica-admin .ta-cur.base{cursor:default}
+body.tica-admin .ta-cur input{margin-top:3px;width:18px;height:18px;accent-color:var(--indigo-2);flex:none}
+body.tica-admin .ta-cur-b{min-width:0}
+body.tica-admin .ta-cur b{display:block;font-size:15px;color:var(--ink)}
+body.tica-admin .ta-cur b i{font-style:normal;color:var(--soft);font-weight:600;margin-left:4px}
+body.tica-admin .ta-cur small{display:block;font-size:13px;color:var(--soft)}
+body.tica-admin .ta-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+body.tica-admin .ta-tags em{font-style:normal;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px}
+body.tica-admin .tag-blue{background:#E0EEFF;color:#1D5FC0}
+body.tica-admin .tag-green{background:#DCFAE6;color:#067647}
+body.tica-admin .tag-grey{background:#EEF1F5;color:#526079}
+body.tica-admin .tag-orange{background:var(--peach);color:#9A3412}
+body.tica-admin .ta-field{margin-top:10px}
+body.tica-admin .ta-field label{display:block;margin-bottom:6px;font-weight:700;font-size:14.5px}
+body.tica-admin .ta-save{position:sticky;bottom:12px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:var(--indigo);box-shadow:0 12px 30px rgba(11,36,71,.25)}
+body.tica-admin .ta-save p{margin:0;color:#DCE6F5!important;font-size:14px;font-weight:600}
+body.tica-admin .ta-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+body.tica-admin .ta-links a{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:12px;text-decoration:none!important;transition:border-color .15s,transform .15s}
+body.tica-admin .ta-links a:hover{border-color:var(--indigo-2);transform:translateY(-2px)}
+body.tica-admin .ta-links b{display:block;color:var(--indigo-2);font-size:15px;margin-bottom:2px}
+body.tica-admin .ta-links small{color:var(--soft);font-size:13px;line-height:1.4}
+@media (max-width:1279px){body.tica-admin .ta-set{grid-template-columns:1fr}body.tica-admin .ta-set>.ta-more{grid-column:auto}body.tica-admin .ta-toc{position:static;display:flex;overflow-x:auto;gap:6px;grid-row:auto}body.tica-admin .ta-toc a{white-space:nowrap;background:#fff;border:1px solid var(--line)}}
+@media (max-width:600px){body.tica-admin .ta-card{padding:18px 16px}body.tica-admin .ta-row{flex-direction:column;align-items:flex-start}body.tica-admin .ta-save{border-radius:16px;flex-direction:column;align-items:stretch;text-align:center}}
+
+/* ===== Admin dashboard ===== */
+body.tica-admin .tad{display:grid;gap:26px}
+body.tica-admin .tad-hero{position:relative;overflow:hidden;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;padding:30px 32px;border-radius:20px;background:radial-gradient(120% 140% at 100% 0%,#1A5FC0 0%,var(--indigo-2) 38%,var(--indigo) 100%);color:#fff}
+body.tica-admin .tad-hero:after{content:"";position:absolute;right:-60px;bottom:-80px;width:260px;height:260px;border-radius:50%;border:40px solid rgba(227,154,85,.12);pointer-events:none}
+body.tica-admin .tad-hero-copy{position:relative;max-width:640px}
+body.tica-admin .tad-hero .tad-kicker{color:#FDBA8C!important}
+body.tica-admin .tad-hero h1{margin:0 0 8px;color:#fff!important;font-size:clamp(28px,3.4vw,40px)!important;font-weight:800!important;letter-spacing:-.02em}
+body.tica-admin .tad-hero p{margin:0;color:#DCE6F5!important;font-size:16px;line-height:1.55}
+body.tica-admin .tad-hero-act{position:relative;display:flex;flex-wrap:wrap;gap:10px}
+body.tica-admin .tad-hero .btn.tad-ghost{background:rgba(255,255,255,.1)!important;border:1.5px solid rgba(255,255,255,.35)!important;color:#fff!important}
+body.tica-admin .tad-hero .btn.tad-ghost:hover{background:rgba(255,255,255,.18)!important}
+body.tica-admin .tad-sec-h h2{margin:0 0 4px;font-size:20px!important;font-weight:700!important}
+body.tica-admin .tad-sec-h p{margin:0;color:var(--soft)!important;font-size:14.5px}
+body.tica-admin .tad-sec-h{margin-bottom:12px}
+body.tica-admin .tad-todo{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+body.tica-admin .tad-task{--c:#0F4C9E;--bg:#E0EEFF;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:4px 14px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--c);text-decoration:none!important;color:var(--ink);transition:transform .15s,box-shadow .15s}
+body.tica-admin .tad-task:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(11,36,71,.08)}
+body.tica-admin .tad-task.orange{--c:#EA580C;--bg:var(--peach)}
+body.tica-admin .tad-task.green{--c:#16A34A;--bg:#DCFAE6}
+body.tica-admin .tad-task.purple{--c:#7C3AED;--bg:#EDE9FE}
+body.tica-admin .tad-task.red{--c:#DC2626;--bg:#FEE4E2}
+body.tica-admin .tad-task-n{grid-row:span 2;min-width:52px;height:52px;padding:0 10px;border-radius:12px;background:var(--bg);color:var(--c);display:grid;place-items:center;font:800 22px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-variant-numeric:tabular-nums}
+body.tica-admin .tad-task-b b{display:block;font-size:15px;color:var(--ink)}
+body.tica-admin .tad-task-b small{display:block;color:var(--soft);font-size:13px;line-height:1.4;margin-top:2px}
+body.tica-admin .tad-task-go{grid-column:2;font-size:13px;font-weight:700;color:var(--c)}
+body.tica-admin .tad-task.clear{border-left-color:var(--line)}
+body.tica-admin .tad-task.clear .tad-task-n{background:var(--tint);color:#8592A8}
+body.tica-admin .tad-task.clear .tad-task-go{color:#16A34A}
+body.tica-admin .tad-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+body.tica-admin .tad-kpi{--c:#0F4C9E;position:relative;display:flex;flex-direction:column;gap:4px;padding:18px;border-radius:14px;background:#fff;border:1px solid var(--line);overflow:hidden}
+body.tica-admin .tad-kpi:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--c)}
+body.tica-admin .tad-kpi.orange{--c:#E39A55}body.tica-admin .tad-kpi.green{--c:#16A34A}body.tica-admin .tad-kpi.purple{--c:#7C3AED}body.tica-admin .tad-kpi.teal{--c:#0E9384}
+body.tica-admin .tad-kpi-l{font-size:13.5px;font-weight:600;color:var(--soft)}
+body.tica-admin .tad-kpi b{font-size:clamp(22px,2.2vw,28px);font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.15;overflow-wrap:anywhere}
+body.tica-admin .tad-chg{align-self:flex-start;font-size:12.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--tint);color:var(--soft)}
+body.tica-admin .tad-chg.up{background:#DCFAE6;color:#067647}
+body.tica-admin .tad-chg.down{background:#FEE4E2;color:#B42318}
+body.tica-admin .tad-kpi small{color:var(--soft);font-size:12.5px;line-height:1.4;margin-top:4px}
+body.tica-admin .tad-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+body.tica-admin .tad-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.tica-admin .tad-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;min-width:0}
+body.tica-admin .tad-card-h{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+body.tica-admin .tad-card-h h2{margin:0 0 3px;font-size:17px!important;font-weight:700!important}
+body.tica-admin .tad-card-h p{margin:0;color:var(--soft)!important;font-size:13.5px;line-height:1.45}
+body.tica-admin .tad-seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--tint);border:1px solid var(--line)}
+body.tica-admin .tad-seg button{border:0;background:none;border-radius:999px;padding:7px 14px;font:600 13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:var(--soft);cursor:pointer}
+body.tica-admin .tad-seg button[aria-selected=true]{background:var(--indigo);color:#fff}
+body.tica-admin .tad-bars{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;align-items:end;height:240px;padding-top:22px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to top,transparent 0,transparent 59px,#EEF1F5 59px,#EEF1F5 60px)}
+body.tica-admin .tad-bar{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+body.tica-admin .tad-bar i{display:block;width:100%;max-width:38px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#3B7BD6,var(--indigo-2));transition:height .35s ease}
+body.tica-admin .tad-bar.now i{background:linear-gradient(180deg,#FB923C,var(--camwood))}
+body.tica-admin .tad-bar:hover i{filter:brightness(1.1)}
+body.tica-admin .tad-bar-v{font-size:10.5px;font-weight:700;color:var(--soft);margin-bottom:4px;white-space:nowrap;opacity:0;transition:opacity .15s}
+body.tica-admin .tad-bar:hover .tad-bar-v,body.tica-admin .tad-bar.now .tad-bar-v{opacity:1}
+body.tica-admin .tad-bar-l{position:absolute;bottom:-22px;font-size:11.5px;font-weight:600;color:#8592A8}
+body.tica-admin .tad-total{margin:30px 0 0;font-size:13.5px;font-weight:600;color:var(--soft)}
+body.tica-admin .tad-cur{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+body.tica-admin .tad-cur-t{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+body.tica-admin .tad-cur-t b{font-size:15px}
+body.tica-admin .tad-cur-t em{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#E0EEFF;color:#1D5FC0}
+body.tica-admin .tad-cur-t span{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+body.tica-admin .tad-cur small,body.tica-admin .tad-up small{display:block;color:var(--soft);font-size:12.5px;margin-top:4px}
+body.tica-admin .tad-meter{height:8px;border-radius:999px;background:var(--tint);overflow:hidden;margin-top:6px}
+body.tica-admin .tad-meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--indigo-2),#3B7BD6)}
+body.tica-admin .tad-more{margin-top:auto;padding-top:14px;font-weight:700;font-size:14px;color:var(--indigo-2)!important;text-decoration:none!important}
+body.tica-admin .tad-more:after{content:" →"}
+body.tica-admin .tad-empty{margin:0;padding:22px 16px;text-align:center;border-radius:12px;background:var(--tint);color:var(--soft)!important;font-size:14px}
+body.tica-admin .tad-rank,body.tica-admin .tad-up,body.tica-admin .tad-orders{list-style:none;margin:0;padding:0}
+body.tica-admin .tad-rank li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+body.tica-admin .tad-rank li:first-child,body.tica-admin .tad-up li:first-child,body.tica-admin .tad-orders li:first-child{border-top:0;padding-top:0}
+body.tica-admin .tad-rank-n{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--tint);font-weight:800;font-size:13px;color:var(--indigo-2)}
+body.tica-admin .tad-rank li:first-child .tad-rank-n{background:var(--camwood);color:var(--ink)}
+body.tica-admin .tad-rank-b,body.tica-admin .tad-orders li>span:nth-child(2){flex:1;min-width:0}
+body.tica-admin .tad-rank-b b,body.tica-admin .tad-orders b,body.tica-admin .tad-up b{display:block;font-size:14.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.tica-admin .tad-rank-b small,body.tica-admin .tad-orders small{display:block;color:var(--soft);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.tica-admin .tad-rank-v,body.tica-admin .tad-orders-v{flex:none;text-align:right}
+body.tica-admin .tad-rank-v b{font-size:16px}
+body.tica-admin .tad-up li{padding:12px 0;border-top:1px solid var(--line)}
+body.tica-admin .tad-up-d{display:inline-block;margin-bottom:4px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--peach);color:#9A3412}
+body.tica-admin .tad-orders li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+body.tica-admin .tad-orders li>i{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#E0EEFF;color:var(--indigo-2);font:800 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-style:normal}
+body.tica-admin .tad-orders-v b{font-size:14px}
+body.tica-admin .tad-orders-v em{display:inline-block;font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin:2px 0}
+body.tica-admin .st-completed{background:#DCFAE6;color:#067647}
+body.tica-admin .st-free{background:#E0EEFF;color:#1D5FC0}
+body.tica-admin .st-pending{background:var(--peach);color:#9A3412}
+body.tica-admin .st-rejected{background:#FEE4E2;color:#B42318}
+body.tica-admin .tad-life{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+body.tica-admin .tad-life>*{display:block;padding:18px;background:#fff;text-decoration:none!important}
+body.tica-admin .tad-life a:hover{background:#F8FAFD}
+body.tica-admin .tad-life small{display:block;font-size:13px;font-weight:600;color:var(--soft)}
+body.tica-admin .tad-life b{display:block;margin:4px 0 2px;font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+body.tica-admin .tad-life span{display:block;font-size:12.5px;color:#8592A8}
+@media (max-width:1199px){body.tica-admin .tad-grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:991px){body.tica-admin .tad-grid,body.tica-admin .tad-grid.three{grid-template-columns:1fr}}
+@media (max-width:600px){body.tica-admin .tad-hero{padding:24px 20px}body.tica-admin .tad-bars{gap:4px;height:200px}body.tica-admin .tad-bar-l{font-size:10px}body.tica-admin .tad-bar-v{display:none}}
+body.tica-admin .ta-row,body.tica-admin .ta-list li{flex-wrap:wrap}
+body.tica-admin .ta-row>div:first-child,body.tica-admin .ta-list li>div:first-child{flex:1 1 260px;min-width:0}
+@media (max-width:991px){body.tica-admin .sidebar.tsa{width:250px}}
+
+/* ===== Restored dashboard, polished ===== */
+body.tica-admin .tdb-hero{display:flex!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:28px 30px!important;margin-bottom:20px!important;background:linear-gradient(135deg,#fff 0%,#fff 55%,#FFF6EE 100%)!important}
+body.tica-admin .tdb-hero .tica-eyebrow{margin:0 0 6px!important;font-size:12px!important}
+body.tica-admin .tdb-hero h1{font-size:clamp(26px,3vw,34px)!important;font-weight:800!important;letter-spacing:-.02em}
+body.tica-admin .tdb-hero .tica-quick-actions{align-items:center;gap:10px}
+body.tica-admin .tdb-hero .btn{min-height:46px;padding:0 20px!important;gap:8px}
+body.tica-admin .tdb-hero .btn i{font-size:15px;line-height:1}
+body.tica-admin .tdb-priority{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin-bottom:30px}
+body.tica-admin .tdb-priority .tica-priority-card{align-items:center;min-height:96px;padding:16px 18px;border-radius:14px;box-shadow:none;text-decoration:none!important;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+body.tica-admin .tdb-priority a.tica-priority-card:hover{transform:translateY(-2px);border-color:#B9C9E4!important;box-shadow:0 10px 24px rgba(11,36,71,.08)!important}
+body.tica-admin .tdb-priority .tica-priority-icon{flex:0 0 44px;width:44px;height:44px;border-radius:12px;font-size:18px}
+body.tica-admin .tdb-priority .tica-priority-icon.is-blue{background:#E0EEFF;color:#0F4C9E}
+body.tica-admin .tdb-priority .tica-priority-icon.is-orange{background:#FFF1E6;color:#EA580C}
+body.tica-admin .tdb-priority .tica-priority-icon.is-success{background:#DCFAE6;color:#14853D}
+body.tica-admin .tdb-priority .tica-priority-icon.is-danger{background:#FEE4E2;color:#D92D20}
+body.tica-admin .tdb-priority .tica-priority-card p{font-size:11.5px!important;letter-spacing:.05em;color:#526079!important}
+body.tica-admin .tdb-priority .tica-priority-card strong{font-size:22px!important;font-weight:800;font-variant-numeric:tabular-nums}
+body.tica-admin .tdb-priority .tica-priority-card small{font-size:12px!important;color:#6B7A93!important}
+body.tica-admin .tdb-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+body.tica-admin .tdb-head .tica-eyebrow{margin:0 0 4px!important;font-size:12px!important}
+body.tica-admin .tdb-head h2{margin:0;font-size:21px!important;font-weight:800!important}
+body.tica-admin .tdb-link{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--indigo-2)!important;text-decoration:none!important}
+body.tica-admin .tdb-link:hover i{transform:translateX(3px)}
+body.tica-admin .tdb-link i{transition:transform .18s}
+body.tica-admin .tdb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:30px}
+body.tica-admin .tdb-tile{display:flex;align-items:center;gap:16px;min-height:104px;padding:20px 22px;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--ink)!important;text-decoration:none!important;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+body.tica-admin .tdb-tile:hover{transform:translateY(-2px);border-color:#B9C9E4;box-shadow:0 10px 24px rgba(11,36,71,.08)}
+body.tica-admin .tdb-ic{flex:none;width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:21px}
+body.tica-admin .tdb-ic.blue{background:#E0EEFF;color:#0F4C9E}
+body.tica-admin .tdb-ic.orange{background:#FFF1E6;color:#EA580C}
+body.tica-admin .tdb-ic.green{background:#DCFAE6;color:#14853D}
+body.tica-admin .tdb-ic.red{background:#FFE4E6;color:#D92D47}
+body.tica-admin .tdb-ic.purple{background:#EDE9FE;color:#6D3FE0}
+body.tica-admin .tdb-tx{flex:1;min-width:0}
+body.tica-admin .tdb-tx small{display:block;margin-bottom:4px;font-size:13.5px;font-weight:600;color:var(--soft)}
+body.tica-admin .tdb-tx b{display:block;font-size:24px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.tica-admin .tdb-go{flex:none;font-size:20px;color:#B4BFD0;transition:transform .18s,color .18s}
+body.tica-admin .tdb-tile:hover .tdb-go{transform:translateX(3px);color:var(--indigo-2)}
+body.tica-admin .tdb-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+body.tica-admin .tdb-charts .card{border-radius:16px!important;margin:0}
+body.tica-admin .tdb-charts .card-header{border-bottom:0!important;padding-bottom:4px!important}
+body.tica-admin .tdb-charts .card-title{font-size:16px!important}
+body.tica-admin .tdb-chart{position:relative;height:280px}
+@media (max-width:1199px){body.tica-admin .tdb-priority{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.tica-admin .tdb-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:991px){body.tica-admin .tdb-charts{grid-template-columns:1fr}}
+@media (max-width:575px){body.tica-admin .tdb-priority,body.tica-admin .tdb-tiles{grid-template-columns:1fr!important}body.tica-admin .tdb-hero{padding:22px 20px!important}body.tica-admin .tdb-hero .tica-quick-actions{justify-content:flex-start}body.tica-admin .tdb-tx b{font-size:21px}body.tica-admin .tdb-chart{height:230px}}
+
+/* ===== Website hub ===== */
+body.tica-admin .tw-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+body.tica-admin .tw-head .btn i{font-size:14px}
+body.tica-admin .tw-tabs{display:flex;gap:6px;margin:0 0 18px;padding:5px;border-radius:999px;background:#fff;border:1px solid var(--line);width:max-content;max-width:100%;overflow-x:auto}
+body.tica-admin .tw-tabs a{padding:10px 18px;border-radius:999px;font-weight:600;font-size:14.5px;color:var(--soft)!important;text-decoration:none!important;white-space:nowrap;transition:background .15s,color .15s}
+body.tica-admin .tw-tabs a:hover{background:var(--tint);color:var(--ink)!important}
+body.tica-admin .tw-tabs a[aria-current=page]{background:var(--indigo);color:#fff!important}
+body.tica-admin .tw-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+body.tica-admin .tw-intro{margin:0 0 14px;color:var(--soft);font-size:15px}
+body.tica-admin .tw-l{display:block;margin:6px 0 4px;font-weight:700;font-size:14.5px;color:var(--ink)}
+body.tica-admin .tw-hint{display:block;margin-top:5px;color:var(--soft);font-size:13px}
+body.tica-admin .tw-short{min-height:72px!important}
+body.tica-admin .ta-field{margin-top:14px}
+body.tica-admin .ta-card .ta-field:first-of-type{margin-top:4px}
+body.tica-admin .tw-two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+body.tica-admin .tw-rows{display:grid;gap:8px;margin-top:8px}
+body.tica-admin .tw-row{display:grid;gap:8px;align-items:center}
+body.tica-admin .tw-row.two{grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) 40px}
+body.tica-admin .tw-row.three{grid-template-columns:minmax(0,.7fr) minmax(0,1fr) minmax(0,1.2fr) 40px}
+body.tica-admin .tw-row.link{grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr) 40px 40px}
+body.tica-admin .tw-row .form-control{min-height:44px!important}
+body.tica-admin .tw-x,body.tica-admin .tw-up{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--soft);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+body.tica-admin .tw-x:hover{background:#FEF3F2;border-color:#FECDCA;color:#B42318}
+body.tica-admin .tw-up:hover{background:#EAF0FA;border-color:#B9C9E4;color:var(--indigo-2)}
+body.tica-admin .tw-row:first-child .tw-up{visibility:hidden}
+body.tica-admin .tw-add{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:9px 16px;border-radius:999px;border:1.5px dashed #B9C9E4;background:#F8FAFD;color:var(--indigo-2);font:700 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;cursor:pointer;transition:background .15s,border-color .15s}
+body.tica-admin .tw-add:hover{background:#EAF0FA;border-color:var(--indigo-2)}
+body.tica-admin .tw-add[hidden]{display:none}
+body.tica-admin .tw-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+body.tica-admin .tw-photo{position:relative;margin:0;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:var(--tint);border:1px solid var(--line)}
+body.tica-admin .tw-photo img{width:100%;height:100%;object-fit:cover;display:block}
+body.tica-admin .tw-photo .tw-x{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.95);border:0;box-shadow:0 2px 6px rgba(11,36,71,.2)}
+body.tica-admin .tw-add-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed #B9C9E4;background:#F8FAFD;color:var(--indigo-2);font-weight:700;font-size:13.5px;cursor:pointer;text-align:center;padding:8px}
+body.tica-admin .tw-add-photo i{font-size:20px}
+body.tica-admin .tw-add-photo input{position:absolute;inset:0;opacity:0;cursor:pointer}
+body.tica-admin .tw-add-photo:focus-within{outline:3px solid var(--camwood);outline-offset:2px}
+body.tica-admin .tw-logo{position:relative;display:flex;align-items:center;gap:8px;margin:0;height:44px;padding:0 12px;border:1.5px dashed #C5CBD6;border-radius:10px;color:var(--soft);font-size:13.5px;font-weight:600;cursor:pointer;overflow:hidden}
+body.tica-admin .tw-logo img{height:28px;max-width:60px;object-fit:contain}
+body.tica-admin .tw-logo input{position:absolute;inset:0;opacity:0;cursor:pointer}
+body.tica-admin .tw-logo:focus-within{outline:3px solid var(--camwood);outline-offset:2px}
+body.tica-admin .tw-pages{margin:16px 0 0}
+body.tica-admin .tw-pages code{display:inline-block;margin:2px 2px;padding:2px 7px;border-radius:6px;background:#fff;border:1px solid var(--line);color:var(--indigo-2);font-size:12.5px}
+body.tica-admin .tw-save{flex-direction:row-reverse}
+body.tica-admin .tw-reset{margin-right:auto;border:0;background:none;color:#DCE6F5;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:8px 6px}
+body.tica-admin .tw-reset:hover{color:#fff}
+body.tica-admin .tw-side{position:sticky;top:90px;display:grid;gap:10px;padding:18px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+body.tica-admin .tw-side-h{margin:0 0 2px;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8592A8}
+body.tica-admin .tw-doc{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid var(--line);text-decoration:none!important;transition:border-color .15s,transform .15s}
+body.tica-admin .tw-doc:hover{border-color:var(--indigo-2);transform:translateY(-1px)}
+body.tica-admin .tw-doc .ta-ic{width:40px;height:40px;font-size:16px}
+body.tica-admin .tw-doc b{display:block;color:var(--ink);font-size:15px}
+body.tica-admin .tw-doc small{display:block;color:var(--soft);font-size:12.5px}
+body.tica-admin .tw-side-note{margin:4px 0 0;font-size:12.5px;color:var(--soft)}
+body.tica-admin .ta-ic i{font-size:19px}
+@media (max-width:1199px){body.tica-admin .tw-grid{grid-template-columns:1fr}body.tica-admin .tw-side{position:static;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}body.tica-admin .tw-side-h,body.tica-admin .tw-side-note{grid-column:1/-1}}
+@media (max-width:640px){body.tica-admin .tw-row.two,body.tica-admin .tw-row.three,body.tica-admin .tw-row.link{grid-template-columns:1fr 40px}body.tica-admin .tw-row>.form-control,body.tica-admin .tw-row>.tw-logo{grid-column:1}body.tica-admin .tw-row>.tw-x{grid-column:2;grid-row:1}body.tica-admin .tw-row>.tw-up{grid-column:2;grid-row:2}body.tica-admin .tw-two{grid-template-columns:1fr}body.tica-admin .tw-save{flex-direction:column-reverse}body.tica-admin .tw-reset{margin:0}}
+body.tica-admin .tdb-priority{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))!important;margin-bottom:14px}
+body.tica-admin .tdb-todo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 30px;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+body.tica-admin .tdb-todo-h{margin-right:4px;padding-left:6px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8592A8}
+body.tica-admin .tdb-todo a{display:inline-flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:999px;background:var(--tint);color:var(--soft)!important;font-weight:600;font-size:13.5px;text-decoration:none!important;transition:background .15s,color .15s}
+body.tica-admin .tdb-todo a:hover{background:#EAF0FA;color:var(--indigo-2)!important}
+body.tica-admin .tdb-todo a b{min-width:26px;height:26px;padding:0 8px;border-radius:999px;display:inline-grid;place-items:center;background:#fff;color:var(--soft);font-size:12.5px;font-variant-numeric:tabular-nums}
+body.tica-admin .tdb-todo a.has{background:var(--peach);color:#9A3412!important}
+body.tica-admin .tdb-todo a.has b{background:var(--camwood);color:var(--ink)}
+@media (max-width:1199px){body.tica-admin .tdb-priority{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))!important}}
+body.tica-admin .tdb-priority{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media (min-width:1400px){body.tica-admin .tdb-priority{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media (max-width:575px){body.tica-admin .tdb-priority{grid-template-columns:1fr!important}}
+@media (min-width:1400px){body.tica-admin .tdb-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+body.tica-admin label.tw-add-photo{display:flex!important;flex-direction:column}
+body.tica-admin .tw-two>.ta-field{margin-top:4px}
+
+/* =====================================================================
+   Calm theme: one soft blue, quiet greys, thin borders, lighter type.
+   Loaded last, so it settles every page of the admin.
+   ===================================================================== */
+body.tica-admin{--c-bg:#F5F7FA;--c-card:#fff;--c-line:#E6EAF0;--c-line-2:#EEF1F5;--c-ink:#111827;--c-text:#374151;--c-mute:#6B7280;--c-faint:#9AA3B2;--c-blue:#1F5FCC;--c-blue-2:#174DA8;--c-blue-soft:#EEF3FD;--c-blue-line:#D5E0F7;--c-orange:#E39A55;--c-orange-soft:#FEF7EE;--c-green:#12805C;--c-green-soft:#EAF7F1;--c-red:#C2410C;--c-red-soft:#FDF0EC;--c-amber:#B4682E;--c-amber-soft:#FCEBD7;
+  --tint:var(--c-bg);--line:var(--c-line);--ink:var(--c-ink);--soft:var(--c-mute);--indigo:#0B2447;--indigo-2:var(--c-blue);
+  background:var(--c-bg)!important;color:var(--c-text)!important}
+body.tica-admin .main-panel,body.tica-admin .main-panel>.content{background:var(--c-bg)!important}
+body.tica-admin h1,body.tica-admin h2,body.tica-admin h3,body.tica-admin h4,body.tica-admin h5,body.tica-admin .card-title,body.tica-admin .page-title{color:var(--c-ink)!important;font-weight:600!important;letter-spacing:-.01em}
+body.tica-admin .page-header .page-title,body.tica-admin .page-inner>h1,body.tica-admin .page-inner h4.page-title{font-size:24px!important;font-weight:600!important}
+
+/* cards and tables */
+body.tica-admin .card{border:1px solid var(--c-line)!important;border-radius:14px!important;box-shadow:0 1px 2px rgba(17,24,39,.03)!important}
+body.tica-admin .card-header{border-bottom:1px solid var(--c-line-2)!important}
+body.tica-admin .card-title{font-size:16px!important}
+body.tica-admin .table thead th{background:#F8FAFC!important;color:var(--c-mute)!important;font-size:12px!important;font-weight:600!important;letter-spacing:.02em;text-transform:none!important;border-bottom:1px solid var(--c-line)!important}
+body.tica-admin .table td{color:var(--c-text);border-color:var(--c-line-2)!important}
+body.tica-admin .table-hover tbody tr:hover,body.tica-admin .table-striped tbody tr:nth-of-type(odd){background:#FAFBFD!important}
+
+/* buttons: blue is the action colour; outline buttons are quiet */
+body.tica-admin .btn{font-weight:600!important;font-size:14px!important;min-height:42px;padding:10px 18px!important;border-radius:10px!important;transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s!important}
+body.tica-admin .btn:hover{transform:none}
+body.tica-admin .btn-primary,body.tica-admin .btn-success,body.tica-admin .btn-secondary.btn-round{background:var(--c-blue)!important;border:1px solid var(--c-blue)!important;color:#fff!important}
+body.tica-admin .btn-primary:hover,body.tica-admin .btn-success:hover{background:var(--c-blue-2)!important;border-color:var(--c-blue-2)!important}
+body.tica-admin .btn-info,body.tica-admin .btn-secondary,body.tica-admin .btn-light,body.tica-admin .btn-default,body.tica-admin [class*=btn-outline]{background:#fff!important;border:1px solid var(--c-line)!important;color:var(--c-text)!important}
+body.tica-admin .btn-info:hover,body.tica-admin .btn-secondary:hover,body.tica-admin [class*=btn-outline]:hover{border-color:var(--c-blue-line)!important;background:#F8FAFE!important;color:var(--c-blue)!important}
+body.tica-admin .btn-danger{background:#fff!important;border:1px solid #F3D2C6!important;color:var(--c-red)!important}
+body.tica-admin .btn-warning{background:var(--c-amber-soft)!important;border:1px solid #F5DFB5!important;color:var(--c-amber)!important}
+body.tica-admin .btn-sm,body.tica-admin .btn-xs{min-height:32px;padding:6px 12px!important;font-size:13px!important;border-radius:8px!important}
+
+/* badges and status */
+body.tica-admin .badge{font-weight:600!important;font-size:12px!important;padding:5px 10px!important;border:1px solid transparent}
+body.tica-admin .badge-success{background:var(--c-green-soft)!important;color:var(--c-green)!important;border-color:#CDEBDD}
+body.tica-admin .badge-warning{background:var(--c-amber-soft)!important;color:var(--c-amber)!important;border-color:#F5DFB5}
+body.tica-admin .badge-danger{background:var(--c-red-soft)!important;color:var(--c-red)!important;border-color:#F3D2C6}
+body.tica-admin .badge-primary,body.tica-admin .badge-info{background:var(--c-blue-soft)!important;color:var(--c-blue)!important;border-color:var(--c-blue-line)}
+
+/* forms */
+body.tica-admin .form-control,body.tica-admin .custom-select,body.tica-admin select.form-control{border:1px solid #D9DFE8!important;border-radius:10px!important;font-weight:400!important;font-size:14.5px!important;min-height:44px}
+body.tica-admin .form-control:focus{border-color:var(--c-blue)!important;box-shadow:0 0 0 3px rgba(31,95,204,.12)!important}
+body.tica-admin label,body.tica-admin .form-label{font-weight:600;color:var(--c-ink)}
+
+/* top bar */
+body.tica-admin .main-header,body.tica-admin .logo-header{border-color:var(--c-line)!important;box-shadow:none!important}
+body.tica-admin .tica-topbar-kicker{background:var(--c-blue-soft)!important;color:var(--c-blue)!important}
+body.tica-admin .tica-topbar-context strong{font-weight:600!important}
+
+/* sidebar */
+body.tica-admin .sidebar{border-right:1px solid var(--c-line)!important}
+body.tica-admin .sidebar .user{border-bottom:1px solid var(--c-line-2)!important}
+body.tica-admin .sidebar .user .info a>span{font-weight:600!important}
+body.tica-admin .sidebar .nav>.nav-item>a{min-height:40px!important;border-radius:10px!important;color:#4B5563!important;position:relative}
+body.tica-admin .sidebar .nav>.nav-item>a p{font-weight:500!important;font-size:14px!important}
+body.tica-admin .sidebar .nav>.nav-item>a i{color:#8A94A6!important;font-size:16px!important}
+body.tica-admin .sidebar .nav>.nav-item>a:hover{background:#F6F8FB!important;color:var(--c-ink)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a,html body.tica-admin .sidebar .nav>.nav-item.active>a{background:var(--c-blue-soft)!important;color:var(--c-blue)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a i,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a i{color:var(--c-blue)!important;font-weight:600!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:after{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--c-blue)}
+body.tica-admin .sidebar .nav-collapse li a .sub-item{font-weight:500!important;color:var(--c-mute)!important;font-size:13.5px!important}
+body.tica-admin .sidebar .nav-collapse li.active>a .sub-item,body.tica-admin .sidebar .nav-collapse li a:hover .sub-item{color:var(--c-blue)!important;font-weight:600!important}
+body.tica-admin .sidebar .nav-section{padding:16px 14px 6px!important}
+body.tica-admin .sidebar .nav-section .text-section{font-size:11px!important;font-weight:600!important;letter-spacing:.08em;color:var(--c-faint)!important;text-transform:uppercase}
+body.tica-admin .sidebar .sidebar-search{background:#F6F8FB!important;border-color:var(--c-line)!important}
+
+/* settings and website pages: one icon style, quiet save bar */
+body.tica-admin .ta-ic,body.tica-admin .ta-ic.orange,body.tica-admin .ta-ic.blue,body.tica-admin .ta-ic.green,body.tica-admin .ta-ic.purple{background:#fff!important;color:var(--c-blue)!important;border:1px solid var(--c-line);width:40px;height:40px;border-radius:10px}
+body.tica-admin .ta-ic i{font-size:17px}
+body.tica-admin .ta-card,body.tica-admin .tw-side,body.tica-admin .tw-tabs{border-color:var(--c-line)!important}
+body.tica-admin .ta-card{border-radius:14px!important}
+body.tica-admin .ta-card-h h2{font-size:17px!important;font-weight:600!important}
+body.tica-admin .ta-head h1{font-size:26px!important;font-weight:600!important}
+body.tica-admin .ta-kicker{color:var(--c-blue)!important;font-weight:600!important}
+body.tica-admin .ta-row label,body.tica-admin .ta-row .ta-l,body.tica-admin .ta-list label,body.tica-admin .tw-l,body.tica-admin .ta-field label{font-weight:600!important;font-size:14.5px!important}
+body.tica-admin .ta-sw:checked{background:var(--c-blue)}
+body.tica-admin .ta-seg input:checked+span,body.tica-admin .tw-tabs a[aria-current=page]{background:var(--c-blue-soft)!important;color:var(--c-blue)!important;box-shadow:inset 0 0 0 1px var(--c-blue-line)}
+body.tica-admin .ta-example{background:#F8FAFE;border-color:var(--c-blue-line)}
+body.tica-admin .ta-example span{color:var(--c-blue)}
+body.tica-admin .ta-save{background:#fff!important;border:1px solid var(--c-line);border-radius:14px!important;box-shadow:0 8px 24px rgba(17,24,39,.08)!important}
+body.tica-admin .ta-save p{color:var(--c-mute)!important}
+body.tica-admin .tw-reset{color:var(--c-mute)!important}
+body.tica-admin .tw-reset:hover{color:var(--c-red)!important}
+body.tica-admin .tag-orange{background:var(--c-amber-soft);color:var(--c-amber)}
+body.tica-admin .ta-cur:has(input:checked){background:#F8FAFE;border-color:var(--c-blue-line)}
+
+/* ===== dashboard (calm) ===== */
+body.tica-admin .cd{display:grid;gap:18px}
+body.tica-admin .cd-top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:6px}
+body.tica-admin .cd-crumb{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:13px;color:var(--c-faint)}
+body.tica-admin .cd-crumb b{color:var(--c-text);font-weight:500}
+body.tica-admin .cd-crumb i{font-style:normal}
+body.tica-admin .cd-top h1{margin:0 0 4px;font-size:26px!important;font-weight:600!important}
+body.tica-admin .cd-top p{margin:0;color:var(--c-mute);font-size:14.5px}
+body.tica-admin .cd-actions{display:flex;flex-wrap:wrap;gap:10px}
+body.tica-admin .cd-btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--c-line);background:#fff;color:var(--c-ink)!important;font-weight:600;font-size:14px;text-decoration:none!important;transition:border-color .15s,background .15s,color .15s}
+body.tica-admin .cd-btn:hover{border-color:var(--c-blue-line);background:#F8FAFE;color:var(--c-blue)!important}
+body.tica-admin .cd-btn.primary{background:var(--c-blue);border-color:var(--c-blue);color:#fff!important}
+body.tica-admin .cd-btn.primary:hover{background:var(--c-blue-2);border-color:var(--c-blue-2);color:#fff!important}
+body.tica-admin .cd-btn.sm{height:34px;padding:0 12px;font-size:13px;border-radius:8px}
+body.tica-admin .cd-card{background:#fff;border:1px solid var(--c-line);border-radius:14px;box-shadow:0 1px 2px rgba(17,24,39,.03)}
+body.tica-admin .cd-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+body.tica-admin .cd-kpi{display:flex;flex-direction:column;padding:18px 18px 16px;text-decoration:none!important;transition:border-color .15s,box-shadow .15s}
+body.tica-admin .cd-kpi:hover{border-color:var(--c-blue-line);box-shadow:0 6px 18px rgba(17,24,39,.06)}
+body.tica-admin .cd-kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+body.tica-admin .cd-ic{width:40px;height:40px;border-radius:10px;border:1px solid var(--c-line);display:grid;place-items:center;color:var(--c-blue);font-size:17px;background:#fff}
+body.tica-admin .cd-info{color:var(--c-faint);font-size:15px;cursor:help}
+body.tica-admin .cd-kpi-l{font-size:13.5px;color:var(--c-mute);margin-bottom:4px}
+body.tica-admin .cd-kpi-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+body.tica-admin .cd-kpi-row b{font-size:22px;font-weight:600;color:var(--c-ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+body.tica-admin .cd-chg{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:6px;font-style:normal;font-size:12px;font-weight:600;border:1px solid var(--c-line);color:var(--c-mute);background:#fff}
+body.tica-admin .cd-chg i{font-size:11px}
+body.tica-admin .cd-chg.up{color:var(--c-green);border-color:#CDEBDD;background:var(--c-green-soft)}
+body.tica-admin .cd-chg.down{color:var(--c-red);border-color:#F3D2C6;background:var(--c-red-soft)}
+body.tica-admin .cd-chg.plain{border:0;background:none;padding:0}
+body.tica-admin .cd-wait{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px}
+body.tica-admin .cd-wait-h{padding:0 8px 0 6px;font-size:13px;font-weight:600;color:var(--c-ink)}
+body.tica-admin .cd-wait a{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 6px 0 12px;border-radius:999px;border:1px solid var(--c-line);color:var(--c-mute)!important;font-size:13px;font-weight:500;text-decoration:none!important;transition:border-color .15s,color .15s}
+body.tica-admin .cd-wait a i{color:var(--c-faint)}
+body.tica-admin .cd-wait a b{min-width:24px;height:24px;padding:0 7px;border-radius:999px;display:inline-grid;place-items:center;background:#F3F5F8;color:var(--c-mute);font-size:12px;font-weight:600}
+body.tica-admin .cd-wait a:hover{border-color:var(--c-blue-line);color:var(--c-blue)!important}
+body.tica-admin .cd-wait a.has{color:var(--c-ink)!important;border-color:#F6D6BF;background:var(--c-orange-soft)}
+body.tica-admin .cd-wait a.has i{color:var(--c-orange)}
+body.tica-admin .cd-wait a.has b{background:var(--c-orange);color:#fff}
+body.tica-admin .cd-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:16px}
+body.tica-admin .cd-card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--c-line-2)}
+body.tica-admin .cd-card-h h2{margin:0;font-size:16px!important;font-weight:600!important}
+body.tica-admin .cd-pill{height:32px;display:inline-flex;align-items:center;padding:0 12px;border-radius:8px;border:1px solid var(--c-line);font-size:13px;color:var(--c-mute)}
+body.tica-admin .cd-chart-sum{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:16px 20px 0}
+body.tica-admin .cd-chart-sum>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+body.tica-admin .cd-chart-sum b{font-size:26px;font-weight:600;color:var(--c-ink)}
+body.tica-admin .cd-chart-sum span{font-size:13px;color:var(--c-mute)}
+body.tica-admin .cd-legend{display:flex;gap:16px;margin:0;padding:0;list-style:none;font-size:13px;color:var(--c-mute)}
+body.tica-admin .cd-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+body.tica-admin .cd-legend i.blue{background:var(--c-blue)}body.tica-admin .cd-legend i.grey{background:#DCE3EE}
+body.tica-admin .cd-canvas{position:relative;height:290px;padding:10px 16px 16px}
+body.tica-admin .cd-users{display:flex;flex-direction:column}
+body.tica-admin .cd-donut{position:relative;width:190px;height:190px;margin:22px auto 14px}
+body.tica-admin .cd-donut canvas{width:190px!important;height:190px!important}
+body.tica-admin .cd-donut-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+body.tica-admin .cd-donut-c b{font-size:24px;font-weight:600;color:var(--c-ink)}
+body.tica-admin .cd-donut-c span{font-size:12.5px;color:var(--c-mute)}
+body.tica-admin .cd-split{list-style:none;margin:0;padding:0 20px 14px}
+body.tica-admin .cd-split li{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--c-line-2);font-size:14px;color:var(--c-text)}
+body.tica-admin .cd-split li:first-child{border-top:0}
+body.tica-admin .cd-split i{width:9px;height:9px;border-radius:50%}
+body.tica-admin .cd-split b{margin-left:auto;font-weight:600;color:var(--c-ink)}
+body.tica-admin .cd-scroll{overflow-x:auto;padding:0 20px 8px}
+body.tica-admin .cd-table table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+body.tica-admin .cd-table th{padding:12px;background:#F8FAFC;color:var(--c-mute);font-weight:600;font-size:12.5px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--c-line)}
+body.tica-admin .cd-table th:first-child{border-radius:8px 0 0 8px}body.tica-admin .cd-table th:last-child{border-radius:0 8px 8px 0}
+body.tica-admin .cd-table thead tr{box-shadow:0 0 0 1px var(--c-line);border-radius:8px}
+body.tica-admin .cd-table td{padding:14px 12px;border-bottom:1px solid var(--c-line-2);color:var(--c-text);white-space:nowrap}
+body.tica-admin .cd-table tbody tr:last-child td{border-bottom:0}
+body.tica-admin .cd-table tbody tr:hover td{background:#FAFBFD}
+body.tica-admin .cd-table .cd-card-h{margin-bottom:12px}
+body.tica-admin .cd-mono{font-variant-numeric:tabular-nums;color:var(--c-mute)!important;font-size:13px}
+body.tica-admin .cd-num{font-weight:600;color:var(--c-ink)!important;font-variant-numeric:tabular-nums}
+body.tica-admin .cd-who{display:inline-flex;align-items:center;gap:10px;color:var(--c-ink);font-weight:500}
+body.tica-admin .cd-who i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--c-blue-soft);color:var(--c-blue);font-style:normal;font-size:12px;font-weight:600}
+body.tica-admin .cd-st{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid}
+body.tica-admin .cd-st:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+body.tica-admin .cd-st.pending,body.tica-admin .cd-st.held,body.tica-admin .cd-st.processing{color:var(--c-amber);background:var(--c-amber-soft);border-color:#F5DFB5}
+body.tica-admin .cd-st.paid{color:var(--c-green);background:var(--c-green-soft);border-color:#CDEBDD}
+body.tica-admin .cd-st.declined{color:var(--c-red);background:var(--c-red-soft);border-color:#F3D2C6}
+body.tica-admin .cd-act a{width:32px;height:32px;border-radius:8px;display:inline-grid;place-items:center;background:var(--c-blue-soft);color:var(--c-blue)!important}
+body.tica-admin .cd-empty{margin:0;padding:28px;text-align:center;color:var(--c-mute)}
+body.tica-admin .cd-glance-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+body.tica-admin .cd-glance-row a{display:block;padding:16px 20px;border-left:1px solid var(--c-line-2);text-decoration:none!important;transition:background .15s}
+body.tica-admin .cd-glance-row a:first-child{border-left:0}
+body.tica-admin .cd-glance-row a:hover{background:#FAFBFD}
+body.tica-admin .cd-glance-row span{display:block;font-size:13px;color:var(--c-mute);margin-bottom:4px}
+body.tica-admin .cd-glance-row b{font-size:20px;font-weight:600;color:var(--c-ink);font-variant-numeric:tabular-nums}
+@media (max-width:1199px){body.tica-admin .cd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}body.tica-admin .cd-row{grid-template-columns:1fr}}
+@media (max-width:575px){body.tica-admin .cd-kpis{grid-template-columns:1fr}body.tica-admin .cd-canvas{height:230px}body.tica-admin .cd-glance-row a{border-left:0;border-top:1px solid var(--c-line-2)}body.tica-admin .cd-actions{width:100%}body.tica-admin .cd-actions .cd-btn{flex:1;justify-content:center}}
+body.tica-admin .cd-clear{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--c-green);font-weight:500}
+body.tica-admin .cd-wait-note{margin-left:auto;font-size:12.5px;color:var(--c-faint)}
+@media (max-width:1199px){body.tica-admin .cd-wait-note{display:none}}
+body.tica-admin .tica-topbar-context,body.tica-admin .tica-topbar-context *{white-space:nowrap}
+body.tica-admin .cd-table th{text-transform:none!important;letter-spacing:0!important}
+body.tica-admin .cd>*,body.tica-admin .cd-row>*{min-width:0}
+@media (max-width:991px){body.tica-admin .wrapper{overflow-x:hidden}body.tica-admin .main-header .logo-header{max-width:100vw}}
+body.tica-admin .cd-btn{white-space:nowrap}
+@media (max-width:575px){body.tica-admin .cd-actions .cd-btn{padding:0 12px;font-size:13.5px}}
+
+/* TICA admin dashboard — warm 60 / navy 30 / orange 10. */
+body.tica-admin{
+  --c-bg:#f7f6f2;
+  --c-card:#fffdfb;
+  --c-line:#e7e2dc;
+  --c-line-2:#f0ece7;
+  --c-ink:#0b2447;
+  --c-text:#34445b;
+  --c-mute:#68758a;
+  --c-orange:#E39A55;
+  --c-orange-soft:#fff1e6;
+}
+body.tica-admin .main-panel,body.tica-admin .main-panel>.content{
+  background:radial-gradient(circle at 90% 0,rgba(227,154,85,.055),transparent 24rem),var(--c-bg)!important;
+}
+body.tica-admin .sidebar{background:#fffdfb!important;border-right:1px solid var(--c-line)!important;box-shadow:8px 0 26px rgba(52,40,27,.045)!important}
+body.tica-admin .sidebar .user{border-color:var(--c-line-2)!important}
+body.tica-admin .sidebar .user .info>a>span,
+body.tica-admin .sidebar .user .info .user-level,
+body.tica-admin .sidebar .user .info a,
+body.tica-admin .sidebar .nav>.nav-item a p,
+body.tica-admin .sidebar .nav>.nav-item a i,
+body.tica-admin .sidebar .caret{color:#526079!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a,
+html body.tica-admin .sidebar .nav>.nav-item.active>a{background:var(--c-orange-soft)!important;color:var(--c-ink)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a p,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a i,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a p,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a i{color:var(--c-ink)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:after,
+body.tica-admin .sidebar .nav>.nav-item.active>a:before{background:var(--c-orange)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:before{display:none!important}
+body.tica-admin .sidebar .nav-collapse li.active>a .sub-item,
+body.tica-admin .sidebar .nav-collapse li a:hover .sub-item{color:#a45115!important}
+body.tica-admin .sidebar .sidebar-search{background:#fffaf6!important;border-color:var(--c-line)!important;color:var(--c-ink)!important}
+body.tica-admin .sidebar .sidebar-search::placeholder{color:#9a8e82}
+
+body.tica-admin .cd{position:relative;animation:tica-admin-arrive .38s cubic-bezier(.2,.72,.25,1) both}
+body.tica-admin .cd-top{position:relative;isolation:isolate}
+body.tica-admin .cd-top::after{
+  content:"";position:absolute;right:2px;top:-2px;z-index:-1;width:82px;height:34px;opacity:.32;
+  background-image:radial-gradient(circle,var(--c-orange) 1.25px,transparent 1.5px);background-size:10px 10px;
+}
+body.tica-admin .cd-card{background:var(--c-card)!important;border-color:var(--c-line)!important}
+body.tica-admin .cd-kpi:first-child .cd-ic,
+body.tica-admin .cd-kpi:nth-child(4n+4) .cd-ic{background:var(--c-orange-soft);border-color:#f2c7a8;color:var(--c-orange)}
+body.tica-admin .cd-btn.primary{background:var(--c-ink);border-color:var(--c-ink)}
+body.tica-admin .cd-btn.primary:hover{background:#153b63;border-color:#153b63}
+body.tica-admin .cd-btn:hover{border-color:#f2c7a8;background:#fffaf5;color:var(--c-ink)!important}
+body.tica-admin .cd-kpi:hover{transform:translateY(-2px);border-color:#f2c7a8;box-shadow:0 9px 24px rgba(52,40,27,.07)}
+body.tica-admin .cd-wait a.has{border-color:#f2c7a8;background:var(--c-orange-soft)}
+body.tica-admin .cd-wait a.has i{color:var(--c-orange)}
+body.tica-admin .cd-wait a.has b{background:var(--c-orange)}
+body.tica-admin .cd-pill{background:#fffaf5;border-color:var(--c-line)}
+body.tica-admin .cd-legend i.blue{background:var(--c-ink)}
+body.tica-admin .cd-split li:last-child i{background:var(--c-orange)!important}
+body.tica-admin .cd-kpi,body.tica-admin .cd-btn{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease}
+body.tica-admin .cd-btn:active{transform:translateY(1px)}
+@keyframes tica-admin-arrive{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){body.tica-admin .cd{animation:none!important}body.tica-admin .cd-kpi,body.tica-admin .cd-btn{transition-duration:.01ms!important}}
+
+/* =====================================================================
+   List pages: the template's card headers squeeze filters into fixed
+   Bootstrap columns. Let the title sit left and the controls flow right,
+   each at its natural width, wrapping cleanly when space runs out.
+   ===================================================================== */
+body.tica-admin .card-header{padding:16px 20px!important}
+body.tica-admin .card-header>.row{display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;margin:0!important}
+body.tica-admin .card-header>.row>[class*=col-]{flex:1 1 auto;width:auto;max-width:100%;padding:0!important}
+body.tica-admin .card-header>.row>[class*=col-]:first-child{flex:0 1 auto;margin-right:auto;padding-right:16px!important}
+body.tica-admin .card-header>.row>[class*=col-]:first-child:last-child{flex:1 1 auto}
+body.tica-admin .card-header>.row>[class*=col-]:not(:first-child){display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
+body.tica-admin .card-header>.row>[class*=col-]>.row{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin:0!important;width:100%}
+body.tica-admin .card-header>.row>[class*=col-]>.row>[class*=col-]{flex:0 1 auto;width:auto;max-width:100%;padding:0!important;margin:0!important}
+body.tica-admin .card-header>.row>[class*=col-]>.row>[class*=col-]:empty,body.tica-admin .card-header [class*=col-]:not(:has(:not(.d-none))){display:none}
+body.tica-admin .card-header form:not(.row){margin:0!important;display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+body.tica-admin .card-header form label{margin:0!important;white-space:nowrap;font-size:13.5px;font-weight:600;color:var(--c-mute)}
+body.tica-admin .card-header .form-control,body.tica-admin .card-header select{height:40px!important;min-height:40px!important;font-size:14px!important;padding:0 12px!important}
+body.tica-admin .card-header input.form-control{min-width:200px}
+body.tica-admin .card-header select.form-control{min-width:120px;padding-right:30px!important}
+body.tica-admin .card-header .form-control-sm{min-width:84px!important}
+body.tica-admin .card-header .btn{min-height:40px;height:40px;padding:0 14px!important;white-space:nowrap;float:none!important;margin:0!important}
+body.tica-admin .card-header .btn.d-none{display:none!important}
+body.tica-admin .card-header .btn-link{color:var(--c-blue)!important;padding:0 6px!important}
+body.tica-admin .card-header .card-title{margin:0!important;font-size:17px!important;line-height:1.3}
+body.tica-admin .card-header .card-title+*{margin-top:2px}
+body.tica-admin .card-header input[type=search],body.tica-admin .card-header input[name*=search],body.tica-admin .card-header input[placeholder*=Search],body.tica-admin .card-header input[placeholder*=search]{padding-left:36px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239AA3B2' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 12px center/16px no-repeat!important}
+@media (max-width:767px){body.tica-admin .card-header>.row>[class*=col-]{flex:1 1 100%}body.tica-admin .card-header>.row>[class*=col-]:not(:first-child),body.tica-admin .card-header>.row>[class*=col-]>.row{justify-content:flex-start}body.tica-admin .card-header>.row>[class*=col-]>.row>[class*=col-]{flex:1 1 100%}body.tica-admin .card-header form{width:100%}body.tica-admin .card-header form .form-control{flex:1;min-width:0}}
+
+/* Dashboard layout repair: use the available admin canvas and keep every
+   control/card aligned as the viewport contracts. */
+body.tica-admin .page-inner {
+  width: 100%;
+  max-width: 1760px;
+  margin-inline: auto;
+  padding: clamp(24px, 2.4vw, 44px) clamp(20px, 2.6vw, 48px) 48px !important;
+}
+
+body.tica-admin .cd {
+  width: 100%;
+  gap: clamp(14px, 1.25vw, 20px);
+}
+
+body.tica-admin .cd-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: 24px;
+  row-gap: 16px;
+  padding-bottom: 4px;
+}
+
+body.tica-admin .cd-top > div:first-child { min-width: 0; }
+body.tica-admin .cd-top p { max-width: 68ch; }
+body.tica-admin .cd-actions { align-items: center; justify-content: flex-end; }
+body.tica-admin .cd-actions .cd-btn { min-width: max-content; }
+
+body.tica-admin .cd-kpis {
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  gap: clamp(12px, 1.1vw, 18px);
+}
+
+body.tica-admin .cd-kpi {
+  min-height: 160px;
+  padding: 20px;
+}
+
+body.tica-admin .cd-kpi-top { margin-bottom: auto; padding-bottom: 18px; }
+body.tica-admin .cd-kpi-row { align-items: flex-end; }
+body.tica-admin .cd-kpi-row b { line-height: 1.15; }
+
+body.tica-admin .cd-wait {
+  display: grid;
+  grid-template-columns: auto repeat(3, auto) minmax(180px, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+body.tica-admin .cd-wait-h { white-space: nowrap; }
+body.tica-admin .cd-wait-note {
+  min-width: 0;
+  margin-left: 12px;
+  text-align: right;
+  line-height: 1.35;
+}
+
+body.tica-admin .cd-row {
+  grid-template-columns: minmax(0, 2.15fr) minmax(300px, .95fr);
+  align-items: stretch;
+  gap: clamp(14px, 1.25vw, 20px);
+}
+
+body.tica-admin .cd-chart,
+body.tica-admin .cd-users { min-height: 440px; }
+
+body.tica-admin .cd-chart { display: flex; flex-direction: column; }
+body.tica-admin .cd-canvas { flex: 1 1 auto; min-height: 270px; height: auto; }
+body.tica-admin .cd-users { justify-content: flex-start; }
+body.tica-admin .cd-users .cd-split { margin-top: auto; }
+
+body.tica-admin .cd-card-h { min-height: 62px; }
+body.tica-admin .cd-scroll { max-width: 100%; padding-bottom: 12px; }
+body.tica-admin .cd-glance-row { grid-template-columns: repeat(7, minmax(105px, 1fr)); }
+body.tica-admin .cd-glance-row a { min-width: 0; }
+
+@media (max-width: 1499px) {
+  body.tica-admin .page-inner { padding-inline: 28px !important; }
+  body.tica-admin .cd-kpis { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+  body.tica-admin .cd-wait { grid-template-columns: auto repeat(3, auto); }
+  body.tica-admin .cd-wait-note { grid-column: 1 / -1; margin: 2px 6px 0; text-align: left; }
+  body.tica-admin .cd-glance-row { grid-template-columns: repeat(4, minmax(120px, 1fr)); }
+  body.tica-admin .cd-glance-row a:nth-child(5) { border-left: 0; border-top: 1px solid var(--c-line-2); }
+  body.tica-admin .cd-glance-row a:nth-child(n+6) { border-top: 1px solid var(--c-line-2); }
+}
+
+@media (max-width: 1099px) {
+  body.tica-admin .cd-top { grid-template-columns: 1fr; align-items: start; }
+  body.tica-admin .cd-actions { justify-content: flex-start; }
+  body.tica-admin .cd-row { grid-template-columns: 1fr; }
+  body.tica-admin .cd-chart,
+  body.tica-admin .cd-users { min-height: 0; }
+  body.tica-admin .cd-users { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(260px, 1fr); }
+  body.tica-admin .cd-users .cd-card-h { grid-column: 1 / -1; }
+  body.tica-admin .cd-users .cd-split { align-self: center; margin: 0; padding: 16px 22px; }
+}
+
+@media (max-width: 767px) {
+  body.tica-admin .page-inner { padding: 20px 16px 36px !important; }
+  body.tica-admin .cd-kpis { grid-template-columns: 1fr; }
+  body.tica-admin .cd-kpi { min-height: 148px; }
+  body.tica-admin .cd-wait { display: flex; align-items: stretch; }
+  body.tica-admin .cd-wait-h { width: 100%; padding: 2px 4px 4px; }
+  body.tica-admin .cd-wait a { flex: 1 1 180px; justify-content: space-between; }
+  body.tica-admin .cd-wait-note { width: 100%; margin: 4px; text-align: left; }
+  body.tica-admin .cd-users { display: flex; }
+  body.tica-admin .cd-glance-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.tica-admin .cd-glance-row a,
+  body.tica-admin .cd-glance-row a:nth-child(5) { border-top: 1px solid var(--c-line-2); }
+  body.tica-admin .cd-glance-row a:nth-child(odd) { border-left: 0; }
+  body.tica-admin .cd-glance-row a:nth-child(-n+2) { border-top: 0; }
+}
+
+@media (max-width: 479px) {
+  body.tica-admin .cd-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  body.tica-admin .cd-actions .cd-btn { width: 100%; justify-content: center; }
+  body.tica-admin .cd-chart-sum { align-items: flex-start; flex-direction: column; }
+  body.tica-admin .cd-glance-row { grid-template-columns: 1fr; }
+  body.tica-admin .cd-glance-row a { border-left: 0; border-top: 1px solid var(--c-line-2) !important; }
+  body.tica-admin .cd-glance-row a:first-child { border-top: 0 !important; }
+}
+
+/* tables: quiet header, comfortable rows, one-line headings */
+body.tica-admin .table-responsive{border:1px solid var(--c-line);border-radius:12px;background:#fff}
+body.tica-admin .table-responsive>.table{margin:0!important}
+body.tica-admin .table thead th{white-space:nowrap;padding:12px 14px!important;vertical-align:middle!important}
+body.tica-admin .table thead th:first-child{border-top-left-radius:12px}body.tica-admin .table thead th:last-child{border-top-right-radius:12px}
+body.tica-admin .table td{padding:13px 14px!important;font-size:14px;line-height:1.45}
+body.tica-admin .table tbody tr:last-child td{border-bottom:0!important}
+body.tica-admin .table-striped tbody tr:nth-of-type(odd){background:#fff!important}
+body.tica-admin .table tbody tr:hover{background:#FAFBFD!important}
+body.tica-admin .table td a:not(.btn){color:var(--c-blue);font-weight:500}
+body.tica-admin .table td .btn{white-space:nowrap}
+body.tica-admin .table td .dropdown-toggle{min-height:32px;height:32px;padding:0 12px!important;font-size:13px!important}
+body.tica-admin .table input[type=checkbox]{width:16px;height:16px;accent-color:var(--c-blue)}
+body.tica-admin .table td img{border-radius:8px}
+body.tica-admin .table .badge{white-space:nowrap}
+
+/* dropdown menus in rows */
+body.tica-admin .dropdown-menu{border:1px solid var(--c-line)!important;border-radius:12px!important;box-shadow:0 12px 30px rgba(17,24,39,.12)!important;padding:6px!important}
+body.tica-admin .dropdown-item{border-radius:8px;padding:8px 12px!important;font-size:14px;color:var(--c-text)!important}
+body.tica-admin .dropdown-item:hover{background:var(--c-blue-soft)!important;color:var(--c-blue)!important}
+
+/* pagination and DataTables controls */
+body.tica-admin .pagination{gap:6px;flex-wrap:wrap;margin:16px 0 0}
+body.tica-admin .page-link{min-width:36px;height:36px;display:grid;place-items:center;padding:0 10px!important;border:1px solid var(--c-line)!important;border-radius:8px!important;color:var(--c-text)!important;font-size:13.5px;font-weight:500;background:#fff}
+body.tica-admin .page-item.active .page-link{background:var(--c-blue-soft)!important;border-color:var(--c-blue-line)!important;color:var(--c-blue)!important;font-weight:600}
+body.tica-admin .page-item.disabled .page-link{color:var(--c-faint)!important;background:#FAFBFC}
+body.tica-admin .page-link:hover{border-color:var(--c-blue-line)!important;color:var(--c-blue)!important}
+body.tica-admin .dataTables_wrapper .row{margin:0;align-items:center}
+body.tica-admin .dataTables_length label,body.tica-admin .dataTables_filter label,body.tica-admin .dataTables_info{font-size:13.5px;color:var(--c-mute);font-weight:500}
+body.tica-admin .dataTables_length select,body.tica-admin .dataTables_filter input{height:38px!important;min-height:38px!important;border:1px solid var(--c-line)!important;border-radius:8px!important;margin:0 6px!important}
+body.tica-admin .dataTables_filter input{min-width:220px}
+
+/* page title row */
+body.tica-admin .page-header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-bottom:18px!important}
+body.tica-admin .page-header .breadcrumbs{margin:0!important;padding-left:14px!important}
+body.tica-admin .page-header .breadcrumbs li,body.tica-admin .page-header .breadcrumbs a{font-size:13px!important;color:var(--c-faint)!important}
+body.tica-admin .page-header .breadcrumbs .nav-item:last-child a{color:var(--c-text)!important}
+body.tica-admin .card-header>.row>[class*=col-]>.row>[class*=col-]{display:flex;align-items:center;gap:6px}
+body.tica-admin .table td{white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+body.tica-admin .table td a:not(.btn){display:inline-block;max-width:260px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+body.tica-admin .table td.text-wrap,body.tica-admin .table td p{white-space:normal}
+body.tica-admin .card-header select.form-control,body.tica-admin .card-header .custom-select{max-width:220px}
+body.tica-admin .card-header>.row>[class*=col-]:not(:first-child)>select,body.tica-admin .card-header>.row>[class*=col-]:not(:first-child)>.form-group{flex:0 1 220px}
+body.tica-admin .table select.form-control,body.tica-admin .table .custom-select{min-width:118px!important;height:34px!important;min-height:34px!important;font-size:13px!important;padding:0 28px 0 10px!important;border-radius:8px!important}
+body.tica-admin .table td .btn:not(.dropdown-toggle){min-height:32px;height:32px;padding:0 12px!important;font-size:13px!important;border-radius:8px!important}
+body.tica-admin .card-header input.form-control{min-width:240px}
+body.tica-admin .table td:has(form,textarea,details,br,p,ul,ol,.form-group),body.tica-admin .table-bordered td{white-space:normal;max-width:none;overflow:visible;text-overflow:clip}
+body.tica-admin .card-header>.row>[class*=col-]:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+body.tica-admin .card-header>.row>[class*=col-]:first-child .card-title{margin-right:6px!important}
+/* filter forms built as a Bootstrap row: a wrapping grid of labelled fields */
+body.tica-admin .card-header form.row,body.tica-admin .card-body>form.row{display:flex!important;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:12px 0 0!important;padding:14px;border-radius:12px;background:#F8FAFC;border:1px solid var(--c-line-2)}
+body.tica-admin .card-header form.row>[class*=col-],body.tica-admin .card-body>form.row>[class*=col-]{flex:1 1 160px;max-width:none;width:auto;padding:0!important;margin:0!important}
+body.tica-admin .card-header form.row>[class*=col-]:has(>.btn:only-child),body.tica-admin .card-header form.row>[class*=col-]:has(>button:only-child){flex:0 0 auto}
+body.tica-admin .card-header form.row label{display:block;margin:0 0 6px!important;font-size:12.5px!important;font-weight:600;color:var(--c-mute);text-align:left}
+body.tica-admin .card-header form.row .form-control{width:100%;min-width:0!important;max-width:none}
+body.tica-admin .card-header form.row .btn-block{width:auto;padding:0 22px!important}
+body.tica-admin .card-header .border-top{border-color:var(--c-line-2)!important;margin-top:14px;gap:8px}
+body.tica-admin .card-header .border-top .btn,body.tica-admin .card-header .border-top form{margin:0!important}
+body.tica-admin .card-header form.row>[class*=col-]{display:block!important;flex:1 1 160px!important;margin:0!important;padding:0!important}
+body.tica-admin .card-header form.row>[class*=col-]:has(>button:only-child){flex:0 0 auto!important}
+body.tica-admin .card-header form.row .form-group{margin:0!important}
+
+/* TICA UI Test admin — shared calm workspace tokens. */
+body.tica-admin{--c-bg:#f6f8fc;--c-card:#fff;--c-line:#e3e8f1;--c-line-2:#eef1f6;--c-ink:#12213a;--c-text:#344054;--c-mute:#667085;--c-faint:#98a2b3;--c-blue:#2f5bd3;--c-blue-2:#244ab7;--c-blue-soft:#eef2ff;--c-blue-line:#cad5fa;--c-orange:#E39A55;--c-orange-soft:#FEF7EE;--c-green:#15704a;--c-green-soft:#eaf7f0;--tint:var(--c-bg);--line:var(--c-line);--ink:var(--c-ink);--soft:var(--c-mute);--indigo-2:var(--c-blue);background:var(--c-bg)!important;color:var(--c-text)!important}
+body.tica-admin .main-panel,body.tica-admin .main-panel>.content{background:var(--c-bg)!important;background-image:none!important}
+body.tica-admin .sidebar{background:#fff!important;border-right:1px solid var(--c-line)!important;box-shadow:none!important}
+body.tica-admin .sidebar .nav>.nav-item>a:hover{background:#f8faff!important;color:var(--c-blue)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a,html body.tica-admin .sidebar .nav>.nav-item.active>a{background:var(--c-blue-soft)!important;color:var(--c-blue)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a i,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a p,html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a i{color:var(--c-blue)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:after{background:var(--c-blue)!important}
+body.tica-admin .sidebar .sidebar-search{background:#f8faff!important;border-color:var(--c-line)!important}
+body.tica-admin .btn-primary,body.tica-admin .btn-success,body.tica-admin .btn-secondary.btn-round{background:var(--c-blue)!important;border-color:var(--c-blue)!important;color:#fff!important;box-shadow:none!important}
+body.tica-admin .btn-primary:hover,body.tica-admin .btn-success:hover{background:var(--c-blue-2)!important;border-color:var(--c-blue-2)!important}
+body.tica-admin .card,body.tica-admin .cd-card,body.tica-admin .cd-kpi,body.tica-admin .cd-wait{background:#fff!important;border-color:var(--c-line)!important;box-shadow:0 1px 2px rgba(18,33,58,.035)!important}
+body.tica-admin .cd-top:after{opacity:.2;background-image:radial-gradient(circle,var(--c-orange) 1.2px,transparent 1.45px)!important}
+body.tica-admin .form-control:focus,body.tica-admin .custom-select:focus{border-color:var(--c-blue)!important;box-shadow:0 0 0 3px rgba(47,91,211,.12)!important}
+body.tica-admin .badge-warning,body.tica-admin .cd-wait a.has{background:var(--c-orange-soft)!important;color:#9a5b00!important;border-color:#f7d79b!important}
+@media(max-width:767px){body.tica-admin .table-responsive{overflow:visible}body.tica-admin .table-responsive table:not(.dataTable) thead{display:none}body.tica-admin .table-responsive table:not(.dataTable),body.tica-admin .table-responsive table:not(.dataTable) tbody,body.tica-admin .table-responsive table:not(.dataTable) tr,body.tica-admin .table-responsive table:not(.dataTable) td{display:block;width:100%}body.tica-admin .table-responsive table:not(.dataTable) tr{padding:10px;border-bottom:1px solid var(--c-line)}body.tica-admin .table-responsive table:not(.dataTable) td{white-space:normal!important;max-width:none!important;padding:7px 6px!important;border:0!important}}
+
+/* Authoritative admin palette: blue owns actions/navigation; orange signals attention only. */
+body.tica-admin{--accent-50:#FEF7EE;--accent-100:#FCEBD7;--accent-300:#F2C594;--accent-500:#E39A55;--accent-700:#B4682E;--c-orange:var(--accent-500);--c-orange-soft:var(--accent-50)}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a,
+html body.tica-admin .sidebar .nav>.nav-item.active>a{background:var(--c-blue-soft)!important;color:var(--c-blue)!important}
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a p,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.active>a i,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a p,
+html body.tica-admin .sidebar[data-background-color] .nav>.nav-item.submenu>a i{color:var(--c-blue)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a:after{background:var(--c-blue)!important}
+body.tica-admin .sidebar .nav-collapse li.active>a .sub-item,body.tica-admin .sidebar .nav-collapse li a:hover .sub-item{color:var(--c-blue)!important}
+body.tica-admin .sidebar .sidebar-search{background:#f8faff!important}
+body.tica-admin .cd-top:after{display:none!important}
+body.tica-admin .cd-kpi:first-child .cd-ic{background:var(--accent-50)!important;border-color:var(--accent-300)!important;color:var(--accent-700)!important}
+body.tica-admin .cd-kpi:nth-child(4n+4) .cd-ic{background:var(--c-blue-soft)!important;border-color:var(--c-blue-line)!important;color:var(--c-blue)!important}
+body.tica-admin .cd-btn.primary{background:var(--c-blue)!important;border-color:var(--c-blue)!important;color:#fff!important}
+body.tica-admin .cd-btn.primary:hover{background:var(--c-blue-2)!important;border-color:var(--c-blue-2)!important}
+body.tica-admin .cd-btn:hover,body.tica-admin .cd-kpi:hover{border-color:var(--c-blue-line)!important;background:#fff!important;color:var(--c-blue)!important;box-shadow:0 9px 24px rgba(47,91,211,.07)}
+body.tica-admin .badge-warning,body.tica-admin .cd-wait a.has{background:var(--accent-100)!important;color:var(--accent-700)!important;border-color:var(--accent-300)!important}
+body.tica-admin .cd-wait a.has i{color:var(--accent-700)!important}body.tica-admin .cd-wait a.has b{background:var(--accent-500)!important;color:#fff!important}
+body.tica-admin .cd-pill{background:#fff!important;border-color:var(--c-line)!important}
+body.tica-admin .cd-split li:last-child i{background:#C9D7F2!important}
+
+/* Admin navigation rail: compact identity, predictable spacing, resilient avatars. */
+body.tica-admin .sidebar .sidebar-wrapper{overscroll-behavior:contain}
+body.tica-admin .sidebar .sidebar-content{display:block;padding:16px 12px 28px!important}
+body.tica-admin .tica-admin-account{
+  margin:0 2px 14px;border:1px solid var(--c-line);border-radius:14px;background:#fff;overflow:visible;
+  box-shadow:0 1px 2px rgba(18,33,58,.035);transition:border-color .18s ease,box-shadow .18s ease
+}
+body.tica-admin .tica-admin-account[open],body.tica-admin .tica-admin-account.is-current{
+  border-color:var(--c-blue-line);box-shadow:0 8px 22px rgba(47,91,211,.07)
+}
+body.tica-admin .tica-admin-account>summary{
+  min-height:68px;padding:10px;display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;
+  color:var(--c-ink);border-radius:13px;transition:background-color .18s ease
+}
+body.tica-admin .tica-admin-account[open]>summary{border-radius:13px 13px 0 0}
+body.tica-admin .tica-admin-account>summary::-webkit-details-marker{display:none}
+body.tica-admin .tica-admin-account>summary:hover{background:#f8faff}
+body.tica-admin .tica-admin-account>summary:focus-visible{outline:2px solid var(--c-blue);outline-offset:-3px}
+body.tica-admin .tica-admin-account-avatar{
+  position:relative;isolation:isolate;flex:0 0 42px;width:42px;height:42px;border-radius:12px;
+  display:grid;place-items:center;background:var(--c-blue-soft);color:var(--c-blue);border:1px solid var(--c-blue-line);
+  font-weight:700;font-size:13px;line-height:1;letter-spacing:.02em
+}
+body.tica-admin .tica-admin-account-avatar>span{grid-area:1/1}
+body.tica-admin .tica-admin-account-avatar>img{
+  position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;background:var(--c-blue-soft)
+}
+body.tica-admin .tica-admin-account-avatar:after{
+  content:"";position:absolute;z-index:2;right:-3px;bottom:-3px;width:10px;height:10px;border:2px solid #fff;
+  border-radius:50%;background:var(--accent-500);box-shadow:0 0 0 1px rgba(227,154,85,.16)
+}
+body.tica-admin .tica-admin-account-copy{min-width:0;flex:1;display:grid;gap:3px}
+body.tica-admin .tica-admin-account-copy strong,body.tica-admin .tica-admin-account-copy small{
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+body.tica-admin .tica-admin-account-copy strong{font-size:14px;line-height:1.25;font-weight:650;color:var(--c-ink)}
+body.tica-admin .tica-admin-account-copy small{font-size:12px;line-height:1.25;font-weight:500;color:var(--c-mute)}
+body.tica-admin .tica-admin-account-chevron{
+  flex:0 0 auto;width:17px;height:17px;fill:none;stroke:var(--c-faint);stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease,stroke .18s ease
+}
+body.tica-admin .tica-admin-account[open] .tica-admin-account-chevron{transform:rotate(180deg);stroke:var(--c-blue)}
+body.tica-admin .tica-admin-account-menu{
+  display:grid;gap:2px;padding:6px;border-top:1px solid var(--c-line-2);border-radius:0 0 13px 13px;background:#fbfcff;
+  animation:tica-admin-account-reveal .16s ease-out both
+}
+@keyframes tica-admin-account-reveal{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+body.tica-admin .tica-admin-account-menu form{margin:0}
+body.tica-admin .tica-admin-account-menu a,body.tica-admin .tica-admin-account-menu button{
+  width:100%;min-height:38px;padding:0 10px;display:flex;align-items:center;gap:10px;border:0;border-radius:8px;
+  background:transparent;color:var(--c-text)!important;font:500 13.5px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  text-align:left;text-decoration:none!important;cursor:pointer;transition:background-color .16s ease,color .16s ease
+}
+body.tica-admin .tica-admin-account-menu a i,body.tica-admin .tica-admin-account-menu button i{
+  width:18px;font-size:14px;text-align:center;color:var(--c-faint)
+}
+body.tica-admin .tica-admin-account-menu a:hover,body.tica-admin .tica-admin-account-menu a:focus-visible,
+body.tica-admin .tica-admin-account-menu button:hover,body.tica-admin .tica-admin-account-menu button:focus-visible{
+  background:var(--c-blue-soft);color:var(--c-blue)!important;outline:none
+}
+body.tica-admin .tica-admin-account-menu a:hover i,body.tica-admin .tica-admin-account-menu a:focus-visible i,
+body.tica-admin .tica-admin-account-menu button:hover i,body.tica-admin .tica-admin-account-menu button:focus-visible i{color:var(--c-blue)}
+body.tica-admin .tica-admin-sidebar-search{position:relative;margin:0 2px 8px}
+body.tica-admin .tica-admin-sidebar-search>i{
+  position:absolute;z-index:1;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--c-faint);pointer-events:none
+}
+body.tica-admin .tica-admin-sidebar-search .sidebar-search{
+  width:100%;height:40px;min-height:40px;padding:0 34px 0 38px!important;border:1px solid var(--c-line)!important;
+  border-radius:10px!important;background:#f8faff!important;color:var(--c-ink)!important;font-size:13.5px!important;box-shadow:none!important
+}
+body.tica-admin .tica-admin-sidebar-search .sidebar-search::placeholder{color:var(--c-faint)}
+body.tica-admin .tica-admin-sidebar-search .sidebar-search:focus{
+  border-color:var(--c-blue-line)!important;background:#fff!important;box-shadow:0 0 0 3px rgba(47,91,211,.09)!important
+}
+body.tica-admin .sidebar .nav>.nav-section{margin-top:4px!important}
+body.tica-admin .sidebar .nav>.nav-item>a{min-height:42px!important;padding:0 12px!important;gap:11px!important}
+body.tica-admin .sidebar .nav>.nav-item>a i{width:20px!important;font-size:16px!important;text-align:center}
+body.tica-admin .sidebar .nav>.nav-item>a p{line-height:1.3!important}
+body.tica-admin .sidebar .nav-collapse{padding-bottom:4px!important}
+body.tica-admin .sidebar .nav-collapse li a{min-height:36px!important}
+body.tica-admin .avatar-sm,body.tica-admin .avatar-lg{position:relative;overflow:hidden}
+body.tica-admin .tica-admin-initial-avatar{
+  width:100%;height:100%;min-width:32px;min-height:32px;display:grid;place-items:center;border-radius:50%;
+  background:var(--c-blue-soft);color:var(--c-blue);border:1px solid var(--c-blue-line);
+  font-weight:700;font-size:13px;line-height:1;letter-spacing:.02em
+}
+body.tica-admin .avatar-sm>.tica-admin-initial-avatar,body.tica-admin .avatar-lg>.tica-admin-initial-avatar{position:absolute;inset:0}
+body.tica-admin .avatar-sm>.avatar-img,body.tica-admin .avatar-lg>.avatar-img{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover}
+@media(max-width:991px){
+  body.tica-admin .sidebar{width:min(292px,calc(100vw - 44px))!important}
+  body.tica-admin .sidebar .sidebar-content{padding-top:14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.tica-admin .tica-admin-account,body.tica-admin .tica-admin-account>summary,body.tica-admin .tica-admin-account-chevron,
+  body.tica-admin .tica-admin-account-menu,body.tica-admin .tica-admin-account-menu a,body.tica-admin .tica-admin-account-menu button{
+    animation:none!important;transition:none!important
+  }
+}
+

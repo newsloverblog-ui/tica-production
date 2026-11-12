@@ -1,0 +1,138 @@
+name: Platform verification
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.4.13@sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902
+        env:
+          MYSQL_DATABASE: tica_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --password=root --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+      redis:
+        image: redis:7.4.12-alpine3.21@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_URL: http://127.0.0.1
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: tica_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      MAIL_MAILER: array
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.5'
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pcntl, pdo_mysql, redis, simplexml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Validate backend dependency lock
+        run: composer validate --strict
+
+      - name: Lint application PHP sources
+        shell: bash
+        run: |
+          while IFS= read -r file; do
+            php -l "$file" >/dev/null
+          done < <(rg --files app bootstrap config database routes tests -g '*.php')
+
+      - name: Install backend dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Audit backend dependencies
+        run: composer audit --locked --abandoned=fail --no-interaction
+
+      - name: Install and audit frontend dependencies
+        run: |
+          npm ci
+          npm audit --audit-level=high
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Check first-party browser scripts
+        run: |
+          node --check public/sw.js
+          node --check public/assets/front/js/event_checkout.js
+          node --check public/assets/front/js/product_checkout.js
+          node --check public/assets/front/js/cart.js
+          node --check public/assets/front/js/product.js
+          node --check public/assets/front/js/pwa.js
+          node --check public/assets/pwa_scanner/pwa.js
+          node --check public/assets/pwa_scanner/script.js
+          node --check public/assets/admin/js/event.js
+          node --check public/assets/admin/js/organizer-withdraw.js
+          node --check public/assets/admin/js/push-notification.js
+
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Load the legacy baseline and apply application migrations
+        run: |
+          mysql --host=127.0.0.1 --port=3306 --user=root --password=root tica_test < database/evento_v2.0.sql
+          php artisan migrate --force --no-interaction
+
+      - name: Run application tests
+        run: php artisan test
+
+      - name: Verify scheduler contract
+        run: php artisan schedule:list
+
+      - name: Verify production caches compile
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache

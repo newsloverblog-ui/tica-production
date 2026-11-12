@@ -1,0 +1,267 @@
+<?php
+
+declare(strict_types=1);
+
+use Dotenv\Dotenv;
+require dirname(__DIR__).'/vendor/autoload.php';
+
+Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
+
+$database = $_ENV['DB_DATABASE'] ?? '';
+$username = $_ENV['DB_USERNAME'] ?? '';
+$password = $_ENV['DB_PASSWORD'] ?? '';
+$host = $_ENV['DB_HOST'] ?? '127.0.0.1';
+$port = $_ENV['DB_PORT'] ?? '3306';
+
+if ($database === '' || $username === '') {
+    throw new RuntimeException('The local MySQL connection is not configured.');
+}
+
+$pdo = new PDO(
+    sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $database),
+    $username,
+    $password,
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ],
+);
+
+$quoteIdentifier = static fn (string $value): string => '"'.str_replace('"', '""', $value).'"';
+$quoteLiteral = static fn (string $value): string => "'".str_replace("'", "''", $value)."'";
+
+$postgresType = static function (array $column): string {
+    $type = strtolower((string) $column['DATA_TYPE']);
+    $unsigned = str_contains(strtolower((string) $column['COLUMN_TYPE']), 'unsigned');
+
+    return match ($type) {
+        'bigint' => 'bigint',
+        'int', 'integer' => $unsigned ? 'bigint' : 'integer',
+        'mediumint' => 'integer',
+        'smallint' => $unsigned ? 'integer' : 'smallint',
+        'tinyint' => 'smallint',
+        'decimal', 'numeric' => sprintf(
+            'numeric(%d,%d)',
+            (int) ($column['NUMERIC_PRECISION'] ?: 10),
+            (int) ($column['NUMERIC_SCALE'] ?: 0),
+        ),
+        'float' => 'real',
+        'double', 'real' => 'double precision',
+        'char' => sprintf('char(%d)', (int) $column['CHARACTER_MAXIMUM_LENGTH']),
+        'varchar' => sprintf('varchar(%d)', (int) $column['CHARACTER_MAXIMUM_LENGTH']),
+        'tinytext', 'text', 'mediumtext', 'longtext', 'enum', 'set' => 'text',
+        'json' => 'jsonb',
+        'binary', 'varbinary', 'tinyblob', 'blob', 'mediumblob', 'longblob' => 'bytea',
+        'timestamp', 'datetime' => 'timestamp without time zone',
+        'date' => 'date',
+        'time' => 'time without time zone',
+        'year' => 'smallint',
+        default => throw new RuntimeException("Unsupported MySQL type [{$type}] on {$column['TABLE_NAME']}.{$column['COLUMN_NAME']}"),
+    };
+};
+
+$defaultClause = static function (array $column) use ($quoteLiteral): string {
+    if ($column['COLUMN_DEFAULT'] === null) {
+        return '';
+    }
+
+    $default = (string) $column['COLUMN_DEFAULT'];
+    $type = strtolower((string) $column['DATA_TYPE']);
+
+    if (strcasecmp($default, 'CURRENT_TIMESTAMP') === 0 || strcasecmp($default, 'current_timestamp()') === 0) {
+        return ' DEFAULT CURRENT_TIMESTAMP';
+    }
+
+    if (in_array($type, ['bigint', 'int', 'integer', 'mediumint', 'smallint', 'tinyint', 'decimal', 'numeric', 'float', 'double', 'real', 'year'], true)
+        && is_numeric($default)) {
+        return ' DEFAULT '.$default;
+    }
+
+    if ($type === 'json') {
+        return ' DEFAULT '.$quoteLiteral($default).'::jsonb';
+    }
+
+    if (in_array($type, ['binary', 'varbinary', 'tinyblob', 'blob', 'mediumblob', 'longblob'], true)) {
+        return '';
+    }
+
+    return ' DEFAULT '.$quoteLiteral($default);
+};
+
+$tables = $pdo->prepare(<<<'SQL'
+    SELECT TABLE_NAME
+    FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = :schema AND TABLE_TYPE = 'BASE TABLE'
+    ORDER BY TABLE_NAME
+SQL);
+$tables->execute(['schema' => $database]);
+$tableNames = $tables->fetchAll(PDO::FETCH_COLUMN);
+
+$columns = $pdo->prepare(<<<'SQL'
+    SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT,
+           CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, EXTRA, ORDINAL_POSITION
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = :table
+    ORDER BY ORDINAL_POSITION
+SQL);
+
+$primaryKeys = $pdo->prepare(<<<'SQL'
+    SELECT COLUMN_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE CONSTRAINT_SCHEMA = :schema AND TABLE_NAME = :table AND CONSTRAINT_NAME = 'PRIMARY'
+    ORDER BY ORDINAL_POSITION
+SQL);
+
+$lines = [
+    '-- Generated from the current TICA application schema.',
+    '-- Contains structure and migration history only; no application or personal data.',
+    'SET client_min_messages TO warning;',
+    'SET statement_timeout TO 0;',
+    '',
+];
+
+foreach ($tableNames as $table) {
+    $columns->execute(['schema' => $database, 'table' => $table]);
+    $tableColumns = $columns->fetchAll();
+    $primaryKeys->execute(['schema' => $database, 'table' => $table]);
+    $primary = $primaryKeys->fetchAll(PDO::FETCH_COLUMN);
+
+    $definitions = [];
+    foreach ($tableColumns as $column) {
+        $definition = '  '.$quoteIdentifier((string) $column['COLUMN_NAME']).' '.$postgresType($column);
+        if (str_contains(strtolower((string) $column['EXTRA']), 'auto_increment')) {
+            $definition .= ' GENERATED BY DEFAULT AS IDENTITY';
+        }
+        $definition .= $defaultClause($column);
+        if ($column['IS_NULLABLE'] === 'NO') {
+            $definition .= ' NOT NULL';
+        }
+        $definitions[] = $definition;
+    }
+
+    if ($primary !== []) {
+        $definitions[] = '  PRIMARY KEY ('.implode(', ', array_map($quoteIdentifier, $primary)).')';
+    }
+
+    $lines[] = 'CREATE TABLE '.$quoteIdentifier((string) $table)." (\n".implode(",\n", $definitions)."\n);";
+    $lines[] = '';
+}
+
+$indexes = $pdo->prepare(<<<'SQL'
+    SELECT TABLE_NAME, INDEX_NAME, NON_UNIQUE, INDEX_TYPE, SEQ_IN_INDEX, COLUMN_NAME
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = :schema AND INDEX_NAME <> 'PRIMARY'
+    ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX
+SQL);
+$indexes->execute(['schema' => $database]);
+$groupedIndexes = [];
+foreach ($indexes->fetchAll() as $index) {
+    $key = $index['TABLE_NAME']."\0".$index['INDEX_NAME'];
+    $groupedIndexes[$key]['table'] = $index['TABLE_NAME'];
+    $groupedIndexes[$key]['name'] = $index['INDEX_NAME'];
+    $groupedIndexes[$key]['unique'] = (int) $index['NON_UNIQUE'] === 0;
+    $groupedIndexes[$key]['type'] = $index['INDEX_TYPE'];
+    $groupedIndexes[$key]['columns'][] = $index['COLUMN_NAME'];
+}
+
+foreach ($groupedIndexes as $index) {
+    if ($index['type'] !== 'BTREE' || in_array(null, $index['columns'], true)) {
+        continue;
+    }
+    $rawName = 'idx_'.$index['table'].'_'.$index['name'];
+    $name = strlen($rawName) <= 63 ? $rawName : substr($rawName, 0, 54).'_'.substr(sha1($rawName), 0, 8);
+    $lines[] = sprintf(
+        'CREATE %sINDEX %s ON %s (%s);',
+        $index['unique'] ? 'UNIQUE ' : '',
+        $quoteIdentifier($name),
+        $quoteIdentifier($index['table']),
+        implode(', ', array_map($quoteIdentifier, $index['columns'])),
+    );
+}
+$lines[] = '';
+
+$foreignKeys = $pdo->prepare(<<<'SQL'
+    SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.COLUMN_NAME, k.REFERENCED_TABLE_NAME,
+           k.REFERENCED_COLUMN_NAME, k.ORDINAL_POSITION, r.UPDATE_RULE, r.DELETE_RULE
+    FROM information_schema.KEY_COLUMN_USAGE k
+    INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS r
+      ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA
+     AND r.TABLE_NAME = k.TABLE_NAME
+     AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+    WHERE k.CONSTRAINT_SCHEMA = :schema AND k.REFERENCED_TABLE_NAME IS NOT NULL
+    ORDER BY k.TABLE_NAME, k.CONSTRAINT_NAME, k.ORDINAL_POSITION
+SQL);
+$foreignKeys->execute(['schema' => $database]);
+$groupedForeignKeys = [];
+foreach ($foreignKeys->fetchAll() as $foreignKey) {
+    $key = $foreignKey['TABLE_NAME']."\0".$foreignKey['CONSTRAINT_NAME'];
+    $groupedForeignKeys[$key]['table'] = $foreignKey['TABLE_NAME'];
+    $groupedForeignKeys[$key]['name'] = $foreignKey['CONSTRAINT_NAME'];
+    $groupedForeignKeys[$key]['referenced_table'] = $foreignKey['REFERENCED_TABLE_NAME'];
+    $groupedForeignKeys[$key]['columns'][] = $foreignKey['COLUMN_NAME'];
+    $groupedForeignKeys[$key]['referenced_columns'][] = $foreignKey['REFERENCED_COLUMN_NAME'];
+    $groupedForeignKeys[$key]['update_rule'] = $foreignKey['UPDATE_RULE'];
+    $groupedForeignKeys[$key]['delete_rule'] = $foreignKey['DELETE_RULE'];
+}
+
+$rule = static fn (string $value): string => match (strtoupper($value)) {
+    'CASCADE' => 'CASCADE',
+    'SET NULL' => 'SET NULL',
+    'SET DEFAULT' => 'SET DEFAULT',
+    'RESTRICT' => 'RESTRICT',
+    default => 'NO ACTION',
+};
+
+foreach ($groupedForeignKeys as $foreignKey) {
+    $name = strlen($foreignKey['name']) <= 63
+        ? $foreignKey['name']
+        : substr($foreignKey['name'], 0, 54).'_'.substr(sha1($foreignKey['name']), 0, 8);
+    $lines[] = sprintf(
+        'ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s) ON UPDATE %s ON DELETE %s;',
+        $quoteIdentifier($foreignKey['table']),
+        $quoteIdentifier($name),
+        implode(', ', array_map($quoteIdentifier, $foreignKey['columns'])),
+        $quoteIdentifier($foreignKey['referenced_table']),
+        implode(', ', array_map($quoteIdentifier, $foreignKey['referenced_columns'])),
+        $rule($foreignKey['update_rule']),
+        $rule($foreignKey['delete_rule']),
+    );
+}
+$lines[] = '';
+
+if (in_array('migrations', $tableNames, true)) {
+    $migrationRows = $pdo->query('SELECT migration, batch FROM migrations ORDER BY id')->fetchAll();
+    foreach ($migrationRows as $migration) {
+        $lines[] = sprintf(
+            'INSERT INTO "migrations" ("migration", "batch") VALUES (%s, %d);',
+            $quoteLiteral((string) $migration['migration']),
+            (int) $migration['batch'],
+        );
+    }
+}
+
+$lines[] = '';
+$lines[] = '-- Laravel is the only data-access layer. Keep the generated Supabase REST roles out.';
+$lines[] = 'REVOKE ALL ON SCHEMA public FROM anon, authenticated;';
+$lines[] = 'REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;';
+$lines[] = 'REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;';
+$lines[] = 'REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM anon, authenticated;';
+$lines[] = 'ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;';
+$lines[] = 'ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;';
+$lines[] = 'ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM anon, authenticated;';
+$lines[] = 'DO $$';
+$lines[] = 'DECLARE table_record record;';
+$lines[] = 'BEGIN';
+$lines[] = "  FOR table_record IN SELECT schemaname, tablename FROM pg_tables WHERE schemaname = 'public' LOOP";
+$lines[] = "    EXECUTE format('ALTER TABLE %I.%I ENABLE ROW LEVEL SECURITY', table_record.schemaname, table_record.tablename);";
+$lines[] = '  END LOOP;';
+$lines[] = 'END';
+$lines[] = '$$;';
+
+$output = dirname(__DIR__).'/database/schema/production-postgres.sql';
+if (!is_dir(dirname($output)) && !mkdir(dirname($output), 0775, true) && !is_dir(dirname($output))) {
+    throw new RuntimeException('Unable to create the schema output directory.');
+}
+
+file_put_contents($output, implode("\n", $lines)."\n");
+fwrite(STDOUT, sprintf("Wrote %d tables to %s\n", count($tableNames), $output));

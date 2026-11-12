@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tica backend preview</title>
+  <link rel="stylesheet" href="/assets/admin/css/all.min.css">
+  <link rel="stylesheet" href="/assets/admin/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/admin/css/tica-control-center.css">
+  <style>
+    *{box-sizing:border-box} body{margin:0}.preview-shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}.preview-sidebar{padding:28px 18px;background:#003366;color:#fff}.preview-logo{font-size:34px;font-weight:800;letter-spacing:-.08em;margin:0 14px 30px}.preview-logo span{color:#00a8e8}.preview-profile{display:flex;align-items:center;gap:12px;padding:16px 12px;margin-bottom:18px;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}.preview-avatar{display:grid;width:40px;height:40px;place-items:center;border-radius:50%;background:#ff8c42;color:#172033;font-weight:800}.preview-profile small{display:block;color:rgba(255,255,255,.6)}.preview-nav-title{margin:24px 14px 8px;color:rgba(255,255,255,.45);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.preview-nav a{display:flex;align-items:center;gap:12px;margin:4px 0;padding:12px 14px;border-radius:10px;color:rgba(255,255,255,.82);font-weight:600}.preview-nav a.active{background:rgba(255,255,255,.13);color:#fff;border-left:3px solid #ff8c42}.preview-main{min-width:0;background:#f5f7fb}.preview-topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;border-bottom:1px solid #e4e8f0;background:#fff}.preview-topbar strong{color:#172033}.preview-top-actions{display:flex;align-items:center;gap:12px}.preview-search{width:260px;padding:10px 14px;border:1px solid #e4e8f0;border-radius:10px;color:#667085}.preview-content{padding:28px 34px 50px}.preview-content .tica-workspace-hero{margin-top:0}.preview-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}.preview-card{padding:22px;border:1px solid #e4e8f0;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(23,32,51,.05)}.preview-card h3{margin:0 0 6px;font-size:18px}.preview-card p{color:#667085}.preview-bars{display:flex;align-items:end;gap:13px;height:190px;padding-top:20px}.preview-bar{flex:1;border-radius:8px 8px 2px 2px;background:#dfe3ff}.preview-bar:nth-child(3n+1){background:#0011ff}.preview-bar:nth-child(3n+2){background:#00a8e8}.preview-list{list-style:none;margin:8px 0 0;padding:0}.preview-list li{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf0f5}.preview-list span{color:#667085}.preview-pill{padding:4px 8px;border-radius:999px;background:#fff1e8;color:#b85f00;font-size:11px;font-weight:700}@media(max-width:800px){.preview-shell{grid-template-columns:1fr}.preview-sidebar{display:none}.preview-content{padding:18px}.preview-topbar{padding:0 18px}.preview-search{display:none}.preview-grid{grid-template-columns:1fr}.tica-priority-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body class="tica-control-center">
+  <div class="preview-shell">
+    <aside class="preview-sidebar">
+      <div class="preview-logo">tic<span>a</span><b style="color:#ff8c42">.</b></div>
+      <div class="preview-profile"><div class="preview-avatar">AD</div><div><strong>Admin User</strong><small>Super administrator</small></div></div>
+      <nav class="preview-nav">
+        <p class="preview-nav-title">Workspace</p>
+        <a class="active"><i class="fas fa-grid-2"></i> Dashboard</a>
+        <a><i class="fas fa-calendar-alt"></i> Events</a>
+        <a><i class="fas fa-ticket-alt"></i> Bookings</a>
+        <a><i class="fas fa-users"></i> Organizers</a>
+        <p class="preview-nav-title">Operations</p>
+        <a><i class="fas fa-chart-line"></i> Checkout analytics</a>
+        <a><i class="fas fa-credit-card"></i> Reconciliation</a>
+        <a><i class="fas fa-shield-check"></i> Incidents</a>
+        <a><i class="fas fa-file-export"></i> Data exports</a>
+        <p class="preview-nav-title">Platform</p>
+        <a><i class="fas fa-cog"></i> Settings</a>
+      </nav>
+    </aside>
+    <main class="preview-main">
+      <header class="preview-topbar"><div><strong>Tica · Admin control center</strong></div><div class="preview-top-actions"><div class="preview-search">Search platform…</div><div class="preview-avatar">AD</div></div></header>
+      <div class="preview-content">
+        <section class="tica-workspace-hero"><div><p class="tica-eyebrow">Platform operations</p><h1>Welcome back, Admin.</h1><p class="tica-lede">Monitor events, revenue, customers and operational health from one focused workspace.</p></div><div class="tica-quick-actions"><button class="btn btn-primary">Create event</button><button class="btn btn-outline-primary">View analytics</button></div></section>
+        <section class="tica-priority-grid mb-4">
+          <article class="tica-priority-card"><span class="tica-priority-icon is-blue"><i class="fas fa-chart-line"></i></span><div><p>Sales today</p><strong>₦1,420,500</strong><small>184 completed bookings</small></div></article>
+          <article class="tica-priority-card"><span class="tica-priority-icon is-success"><i class="fas fa-credit-card"></i></span><div><p>Failed payments</p><strong>3</strong><small>Review checkout failures</small></div></article>
+          <article class="tica-priority-card"><span class="tica-priority-icon is-orange"><i class="fas fa-wallet"></i></span><div><p>Pending payouts</p><strong>12</strong><small>Pending or held requests</small></div></article>
+          <article class="tica-priority-card"><span class="tica-priority-icon is-success"><i class="fas fa-shield-check"></i></span><div><p>Open incidents</p><strong>0</strong><small>Systems clear</small></div></article>
+        </section>
+        <div class="preview-grid">
+          <section class="preview-card"><p class="tica-eyebrow">Revenue</p><h3>Sales performance</h3><p>Completed ticket sales over the last seven days</p><div class="preview-bars"><div class="preview-bar" style="height:44%"></div><div class="preview-bar" style="height:62%"></div><div class="preview-bar" style="height:52%"></div><div class="preview-bar" style="height:88%"></div><div class="preview-bar" style="height:72%"></div><div class="preview-bar" style="height:94%"></div><div class="preview-bar" style="height:82%"></div></div></section>
+          <section class="preview-card"><p class="tica-eyebrow">Action queue</p><h3>Needs your attention</h3><ul class="preview-list"><li><span>Organizer KYC reviews</span><strong>8</strong></li><li><span>Payout approvals</span><strong>12</strong></li><li><span>Refund requests</span><strong>4</strong></li><li><span>Webhook retries</span><b class="preview-pill">2 delayed</b></li></ul></section>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

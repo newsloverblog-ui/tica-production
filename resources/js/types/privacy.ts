@@ -1,0 +1,1 @@
+export type PrivacyProps={csrf:string;exportUrl:string;deletionUrl:string;cancelUrl?:string;openRequest?:{publicId:string;status:string};exports:{id:number;requested:string;status:string;expires?:string;downloadUrl?:string;failed?:boolean}[];requests:{id:number;publicId:string;status:string}[];errors?:Record<string,string>};

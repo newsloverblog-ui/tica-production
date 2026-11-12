@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@source "../js/**/*.tsx";
+
+@theme {
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --color-page: #ffffff;
+  --color-surface: #ffffff;
+  --color-background: #f6f8fc;
+  --color-tint: #f6f8fc;
+  --color-primary: #2f5bd3;
+  --color-primary-soft: #eef2ff;
+  --color-blue: #2f5bd3;
+  --color-navy: #12213a;
+  --color-orange: #f5a524;
+  --color-accent: #f5a524;
+  --color-peach: #fff7e8;
+  --color-soft: #667085;
+  --color-on-dark: #eef2ff;
+  --color-line: #e3e8f1;
+  --color-success: #15704a;
+  --color-warning: #9a5b00;
+  --color-danger: #b42318;
+  --shadow-card: 0 1px 2px rgb(18 33 58 / 4%);
+  --shadow-float: 0 10px 30px rgb(47 91 211 / 10%);
+}
+
+@font-face { font-family:"Montserrat"; src:local("Montserrat"); font-weight:100 900; font-display:swap; }
+:root { color:#12213a; background:#f6f8fc; font-family:"Montserrat",system-ui,sans-serif; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; min-width:320px; background:#f6f8fc; }
+button,input,select,textarea { font:inherit; }
+button,a { -webkit-tap-highlight-color:transparent; }
+img { display:block; max-width:100%; }
+::selection { color:#12213a; background:#cad5fa; }
+.shell { width:min(100%,1440px); margin-inline:auto; padding-inline:clamp(16px,4vw,64px); }
+.section { padding-block:clamp(64px,8vw,112px); }
+.display { font-weight:850; letter-spacing:-.035em; line-height:1.02; }
+.focus-ring:focus-visible { outline:3px solid #2f5bd3; outline-offset:3px; }
+.noise { background-image:radial-gradient(rgb(255 255 255 / 9%) 1px,transparent 1px); background-size:16px 16px; }
+[data-tica-react] a.bg-white,[data-tica-react] a.bg-orange { color:#0b2447!important; }
+.tica-prose { color:#526079; font-size:1.0625rem; line-height:1.85; }
+.tica-prose h2,.tica-prose h3,.tica-prose h4 { color:#0b2447; font-weight:850; letter-spacing:-.02em; line-height:1.15; margin:2rem 0 .75rem; }
+.tica-prose h2 { font-size:clamp(1.75rem,3vw,2.5rem); }
+.tica-prose h3 { font-size:1.5rem; }
+.tica-prose p,.tica-prose ul,.tica-prose ol,.tica-prose blockquote { margin:1rem 0; }
+.tica-prose a { color:#0f4c9e; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.tica-prose img { border-radius:1.25rem; margin:2rem auto; }
+.tica-prose ul,.tica-prose ol { padding-left:1.5rem; }
+.tica-prose ul { list-style:disc; }.tica-prose ol { list-style:decimal; }
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

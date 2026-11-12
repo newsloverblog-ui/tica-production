@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layered events design comparison</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; font: 14px/1.4 Arial, sans-serif; background: #e8ebf0; color: #111827; }
+    h1 { margin: 0 0 18px; font-size: 20px; }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .panel { overflow: hidden; background: #fff; border: 1px solid #cfd4dc; border-radius: 14px; }
+    .label { padding: 10px 14px; font-weight: 700; border-bottom: 1px solid #dfe3e9; }
+    .reference img { display: block; width: 100%; height: auto; }
+    .viewport { position: relative; overflow: hidden; height: 675px; background: #fff; }
+    iframe { width: 1280px; height: 1500px; border: 0; transform: scale(.45); transform-origin: top left; }
+  </style>
+</head>
+<body>
+  <h1>Layered event discovery — source and implementation</h1>
+  <main class="comparison">
+    <section class="panel reference">
+      <div class="label">Source reference</div>
+      <img src="/qa-layered-events-reference.png" alt="Source reference">
+    </section>
+    <section class="panel">
+      <div class="label">Rendered implementation</div>
+      <div class="viewport">
+        <iframe id="implementation" src="/" title="Rendered implementation"></iframe>
+      </div>
+    </section>
+  </main>
+  <script>
+    document.getElementById('implementation').addEventListener('load', function () {
+      var target = this.contentDocument.querySelector('.layered-events');
+      if (target) this.contentWindow.scrollTo(0, Math.max(0, target.offsetTop - 100));
+    });
+  </script>
+</body>
+</html>

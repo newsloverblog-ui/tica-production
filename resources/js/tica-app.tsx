@@ -1,0 +1,35 @@
+import { createRoot } from 'react-dom/client';
+import '../css/react-app.css';
+import { DiscoverPage } from './pages/DiscoverPage';
+import { ContentPage } from './pages/ContentPage';
+import { AuthPage } from './pages/AuthPage';
+import { DirectoryPage } from './pages/DirectoryPage';
+import { HomePage } from './pages/HomePage';
+import { BookingsPage } from './pages/BookingsPage';
+import { AccountPage } from './pages/AccountPage';
+import { AccountSettingsPage } from './pages/AccountSettingsPage';
+import { SupportPage } from './pages/SupportPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import type { DiscoverProps } from './types/discover';
+import type { ContentPageProps } from './types/content';
+import type { AuthProps } from './types/auth';
+import type { DirectoryProps } from './types/directory';
+import type { HomeProps } from './types/home';
+import type { BookingsProps } from './types/bookings';
+import type { AccountSettingsProps } from './types/account-settings';
+import type { SupportProps } from './types/support';
+import type { PrivacyProps } from './types/privacy';
+
+document.querySelectorAll<HTMLElement>('[data-tica-react]').forEach(root => {
+  const props = JSON.parse(root.dataset.props || '{}');
+  if (root.dataset.ticaReact === 'discover') createRoot(root).render(<DiscoverPage props={props as DiscoverProps}/>);
+  if (root.dataset.ticaReact === 'content') createRoot(root).render(<ContentPage props={props as ContentPageProps}/>);
+  if (root.dataset.ticaReact === 'auth') createRoot(root).render(<AuthPage props={props as AuthProps}/>);
+  if (root.dataset.ticaReact === 'directory') createRoot(root).render(<DirectoryPage props={props as DirectoryProps}/>);
+  if (root.dataset.ticaReact === 'home') createRoot(root).render(<HomePage props={props as HomeProps}/>);
+  if (root.dataset.ticaReact === 'bookings') createRoot(root).render(<BookingsPage props={props as BookingsProps}/>);
+  if (root.dataset.ticaReact === 'account') createRoot(root).render(<AccountPage props={props}/>);
+  if (root.dataset.ticaReact === 'account-settings') createRoot(root).render(<AccountSettingsPage props={props as AccountSettingsProps}/>);
+  if (root.dataset.ticaReact === 'support') createRoot(root).render(<SupportPage props={props as SupportProps}/>);
+  if (root.dataset.ticaReact === 'privacy') createRoot(root).render(<PrivacyPage props={props as PrivacyProps}/>);
+});

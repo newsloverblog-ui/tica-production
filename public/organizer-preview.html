@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tica organizer dashboard preview</title>
+  <link rel="stylesheet" href="/assets/admin/css/all.min.css">
+  <link rel="stylesheet" href="/assets/admin/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/admin/css/tica-control-center.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0}.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}.sidebar{padding:28px 18px;background:#071225;color:#fff}.logo{font-size:34px;font-weight:800;letter-spacing:-.08em;margin:0 14px 30px}.logo span{color:#00a8e8}.profile{display:flex;align-items:center;gap:12px;padding:16px 12px;margin-bottom:18px;border-block:1px solid rgba(255,255,255,.12)}.avatar{display:grid;width:40px;height:40px;place-items:center;border-radius:50%;background:#fe9b59;color:#172033;font-weight:800}.profile small{display:block;color:rgba(255,255,255,.6)}.nav-title{margin:24px 14px 8px;color:rgba(255,255,255,.42);font-size:10px;font-weight:800;letter-spacing:.12em}.nav a{display:flex;align-items:center;gap:12px;margin:4px 0;padding:12px 14px;border-radius:10px;color:rgba(255,255,255,.82);font-weight:600}.nav a.active{background:rgba(255,255,255,.12);color:#fff;border-left:3px solid #fe9b59}.main{min-width:0;background:#f5f7fb}.topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;border-bottom:1px solid #e4e8f0;background:#fff}.top-actions{display:flex;align-items:center;gap:12px}.search{width:250px;padding:10px 14px;border:1px solid #e4e8f0;border-radius:10px;color:#667085}.content{padding:28px 34px 50px}.content .tica-workspace-hero{margin-top:0}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.metric{padding:18px;border:1px solid #e4e8f0;border-radius:14px;background:#fff}.metric small{display:block;color:#667085}.metric strong{display:block;margin:5px 0 2px;color:#172033;font-size:24px}.metric em{color:#16805c;font-size:12px;font-style:normal;font-weight:700}.grid{display:grid;grid-template-columns:1.35fr .8fr;gap:18px}.card{padding:22px;border:1px solid #e4e8f0;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(23,32,51,.05)}.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.card h2{margin:0;font-size:20px}.card p{color:#667085}.event-list{display:grid;gap:12px;margin-top:18px}.event{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:14px;padding:12px;border:1px solid #edf0f5;border-radius:12px}.poster{width:58px;height:58px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,#0011ff,#00a8e8);color:#fff;font-size:18px;font-weight:800}.poster.orange{background:linear-gradient(145deg,#fe9b59,#cf5d18)}.event h3{margin:0 0 5px;font-size:15px}.event p{margin:0;font-size:12px}.event-status{padding:5px 9px;border-radius:999px;background:#eaf8f3;color:#16805c;font-size:11px;font-weight:700}.event-status.draft{background:#fff1e8;color:#b85f00}.bars{display:flex;align-items:end;gap:10px;height:155px;margin-top:20px}.bar{flex:1;border-radius:7px 7px 2px 2px;background:#dfe3ff}.bar:nth-child(2n){background:#0011ff}.bar:last-child{background:#fe9b59}.settlement{margin-top:20px;padding:16px;border-radius:12px;background:#071225;color:#fff}.settlement small{color:#aeb8cc}.settlement strong{display:block;margin:5px 0;font-size:24px}.settlement button{width:100%;margin-top:12px;border:0;border-radius:9px;padding:10px;background:#fe9b59;color:#172033;font-weight:800}@media(max-width:900px){.metrics{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}@media(max-width:700px){.shell{grid-template-columns:1fr}.sidebar{display:none}.content{padding:18px}.topbar{padding:0 18px}.search{display:none}.metrics{grid-template-columns:1fr 1fr}.tica-workspace-hero{align-items:flex-start}.event{grid-template-columns:50px 1fr}.event-status{grid-column:2;width:max-content}}
+  </style>
+</head>
+<body class="tica-control-center">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="logo">tic<span>a</span><b style="color:#fe9b59">.</b></div>
+      <div class="profile"><div class="avatar">EO</div><div><strong>Event Organizer</strong><small>Verified organizer</small></div></div>
+      <nav class="nav">
+        <p class="nav-title">WORKSPACE</p><a class="active"><i class="fas fa-grid-2"></i> Overview</a><a><i class="fas fa-calendar-alt"></i> My events</a><a><i class="fas fa-ticket-alt"></i> Orders & tickets</a><a><i class="fas fa-users"></i> Attendees</a>
+        <p class="nav-title">BUSINESS</p><a><i class="fas fa-chart-line"></i> Sales analytics</a><a><i class="fas fa-wallet"></i> Payouts</a><a><i class="fas fa-bullhorn"></i> Promotions</a>
+        <p class="nav-title">ACCOUNT</p><a><i class="fas fa-building"></i> Organizer profile</a><a><i class="fas fa-cog"></i> Settings</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar"><strong>Tica · Organizer workspace</strong><div class="top-actions"><div class="search">Search your events…</div><div class="avatar">EO</div></div></header>
+      <div class="content">
+        <section class="tica-workspace-hero"><div><p class="tica-eyebrow">Your events</p><h1>Good morning, Ada.</h1><p class="tica-lede">Track ticket sales, manage guests and prepare your next event from one place.</p></div><div class="tica-quick-actions"><button class="btn btn-primary">Create an event</button><button class="btn btn-outline-primary">Scan tickets</button></div></section>
+        <section class="metrics"><article class="metric"><small>Gross ticket sales</small><strong>₦3,840,000</strong><em>+18.4% this month</em></article><article class="metric"><small>Tickets sold</small><strong>612</strong><em>72 sold this week</em></article><article class="metric"><small>Upcoming events</small><strong>4</strong><small>Next event in 6 days</small></article><article class="metric"><small>Available balance</small><strong>₦1,265,400</strong><small>After fees and refunds</small></article></section>
+        <div class="grid">
+          <section class="card"><div class="card-head"><div><h2>Active events</h2><p>Your latest event activity and publishing status.</p></div><button class="btn btn-sm btn-outline-primary">View all</button></div><div class="event-list">
+            <article class="event"><div class="poster">SH</div><div><h3>Suffer Head — A Comedy Special</h3><p>01 Nov, 5:00 PM · Owerri · 184 tickets sold</p></div><span class="event-status">On sale</span></article>
+            <article class="event"><div class="poster orange">DD</div><div><h3>Davido Day in Port Harcourt</h3><p>20 Nov, 12:00 AM · Port Harcourt · 328 tickets sold</p></div><span class="event-status">On sale</span></article>
+            <article class="event"><div class="poster">FX</div><div><h3>Friday Experience Live</h3><p>14 Dec, 7:00 PM · Lagos · Complete event details</p></div><span class="event-status draft">Draft</span></article>
+          </div></section>
+          <aside class="card"><h2>Sales this week</h2><p>Completed ticket orders.</p><div class="bars"><div class="bar" style="height:42%"></div><div class="bar" style="height:58%"></div><div class="bar" style="height:48%"></div><div class="bar" style="height:76%"></div><div class="bar" style="height:67%"></div><div class="bar" style="height:88%"></div><div class="bar" style="height:94%"></div></div><div class="settlement"><small>Next settlement</small><strong>₦684,200</strong><small>Expected 14 November</small><button>View payout details</button></div></aside>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

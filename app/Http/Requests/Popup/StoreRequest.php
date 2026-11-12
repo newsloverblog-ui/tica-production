@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Requests\Popup;
+
+use App\Rules\ImageMimeTypeRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreRequest extends FormRequest
+{
+  /**
+   * Determine if the user is authorized to make this request.
+   *
+   * @return bool
+   */
+  public function authorize()
+  {
+    return true;
+  }
+
+  /**
+   * Get the validation rules that apply to the request.
+   *
+   * @return array
+   */
+  public function rules()
+  {
+    return [
+      'language_id' => 'required|integer|exists:languages,id',
+      'type' => 'required|integer|between:1,7',
+      'image' => [
+        'required',
+        new ImageMimeTypeRule()
+      ],
+      'name' => 'required|max:255',
+      'background_color' => ['required_if:type,2', 'required_if:type,3', 'required_if:type,7', 'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+      'background_color_opacity' => 'required_if:type,2|required_if:type,3|numeric|between:0,1',
+      'title' => 'required_if:type,2|required_if:type,3|required_if:type,4|required_if:type,5|required_if:type,6|required_if:type,7|max:255',
+      'text' => 'required_if:type,2|required_if:type,3|required_if:type,4|required_if:type,5|required_if:type,6|required_if:type,7|max:5000',
+      'button_text' => 'required_if:type,2|required_if:type,3|required_if:type,4|required_if:type,5|required_if:type,6|required_if:type,7|max:255',
+      'button_color' => ['required_if:type,2', 'required_if:type,3', 'required_if:type,4', 'required_if:type,5', 'required_if:type,6', 'required_if:type,7', 'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+      'button_url' => 'required_if:type,2|required_if:type,4|required_if:type,6|required_if:type,7|nullable|url:http,https|max:2048',
+      'end_date' => 'required_if:type,6|required_if:type,7|date',
+      'end_time' => 'required_if:type,6|required_if:type,7|date_format:h:i A',
+      'delay' => 'required|integer|between:0,86400',
+      'serial_number' => 'required|integer|between:1,100000'
+    ];
+  }
+
+  public function messages()
+  {
+    return [
+      'language_id.required' => 'The language field is required.'
+    ];
+  }
+}

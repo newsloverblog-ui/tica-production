@@ -1,0 +1,11 @@
+# Replace CPANEL_USER and the PHP binary/version with values shown by cPanel.
+# Add each line in cPanel > Cron Jobs. Keep the application outside public_html;
+# point the domain document root at /home/CPANEL_USER/tica/current/public.
+
+# Laravel scheduler (required)
+* * * * * cd /home/CPANEL_USER/tica/current && /usr/local/bin/php artisan schedule:run >> /home/CPANEL_USER/tica/shared/storage/logs/scheduler.log 2>&1
+
+# Database queue workers for cPanel accounts without Supervisor. flock prevents
+# overlapping workers; --stop-when-empty lets cron start a fresh process safely.
+* * * * * flock -n /tmp/tica-payments.lock -c 'cd /home/CPANEL_USER/tica/current && /usr/local/bin/php artisan queue:work database --queue=payments --sleep=1 --tries=3 --backoff=5 --timeout=300 --max-jobs=100 --stop-when-empty' >> /home/CPANEL_USER/tica/shared/storage/logs/queue-payments.log 2>&1
+* * * * * flock -n /tmp/tica-default.lock -c 'cd /home/CPANEL_USER/tica/current && /usr/local/bin/php artisan queue:work database --queue=default --sleep=1 --tries=3 --backoff=10 --timeout=900 --max-jobs=100 --stop-when-empty' >> /home/CPANEL_USER/tica/shared/storage/logs/queue-default.log 2>&1
