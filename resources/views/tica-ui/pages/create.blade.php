@@ -14,7 +14,7 @@
         </div>
         <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
       </section>
-      <ol class="ce-steps" aria-label="Steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Where</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets</a></li><li><a href="#ce-fee" data-ce="ce-fee">4. Fees and payout</a></li><li><a href="#ce-more" data-ce="ce-more">5. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">6. Review</a></li></ol>
+      <ol class="ce-steps" aria-label="Steps"><li><a href="#ce-basics" data-ce="ce-basics"><b>1</b>Basics</a></li><li><a href="#ce-where" data-ce="ce-where"><b>2</b>Where</a></li><li><a href="#ce-tix" data-ce="ce-tix"><b>3</b>Tickets</a></li><li><a href="#ce-fee" data-ce="ce-fee"><b>4</b>Fees</a></li><li><a href="#ce-more" data-ce="ce-more"><b>5</b>More options</a></li><li><a href="#ce-review" data-ce="ce-review"><b>6</b>Review</a></li></ol>
       <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 6</p>
 
       <fieldset id="ce-basics"><legend>The basics</legend>
@@ -98,7 +98,7 @@
         <div class="ce-bank" id="ce-bank"><span><b>Payout account</b><small>Not added yet. Add it before your event so you're paid on time.</small></span><a class="btn btn-line" href="/dashboard/payouts">Add bank account</a></div>
       </fieldset>
 
-      <fieldset id="ce-more"><legend>Settings</legend>
+      <fieldset id="ce-more"><legend>More options</legend>
         <div class="two">
           <div class="inp"><label for="c-vis">Who can find it</label><select id="c-vis" name="visibility"><option value="public">Public, on Discover</option><option value="unlisted">Link only</option><option value="private">Private, by invite</option></select></div>
           <div class="inp"><label for="c-ref">Refunds</label><select id="c-ref" name="refund_policy"><option value="">TICA standard</option><option>Up to 7 days before</option><option>Up to 48 hours before</option></select></div>

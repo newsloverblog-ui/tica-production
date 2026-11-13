@@ -485,3 +485,27 @@ body.orgshell [data-p=promote] .od-pr2{display:grid;grid-template-columns:1fr 1f
 .pr-more[open]>summary::before{transform:rotate(45deg)}
 .pr-more>.t-card{margin-top:var(--t-4)}
 @media (max-width:900px){.pr-share__row,body.orgshell [data-p=promote] .od-pr2{grid-template-columns:1fr}.pr-copy{flex-direction:column}}
+
+/* =====================================================================
+   Page: Create / Edit event (inside the shell)
+   ===================================================================== */
+body.orgshell .creategrid{max-width:1200px;margin:0;padding:var(--t-pad);gap:var(--t-6);grid-template-columns:minmax(0,1fr) 320px;align-items:start}
+body.orgshell .tint.full{background:transparent}
+body.orgshell #create-form.panel{background:var(--t-surface);border:1px solid var(--t-line);border-radius:var(--t-radius);box-shadow:none;padding:var(--t-6)}
+body.orgshell #create-form h1.display{font:600 var(--t-text-xl)/1.2 var(--t-font);letter-spacing:-.01em;color:var(--t-ink)}
+body.orgshell #create-form .lead{font-size:var(--t-text);color:var(--t-muted);margin:var(--t-1) 0 var(--t-5)}
+body.orgshell #create-form legend{font:600 var(--t-text-lg)/1.3 var(--t-font);color:var(--t-ink)}
+body.orgshell .preview{position:sticky;top:calc(var(--t-top) + var(--t-pad))}
+body.orgshell .ce-steps{display:flex;flex-wrap:nowrap;gap:0;overflow-x:auto;margin:0 0 var(--t-2);padding:0 0 var(--t-1);counter-reset:none;border-bottom:1px solid var(--t-line)}
+body.orgshell .ce-steps li{flex:1 0 auto}
+body.orgshell .ce-steps a{display:flex;align-items:center;gap:var(--t-2);min-height:44px;padding:0 var(--t-3) 0 0;border:0;border-radius:0;background:none;color:var(--t-muted);font:500 var(--t-text-sm)/1 var(--t-font);white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+body.orgshell .ce-steps a b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--t-subtle);color:var(--t-muted);font-size:12px;font-weight:600;flex:none}
+body.orgshell .ce-steps a:hover{color:var(--t-ink);background:none}
+body.orgshell .ce-steps a[aria-current=step]{color:var(--t-blue);background:none;border-bottom-color:var(--t-blue)}
+body.orgshell .ce-steps a[aria-current=step] b{background:var(--t-blue);color:#fff}
+body.orgshell .ce-steps a.done{color:var(--t-ink);border-color:transparent;background:none}
+body.orgshell .ce-steps a.done b{background:var(--t-blue-50);color:var(--t-blue)}
+body.orgshell .ce-steps a.done::before{content:none}
+body.orgshell .ce-progress{font-size:var(--t-text-sm);color:var(--t-muted);margin-bottom:var(--t-5)}
+@media (max-width:1199px){body.orgshell .creategrid{grid-template-columns:1fr}body.orgshell .preview{position:static;max-width:420px}}
+@media (max-width:767px){body.orgshell #create-form.panel{padding:var(--t-4)}body.orgshell .ce-steps a{padding-right:var(--t-2)}}
