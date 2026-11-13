@@ -4,95 +4,93 @@
   @php
     $symbol = optional($currency)->base_currency_symbol ?: '₦';
     $money = fn ($value) => $symbol . number_format((float) $value, 2);
+    $tone = [
+      'ready' => 'green', 'scheduled' => 'blue', 'processing' => 'blue', 'none' => '',
+      'manual_review' => 'orange', 'review_required' => 'red', 'action_required' => 'orange',
+    ][$nextPayout['status']] ?? '';
   @endphp
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Finance statement') }}</h4>
-    <ul class="breadcrumbs"><li class="nav-home"><a href="{{ route('organizer.dashboard') }}"><i class="flaticon-home"></i></a></li><li class="separator"><i class="flaticon-right-arrow"></i></li><li class="nav-item"><a href="#">{{ __('Finance') }}</a></li></ul>
+
+  <div class="t-page-head">
+    <div>
+      <h1 class="page-title">{{ __('Finance statement') }}</h1>
+      <p>{{ __('Sales, fees, refunds and payouts for any date range.') }}</p>
+    </div>
+    <form method="get" class="lg-range">
+      <label class="t-field"><span class="t-label">{{ __('From') }}</span><input type="date" name="from" class="t-input" value="{{ $from->format('Y-m-d') }}" required></label>
+      <label class="t-field"><span class="t-label">{{ __('To') }}</span><input type="date" name="to" class="t-input" value="{{ $to->format('Y-m-d') }}" required></label>
+      <button class="t-btn t-btn--secondary" type="submit">{{ __('Apply') }}</button>
+    </form>
   </div>
 
-  <div class="card mb-4"><div class="card-body">
-    <form method="get" class="row align-items-end">
-      <div class="col-md-4"><label>{{ __('From') }}</label><input type="date" name="from" class="form-control" value="{{ $from->format('Y-m-d') }}" required></div>
-      <div class="col-md-4"><label>{{ __('To') }}</label><input type="date" name="to" class="form-control" value="{{ $to->format('Y-m-d') }}" required></div>
-      <div class="col-md-4 mt-3 mt-md-0"><button class="btn btn-primary" type="submit">{{ __('Apply range') }}</button></div>
-    </form>
-  </div></div>
-
-  <div class="row">
-    @foreach ([
-      ['Gross sales', $statement['gross_sales'], 'fa-shopping-cart'],
-      ['Platform fees', $statement['platform_fees'], 'fa-receipt'],
-      ['Refunds', $statement['refunds'], 'fa-undo'],
-      ['Net sales', $statement['net_sales'], 'fa-chart-line'],
-      ['Available balance', $statement['available_balance'], 'fa-wallet'],
-      ['Pending payouts', $statement['pending_payouts'], 'fa-clock'],
-      ['Paid out', $statement['paid_out'], 'fa-check-circle'],
-      ['Payout fees', $statement['payout_fees'], 'fa-percentage'],
-    ] as [$label, $value, $icon])
-      <div class="col-sm-6 col-xl-3 mb-4"><div class="card h-100"><div class="card-body">
-        <div class="d-flex justify-content-between"><small class="text-muted text-uppercase">{{ __($label) }}</small><i class="fal {{ $icon }} text-primary"></i></div>
-        <h4 class="mt-2 mb-0">{{ $money($value) }}</h4>
-      </div></div></div>
+  {{-- Layer 1: the four numbers that answer "how did I do?" --}}
+  <div class="lg-stats">
+    @foreach ([['Gross sales', 'gross_sales'], ['Net sales', 'net_sales'], ['Available balance', 'available_balance'], ['Paid out', 'paid_out']] as [$label, $key])
+      <div class="t-card t-stat"><span class="t-stat__label">{{ __($label) }}</span><b class="t-stat__value">{{ $money($statement[$key]) }}</b></div>
     @endforeach
   </div>
 
-  @php
-    $payoutBadge = [
-      'ready' => 'success', 'scheduled' => 'info', 'processing' => 'primary',
-      'none' => 'secondary', 'manual_review' => 'warning',
-      'review_required' => 'danger', 'action_required' => 'warning',
-    ][$nextPayout['status']] ?? 'secondary';
-  @endphp
-  <div class="card mb-4 border-left border-{{ $payoutBadge }}">
-    <div class="card-body d-md-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-start">
-        <span class="rounded-circle bg-light text-primary d-inline-flex align-items-center justify-content-center mr-3" style="width:46px;height:46px;flex:0 0 46px;">
-          <i class="fal fa-calendar-check"></i>
-        </span>
-        <div>
-          <small class="text-muted text-uppercase">{{ __('Next payout') }}</small>
-          <h5 class="mb-1">
-            @if($nextPayout['scheduled_at'])
-              {{ \Carbon\Carbon::parse($nextPayout['scheduled_at'])->timezone(config('payouts.eligibility_policy.timezone', 'Africa/Lagos'))->format('D, j M Y \a\t g:i A') }}
-            @else
-              {{ __($nextPayout['label']) }}
-            @endif
-          </h5>
-          <p class="text-muted mb-0">{{ __($nextPayout['message']) }}</p>
-          @if($nextPayout['reference'])<small class="text-muted">{{ __('Request') }}: {{ $nextPayout['reference'] }}</small>@endif
-        </div>
+  {{-- Layer 2: next payout, then the breakdown --}}
+  <div class="lg-two">
+    <section class="t-card" aria-labelledby="fin-next-h">
+      <div class="t-card__head"><h2 class="t-card__title" id="fin-next-h">{{ __('Next payout') }}</h2><span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ __($nextPayout['label']) }}</span></div>
+      <p class="lg-big">
+        @if ($nextPayout['scheduled_at'])
+          {{ \Carbon\Carbon::parse($nextPayout['scheduled_at'])->timezone(config('payouts.eligibility_policy.timezone', 'Africa/Lagos'))->format('D, j M Y \a\t g:i A') }}
+        @else
+          {{ __($nextPayout['label']) }}
+        @endif
+      </p>
+      <p class="t-help">{{ __($nextPayout['message']) }}</p>
+      @if ($nextPayout['reference'])<p class="t-help">{{ __('Request') }}: {{ $nextPayout['reference'] }}</p>@endif
+    </section>
+    <section class="t-card" aria-labelledby="fin-br-h">
+      <div class="t-card__head"><h2 class="t-card__title" id="fin-br-h">{{ __('Breakdown') }}</h2></div>
+      <dl class="lg-dl">
+        <div><dt>{{ __('Gross sales') }}</dt><dd>{{ $money($statement['gross_sales']) }}</dd></div>
+        <div><dt>{{ __('Platform fees') }}</dt><dd>−{{ $money($statement['platform_fees']) }}</dd></div>
+        <div><dt>{{ __('Refunds') }}</dt><dd>−{{ $money($statement['refunds']) }}</dd></div>
+        <div class="is-total"><dt>{{ __('Net sales') }}</dt><dd>{{ $money($statement['net_sales']) }}</dd></div>
+        <div><dt>{{ __('Pending payouts') }}</dt><dd>{{ $money($statement['pending_payouts']) }}</dd></div>
+        <div><dt>{{ __('Payout fees') }}</dt><dd>{{ $money($statement['payout_fees']) }}</dd></div>
+      </dl>
+      <p class="t-help">{{ __('Card processing fees are settled with Paystack and are not included here.') }}</p>
+    </section>
+  </div>
+
+  {{-- Layer 3: the ledger --}}
+  <section class="lg-ledger" aria-labelledby="fin-led-h">
+    <div class="t-toolbar lg-ledger__head">
+      <div><h2 class="t-card__title" id="fin-led-h">{{ __('Ledger activity') }}</h2><span class="t-help">{{ $statement['transaction_count'] }} {{ __('records in this period') }}</span></div>
+      <div class="lg-actions">
+        @foreach (['csv' => 'CSV', 'xlsx' => 'Excel', 'pdf' => 'PDF'] as $format => $label)
+          <a class="t-btn t-btn--secondary t-btn--sm" href="{{ route('organizer.finance.export', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'file_type' => $format]) }}">{{ __('Download') }} {{ $label }}</a>
+        @endforeach
+        <a class="t-btn t-btn--ghost t-btn--sm" href="{{ route('organizer.data_exports.index') }}">{{ __('Export history') }}</a>
       </div>
-      <span class="badge badge-{{ $payoutBadge }} px-3 py-2 mt-3 mt-md-0">{{ __($nextPayout['label']) }}</span>
     </div>
-  </div>
-
-  <div class="alert alert-light border">
-    <strong>{{ __('Gateway fees:') }}</strong> {{ __('Not allocated to organizer transactions yet. They are reconciled at the Paystack settlement level and are intentionally excluded rather than estimated.') }}
-  </div>
-
-  <div class="card"><div class="card-header"><div class="row align-items-center">
-    <div class="col-md-5"><div class="card-title">{{ __('Ledger activity') }}</div><small class="text-muted">{{ $statement['transaction_count'] }} {{ __('records in this period') }}</small></div>
-    <div class="col-md-7 text-md-right mt-3 mt-md-0">
-      @foreach (['csv' => 'CSV', 'xlsx' => 'Excel', 'pdf' => 'PDF'] as $format => $label)
-        <a class="btn btn-sm btn-outline-primary" href="{{ route('organizer.finance.export', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'file_type' => $format]) }}"><i class="fas fa-download mr-1"></i>{{ $label }}</a>
-      @endforeach
-      <a class="btn btn-sm btn-link" href="{{ route('organizer.data_exports.index') }}">{{ __('Export history') }}</a>
-    </div>
-  </div></div>
-  @if ($statement['transaction_count'] > config('exports.immediate_finance_rows', 10000))
-    <div class="alert alert-info rounded-0 mb-0">
-      {{ __('CSV and Excel statements of this size are generated privately in the background. PDF is available for smaller ranges only.') }}
-    </div>
-  @endif
-  <div class="card-body p-0">
-    <div class="table-responsive"><table class="table table-striped mb-0"><thead><tr>
-      <th>{{ __('Date') }}</th><th>{{ __('Reference') }}</th><th>{{ __('Type') }}</th><th>{{ __('Status') }}</th><th class="text-right">{{ __('Gross') }}</th><th class="text-right">{{ __('Fee') }}</th><th class="text-right">{{ __('Net') }}</th>
-    </tr></thead><tbody>
-      @forelse ($transactions as $row)
-        <tr><td>{{ $row['occurred_at'] ? \Carbon\Carbon::parse($row['occurred_at'])->format('Y-m-d H:i') : '-' }}</td><td>{{ $row['reference'] }}</td><td>{{ __(ucwords(str_replace('_', ' ', $row['type']))) }}</td><td><span class="badge badge-{{ $row['status'] === 'completed' ? 'success' : ($row['status'] === 'rejected' ? 'danger' : 'warning') }}">{{ __(ucfirst($row['status'])) }}</span></td><td class="text-right">{{ $money($row['gross_amount']) }}</td><td class="text-right">{{ $money($row['platform_fee']) }}</td><td class="text-right font-weight-bold">{{ $money($row['net_amount']) }}</td></tr>
-      @empty
-        <tr><td colspan="7" class="text-center py-5 text-muted">{{ __('No finance activity in this period.') }}</td></tr>
-      @endforelse
-    </tbody></table></div>
-  </div><div class="card-footer">{{ $transactions->links() }}</div></div>
+    @if ($statement['transaction_count'] > config('exports.immediate_finance_rows', 10000))
+      <p class="t-help lg-note">{{ __('CSV and Excel statements of this size are generated privately in the background. PDF is available for smaller ranges only.') }}</p>
+    @endif
+    @if ($transactions->count() === 0)
+      <div class="t-card"><div class="t-empty"><h3>{{ __('No finance activity in this period') }}</h3><p>{{ __('Try a wider date range.') }}</p></div></div>
+    @else
+      <div class="t-table-wrap"><table class="t-table t-table--cards">
+        <thead><tr><th scope="col">{{ __('Date') }}</th><th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col" class="t-num">{{ __('Gross') }}</th><th scope="col" class="t-num">{{ __('Fee') }}</th><th scope="col" class="t-num">{{ __('Net') }}</th></tr></thead>
+        <tbody>
+          @foreach ($transactions as $row)
+            <tr>
+              <td data-label="{{ __('Date') }}">{{ $row['occurred_at'] ? \Carbon\Carbon::parse($row['occurred_at'])->format('j M Y, g:i a') : '—' }}</td>
+              <td data-label="{{ __('Reference') }}">{{ $row['reference'] }}</td>
+              <td data-label="{{ __('Type') }}">{{ __(ucfirst(str_replace('_', ' ', $row['type']))) }}</td>
+              <td data-label="{{ __('Status') }}"><span class="t-badge t-badge--{{ $row['status'] === 'completed' ? 'green' : ($row['status'] === 'rejected' ? 'red' : 'orange') }}">{{ __(ucfirst($row['status'])) }}</span></td>
+              <td data-label="{{ __('Gross') }}" class="t-num">{{ $money($row['gross_amount']) }}</td>
+              <td data-label="{{ __('Fee') }}" class="t-num">{{ $money($row['platform_fee']) }}</td>
+              <td data-label="{{ __('Net') }}" class="t-num"><b>{{ $money($row['net_amount']) }}</b></td>
+            </tr>
+          @endforeach
+        </tbody>
+      </table></div>
+      <div class="t-pager lg-pager">{{ $transactions->withQueryString()->links() }}</div>
+    @endif
+  </section>
 @endsection

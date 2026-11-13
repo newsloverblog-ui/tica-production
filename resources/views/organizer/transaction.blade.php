@@ -1,164 +1,81 @@
 @extends('organizer.layout')
 
+@php
+  $types = [1 => __('Ticket sale'), 2 => __('Product order'), 3 => __('Withdrawal'), 4 => __('Balance credit'), 5 => __('Balance debit'), 6 => __('Event refund'), 7 => __('Product refund')];
+  $money = function ($t, $amount) {
+    $value = number_format((float) $amount, 2);
+    return $t->currency_symbol_position === 'right' ? $value . $t->currency_symbol : $t->currency_symbol . $value;
+  };
+  $filtered = collect(['transcation_id', 'transaction_type', 'payment_status', 'from_date', 'to_date'])->contains(fn ($k) => filled(request($k)));
+@endphp
 
 @section('content')
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Transactions') }}</h4>
-    <ul class="breadcrumbs">
-      <li class="nav-home">
-        <a href="{{ route('organizer.dashboard') }}">
-          <i class="flaticon-home"></i>
-        </a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Transactions') }}</a>
-      </li>
-    </ul>
-  </div>
-
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <div class="row mb-3">
-            <div class="col-lg-12">
-              <div class="card-title d-inline-block">{{ __('Transactions') }}</div>
-            </div>
-          </div>
-          <form action="{{ route('organizer.transcation') }}" method="get" class="row align-items-end">
-            <div class="col-md-3 form-group"><label>{{ __('Transaction reference') }}</label><input type="search" maxlength="100" value="{{ request('transcation_id') }}" name="transcation_id" placeholder="{{ __('Search reference') }}" class="form-control"></div>
-            <div class="col-md-2 form-group"><label>{{ __('Type') }}</label><select name="transaction_type" class="form-control"><option value="">{{ __('All types') }}</option>@foreach([1=>'Event booking',2=>'Product order',3=>'Withdrawal',4=>'Balance credit',5=>'Balance debit',6=>'Event refund',7=>'Product refund'] as $value=>$label)<option value="{{ $value }}" @selected((string)request('transaction_type')===(string)$value)>{{ __($label) }}</option>@endforeach</select></div>
-            <div class="col-md-2 form-group"><label>{{ __('Status') }}</label><select name="payment_status" class="form-control"><option value="">{{ __('All statuses') }}</option><option value="0" @selected(request('payment_status')==='0')>{{ __('Unpaid') }}</option><option value="1" @selected(request('payment_status')==='1')>{{ __('Paid') }}</option><option value="2" @selected(request('payment_status')==='2')>{{ __('Declined') }}</option></select></div>
-            <div class="col-md-2 form-group"><label>{{ __('From') }}</label><input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}"></div>
-            <div class="col-md-2 form-group"><label>{{ __('To') }}</label><input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}"></div>
-            <div class="col-md-1 form-group"><button class="btn btn-primary btn-block" type="submit">{{ __('Filter') }}</button></div>
-          </form>
-          <div class="d-flex flex-wrap align-items-center border-top pt-3">
-            <form method="POST" action="{{ route('organizer.transaction_exports.store') }}" class="form-inline mr-2 mb-2">@csrf
-              <input type="hidden" name="transcation_id" value="{{ request('transcation_id') }}"><input type="hidden" name="transaction_type" value="{{ request('transaction_type') }}"><input type="hidden" name="payment_status" value="{{ request('payment_status') }}"><input type="hidden" name="from_date" value="{{ request('from_date') }}"><input type="hidden" name="to_date" value="{{ request('to_date') }}">
-              <select name="format" class="form-control form-control-sm mr-2" required><option value="csv">CSV</option><option value="xlsx">XLSX</option></select><button class="btn btn-success btn-sm" type="submit"><i class="fas fa-file-export"></i> {{ __('Queue private export') }}</button>
-            </form><a class="btn btn-outline-primary btn-sm mb-2 mr-2" href="{{ route('organizer.transaction_exports.index') }}">{{ __('Export history') }}</a><a class="btn btn-outline-secondary btn-sm mb-2" href="{{ route('organizer.transcation') }}">{{ __('Reset filters') }}</a>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="row">
-            <div class="col-lg-12">
-              @if (count($transcations) == 0)
-                <h3 class="text-center mt-3">{{ __('NO TRANSCATION FOUND') . '!' }}</h3>
-              @else
-                <div class="table-responsive">
-                  <table class="table table-striped mt-3">
-                    <thead>
-                      <tr>
-                        <th scope="col">{{ __('Transaction Id') }}</th>
-                        <th scope="col">{{ __('Transaction Type') }}</th>
-                        <th scope="col">{{ __('Payment Method') }}</th>
-                        <th scope="col">{{ __('Pre Balance') }}</th>
-                        <th scope="col">{{ __('Amount') }}</th>
-                        <th scope="col">{{ __('After Balance') }}</th>
-                        <th scope="col">{{ __('Status') }}</th>
-                        <th scope="col">{{ __('Actions') }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @foreach ($transcations as $transcation)
-                        <tr>
-                          <td>#{{ $transcation->transcation_id }}</td>
-                          <td>
-                            @if ($transcation->transcation_type == 1)
-                              {{ 'Event Booking' }}
-                            @elseif ($transcation->transcation_type == 2)
-                              {{ 'Product Order' }}
-                            @elseif ($transcation->transcation_type == 3)
-                              {{ 'Withdraw' }}
-                            @elseif ($transcation->transcation_type == 4)
-                              {{ 'Balance Add' }}
-                            @elseif ($transcation->transcation_type == 5)
-                              {{ 'Balance Subtract' }}
-                            @elseif ($transcation->transcation_type == 6)
-                              {{ 'Payment Refund' }}
-                            @endif
-                          </td>
-                          <td>
-                            @if ($transcation->transcation_type == 3)
-                              @php
-                                $method = $transcation->method()->first();
-                              @endphp
-                              @if ($method)
-                                {{ $method->name }}
-                              @else
-                                {{ '-' }}
-                              @endif
-                            @else
-                              {{ $transcation->payment_method != null ? $transcation->payment_method : '-' }}
-                            @endif
-                          </td>
-                          <td>
-                            {{ $transcation->currency_symbol_position == 'left' ? $transcation->currency_symbol : '' }}
-                            {{ $transcation->pre_balance }}
-                            {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}
-                          </td>
-                          <td>
-                            @if (in_array($transcation->transcation_type, [3, 5, 6]))
-                              <span class="text-danger">{{ '(-) ' }}</span>
-                            @else
-                              <span class="text-success">{{ '(+) ' }}</span>
-                            @endif
-
-                            {{ $transcation->currency_symbol_position == 'left' ? $transcation->currency_symbol : '' }}
-                            {{ $transcation->grand_total - $transcation->commission }}
-                            {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}
-                          </td>
-                          <td>
-                            {{ $transcation->currency_symbol_position == 'left' ? $transcation->currency_symbol : '' }}
-                            {{ $transcation->after_balance }}
-                            {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}
-                          </td>
-                          <td>
-                            @if ($transcation->payment_status == 1)
-                              <span class="badge badge-success">{{ __('Paid') }}</span>
-                            @elseif ($transcation->payment_status == 2)
-                              <span class="badge badge-warning">{{ __('Decline') }}</span>
-                            @else
-                              <span class="badge badge-danger">{{ __('Unpaid') }}</span>
-                            @endif
-                          </td>
-
-                          <td>
-                            @if ($transcation->transcation_type == 1)
-                              @php
-                                $t_invoice = $transcation->event_booking()->first();
-                              @endphp
-                              @if ($t_invoice)
-                                <a target="_blank" class="btn btn-secondary btn-sm mr-1"
-                                  href="{{ route('organizer.event_booking.invoice', $t_invoice->id) }}">
-                                  <i class="fas fa-eye"></i>
-                                </a>
-                              @endif
-                            @elseif ($transcation->transcation_type == 2)
-                              {{ '-' }}
-                            @endif
-                          </td>
-                        </tr>
-                      @endforeach
-                    </tbody>
-                  </table>
-                </div>
-              @endif
-            </div>
-          </div>
-        </div>
-
-        <div class="card-footer text-center">
-          <div class="d-inline-block mt-3">
-            {{ $transcations->links() }}
-          </div>
-        </div>
-      </div>
+  <div class="t-page-head">
+    <div>
+      <h1 class="page-title">{{ __('Transactions') }}</h1>
+      <p>{{ __('Every movement of money in your TICA balance: sales, refunds and withdrawals.') }}</p>
+    </div>
+    <div class="lg-actions">
+      <a class="t-btn t-btn--secondary" href="{{ route('organizer.transaction_exports.index') }}">{{ __('Export history') }}</a>
+      <form method="POST" action="{{ route('organizer.transaction_exports.store') }}" class="lg-export">@csrf
+        @foreach (['transcation_id', 'transaction_type', 'payment_status', 'from_date', 'to_date'] as $key)
+          <input type="hidden" name="{{ $key }}" value="{{ request($key) }}">
+        @endforeach
+        <label class="t-sr" for="tx-format">{{ __('Export format') }}</label>
+        <select id="tx-format" name="format" class="t-select" required><option value="csv">CSV</option><option value="xlsx">Excel</option></select>
+        <button class="t-btn t-btn--primary" type="submit">{{ __('Export') }}</button>
+      </form>
     </div>
   </div>
+
+  <form action="{{ route('organizer.transcation') }}" method="get" class="t-toolbar lg-filters">
+    <label class="t-search"><span class="t-sr">{{ __('Search by reference') }}</span><input class="t-input" type="search" maxlength="100" value="{{ request('transcation_id') }}" name="transcation_id" placeholder="{{ __('Search by reference') }}"></label>
+    <select name="transaction_type" class="t-select" aria-label="{{ __('Type') }}"><option value="">{{ __('All types') }}</option>@foreach ($types as $value => $label)<option value="{{ $value }}" @selected((string) request('transaction_type') === (string) $value)>{{ $label }}</option>@endforeach</select>
+    <select name="payment_status" class="t-select" aria-label="{{ __('Status') }}"><option value="">{{ __('Any status') }}</option><option value="1" @selected(request('payment_status') === '1')>{{ __('Paid') }}</option><option value="0" @selected(request('payment_status') === '0')>{{ __('Unpaid') }}</option><option value="2" @selected(request('payment_status') === '2')>{{ __('Declined') }}</option></select>
+    <input type="date" name="from_date" class="t-input" value="{{ request('from_date') }}" aria-label="{{ __('From') }}">
+    <input type="date" name="to_date" class="t-input" value="{{ request('to_date') }}" aria-label="{{ __('To') }}">
+    <button class="t-btn t-btn--secondary" type="submit">{{ __('Apply') }}</button>
+    @if ($filtered)<a class="t-btn t-btn--ghost" href="{{ route('organizer.transcation') }}">{{ __('Clear filters') }}</a>@endif
+  </form>
+
+  @if (count($transcations) == 0)
+    <div class="t-card"><div class="t-empty">
+      <h3>{{ $filtered ? __('No transactions match these filters') : __('No transactions yet') }}</h3>
+      <p>{{ $filtered ? __('Try a different type, status or date.') : __('Ticket sales, refunds and withdrawals will appear here.') }}</p>
+    </div></div>
+  @else
+    <div class="t-table-wrap">
+      <table class="t-table t-table--cards">
+        <thead><tr>
+          <th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Method') }}</th>
+          <th scope="col" class="t-num">{{ __('Amount') }}</th><th scope="col" class="t-num">{{ __('Balance after') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col"><span class="t-sr">{{ __('Actions') }}</span></th>
+        </tr></thead>
+        <tbody>
+          @foreach ($transcations as $transcation)
+            @php
+              $out = in_array((int) $transcation->transcation_type, [3, 5, 6, 7], true);
+              $method = (int) $transcation->transcation_type === 3 ? optional($transcation->method()->first())->name : $transcation->payment_method;
+              $booking = (int) $transcation->transcation_type === 1 ? $transcation->event_booking()->first() : null;
+            @endphp
+            <tr>
+              <td data-label="{{ __('Reference') }}">#{{ $transcation->transcation_id }}<span class="t-muted lg-sub">{{ optional($transcation->created_at)->format('j M Y, g:i a') }}</span></td>
+              <td data-label="{{ __('Type') }}">{{ $types[(int) $transcation->transcation_type] ?? __('Other') }}</td>
+              <td data-label="{{ __('Method') }}">{{ $method ?: '—' }}</td>
+              <td data-label="{{ __('Amount') }}" class="t-num lg-amt {{ $out ? 'is-out' : 'is-in' }}">{{ $out ? '−' : '+' }}{{ $money($transcation, $transcation->grand_total - $transcation->commission) }}</td>
+              <td data-label="{{ __('Balance after') }}" class="t-num">{{ $money($transcation, $transcation->after_balance) }}</td>
+              <td data-label="{{ __('Status') }}">
+                @if ((int) $transcation->payment_status === 1)<span class="t-badge t-badge--green">{{ __('Paid') }}</span>
+                @elseif ((int) $transcation->payment_status === 2)<span class="t-badge t-badge--orange">{{ __('Declined') }}</span>
+                @else<span class="t-badge t-badge--red">{{ __('Unpaid') }}</span>@endif
+              </td>
+              <td class="ev-actions">
+                @if ($booking)<a class="t-btn t-btn--ghost t-btn--sm" target="_blank" rel="noopener" href="{{ route('organizer.event_booking.invoice', $booking->id) }}">{{ __('Invoice') }}</a>@endif
+              </td>
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+    <div class="t-pager lg-pager">{{ $transcations->withQueryString()->links() }}</div>
+  @endif
 @endsection

@@ -1,28 +1,7 @@
 @extends('organizer.layout')
 
 @section('content')
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Add Ticket') }}</h4>
-    <ul class="breadcrumbs">
-      <li class="nav-home">
-        <a href="{{ route('organizer.dashboard') }}">
-          <i class="flaticon-home"></i>
-        </a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Support Ticket') }}</a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Add Ticket') }}</a>
-      </li>
-    </ul>
-  </div>
+  <div class="t-page-head"><div><h1 class="page-title">{{ __('New support request') }}</h1><p>{{ __('Tell us what you need. We usually reply within one working day.') }}</p></div><a class="t-btn t-btn--secondary" href="{{ route('organizer.support_tickets') }}">{{ __('All requests') }}</a></div>
 
   <div class="row">
     <div class="col-md-12">
