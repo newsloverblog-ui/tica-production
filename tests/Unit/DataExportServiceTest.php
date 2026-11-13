@@ -200,7 +200,7 @@ class DataExportServiceTest extends TestCase
     public function test_recurring_schedule_is_actor_scoped_encrypted_and_runs_once_when_due(): void
     {
         Queue::fake();
-        $this->travelTo(CarbonImmutable::parse('2026-11-02 09:00:00'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC')); // 09:00 in Lagos, the schedule's start
         $this->insertBooking(1, 10, 'SCHEDULED-ONE', 'Scheduled attendee');
 
         $service = app(DataExportScheduleService::class);
