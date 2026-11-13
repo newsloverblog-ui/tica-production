@@ -52,6 +52,7 @@ jobs:
         run: |
           mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs bootstrap/cache
           cp .env.example .env
+          sed -i '/^LARAVEL_STORAGE_PATH=/d' .env
           php artisan key:generate --force
 
       - name: Run organiser settings, team, payout and 2FA tests
