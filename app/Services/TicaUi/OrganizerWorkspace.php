@@ -47,16 +47,17 @@ class OrganizerWorkspace
     $catalog = new EventCatalog($this->language);
     $events = $catalog->forOrganizer((int) $organizer->id);
     $eventIds = $events->pluck('id')->all();
-    $bookings = $this->paidBookings((int) $organizer->id);
     $info = OrganizerInfo::query()->where('organizer_id', $organizer->id)->where('language_id', $this->language->id)->first()
       ?: OrganizerInfo::query()->where('organizer_id', $organizer->id)->first();
     $name = $info?->name ?: (string) $organizer->username;
     $account = OrganizerPayoutAccount::query()->where('organizer_id', $organizer->id)->where('is_default', true)->latest('id')->first();
     $now = now();
 
-    $revenueByEvent = $bookings->groupBy('event_id')->map(fn ($rows) => round($rows->sum(fn ($b) => (float) $b->price - (float) $b->commission), 2));
+    $revenueByEvent = $this->revenueByEvent((int) $organizer->id);
+    $recentBookings = $this->recentBookings((int) $organizer->id);
     $eventRows = $events->map(fn ($event) => $this->eventRow($event, $revenueByEvent->get($event['id'], 0.0)))->values();
     $upcoming = $eventRows->filter(fn ($row) => $row['state'] === 'up')->sortBy('ts')->values();
+    $metrics = (new OrganizerOverviewMetrics())->build((int) $organizer->id, $eventIds, (float) $organizer->amount);
 
     return [
       'role' => $role,
@@ -72,20 +73,13 @@ class OrganizerWorkspace
         'payout' => (bool) ($account && $account->status === 'verified'),
         'kycUrl' => route('organizer.kyc.show'),
       ],
-      'kpis' => [
-        // Headline sales are in the base currency; other currencies show on Payouts.
-        'gross' => round($bookings->filter(fn ($b) => TicaCurrency::isBase($b->currencyText))->sum(fn ($b) => (float) $b->price + (float) $b->tax), 2),
-        'sold' => $eventIds ? BookingTicket::query()->whereIn('event_id', $eventIds)->whereNull('revoked_at')->count() : 0,
-        'views' => $eventIds && Schema::hasTable('funnel_analytics_events')
-          ? DB::table('funnel_analytics_events')->where('event_name', 'view_event')->whereIn('event_id', $eventIds)->count()
-          : 0,
-        'available' => round((float) $organizer->amount, 2),
-      ],
+      'kpis' => $metrics['14'],
+      'kpisByRange' => $metrics,
       'chart' => $this->chart($eventIds),
       'account' => $this->accountTotals($organizer, $eventIds),
       'next' => $upcoming->first(),
       'events' => $eventRows->all(),
-      'orders' => $bookings->sortByDesc('id')->take(5)->map(fn ($b) => [
+      'orders' => $recentBookings->map(fn ($b) => [
         'name' => trim($b->fname . ' ' . $b->lname),
         'tickets' => $this->ticketSummary($b),
         'amount' => round((float) $b->price + (float) $b->tax, 2),
@@ -127,12 +121,26 @@ class OrganizerWorkspace
     ];
   }
 
-  /** Completed and free bookings for the organiser's events. */
-  private function paidBookings(int $organizerId): Collection
+  /** Net revenue by event without hydrating every historical booking. */
+  private function revenueByEvent(int $organizerId): Collection
   {
     return Booking::query()
       ->where('organizer_id', $organizerId)
       ->whereIn('paymentStatus', ['completed', 'free'])
+      ->selectRaw('event_id, SUM(price - COALESCE(commission, 0)) as revenue')
+      ->groupBy('event_id')
+      ->pluck('revenue', 'event_id')
+      ->map(fn ($value) => round((float) $value, 2));
+  }
+
+  /** Only the five rows rendered by the overview are loaded. */
+  private function recentBookings(int $organizerId): Collection
+  {
+    return Booking::query()
+      ->where('organizer_id', $organizerId)
+      ->whereIn('paymentStatus', ['completed', 'free'])
+      ->latest('id')
+      ->limit(5)
       ->get(['id', 'event_id', 'fname', 'lname', 'email', 'price', 'tax', 'commission', 'quantity', 'variation', 'created_at', 'paymentStatus', 'tracking_link_id', 'currencyText']);
   }
 
@@ -297,7 +305,7 @@ class OrganizerWorkspace
     return [
       'available' => round((float) $organizer->amount, 2),
       'pending' => round((float) $withdrawals->filter(fn ($w) => in_array((int) $w->status, [Withdraw::STATUS_PENDING, Withdraw::STATUS_HELD, Withdraw::STATUS_PROCESSING], true))->sum(fn ($w) => (float) $w->amount), 2),
-      'paid' => round((float) Withdraw::query()->where('organizer_id', $organizer->id)->where('status', Withdraw::STATUS_PAID)->get()->sum(fn ($w) => (float) $w->payable_amount), 2),
+      'paid' => round((float) Withdraw::query()->where('organizer_id', $organizer->id)->where('status', Withdraw::STATUS_PAID)->sum('payable_amount'), 2),
       'schedule' => (string) ($organizer->payout_schedule ?? 'manual'),
       'currencies' => DB::table('organizer_currency_balances')->where('organizer_id', $organizer->id)->where('amount', '!=', 0)->orderBy('currency')->get()
         ->map(fn ($row) => ['code' => $row->currency, 'amount' => round((float) $row->amount, 2), 'cur' => $this->cur($row->currency)])->values()->all(),

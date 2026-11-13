@@ -1297,7 +1297,7 @@ function drawChart(range){
   $('db-chart').innerHTML=total?'<div class="bars" role="img" aria-label="Tickets sold, '+esc($('od-range').selectedOptions[0].text.toLowerCase())+': '+total+' in total">'+rows.map(function(r,i){return '<div class="b"><i style="height:'+Math.round(r[1]/max*100)+'%"><em>'+r[1]+'</em></i><span>'+(rows.length>16&&i%3||rows.length<=16&&i%2?'':esc(r[0]))+'</span></div>'}).join('')+'</div>':'<div class="od-empty-state compact"><i aria-hidden="true">'+ICO.warn+'</i><h3>No ticket sales in this period</h3><p>Share an event link to bring people to your ticket page.</p><button class="btn btn-line" type="button" data-panel="promote">Share an event</button></div>';
 }
 $('od-range').innerHTML='<option value="14">Last 14 days</option><option value="30">Last 30 days</option><option value="all">All time</option>';
-$('od-range').addEventListener('change',function(){drawChart(this.value)});
+$('od-range').addEventListener('change',function(){drawOverviewKpis(this.value);drawChart(this.value)});
 function drawOverview(){
   var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');
   setup.hidden=doneN===3||!CAN.payouts;
@@ -1345,14 +1345,17 @@ function drawAccount(){
   lineChart($('od-inc'),A.income,'var(--dash-primary)',function(v,ax){return ax&&v>=1000?window.TICA_MONEY(v).replace(/,000$/,'k'):window.TICA_MONEY(v)},'Monthly ticket income in '+A.year);
   lineChart($('od-bk'),A.monthlyBookings,'var(--dash-accent)',function(v){return Math.round(v).toLocaleString('en-NG')},'Monthly event bookings in '+A.year,true);
 }
+var OVERVIEW_KPI_ICONS={sales:'<path d="M4 7h16v12H4z"/><path d="M4 11h16M8 15h3"/>',tix:'<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/>',views:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',bank:'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'};
+function drawOverviewKpis(range){
+  var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis;
+  $('db-kpis').innerHTML=[['Gross sales',N(k.gross),'sales','orders'],['Tickets sold',k.sold.toLocaleString('en-NG'),'tix','events'],['Page views',k.views.toLocaleString('en-NG'),'views','promote'],['Available to withdraw',N(k.available),'bank','payouts']].map(function(x){return '<button type="button" data-panel="'+x[3]+'"><i class="db-ki" aria-hidden="true"><svg viewBox="0 0 24 24">'+OVERVIEW_KPI_ICONS[x[2]]+'</svg></i><span>'+x[0]+'</span><b>'+x[1]+'</b><small>View details</small></button>'}).join('');
+}
 function renderDash(){
   drawAccount();
   $('db-org').textContent=D.org.name;
   $('db-hi').textContent='Welcome back, '+D.org.name.split(' ')[0];
   var nw=window.TICA_NEW;$('db-flag').hidden=!nw;if(nw)$('db-flag').textContent=nw.name+(nw.status==='draft'?' is saved as a draft.':' is now live.');
-  var k=D.kpis;
-  var KI={sales:'<path d="M4 7h16v12H4z"/><path d="M4 11h16M8 15h3"/>',tix:'<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/>',views:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',bank:'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'};
-  $('db-kpis').innerHTML=[['Gross sales',N(k.gross),'sales','orders'],['Tickets sold',k.sold.toLocaleString('en-NG'),'tix','events'],['Page views',k.views.toLocaleString('en-NG'),'views','promote'],['Available to withdraw',N(k.available),'bank','payouts']].map(function(x){return '<button type="button" data-panel="'+x[3]+'"><i class="db-ki" aria-hidden="true"><svg viewBox="0 0 24 24">'+KI[x[2]]+'</svg></i><span>'+x[0]+'</span><b>'+x[1]+'</b><small>View details</small></button>'}).join('');
+  drawOverviewKpis($('od-range').value);
   drawChart($('od-range').value);
   var rows=D.events.filter(function(r){return r.state==='up'}).sort(function(a,b){return a.ts-b.ts}).slice(0,6);
   $('db-ev').innerHTML='<div class="tr th"><span>Event</span><span>Sold</span><span>Revenue</span><span>Status</span></div>'+(rows.length?rows.map(function(r){
