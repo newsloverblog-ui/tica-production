@@ -81,6 +81,7 @@ class TicaOrganizerController extends Controller
         'visibility' => $validated['visibility'],
         'show_remaining' => $request->boolean('show_remaining'),
         'waitlist_enabled' => TicaPlatform::on('waitlist') && $request->boolean('waitlist_enabled'),
+        'allow_transfers' => TicaPlatform::on('transfers') && $request->boolean('allow_transfers'),
         'join_reveal_minutes' => (int) ($validated['join_reveal_minutes'] ?? 15),
         'attendee_question' => TicaPlatform::on('question') && $request->boolean('ask_question') ? ($validated['attendee_question'] ?? null) : null,
       ]);
@@ -370,6 +371,7 @@ class TicaOrganizerController extends Controller
       'tiers.*.early_ends' => ['nullable', 'date'],
       'fee_payer' => ['required', Rule::in(TicaPlatform::on('organizer_pays') ? ['buyer', 'organizer'] : ['buyer'])],
       'visibility' => ['required', Rule::in(TicaPlatform::visibilities())],
+      'allow_transfers' => ['required', 'boolean'],
       'refund_policy' => ['nullable', 'string', 'max:60'],
       'attendee_question' => [$request->boolean('ask_question') && !$draft ? 'required' : 'nullable', 'nullable', 'string', 'max:200'],
       'meta_description' => ['nullable', 'string', 'max:300'],

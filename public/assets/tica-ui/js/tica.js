@@ -1605,14 +1605,14 @@ $('od-pass').addEventListener('submit',function(e){e.preventDefault();var b=e.ta
   api('/tica-api/organizer/password',{current_password:$('od-pass-current').value,new_password:n,new_password_confirmation:c}).then(function(){b.disabled=false;e.target.reset();toast('Password updated.')},function(er){b.disabled=false;$('od-pass-m').textContent=errText(er)})});
 
 /* create page uses the organiser's saved defaults */
-(function(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist})();
+(function(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers})();
 /* platform rules from the admin: hide features that are switched off */
 (function(){var P=(TICA_DATA.currency||{}).platform,f=document.getElementById('create-form');if(!P||!f)return;
   function drop(el){if(!el)return;var l=el.closest('label,li')||el;l.hidden=true;l.style.display='none';if(el.checked){el.checked=false}}
   if(!P.online)drop(f.querySelector('[name=c-mode][value=Online]'));if(!P.hybrid)drop(f.querySelector('[name=c-mode][value=Hybrid]'));
   if(!P.registration)drop(f.querySelector('[name=c-entry][value=corporate]'));
   var vis=document.getElementById('c-vis');if(vis)[].slice.call(vis.options).forEach(function(o){if((o.value==='unlisted'&&!P.unlisted)||(o.value==='private'&&!P.private))o.remove()});
-  if(!P.waitlist)drop(document.getElementById('c-wait'));if(!P.question)drop(document.getElementById('c-askq'));
+  if(!P.waitlist)drop(document.getElementById('c-wait'));if(!P.transfers)drop(document.getElementById('c-trans'));if(!P.question)drop(document.getElementById('c-askq'));
   var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');
   if(!P.organizer_pays){drop(me);if(bu)bu.checked=true}
   ['c-mode','c-entry'].forEach(function(n){if(!f.querySelector('[name='+n+']:checked')){var first=f.querySelector('[name='+n+']');if(first)first.checked=true}});
@@ -1732,7 +1732,7 @@ function payload(draft){
     if(adv){var g=function(c){return x.querySelector(c).value.trim()};if(g('.ce-tdesc'))fd.append('tiers['+i+'][description]',g('.ce-tdesc'));if(g('.ce-tmax'))fd.append('tiers['+i+'][max_per_order]',g('.ce-tmax'));if(g('.ce-teb')){fd.append('tiers['+i+'][early_price]',g('.ce-teb'));fd.append('tiers['+i+'][early_ends]',g('.ce-tebe'))}}
   });
   fd.append('fee_payer',payer()==='me'?'organizer':'buyer');fd.append('visibility',$('c-vis').value);fd.append('refund_policy',$('c-ref').value);
-  fd.append('show_remaining',$('c-left').checked?'1':'0');fd.append('waitlist_enabled',$('c-wait').checked?'1':'0');fd.append('countdown',$('c-cd').checked?'1':'0');
+  fd.append('show_remaining',$('c-left').checked?'1':'0');fd.append('waitlist_enabled',$('c-wait').checked?'1':'0');fd.append('allow_transfers',$('c-trans').checked?'1':'0');fd.append('countdown',$('c-cd').checked?'1':'0');
   fd.append('ask_question',$('c-askq').checked?'1':'0');fd.append('attendee_question',v('c-question'));
   fd.append('meta_description',v('c-seo'));fd.append('meta_keywords',v('c-keys'));
   if($('c-flyer').files[0])fd.append('flyer',$('c-flyer').files[0]);

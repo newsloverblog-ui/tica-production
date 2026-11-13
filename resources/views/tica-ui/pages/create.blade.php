@@ -106,6 +106,7 @@
         <ul class="od-sw ce-sw">
           <li><span><b>Show tickets left</b></span><input class="ck-sw" type="checkbox" id="c-left" checked aria-label="Show tickets left"></li>
           <li><span><b>Waitlist when sold out</b></span><input class="ck-sw" type="checkbox" id="c-wait" checked aria-label="Waitlist when sold out"></li>
+          <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass an unused ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" id="c-trans" checked aria-label="Let buyers transfer tickets"></li>
           <li><span><b>Ask each attendee a question</b><small>For example, T-shirt size or dietary needs</small></span><input class="ck-sw" type="checkbox" id="c-askq" aria-label="Ask each attendee a question"></li>
           <li><span><b>Show a countdown</b><small>On your event page, counting down to the start</small></span><input class="ck-sw" type="checkbox" id="c-cd" checked aria-label="Show a countdown"></li>
         </ul>
