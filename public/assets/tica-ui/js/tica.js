@@ -1618,9 +1618,10 @@ function drawSettings(){
   $('od-pi').value=p.instagram||'';$('od-pw').value=p.phone;
   $('od-pt').value=p.tiktok||'';$('od-pweb').value=p.website||'';$('od-pfb').value=p.facebook||'';$('od-px').value=p.twitter||'';$('od-pli').value=p.linkedin||'';$('od-pyt').value=p.youtube||'';
   $('od-photo-ini').textContent=D.org.initials;$('od-pcp-row').hidden=true;var img=$('od-photo-preview');img.onerror=function(){img.hidden=true};if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
-  var state=$('od-mfa-state'),sec=$('od-security-link');if(state){state.textContent=p.mfa?'On':'Off';state.classList.toggle('on',!!p.mfa)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
-  var sws=document.querySelectorAll('[data-p=settings] .ck-sw'),keys=['buyers_pay_fee','show_remaining','waitlist','transfers','notify_sale','daily_summary'];
-  [].forEach.call(sws,function(s,i){s.dataset.pref=keys[i];s.checked=!!D.prefs[keys[i]]});
+  var state=$('od-mfa-state'),sec=$('od-security-link'),on=p.totp||p.mfa;if(state){state.textContent=p.totp?'App code on':p.mfa?'Email code on':'Off';state.classList.toggle('on',!!on)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
+  draw2fa();
+  // Each switch names its own setting in data-pref, so adding one can't shift the others.
+  [].forEach.call(document.querySelectorAll('[data-p=settings] [data-pref]'),function(s){s.checked=!!D.prefs[s.dataset.pref]});
 }
 document.addEventListener('change',function(e){var s=e.target.closest('[data-pref]');if(!s)return;var body={};body[s.dataset.pref]=s.checked;api('/tica-api/organizer/prefs',body).then(function(){D.prefs[s.dataset.pref]=s.checked;toast('Saved.')},function(er){s.checked=!s.checked;toast(errText(er))})});
 $('od-photo').addEventListener('change',function(){var f=this.files&&this.files[0],img=$('od-photo-preview');fieldErr('photo','');if(!f)return;
@@ -1642,6 +1643,31 @@ $('od-pass').addEventListener('submit',function(e){e.preventDefault();var b=e.ta
   if(n!==c){$('od-pass-m').textContent='Password confirmation does not match.';return}b.disabled=true;
   api('/tica-api/organizer/password',{current_password:$('od-pass-current').value,new_password:n,new_password_confirmation:c}).then(function(){b.disabled=false;e.target.reset();toast('Password updated.')},function(er){b.disabled=false;$('od-pass-m').textContent=errText(er)})});
 
+/* two-factor (authenticator app) */
+function draw2fa(){var b=$('od-2fa'),p=D.profile;if(!b)return;
+  b.innerHTML=p.totp?'<div class="od-2fa-row"><span class="od-2fa-ic on" aria-hidden="true">'+ICO.ok+'</span><div><b>On since '+esc(p.totpSince||'')+'</b><small>'+p.totpCodesLeft+' of 8 recovery codes left'+(p.totpCodesLeft<3?'. Make new ones soon.':'')+'</small></div></div><div class="od-2fa-act"><button class="btn btn-line" type="button" data-2fa="codes">New recovery codes</button><button class="btn btn-line od-red-l" type="button" data-2fa="off">Turn off</button></div>'
+    :'<div class="od-2fa-row"><span class="od-2fa-ic" aria-hidden="true">'+ICO.warn+'</span><div><b>Off</b><small>Anyone with your password can sign in.</small></div></div><div class="od-2fa-act"><button class="btn btn-hot" type="button" data-2fa="on">Turn on</button></div>'}
+function tfaOpen(html){$('od-2fa-body').innerHTML=html;var d=$('od-2fa-dlg');if(!d.open)d.showModal();var f=d.querySelector('input');if(f)f.focus()}
+function tfaErr(id,er){var m=$(id);if(m)m.textContent=errText(er)}
+function tfaCodes(title,codes,note){return '<div class="sh-head"><div><h2 id="od-2fa-h">'+title+'</h2><p>'+note+'</p></div>'+XBTN+'</div><ol class="od-rc">'+codes.map(function(c){return '<li><code>'+esc(c)+'</code></li>'}).join('')+'</ol><div class="od-dlgb"><button class="btn btn-line" type="button" id="tfa-copy">Copy codes</button><button class="btn btn-line" type="button" id="tfa-dl">Download</button><button class="btn btn-hot" type="button" id="tfa-done">I\'ve saved them</button></div><p class="hint" id="tfa-m" role="status"></p>'}
+var TFA_CODES=[];
+document.addEventListener('click',function(e){var t=e.target,a=t.closest('[data-2fa]');
+  if(a){var k=a.dataset['2fa'];
+    if(k==='on')tfaOpen('<div class="sh-head"><div><h2 id="od-2fa-h">Turn on two-factor</h2><p>Step 1 of 3. Confirm it\'s you.</p></div>'+XBTN+'</div><form class="od-form" id="tfa-f1" novalidate><div class="inp"><label for="tfa-pw">Your password</label><input id="tfa-pw" type="password" autocomplete="current-password"></div><div class="od-dlgb"><button class="btn btn-hot" type="submit">Continue</button><button class="btn btn-line" type="button" data-close>Cancel</button></div><p class="hint" id="tfa-m" role="status"></p></form>');
+    else tfaOpen('<div class="sh-head"><div><h2 id="od-2fa-h">'+(k==='off'?'Turn off two-factor?':'Make new recovery codes')+'</h2><p>'+(k==='off'?'You\'ll sign in with just your password. Your bank account changes will only need your password too.':'Your old recovery codes stop working straight away.')+'</p></div>'+XBTN+'</div><form class="od-form" id="tfa-f-'+k+'" novalidate><div class="inp"><label for="tfa-pw">Your password</label><input id="tfa-pw" type="password" autocomplete="current-password"></div><div class="inp"><label for="tfa-otp">Code from your app, or a recovery code</label><input id="tfa-otp" type="text" inputmode="numeric" maxlength="11" autocomplete="one-time-code"></div><div class="od-dlgb"><button class="btn '+(k==='off'?'od-red':'btn-hot')+'" type="submit">'+(k==='off'?'Turn off':'Make new codes')+'</button><button class="btn btn-line" type="button" data-close>Cancel</button></div><p class="hint" id="tfa-m" role="status"></p></form>');
+    return}
+  if(t.id==='tfa-copy'){navigator.clipboard&&navigator.clipboard.writeText(TFA_CODES.join('\n')).then(function(){$('tfa-m').textContent='Copied.'});return}
+  if(t.id==='tfa-dl'){var u=URL.createObjectURL(new Blob(['TICA recovery codes\nEach code works once.\n\n'+TFA_CODES.join('\n')+'\n'],{type:'text/plain'})),l=document.createElement('a');l.href=u;l.download='tica-recovery-codes.txt';l.click();setTimeout(function(){URL.revokeObjectURL(u)},1000);return}
+  if(t.id==='tfa-done'){$('od-2fa-dlg').close();reload('Two-factor settings saved.');return}
+});
+document.addEventListener('submit',function(e){var f=e.target;if(!/^tfa-f/.test(f.id))return;e.preventDefault();var btn=f.querySelector('[type=submit]');btn.disabled=true;$('tfa-m').textContent='';
+  var done=function(){btn.disabled=false};
+  if(f.id==='tfa-f1'){api('/tica-api/organizer/two-factor/start',{password:$('tfa-pw').value}).then(function(r){
+      tfaOpen('<div class="sh-head"><div><h2 id="od-2fa-h">Scan this with your app</h2><p>Step 2 of 3. Open Google Authenticator, Authy or 1Password, add an account, and scan the code.</p></div>'+XBTN+'</div><div class="od-qr">'+r.qr+'</div><p class="od-fine">Can\'t scan it? Enter this key instead:</p><p class="od-key"><code>'+esc(r.secret)+'</code></p><form class="od-form" id="tfa-f2" novalidate><div class="inp"><label for="tfa-code">Step 3 of 3. Enter the 6-digit code your app shows</label><input id="tfa-code" type="text" inputmode="numeric" maxlength="7" autocomplete="one-time-code"></div><div class="od-dlgb"><button class="btn btn-hot" type="submit">Turn on</button><button class="btn btn-line" type="button" data-close>Cancel</button></div><p class="hint" id="tfa-m" role="status"></p></form>')},function(er){done();tfaErr('tfa-m',er)});return}
+  if(f.id==='tfa-f2'){api('/tica-api/organizer/two-factor/confirm',{code:$('tfa-code').value}).then(function(r){TFA_CODES=r.recovery_codes;tfaOpen(tfaCodes('Two-factor is on','Save these recovery codes somewhere safe, away from your phone. Each one signs you in once if you lose your phone. We won\'t show them again.',''))},function(er){done();tfaErr('tfa-m',er)});return}
+  var k=f.id.slice(6),url=k==='off'?'/tica-api/organizer/two-factor/disable':'/tica-api/organizer/two-factor/recovery-codes';
+  api(url,{password:$('tfa-pw').value,otp:$('tfa-otp').value}).then(function(r){if(k==='off'){$('od-2fa-dlg').close();reload('Two-factor is off.');return}TFA_CODES=r.recovery_codes;tfaOpen(tfaCodes('New recovery codes','Your old codes no longer work. Save these somewhere safe. We won\'t show them again.',''))},function(er){done();tfaErr('tfa-m',er)});
+});
 /* create page uses the organiser's saved defaults */
 (function(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers})();
 /* platform rules from the admin: hide features that are switched off */

@@ -60,6 +60,9 @@ class TeamPermissionMatrixTest extends TestCase
     ['TicaWorkspaceController@profile', null, false, false],
     ['TicaWorkspaceController@password', null, false, false],
     ['TicaWorkspaceController@prefs', null, false, false],
+    ['TwoFactorController@start', null, false, false],
+    ['TwoFactorController@disable', null, false, false],
+    ['TwoFactorController@regenerate', null, false, false],
     // Legacy organiser pages
     ['organizer.dashboard', null, true, true],
     ['organizer.logout', null, true, true],

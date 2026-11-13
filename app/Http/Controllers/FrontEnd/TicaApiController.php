@@ -209,6 +209,10 @@ class TicaApiController extends Controller
         Auth::guard('organizer')->logout();
         return response()->json(['message' => 'Verify your email address first. Use the link we emailed you.'], 403);
       }
+      if (app(\App\Services\TwoFactorAuthenticator::class)->enabled($organizer)) {
+        app(\App\Services\TwoFactorAuthenticator::class)->beginLogin($request, $organizer, '/dashboard');
+        return response()->json(['mfa_required' => true, 'redirect' => route('totp.login.challenge')]);
+      }
       if ($mfa->enabled($organizer)) {
         $mfa->beginLogin($request, 'organizer', $organizer, '/dashboard');
         return response()->json(['mfa_required' => true, 'redirect' => route('mfa.login.challenge')]);

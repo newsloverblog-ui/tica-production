@@ -64,6 +64,7 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
                 'organizer_notified_status' => $transfer->status,
                 'organizer_notified_at' => now(),
             ])->save();
+            $this->sendSms($organizer, $transfer);
         }
 
         if (in_array($transfer->status, $financeStatuses, true)
@@ -91,5 +92,33 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
             strtoupper($transfer->currency),
             $audience === 'finance' ? $transfer->last_error : null
         );
+    }
+
+    /**
+     * Optional text for organisers who turned on "Text me about payouts".
+     * Sent once per status, alongside the email; a failed SMS never blocks it.
+     */
+    private function sendSms($organizer, PayoutTransfer $transfer): void
+    {
+        if (!in_array($transfer->status, ['success', 'failed', 'reversed'], true)
+            || !$organizer->preferenceEnabled('payout_sms', false)
+            || trim((string) $organizer->phone) === '') {
+            return;
+        }
+        $sms = app(\App\Contracts\SmsSender::class);
+        if (!$sms->configured()) {
+            return;
+        }
+        $amount = 'NGN ' . number_format((float) $transfer->amount, 2);
+        $message = match ($transfer->status) {
+            'success' => 'TICA: ' . $amount . ' has been paid to your bank account. Ref ' . substr((string) $transfer->reference, -8) . '.',
+            default => 'TICA: your payout of ' . $amount . ' did not go through. We\'re looking into it and will email you.',
+        };
+        try {
+            $sms->send((string) $organizer->phone, $message);
+            \App\Services\AuditLogger::record('payout.sms_sent', $transfer, [], ['status' => $transfer->status]);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 }

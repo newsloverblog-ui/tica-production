@@ -263,6 +263,10 @@ class OrganizerController extends Controller
         Auth::guard('organizer')->logout();
         return redirect()->back();
       } else {
+        if (app(\App\Services\TwoFactorAuthenticator::class)->enabled($authAdmin)) {
+          app(\App\Services\TwoFactorAuthenticator::class)->beginLogin($request, $authAdmin, '/dashboard');
+          return redirect()->route('totp.login.challenge');
+        }
         if ($mfa->enabled($authAdmin)) {
           $mfa->beginLogin($request, 'organizer', $authAdmin, '/dashboard');
           return redirect()->route('mfa.login.challenge');
