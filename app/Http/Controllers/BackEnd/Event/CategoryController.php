@@ -21,10 +21,13 @@ class CategoryController extends Controller
     $information['language'] = $language;
 
     $information['categories'] = EventCategory::where('language_id', $language->id)
+      ->withCount('events_contens as events_count')
+      ->orderBy('serial_number')
       ->orderByDesc('id')
       ->get();
 
     $information['langs'] = Language::all();
+    $information['icons'] = config('category_icons');
 
     $information['themeInfo'] = DB::table('basic_settings')->select('theme_version')->first();
 
@@ -33,16 +36,8 @@ class CategoryController extends Controller
 
   public function store(EventCategoryRequest $request)
   {
-    $file = $request->file('image');
-    $extension = $file->getClientOriginalExtension();
-    $directory = public_path('assets/admin/img/event-category/');
-    $fileName = uniqid() . '.' . $extension;
-    UploadFile::storeAs($directory, $file, $fileName);
-
-
-    $ins = $request->all();
+    $ins = $request->only(['language_id', 'name', 'icon', 'status', 'serial_number', 'is_featured']);
     $ins['slug'] = createSlug($request->name);
-    $ins['image'] = $fileName;
     EventCategory::create($ins);
     Session::flash('success', 'Added Successfully');
 
@@ -68,21 +63,9 @@ class CategoryController extends Controller
 
   public function update(UpdateCategoryRequest $request)
   {
-    $ins = $request->all();
+    $ins = $request->only(['name', 'icon', 'status', 'serial_number', 'is_featured']);
     $ins['slug'] = createSlug($request->name);
-
-    $file = $request->file('image');
-    if ($file) {
-      $extension = $file->getClientOriginalExtension();
-      $directory = public_path('assets/admin/img/event-category/');
-      $fileName = uniqid() . '.' . $extension;
-      UploadFile::storeAs($directory, $file, $fileName);
-
-      $find = EventCategory::where('id', $request->id)->first();
-      UploadFile::delete($directory, (string) $find->image);
-      $ins['image'] = $fileName;
-    }
-    EventCategory::find($request->id)->update($ins);
+    EventCategory::findOrFail($request->id)->update($ins);
 
     Session::flash('success', 'Updated Successfully!');
 

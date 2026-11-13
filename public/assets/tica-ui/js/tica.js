@@ -2,7 +2,7 @@
 (function(){
 var EV=window.TICA_EVENTS;
 /* Tica: categories, currency and fees come from the server (window.TICA_DATA). */
-var CATS={};(TICA_DATA.categories||[]).forEach(function(c){CATS[c.key]=c.name});
+var CATS={},CATSVG={};(TICA_DATA.categories||[]).forEach(function(c){CATS[c.key]=c.name;if(c.svg)CATSVG[c.key]=c.svg});
 EV.forEach(function(e){if(!CATS[e.cat])CATS[e.cat]=e.label});
 function iconKey(k){var t=(k+' '+(CATS[k]||'')).toLowerCase();
   return /music|concert|show|gig|festival|comedy/.test(t)?'shows':/campus|school|student|youth|universit/.test(t)?'campus':/faith|church|worship|relig|praise|mosque/.test(t)?'faith':/party|night|club|wedding|celebrat/.test(t)?'party':/sport|fitness|run|football|game|marathon/.test(t)?'sport':/art|culture|film|food|fashion|market|design/.test(t)?'arts':'conf'}
@@ -84,7 +84,7 @@ function row(e){
 var CICON={shows:'<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',campus:'<path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',faith:'<path d="M12 21c-4-3-6-6-6-9 0-3 3-6 6-9 3 3 6 6 6 9 0 3-2 6-6 9z"/>',conf:'<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M12 16v5M8 21h8"/>',party:'<path d="M5 3h14l-7 9-7-9z"/><path d="M12 12v8M8 21h8"/>',arts:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="14" cy="8" r="1"/><circle cx="16" cy="13" r="1"/>',sport:'<circle cx="14" cy="5" r="2"/><path d="M5 20l4-6 3 2 2-5-4-2-3 3M14 11l3 3h3"/>'};
 $('home-cats').innerHTML=Object.keys(CATS).map(function(k){return [k,EV.filter(function(e){return e.cat===k}).length]}).sort(function(a,b){return b[1]-a[1]}).slice(0,7).map(function(x){return x[0]}).map(function(k){
   var n=EV.filter(function(e){return e.cat===k}).length;
-  return '<a class="catc" href="/discover" data-gocat="'+k+'"><i><svg viewBox="0 0 24 24" aria-hidden="true">'+CICON[iconKey(k)]+'</svg></i><b>'+esc(CATS[k])+'</b><small>'+n+(n===1?' event':' events')+'</small></a>';
+  return '<a class="catc" href="/discover" data-gocat="'+k+'"><i><svg viewBox="0 0 24 24" aria-hidden="true">'+(CATSVG[k]||CICON[iconKey(k)])+'</svg></i><b>'+esc(CATS[k])+'</b><small>'+n+(n===1?' event':' events')+'</small></a>';
 }).join('');
 /* spotlight */
 var spotList=EV.filter(function(e){return e.featured&&!e.sold}).concat(EV.filter(function(e){return !e.featured&&!e.sold})).slice(0,3),spotI=0;

@@ -1,90 +1,63 @@
-<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+<div class="modal fade tcat-modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createCategoryTitle"
   aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">{{ __('Add Event Category') }}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <h5 class="modal-title" id="createCategoryTitle">{{ __('Add a category') }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
 
       <div class="modal-body">
         <form id="modalForm" class="modal-form create" action="{{ route('admin.event_management.store_category') }}"
-          method="post" enctype="multipart/form-data">
+          method="post">
           @csrf
+
+          <input type="hidden" name="language_id" value="{{ $language->id }}">
+
           <div class="form-group">
-            <label for="">{{ __('Language') . '*' }}</label>
-            <select name="language_id" class="form-control">
-              <option selected disabled>{{ __('Select a Language') }}</option>
-              @foreach ($langs as $lang)
-                <option value="{{ $lang->id }}">{{ $lang->name }}</option>
-              @endforeach
-            </select>
+            <label for="tcat-create-name">{{ __('Name') }}*</label>
+            <input type="text" id="tcat-create-name" class="form-control" name="name" placeholder="{{ __('e.g. Concerts') }}">
+            <p id="err_name" class="mt-1 mb-0 text-danger em"></p>
             <p id="err_language_id" class="mt-1 mb-0 text-danger em"></p>
           </div>
 
-          <div class="form-group">
-            <label for="">{{ __('Image') . '*' }}</label>
-            <br>
-            <div class="thumb-preview">
-              <img src="{{ asset('assets/admin/img/noimage.jpg') }}" alt="..." class="uploaded-img">
+          @include('backend.event.category._icon-picker', ['pickerId' => 'tcat-create-picker', 'errId' => 'err_icon'])
+
+          <div class="tcat-row tcat-row-3">
+            <div class="form-group">
+              <label for="tcat-create-status">{{ __('Status') }}*</label>
+              <select name="status" id="tcat-create-status" class="form-control">
+                <option value="1" selected>{{ __('Active') }}</option>
+                <option value="0">{{ __('Hidden') }}</option>
+              </select>
+              <p id="err_status" class="mt-1 mb-0 text-danger em"></p>
             </div>
 
-            <div class="mt-3">
-              <div role="button" class="btn btn-primary btn-sm upload-btn">
-                {{ __('Choose Image') }}
-                <input type="file" class="img-input" name="image">
-              </div>
-              <p id="err_image" class="mt-1 mb-0 text-danger em"></p>
+            <div class="form-group">
+              <label for="tcat-create-featured">{{ __('Featured') }}*</label>
+              <select name="is_featured" id="tcat-create-featured" class="form-control">
+                <option value="no" selected>{{ __('No') }}</option>
+                <option value="yes">{{ __('Yes') }}</option>
+              </select>
+              <p id="err_is_featured" class="mt-1 mb-0 text-danger em"></p>
+            </div>
+
+            <div class="form-group">
+              <label for="tcat-create-order">{{ __('Order') }}*</label>
+              <input type="number" id="tcat-create-order" class="form-control ltr" name="serial_number"
+                value="{{ ($categories->max('serial_number') ?? 0) + 1 }}" min="0">
+              <p id="err_serial_number" class="mt-1 mb-0 text-danger em"></p>
             </div>
           </div>
-
-          <div class="form-group">
-            <label for="">{{ __('Name') . '*' }}</label>
-            <input type="text" class="form-control" name="name" placeholder="Enter Category Name">
-            <p id="err_name" class="mt-1 mb-0 text-danger em"></p>
-          </div>
-
-          <div class="form-group">
-            <label for="">{{ __('Status') . '*' }}</label>
-            <select name="status" class="form-control">
-              <option selected disabled>{{ __('Select a Status') }}</option>
-              <option value="1">{{ __('Active') }}</option>
-              <option value="0">{{ __('Deactive') }}</option>
-            </select>
-            <p id="err_status" class="mt-1 mb-0 text-danger em"></p>
-          </div>
-
-          <div class="form-group">
-            <label for="">{{ __('Featured') . '*' }}</label>
-            <select name="is_featured" class="form-control">
-              <option selected disabled>{{ __('Select featured status') }}</option>
-              <option value="yes">{{ __('YES') }}</option>
-              <option value="no">{{ __('NO') }}</option>
-            </select>
-            <p id="err_is_featured" class="mt-1 mb-0 text-danger em"></p>
-          </div>
-
-          <div class="form-group">
-            <label for="">{{ __('Serial Number') . '*' }}</label>
-            <input type="number" class="form-control ltr" name="serial_number"
-              placeholder="Enter Category Serial Number">
-            <p id="err_serial_number" class="mt-1 mb-0 text-danger em"></p>
-            <p class="text-warning mt-2 mb-0">
-              <small>{{ __('The higher the serial number is, the later the category will be shown.') }}</small>
-            </p>
-          </div>
+          <p class="tcat-help mb-0">{{ __('Lower numbers show first.') }}</p>
         </form>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
-          {{ __('Close') }}
-        </button>
-        <button id="modalSubmit" type="button" class="btn btn-primary btn-sm">
-          {{ __('Save') }}
-        </button>
+        <button type="button" class="btn btn-light" data-dismiss="modal">{{ __('Cancel') }}</button>
+        <button id="modalSubmit" type="button" class="btn btn-primary">{{ __('Add category') }}</button>
       </div>
     </div>
   </div>
