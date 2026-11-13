@@ -18,9 +18,25 @@ async function csrf(page: Page): Promise<string> {
   return (await page.locator('meta[name="csrf-token"]').getAttribute('content')) || '';
 }
 
-/** Signs in through the same endpoints the app uses. */
+const STATE_DIR = 'storage/qa-auth';
+
+/**
+ * Signs in through the same endpoints the app uses, once per role and width:
+ * later tests reuse the cookies, so the login rate limit is never hit.
+ */
 export async function signIn(page: Page, role: Role): Promise<void> {
   if (role === 'guest') return;
+  const file = `${STATE_DIR}/${role}-${test.info().project.name}.json`;
+  if (fs.existsSync(file)) {
+    await page.context().addCookies(JSON.parse(fs.readFileSync(file, 'utf8')).cookies);
+    return;
+  }
+  await freshSignIn(page, role);
+  fs.mkdirSync(STATE_DIR, { recursive: true });
+  await page.context().storageState({ path: file });
+}
+
+async function freshSignIn(page: Page, role: Role): Promise<void> {
   if (role === 'admin') {
     await page.goto('/admin');
     await page.fill('#taa-user', 'qa_admin');
@@ -37,11 +53,20 @@ export async function signIn(page: Page, role: Role): Promise<void> {
   expect(res.status(), `${role} signed in`).toBeLessThan(400);
 }
 
-/** Collects page errors and 5xx responses while a page loads. */
+/**
+ * Answers that are 5xx on purpose: the bank list says "service unavailable"
+ * (503) when no payout provider is configured, and the page shows a message.
+ */
+const EXPECTED_5XX = [/\/tica-api\/organizer\/banks$/];
+
+/** Collects page errors and unexpected 5xx responses while a page loads. */
 export function watch(page: Page) {
   const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(`JS error: ${e.message}`));
-  page.on('response', (r) => { if (r.status() >= 500) problems.push(`${r.status()} ${r.url()}`); });
+  page.on('response', (r) => {
+    const path = new URL(r.url()).pathname;
+    if (r.status() >= 500 && !(r.status() === 503 && EXPECTED_5XX.some((re) => re.test(path)))) problems.push(`${r.status()} ${r.url()}`);
+  });
   return problems;
 }
 

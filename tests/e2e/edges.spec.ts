@@ -33,8 +33,6 @@ test.describe('edge cases (owner)', () => {
 
   test('the wrong file type is refused before upload', async ({ page }) => {
     await page.goto('/dashboard/settings');
-    const txt = path.join(os.tmpdir(), 'qa.txt');
-    fs.writeFileSync(txt, 'not an image');
     await page.setInputFiles('#od-photo', { name: 'qa.txt', mimeType: 'text/plain', buffer: Buffer.from('nope') });
     await expect(page.locator('#od-prof')).toContainText(/JPG, PNG, WebP or GIF/);
   });
@@ -42,10 +40,11 @@ test.describe('edge cases (owner)', () => {
   test('an expired session sends you to log in instead of failing', async ({ page, context }) => {
     await page.goto('/dashboard/settings');
     await context.clearCookies();
+    // Signed-out visitors to the dashboard land on log in or sign up (which links to log in).
     const problems = watch(page);
     const res = await page.goto('/dashboard/settings');
     expect(res?.status() ?? 0).toBeLessThan(500);
-    expect(page.url()).toMatch(/login/);
+    expect(page.url()).toMatch(/login|signup/);
     expect(problems).toEqual([]);
   });
 
