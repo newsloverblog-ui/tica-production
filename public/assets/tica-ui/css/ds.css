@@ -302,3 +302,54 @@ body.orgshell-legacy .form-control{border:1px solid var(--t-line-strong)!importa
 body.orgshell-legacy .form-control:focus{border-color:var(--t-blue)!important;box-shadow:var(--t-focus)!important}
 body.orgshell-legacy .table thead th{background:var(--t-subtle)!important;color:var(--t-muted)!important;font-weight:500!important;font-size:13px!important;text-transform:none!important;letter-spacing:0!important;border-bottom:1px solid var(--t-line)!important}
 @media (max-width:1023px){body.orgshell-legacy .main-panel{margin-left:0!important}body.orgshell-legacy .page-inner{padding:var(--t-4)!important}}
+
+/* =====================================================================
+   Page: Overview
+   ===================================================================== */
+body.orgshell .ov{display:grid;gap:var(--t-5)}
+body.orgshell .ov .t-page-head{margin-bottom:0}
+.ov-range .t-select{min-width:160px}
+.ov-setup{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--t-4) var(--t-5);align-items:center;padding:var(--t-pad);border:1px solid #F5D9B8;border-radius:var(--t-radius);background:var(--t-orange-50)}
+.ov-setup[hidden]{display:none}
+.ov-setup h2{margin:0;font-size:16px;font-weight:600;color:var(--t-ink)}
+.ov-setup p{margin:var(--t-1) 0 0;font-size:14px;color:var(--t-text-c)}
+.ov-steps{grid-column:1/2;display:flex;flex-wrap:wrap;gap:var(--t-2) var(--t-5);margin:0;padding:0;list-style:none;font-size:14px;color:var(--t-text-c)}
+.ov-steps li{display:flex;align-items:center;gap:var(--t-2)}
+.ov-steps li.is-done{color:var(--t-muted)}
+.ov-tick{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--t-orange);color:#fff}
+.ov-steps li.is-done .ov-tick{background:var(--t-green);border-color:var(--t-green)}
+.ov-tick svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3}
+.ov-setup>.t-btn{grid-column:2;grid-row:1/3}
+.ov-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--t-4)}
+.ov-stat{display:grid;gap:2px;text-align:left;cursor:pointer;font-family:var(--t-font);transition:border-color var(--t-fast) var(--t-ease)}
+.ov-stat:hover{border-color:var(--t-blue-100)}
+.ov-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--t-4);align-items:start}
+.ov .bars i{background:var(--t-blue-100);border-radius:4px 4px 2px 2px}
+.ov .bars .b:hover i,.ov .bars .b:last-child i{background:var(--t-blue)}
+.ov .bars i em{color:var(--t-ink);font-weight:600}
+.ov .bars span{color:var(--t-muted)}
+.ov-next__flyer{position:relative;aspect-ratio:16/9;border-radius:var(--t-radius-sm);overflow:hidden;background:var(--t-subtle);margin-bottom:var(--t-3)}
+.ov-next__flyer>*{position:absolute!important;inset:0;width:100%;height:100%}
+.ov-next__flyer img{object-fit:cover}
+.ov-next__name{margin:0;font-size:16px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.ov-next .t-muted{margin:2px 0 var(--t-3)}
+.ov-cap{display:flex;justify-content:space-between;font-size:14px;margin-bottom:var(--t-2)}
+.ov-cap b{color:var(--t-ink)}
+.ov-bar{height:8px;border-radius:var(--t-radius-pill);background:var(--t-subtle);overflow:hidden}
+.ov-bar i{display:block;height:100%;background:var(--t-blue);border-radius:inherit}
+.ov-tiers{margin-top:var(--t-3);font-size:14px}
+.ov-tiers summary{cursor:pointer;color:var(--t-blue);font-weight:500}
+.ov-tiers ul{margin:var(--t-2) 0 0;padding:0;list-style:none;display:grid;gap:var(--t-1)}
+.ov-tiers li{display:flex;justify-content:space-between;color:var(--t-text-c)}
+.ov-next__act{display:flex;flex-wrap:wrap;gap:var(--t-2);margin-top:var(--t-4)}
+.ov-orders .t-card__head{margin-bottom:var(--t-3)}
+.ov-ord{border:1px solid var(--t-line);border-radius:var(--t-radius-sm);overflow:hidden}
+.ov-buyer{display:flex;align-items:center;gap:var(--t-2);color:var(--t-ink);font-weight:500}
+@media (max-width:1023px){.ov-grid{grid-template-columns:1fr}}
+@media (max-width:767px){
+  .ov-stats{grid-template-columns:1fr}
+  .ov-setup{grid-template-columns:1fr}
+  .ov-setup>.t-btn{grid-column:1;grid-row:auto}
+  body.orgshell .ov .t-page-head{align-items:stretch}
+  .ov-range,.ov-range .t-select{width:100%}
+}

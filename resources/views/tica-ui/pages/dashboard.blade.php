@@ -4,38 +4,24 @@
     <div class="db-main od-main" id="db-top">
       <p class="db-flag" id="db-flag" hidden></p>
 
-      <!-- OVERVIEW -->
-      <div class="od-p" data-p="overview">
-        <div class="db-head">
+      <!-- OVERVIEW: key numbers, then sales and the next event, then recent orders. -->
+      <div class="od-p ov" data-p="overview">
+        <header class="t-page-head">
           <div><h1 id="db-hi">Welcome back</h1><p>Here's how your events are doing.</p></div>
-          <div class="btns"><label class="od-range"><span class="vh">Period</span><select id="od-range"><option>Last 14 days</option><option>Last 30 days</option><option>All time</option></select></label><a class="btn btn-hot" href="/create">Create an event</a></div>
+          <label class="ov-range"><span class="t-sr">Period</span><select class="t-select" id="od-range"></select></label>
+        </header>
+        <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
+        <div class="ov-stats" id="db-kpis">
+          <span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span>
         </div>
-        <section class="od-setup" id="od-setup" aria-labelledby="od-setup-h">
-          <div><h2 id="od-setup-h">Finish setting up to get paid</h2><p>2 of 3 done. Add the bank account your sales should go to.</p></div>
-          <ol><li class="done">Verify your identity</li><li class="done">Publish your first event</li><li>Add your payout account</li></ol>
-          <button class="btn btn-hot" type="button" data-panel="payouts">Add bank account</button>
+        <div class="ov-grid">
+          <section class="t-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><h2 class="t-card__title" id="ov-chart-h">Tickets sold per day</h2></div><div class="db-chart" id="db-chart"></div></section>
+          <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
+        </div>
+        <section class="t-card ov-orders" aria-labelledby="ov-ord-h">
+          <div class="t-card__head"><h2 class="t-card__title" id="ov-ord-h">Recent orders</h2><button class="t-btn t-btn--ghost t-btn--sm" type="button" data-panel="orders">View all</button></div>
+          <div id="db-ord"></div>
         </section>
-        <nav class="od-quick" aria-label="Quick actions"><a class="od-quick-create" href="/create">Create event</a><a href="/checkin">Scan tickets</a><button type="button" data-panel="promote">Share event link</button><button type="button" data-panel="payouts">Withdraw</button></nav>
-        <p class="db-ex">Sales update automatically as orders come in.</p>
-        <div class="db-kpis" id="db-kpis"></div>
-        <p class="od-currency-note">Dashboard totals use your TICA base currency. Event rows keep the currency used for each sale.</p>
-        <div class="od-grid">
-          <section class="db-card"><div class="db-ch"><h2>Ticket sales</h2><span id="db-sum"></span></div><div class="db-chart" id="db-chart"></div></section>
-          <section class="db-card od-next" id="od-next"></section>
-        </div>
-        <section class="od-sum" aria-labelledby="od-sum-h">
-          <div class="od-sum-h"><h2 id="od-sum-h">Your account</h2><span id="od-sum-year"></span></div>
-          <div class="od-tiles" id="od-tiles"></div>
-          <div class="db-two od-yr">
-            <section class="db-card"><div class="db-ch"><h2 id="od-inc-h">Monthly income</h2><span id="od-inc-sum"></span></div><div class="od-line" id="od-inc"></div></section>
-            <section class="db-card"><div class="db-ch"><h2 id="od-bk-h">Monthly event bookings</h2><span id="od-bk-sum"></span></div><div class="od-line" id="od-bk"></div></section>
-          </div>
-        </section>
-        <section class="db-card" id="db-events"><div class="db-ch"><h2>Your events</h2><button class="od-more" type="button" data-panel="events">Manage events</button></div><div class="db-table" id="db-ev"></div></section>
-        <div class="db-two">
-          <section class="db-card" id="db-orders"><div class="db-ch"><h2>Recent orders</h2><button class="od-more" type="button" data-panel="orders">See all</button></div><ul class="db-orders" id="db-ord"></ul></section>
-          <section class="db-card" id="db-pay"><div class="db-ch"><h2>Where sales come from</h2><button class="od-more" type="button" data-panel="promote">Tracking links</button></div><ul class="od-src" id="od-src"></ul></section>
-        </div>
       </div>
 
       <!-- EVENTS -->
