@@ -4807,3 +4807,17 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .od-cannot{margin-top:8px;color:var(--soft,#6B7280)}
 .od-cannot li::before{content:"";position:absolute;left:3px;top:9px;width:9px;height:2px;background:#C2C7D3}
 .od-rolesel{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line,#E6E8EF);border-radius:8px;padding:4px 8px;background:#fff;color:inherit}
+.od-av{position:relative;overflow:hidden}.od-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* settings: photo upload and inline errors */
+.page[data-page=dashboard] .od-photo-frame{position:relative;width:72px;height:72px;border-radius:16px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#2D6BD8,#174DA8);color:#fff;font-weight:700;font-size:24px}
+.page[data-page=dashboard] .od-photo-frame img{position:absolute;inset:0;width:100%;height:100%;border-radius:0;object-fit:cover}
+.page[data-page=dashboard] .od-photo-t{display:block;margin-bottom:6px;font-size:14px;font-weight:650;color:var(--ink)}
+.od-photo-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.od-upl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;min-height:38px;padding:0 14px}
+.od-upl svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.od-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.od-file:focus-visible+.od-photo-name,.od-photo-act:focus-within .od-upl{outline:2px solid #2E4FD8;outline-offset:2px}
+.od-photo-name{font-size:13px;color:var(--soft)}
+.od-err{display:block;margin-top:5px;font-size:12.5px;font-weight:500;color:#B42318}
+.od-form [aria-invalid=true]{border-color:#E5484D!important;box-shadow:0 0 0 3px rgba(229,72,77,.12)}

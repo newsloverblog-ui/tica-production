@@ -25,7 +25,7 @@
                       <img class="rounded-lg lazy" data-src="{{ asset('assets/front/images/user.png') }}" alt="image">
                     @else
                       <img class="rounded-lg lazy"
-                        data-src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}" alt="image">
+                        data-src="{{ $organizer->avatar_url }}" alt="image">
                     @endif
                   @endif
                 </a>
@@ -583,7 +583,7 @@
                         alt="image">
                     @else
                       <img class="rounded-lg lazy"
-                        data-src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}"
+                        data-src="{{ $organizer->avatar_url }}"
                         alt="image">
                     @endif
                   @endif

@@ -56,7 +56,7 @@
           <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false" aria-label="{{ __('Open organizer account menu') }}">
             <div class="avatar-sm">
               @if (Auth::guard('organizer')->user()->photo != null)
-                <img src="{{ asset('assets/admin/img/organizer-photo/' . Auth::guard('organizer')->user()->photo) }}"
+                <img src="{{ Auth::guard('organizer')->user()->avatar_url }}"
                   alt="Admin Image" class="avatar-img rounded-circle">
               @else
                 <img src="{{ asset('assets/admin/img/blank_user.jpg') }}" alt="{{ __('Default organizer avatar') }}"
@@ -72,7 +72,7 @@
                   <div class="avatar-lg">
                     @if (Auth::guard('organizer')->user()->photo != null)
                       <img
-                        src="{{ asset('assets/admin/img/organizer-photo/' . Auth::guard('organizer')->user()->photo) }}"
+                        src="{{ Auth::guard('organizer')->user()->avatar_url }}"
                         alt="Admin Image" class="avatar-img rounded-circle">
                     @else
                       <img src="{{ asset('assets/admin/img/blank_user.jpg') }}" alt=""

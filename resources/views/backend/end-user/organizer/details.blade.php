@@ -44,7 +44,7 @@
                         alt="image">
                     @else
                       <img class="uploaded-img rounded-circle mh70"
-                        src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}" alt="image">
+                        src="{{ $organizer->avatar_url }}" alt="image">
                     @endif
                     <div class="h6 card-title">{{ __('Organizer Information') }}</div>
                   </div>
@@ -71,102 +71,7 @@
                   <div class="col-lg-8">
                     {{ optional($organizer->organizer_info)->name }}
                   </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Designation') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->designation }}
-                  </div>
-                </div>
-
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Username') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ $organizer->username }}
-                  </div>
-                </div>
-
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Email') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ $organizer->email }}
-                  </div>
-                </div>
-
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Phone') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ $organizer->phone }}
-                  </div>
-                </div>
-
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Balance') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ symbolPrice($organizer->amount) }}
-                  </div>
-                </div>
-
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Country') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->country }}
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('City') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->city }}
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('State') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->state }}
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Zip Code') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->zip_code }}
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Address') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->address }}
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-lg-4">
-                    <strong>{{ __('Details') . ' :' }}</strong>
-                  </div>
-                  <div class="col-lg-8">
-                    {{ optional($organizer->organizer_info)->details }}
-                  </div>
-                </div>
-              </div>
-            </div>
+                </div>            </div>
           </div>
         </div>
         <div class="col-md-7">

@@ -675,7 +675,6 @@ class TicaWorkspaceController extends Controller
       'email' => ['required', 'email:rfc', 'max:254', Rule::unique('organizers', 'email')->ignore($organizer->id)],
       'username' => ['required', 'string', 'alpha_dash', 'max:100', Rule::unique('organizers', 'username')->ignore($organizer->id), Rule::notIn(Admin::query()->pluck('username')->filter()->all())],
       'current_password' => $emailChanged ? ['required', 'string'] : ['nullable', 'string'],
-      'designation' => ['nullable', 'string', 'max:100'],
       'country' => ['nullable', 'string', 'max:100'],
       'city' => ['nullable', 'string', 'max:100'],
       'state' => ['nullable', 'string', 'max:100'],
@@ -701,7 +700,6 @@ class TicaWorkspaceController extends Controller
         [
           'name' => $validated['name'],
           'details' => $validated['about'] ?? null,
-          'designation' => $validated['designation'] ?? null,
           'country' => $validated['country'] ?? null,
           'city' => $validated['city'] ?? null,
           'state' => $validated['state'] ?? null,
@@ -758,7 +756,9 @@ class TicaWorkspaceController extends Controller
       ]);
     }
 
-    return response()->json(['message' => 'Saved.', 'photoUrl' => $organizer->photo ? asset('assets/admin/img/organizer-photo/' . basename($organizer->photo)) : null]);
+    $organizer->refresh();
+
+    return response()->json(['message' => 'Saved.', 'photoUrl' => $organizer->avatar_url]);
   }
 
   public function password(Request $request): JsonResponse

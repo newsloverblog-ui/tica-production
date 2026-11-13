@@ -188,15 +188,6 @@
                                                 @endif
                                                 <p id="editErr_{{ $language->code }}_name" class="mb-0 text-danger em field-error"></p>
                                             </div>
-
-                                            <div class="form-group">
-                                                <label for="{{ $language->code }}Designation">{{ __('Designation') }}</label>
-                                                <input id="{{ $language->code }}Designation" type="text" class="form-control"
-                                                    name="{{ $language->code }}_designation"
-                                                    value="{{ old($language->code . '_designation') }}"
-                                                    placeholder="{{ __('e.g. Events company') }}">
-                                            </div>
-
                                             <div class="form-group">
                                                 <label for="{{ $language->code }}Country">{{ __('Country') }}</label>
                                                 <input id="{{ $language->code }}Country" type="text" class="form-control"

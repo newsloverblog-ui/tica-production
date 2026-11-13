@@ -444,7 +444,6 @@ class OrganizerController extends Controller
 
     foreach ($languages as $language) {
       $rules[$language->code . '_name']    = 'required|string|max:100';
-      $rules[$language->code . '_designation'] = 'nullable|string|max:100';
       $rules[$language->code . '_country'] = 'nullable|string|max:100';
       $rules[$language->code . '_city'] = 'nullable|string|max:100';
       $rules[$language->code . '_state'] = 'nullable|string|max:100';
@@ -502,7 +501,6 @@ class OrganizerController extends Controller
         $organizer_info->organizer_id = $organizer->id;
       }
       $organizer_info->name        = $request[$language->code . '_name'];
-      $organizer_info->designation = $request[$language->code . '_designation'];
       $organizer_info->country     = $request[$language->code . '_country'];
       $organizer_info->city        = $request[$language->code . '_city'];
       $organizer_info->state       = $request[$language->code . '_state'];

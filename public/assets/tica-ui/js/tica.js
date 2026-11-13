@@ -1262,7 +1262,7 @@ function reload(msg){if(msg)try{sessionStorage.setItem('tica_od_toast',msg)}catc
 try{var pend=sessionStorage.getItem('tica_od_toast');if(pend){sessionStorage.removeItem('tica_od_toast');setTimeout(function(){toast(pend)},300)}}catch(e){}
 
 /* organiser card and role-limited menu */
-document.querySelector('.od-av').textContent=D.org.initials;
+function drawAvatar(){[].forEach.call(document.querySelectorAll('.od-av'),function(el){el.textContent=D.org.initials;if(D.org.avatar){var im=new Image();im.alt='';im.onerror=function(){im.remove()};im.src=D.org.avatar;el.appendChild(im)}})}drawAvatar();
 document.querySelector('.od-ver').textContent=D.org.verified?'Verified organiser':'Not verified yet';document.querySelector('.od-ver').classList.toggle('no',!D.org.verified);
 [].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var p=b.dataset.panel;if(p==='events'&&!PERM('events.view')||p==='promote'&&!CAN.promote||p==='orders'&&!CAN.orders||p==='payouts'&&!CAN.payouts||p==='team'&&!CAN.team||p==='settings'&&!CAN.settings)b.hidden=true});
 if(!CAN.events)[].forEach.call(document.querySelectorAll('.page[data-page=dashboard] a[href="/create"]'),function(a){a.hidden=true});
@@ -1607,21 +1607,31 @@ $('od-inv').addEventListener('submit',function(e){e.preventDefault();var m=$('od
 
 /* settings */
 function drawSettings(){
-  var p=D.profile;$('od-pn').value=p.name;$('od-pa').value=p.about;$('od-pe').value=p.email||'';$('od-pu').value=p.username||'';$('od-pd').value=p.designation||'';
+  var p=D.profile;$('od-pn').value=p.name;$('od-pa').value=p.about;$('od-pe').value=p.email||'';$('od-pu').value=p.username||'';
   $('od-paddr').value=p.address||'';$('od-pcity').value=p.city||'';$('od-pstate').value=p.state||'';$('od-pcountry').value=p.country||'';$('od-pzip').value=p.zipCode||'';
   $('od-pi').value=p.instagram||'';$('od-pw').value=p.phone;
   $('od-pt').value=p.tiktok||'';$('od-pweb').value=p.website||'';$('od-pfb').value=p.facebook||'';$('od-px').value=p.twitter||'';$('od-pli').value=p.linkedin||'';$('od-pyt').value=p.youtube||'';
-  var img=$('od-photo-preview');if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
+  $('od-photo-ini').textContent=D.org.initials;$('od-pcp-row').hidden=true;var img=$('od-photo-preview');img.onerror=function(){img.hidden=true};if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
   var state=$('od-mfa-state'),sec=$('od-security-link');if(state){state.textContent=p.mfa?'On':'Off';state.classList.toggle('on',!!p.mfa)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
   var sws=document.querySelectorAll('[data-p=settings] .ck-sw'),keys=['buyers_pay_fee','show_remaining','waitlist','transfers','notify_sale','daily_summary'];
   [].forEach.call(sws,function(s,i){s.dataset.pref=keys[i];s.checked=!!D.prefs[keys[i]]});
 }
 document.addEventListener('change',function(e){var s=e.target.closest('[data-pref]');if(!s)return;var body={};body[s.dataset.pref]=s.checked;api('/tica-api/organizer/prefs',body).then(function(){D.prefs[s.dataset.pref]=s.checked;toast('Saved.')},function(er){s.checked=!s.checked;toast(errText(er))})});
-$('od-photo').addEventListener('change',function(){var f=this.files&&this.files[0],img=$('od-photo-preview');if(!f)return;var u=URL.createObjectURL(f);img.src=u;img.hidden=false;img.onload=function(){URL.revokeObjectURL(u)}});
-$('od-prof').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),fd=new FormData();b.disabled=true;
-  [['name','od-pn'],['about','od-pa'],['email','od-pe'],['username','od-pu'],['current_password','od-pcp'],['designation','od-pd'],['country','od-pcountry'],['city','od-pcity'],['state','od-pstate'],['zip_code','od-pzip'],['address','od-paddr'],['instagram','od-pi'],['phone','od-pw'],['tiktok','od-pt'],['website','od-pweb'],['facebook','od-pfb'],['twitter','od-px'],['linkedin','od-pli'],['youtube','od-pyt']].forEach(function(x){fd.append(x[0],$(x[1]).value.trim())});
+$('od-photo').addEventListener('change',function(){var f=this.files&&this.files[0],img=$('od-photo-preview');fieldErr('photo','');if(!f)return;
+  if(['image/jpeg','image/png','image/webp','image/gif'].indexOf(f.type)<0){this.value='';fieldErr('photo','Choose a JPG, PNG, WebP or GIF image.');return}
+  if(f.size>3*1024*1024){this.value='';fieldErr('photo','That photo is over 3 MB. Choose a smaller one.');return}
+  $('od-photo-name').textContent=f.name;var u=URL.createObjectURL(f);img.src=u;img.hidden=false;img.onload=function(){URL.revokeObjectURL(u)}});
+var PROF_FIELDS={name:'od-pn',about:'od-pa',email:'od-pe',username:'od-pu',current_password:'od-pcp',country:'od-pcountry',city:'od-pcity',state:'od-pstate',zip_code:'od-pzip',address:'od-paddr',instagram:'od-pi',phone:'od-pw',tiktok:'od-pt',website:'od-pweb',facebook:'od-pfb',twitter:'od-px',linkedin:'od-pli',youtube:'od-pyt',photo:'od-photo',file:'od-photo'};
+function fieldErr(name,msg){var el=$(PROF_FIELDS[name]||name);if(!el)return false;var box=el.closest('.inp')||el.closest('.od-profile-photo')||el.parentNode,old=box.querySelector('.od-err');if(old)old.remove();
+  if(name==='photo'||name==='file'){el=$('od-photo')}
+  if(!msg){el.removeAttribute('aria-invalid');el.removeAttribute('aria-describedby');return true}
+  var m=document.createElement('small');m.className='od-err';m.id=el.id+'-err';m.textContent=msg;box.appendChild(m);el.setAttribute('aria-invalid','true');el.setAttribute('aria-describedby',m.id);return true}
+function clearProfErrs(){Object.keys(PROF_FIELDS).forEach(function(k){fieldErr(k,'')})}
+$('od-prof').addEventListener('input',function(e){var id=e.target.id;Object.keys(PROF_FIELDS).forEach(function(k){if(PROF_FIELDS[k]===id)fieldErr(k,'')});if(id==='od-pe')$('od-pcp-row').hidden=e.target.value.trim().toLowerCase()===(D.profile.email||'').toLowerCase()});
+$('od-prof').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),fd=new FormData();clearProfErrs();$('od-prof-m').textContent='';b.disabled=true;
+  [['name','od-pn'],['about','od-pa'],['email','od-pe'],['username','od-pu'],['current_password','od-pcp'],['country','od-pcountry'],['city','od-pcity'],['state','od-pstate'],['zip_code','od-pzip'],['address','od-paddr'],['instagram','od-pi'],['phone','od-pw'],['tiktok','od-pt'],['website','od-pweb'],['facebook','od-pfb'],['twitter','od-px'],['linkedin','od-pli'],['youtube','od-pyt']].forEach(function(x){fd.append(x[0],$(x[1]).value.trim())});
   var photo=$('od-photo').files&&$('od-photo').files[0];if(photo)fd.append('photo',photo);
-  fetch('/tica-api/organizer/profile',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.message||'Could not save profile.');er.data=j;throw er}return j})}).then(function(r){b.disabled=false;$('od-prof-m').textContent='';if(r.redirect){location.href=r.redirect;return}reload('Profile saved.')},function(er){b.disabled=false;$('od-prof-m').textContent=errText(er)})});
+  fetch('/tica-api/organizer/profile',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.message||'Could not save profile.');er.data=j;throw er}return j})}).then(function(r){b.disabled=false;$('od-prof-m').textContent='';if(r.redirect){location.href=r.redirect;return}reload('Profile saved.')},function(er){b.disabled=false;var errs=er.data&&er.data.errors,first=null;if(errs){Object.keys(errs).forEach(function(k){if(fieldErr(k,errs[k][0])&&!first)first=$(PROF_FIELDS[k]||k)})}if(first){first.focus();toast('Check the highlighted fields.')}else{$('od-prof-m').textContent=errText(er);toast(errText(er))}})});
 $('od-pass').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),n=$('od-pass-new').value,c=$('od-pass-confirm').value;$('od-pass-m').textContent='';
   if(n!==c){$('od-pass-m').textContent='Password confirmation does not match.';return}b.disabled=true;
   api('/tica-api/organizer/password',{current_password:$('od-pass-current').value,new_password:n,new_password_confirmation:c}).then(function(){b.disabled=false;e.target.reset();toast('Password updated.')},function(er){b.disabled=false;$('od-pass-m').textContent=errText(er)})});

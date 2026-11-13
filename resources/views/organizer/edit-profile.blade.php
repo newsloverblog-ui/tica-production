@@ -50,7 +50,7 @@
                       <div class="thumb-preview">
                         @if (Auth::guard('organizer')->user()->photo != null)
                           <img
-                            src="{{ asset('assets/admin/img/organizer-photo/' . Auth::guard('organizer')->user()->photo) }}"
+                            src="{{ Auth::guard('organizer')->user()->avatar_url }}"
                             alt="..." class="uploaded-img">
                         @else
                           <img src="{{ asset('assets/admin/img/noimage.jpg') }}" alt="..." class="uploaded-img">
@@ -184,17 +184,6 @@
                                     @endif
                                   </div>
                                 </div>
-
-                                <div class="col-lg-4">
-                                  <div class="form-group {{ $language->direction == 1 ? 'rtl text-right' : '' }}">
-                                    <label>{{ __('Designation') }}</label>
-                                    <input type="text" class="form-control"
-                                      name="{{ $language->code }}_designation"
-                                      value="{{ $organizer_info ? $organizer_info->designation : '' }}">
-
-                                  </div>
-                                </div>
-
                                 <div class="col-lg-4">
                                   <div class="form-group {{ $language->direction == 1 ? 'rtl text-right' : '' }}">
                                     <label>{{ __('Country') }}</label>

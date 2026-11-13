@@ -35,6 +35,32 @@ class Organizer extends Model implements AuthenticatableContract
   ];
 
   /**
+   * The one place an organiser's photo URL is built. The ?v= stamp changes
+   * whenever the account is saved, so a new photo shows without a hard refresh.
+   * Null when there's no photo: callers show initials instead.
+   */
+  public function getAvatarUrlAttribute(): ?string
+  {
+    $file = basename((string) $this->photo);
+    if ($file === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $file)) {
+      return null;
+    }
+    $version = $this->updated_at ? $this->updated_at->getTimestamp() : null;
+
+    return asset('assets/admin/img/organizer-photo/' . $file) . ($version ? '?v=' . $version : '');
+  }
+
+  /** Up to two initials for the avatar fallback. */
+  public function getAvatarInitialsAttribute(): string
+  {
+    $name = trim((string) ($this->verified_legal_name ?: optional($this->organizer_info)->name ?: $this->username ?: $this->email));
+    $words = preg_split('/\s+/u', $name) ?: [];
+    $letters = array_map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)), array_slice(array_filter($words), 0, 2));
+
+    return implode('', $letters) ?: 'T';
+  }
+
+  /**
    * Read a saved boolean preference without treating malformed string values
    * such as "false" as truthy. Older rows may contain either JSON booleans or
    * their form-encoded string equivalents.

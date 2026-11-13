@@ -72,7 +72,7 @@
                       <br>
                       <div class="thumb-preview">
                         @if ($organizer->photo != null)
-                          <img src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}" alt="..."
+                          <img src="{{ $organizer->avatar_url }}" alt="..."
                             class="uploaded-img">
                         @else
                           <img src="{{ asset('assets/admin/img/noimage.jpg') }}" alt="..." class="uploaded-img">
@@ -182,17 +182,6 @@
                                     <p class="em mt-2 mb-0 text-danger" id="editErr_{{ $language->code }}_name"></p>
                                   </div>
                                 </div>
-
-                                <div class="col-lg-6">
-                                  <div class="form-group {{ $language->direction == 1 ? 'rtl text-right' : '' }}">
-                                    <label>{{ __('Designation') }}</label>
-                                    <input type="text" class="form-control"
-                                      name="{{ $language->code }}_designation"
-                                      value="{{ $organizer_info ? $organizer_info->designation : '' }}">
-
-                                  </div>
-                                </div>
-
                                 <div class="col-lg-6">
                                   <div class="form-group {{ $language->direction == 1 ? 'rtl text-right' : '' }}">
                                     <label>{{ __('Country') }}</label>
