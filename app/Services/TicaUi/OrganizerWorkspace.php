@@ -190,7 +190,7 @@ class OrganizerWorkspace
         'total' => $event['tierInfo'][$i]['unlimited'] ? null : $tier[3],
       ])->values()->all(),
       'url' => $event['url'],
-      'editUrl' => route('organizer.event_management.edit_event', ['id' => $event['id']]),
+      'editUrl' => url('/create/' . $event['id']),
       'registrationUrl' => $event['regMode'] === 'corporate' ? route('organizer.event.registrations.index', ['event_id' => $event['id']]) : null,
     ];
   }

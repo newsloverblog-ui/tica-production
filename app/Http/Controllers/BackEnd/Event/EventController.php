@@ -295,6 +295,10 @@ class EventController extends Controller
 
   public function edit($id)
   {
+    // Editing uses the same six-step builder as creating. ?legacy=1 keeps the old form reachable.
+    if (!request()->boolean('legacy')) {
+      return redirect()->route('admin.event_builder.edit', ['id' => $id]);
+    }
     $event = Event::with('ticket')->findOrFail($id);
     $information['event'] = $event;
 

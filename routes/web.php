@@ -522,6 +522,8 @@ Route::middleware('change.lang')->group(function () {
   Route::get('/signup', 'FrontEnd\TicaUiController@page')->defaults('page', 'signup')->name('tica.signup');
   Route::get('/forgot', 'FrontEnd\TicaUiController@page')->defaults('page', 'forgot')->name('tica.forgot');
   Route::get('/create', 'FrontEnd\TicaUiController@page')->defaults('page', 'create')->name('tica.create');
+  Route::get('/create/{id}', 'FrontEnd\TicaUiController@organizerEdit')->whereNumber('id')
+    ->middleware(['auth:organizer', 'Deactive:organizer'])->name('tica.edit');
   Route::get('/dashboard/{section?}', 'FrontEnd\TicaUiController@page')->defaults('page', 'dashboard')
     ->where('section', '[a-z-]+')->name('tica.dashboard');
   Route::get('/checkin', 'FrontEnd\TicaUiController@page')->defaults('page', 'checkin')->name('tica.checkin');
@@ -595,6 +597,7 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
 
     Route::prefix('organizer')->group(function () {
       Route::post('/events/{id}', 'FrontEnd\TicaWorkspaceController@updateEvent')->whereNumber('id')->middleware('throttle:60,1');
+      Route::post('/events/{id}/details', 'FrontEnd\TicaOrganizerController@updateOrganizerEvent')->whereNumber('id')->middleware('throttle:30,1');
       Route::post('/events/{id}/date', 'FrontEnd\TicaWorkspaceController@changeDate')->whereNumber('id')->middleware('throttle:10,1');
       Route::post('/events/{id}/cancel', 'FrontEnd\TicaWorkspaceController@cancel')->whereNumber('id')->middleware('throttle:5,1');
       Route::get('/attendees', 'FrontEnd\TicaWorkspaceController@attendees')->middleware('throttle:120,1');

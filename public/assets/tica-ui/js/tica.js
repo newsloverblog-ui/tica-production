@@ -1619,7 +1619,7 @@ if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))renderDash
 var $=function(i){return document.getElementById(i)},N=function(n){return window.TICA_MONEY(n)};
 var f=$('create-form');if(!f)return;
 var CD=TICA_DATA.currency||{},OPTS=CD.options||[],CUR=CD.symbol||'₦';
-var ADMIN=TICA_DATA.adminBuilder||null;
+var ADMIN=TICA_DATA.adminBuilder||null,EDIT=TICA_DATA.builderEdit||null;
 var requestedType=(new URLSearchParams(location.search).get('type')||'').toLowerCase();
 if(requestedType==='online'||requestedType==='venue'){
   var requestedMode=f.querySelector('[name=c-mode][value="'+(requestedType==='online'?'Online':'In person')+'"]');
@@ -1722,7 +1722,7 @@ function payload(draft){
   if(entry()==='corporate'){fd.append('registration_form_name',v('c-reg-name'));fd.append('registration_intro',$('c-reg-intro').value);fd.append('registration_approval',$('c-reg-mode').value)}
   else [].forEach.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t,i){
     var ins=t.querySelectorAll(':scope>.inp input'),x=t.querySelector('.ce-x'),adv=x&&x.querySelector('.ce-xsw').checked,unl=adv&&x.querySelector('.ce-tunl').value==='unlimited';
-    fd.append('tiers['+i+'][name]',ins[0].value.trim());fd.append('tiers['+i+'][price]',ins[1].value||'0');if(!unl&&ins[2].value)fd.append('tiers['+i+'][quantity]',ins[2].value);
+    if(t.dataset.tid)fd.append('tiers['+i+'][id]',t.dataset.tid);fd.append('tiers['+i+'][name]',ins[0].value.trim());fd.append('tiers['+i+'][price]',ins[1].value||'0');if(!unl&&ins[2].value)fd.append('tiers['+i+'][quantity]',ins[2].value);
     if(adv){var g=function(c){return x.querySelector(c).value.trim()};if(g('.ce-tdesc'))fd.append('tiers['+i+'][description]',g('.ce-tdesc'));if(g('.ce-tmax'))fd.append('tiers['+i+'][max_per_order]',g('.ce-tmax'));if(g('.ce-teb')){fd.append('tiers['+i+'][early_price]',g('.ce-teb'));fd.append('tiers['+i+'][early_ends]',g('.ce-tebe'))}}
   });
   fd.append('fee_payer',payer()==='me'?'organizer':'buyer');fd.append('visibility',$('c-vis').value);fd.append('refund_policy',$('c-ref').value);
@@ -1730,7 +1730,7 @@ function payload(draft){
   fd.append('ask_question',$('c-askq').checked?'1':'0');fd.append('attendee_question',v('c-question'));
   fd.append('meta_description',v('c-seo'));fd.append('meta_keywords',v('c-keys'));
   if($('c-flyer').files[0])fd.append('flyer',$('c-flyer').files[0]);
-  if(ADMIN){fd.append('organizer_id',$('c-owner').value);fd.append('is_featured',$('c-featured').checked?'1':'0')}
+  if(ADMIN){fd.append('organizer_id',$('c-owner').value);fd.append('is_featured',$('c-featured').checked?'1':'0');if(EDIT)fd.append('status',$('c-status').value)}
   return fd;
 }
 /* step by step */
@@ -1775,11 +1775,12 @@ var FIELDS={organizer_id:'c-owner',is_featured:'c-featured',currency:'c-cur',cou
 function save(draft){
   var msg=$('c-msg'),btns=f.querySelectorAll('.ce-go .btn');msg.textContent=draft?'Saving your draft...':'Publishing your event...';
   [].forEach.call(btns,function(b){b.disabled=true});
-  fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)})
+  var req={method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)};
+  (EDIT?fetch(EDIT.endpoint,req):fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',req))
   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.message||'We couldn\'t save your event. Try again.');e.data=j;throw e}return j})})
   .then(function(r){
     window.TICA_NEW={name:r.name,status:r.status};
-    msg.textContent=draft?r.name+' is saved as a draft. Find it under Events, Drafts.':r.name+' is now live.';
+    msg.textContent=EDIT?'Your changes to '+r.name+' are saved.':draft?r.name+' is saved as a draft. Find it under Events, Drafts.':r.name+' is now live.';
     setTimeout(function(){location.href=r.redirect_url||r.registration_url||(ADMIN?ADMIN.backUrl:'/dashboard')},900);
   },function(er){
     [].forEach.call(btns,function(b){b.disabled=false});
@@ -1788,11 +1789,57 @@ function save(draft){
     if(id&&$(id)){$(id).scrollIntoView({behavior:'smooth',block:'center'});$(id).focus({preventScroll:true})}
   });
 }
-f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}if(!$('c-flyer').files[0]){stage(4,false);$('c-msg').textContent='Add a flyer before you publish.';$('c-flyer').focus();return}save(false)});
+f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}if(!$('c-flyer').files[0]&&!(EDIT&&EDIT.event.flyer)){stage(4,false);$('c-msg').textContent='Add a flyer before you publish.';$('c-flyer').focus();return}save(false)});
 $('ce-draft').addEventListener('click',function(){if($('c-name').value.trim().length<3){$('c-msg').textContent='Give your event a name first.';$('c-name').focus();return}save(true)});
 f.querySelector('.ce-steps').addEventListener('click',function(e){var a=e.target.closest('[data-ce]');if(!a)return;e.preventDefault();e.stopPropagation();var to=STAGES.indexOf(a.dataset.ce);
   if(to<=at||to<=reached){stage(to,true);return}for(var k=at;k<to;k++){if(!check(k)){stage(k,false);return}}stage(to,true)},true);
 window.addEventListener('tica:navigate',function(){if(/^\/create/.test(location.pathname))setTimeout(function(){upd();stage(at)},0)});
+/* edit mode: fill the builder with the saved event */
+function fillEdit(){
+  if(!EDIT)return;var E=EDIT.event,set=function(id,v){var el=$(id);if(el&&v!=null)el.value=v};
+  var h=f.querySelector('h1.display');if(h)h.textContent='Edit event';
+  var ld=f.querySelector('p.lead');if(ld)ld.textContent='Change anything below and save. Tickets that have sold keep their price.';
+  var ap=$('ce-admin');if(ap&&ADMIN){var at=$('ce-admin-title');if(at)at.textContent='Owner, status and featured';[].forEach.call(f.querySelectorAll('.ce-admin-edit'),function(x){x.hidden=false});$('c-status').value=E.status;
+    var del=$('ce-delete');if(del)del.addEventListener('click',function(){if(!window.confirm('Delete "'+E.name+'"? This removes the event, its tickets and its page, and can\'t be undone.'))return;del.disabled=true;
+      var fd=new FormData();fd.append('_token',TICA_DATA.csrf);fetch(EDIT.deleteUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':TICA_DATA.csrf},body:fd}).then(function(){location.href=ADMIN.backUrl},function(){del.disabled=false;$('c-msg').textContent='We couldn\'t delete the event. Try again.'})});}
+  if(ADMIN){set('c-owner',E.organizer_id||'');$('c-featured').checked=!!E.is_featured}
+  set('c-name',E.name);if(E.category_id)set('c-cat',E.category_id);set('c-age',E.age_restriction);set('c-desc',E.description);
+  var mr=f.querySelector('[name=c-mode][value="'+E.mode+'"]');if(mr)mr.checked=true;
+  var er=f.querySelector('[name=c-entry][value="'+E.entry+'"]');if(er)er.checked=true;
+  [].forEach.call(f.querySelectorAll('[name=c-entry]'),function(x){x.disabled=true});
+  if(E.country){var cs=$('c-country');if(![].some.call(cs.options,function(o){return o.value===E.country}))cs.insertAdjacentHTML('beforeend','<option>'+esc(E.country)+'</option>');cs.value=E.country}
+  if(E.currency)set('c-cur',E.currency);
+  set('c-venue',E.address);set('c-city',E.city);set('c-state',E.state);set('c-link',E.online_join_url);set('c-rev',E.join_reveal_minutes);
+  if(E.multiple){$('c-multi').checked=true;$('c-multi').dispatchEvent(new Event('change'));$('ce-dates').innerHTML='';(E.dates||[]).forEach(function(d){var r=dateRow();r.querySelector('.ce-md').value=d.date;r.querySelector('.ce-mt').value=d.start;r.querySelector('.ce-me').value=d.end})}
+  else{set('c-date',E.start_date);set('c-time',E.start_time);set('c-edate',E.end_date);set('c-etime',E.end_time)}
+  (E.tiers||[]).forEach(function(t,i){
+    if(i>0)$('ce-add').click();
+    var rows=f.querySelectorAll('#ce-tiers .ce-tier'),row=rows[rows.length-1],ins=row.querySelectorAll(':scope>.inp input');
+    row.dataset.tid=t.id;ins[0].value=t.name;ins[1].value=t.price;ins[2].value=t.quantity==null?'':t.quantity;
+    var x=row.querySelector('.ce-x');
+    if(x&&(t.description||t.max_per_order||t.early_price!=null||t.quantity==null)){var sw=x.querySelector('.ce-xsw');sw.checked=true;x.querySelector('.ce-xo').hidden=false;
+      x.querySelector('.ce-tdesc').value=t.description||'';x.querySelector('.ce-tmax').value=t.max_per_order||'';x.querySelector('.ce-tunl').value=t.quantity==null?'unlimited':'limited';
+      if(t.early_price!=null){x.querySelector('.ce-teb').value=t.early_price;x.querySelector('.ce-tebe').value=t.early_ends||''}}
+    if(t.sold>0||t.locked){ins[1].readOnly=true;var rm=row.querySelector('.ce-rm');if(rm)rm.remove();
+      row.insertAdjacentHTML('beforeend','<p class="ce-sold">'+(t.locked?'This ticket has options set in the old editor, so it stays as it is here.':t.sold+' sold, so the price stays the same and it can\'t be removed. The quantity can\'t go below '+t.sold+'.')+'</p>');
+      if(t.locked)[].forEach.call(row.querySelectorAll('input,select'),function(el){el.disabled=true})}
+  });
+  var pay=f.querySelector('[name=c-payer][value='+(E.fee_payer==='organizer'?'me':'buyer')+']');if(pay)pay.checked=true;
+  set('c-vis',E.visibility);set('c-ref',E.refund_policy);
+  $('c-left').checked=!!E.show_remaining;$('c-wait').checked=!!E.waitlist_enabled;$('c-cd').checked=!!E.countdown;
+  $('c-askq').checked=!!E.attendee_question;set('c-question',E.attendee_question);set('c-seo',E.meta_description);set('c-keys',E.meta_keywords);
+  if(E.flyer){$('p-flyer').innerHTML='';var img=new Image();img.alt='Your flyer';img.src=E.flyer;$('p-flyer').appendChild(img);
+    var fh=$('c-flyer').closest('.inp');if(fh)fh.insertAdjacentHTML('afterend','<p class="hint">Your current flyer stays unless you choose a new one.</p>')}
+  if(E.locks&&E.locks.dates){['c-date','c-time','c-edate','c-etime','c-multi'].forEach(function(id){$(id).disabled=true});[].forEach.call($('ce-dates').querySelectorAll('input,button'),function(el){el.disabled=true});$('ce-add-date').disabled=true;
+    $('c-multi').closest('ul').insertAdjacentHTML('beforebegin','<p class="ce-lock">Tickets have sold, so dates are locked here. Use Change date on the event to move it. Attendees are told automatically.</p>')}
+  if(E.locks&&E.locks.currency){$('c-cur').disabled=true;$('c-cur').closest('.inp').insertAdjacentHTML('beforeend','<p class="ce-lock">Tickets have sold in '+esc(E.currency)+', so the currency can\'t change.</p>')}
+  ['c-name','c-date','c-time','c-venue','c-city','c-price'].forEach(function(i){$(i).dispatchEvent(new Event('input',{bubbles:true}))});
+  var pub=$('ce-publish'),dr=$('ce-draft');
+  if(ADMIN||E.status==='live'){pub.textContent='Save changes';dr.style.display='none'}
+  else pub.textContent='Publish event';
+  if(!ADMIN&&EDIT.backUrl){var wb=document.querySelector('.workspace-site');if(wb)wb.href=EDIT.backUrl}
+}
+fillEdit();
 upd();stage(0);
 })();
 /* design script 21 */

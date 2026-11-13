@@ -10,7 +10,9 @@
         <div class="ce-admin-grid">
           <div class="inp"><label for="c-owner">Event owner</label><select id="c-owner" name="organizer_id"><option value="">TICA · platform-managed event</option></select><small id="c-owner-note">The selected organizer will manage tickets, attendees and payouts.</small></div>
           <label class="ce-admin-feature" for="c-featured"><span><b>Feature this event</b><small>Give it priority in approved featured placements.</small></span><input class="ck-sw" type="checkbox" id="c-featured" name="is_featured"></label>
+          <div class="inp ce-admin-edit" hidden><label for="c-status">Status</label><select id="c-status"><option value="live">Live, people can buy tickets</option><option value="draft">Hidden, saved as a draft</option></select></div>
         </div>
+        <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
       </section>
       <ol class="ce-steps" aria-label="Steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Where</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets</a></li><li><a href="#ce-fee" data-ce="ce-fee">4. Fees and payout</a></li><li><a href="#ce-more" data-ce="ce-more">5. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">6. Review</a></li></ol>
       <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 6</p>

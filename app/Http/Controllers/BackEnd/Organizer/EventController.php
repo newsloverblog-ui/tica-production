@@ -339,6 +339,9 @@ class EventController extends Controller
 
   public function edit($id)
   {
+    if (!request()->boolean('legacy')) {
+      return redirect('/create/' . (int) $id);
+    }
     $event = Event::with('ticket')->where('id', $id)->firstOrFail();
     if (Auth::guard('organizer')->user()->id != $event->organizer_id) {
       return back();
