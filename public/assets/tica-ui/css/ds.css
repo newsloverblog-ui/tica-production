@@ -467,3 +467,4 @@ body.orgshell .ck-back{display:none}
 body.orgshell .ck-found li{background:var(--t-surface);border:1px solid var(--t-line);border-radius:8px;color:var(--t-ink)}
 body.orgshell .ck-setup:hover{background:var(--t-subtle);border-color:var(--t-line-strong)}
 body.orgshell .ck-setup small{opacity:1}
+body.orgshell .tm-roles .od-roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--t-4)}
