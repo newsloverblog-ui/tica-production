@@ -77,6 +77,15 @@
                     </a>
                 </li>
 
+                @if (is_null($roleInfo))
+                    <li class="nav-item @if (request()->routeIs('admin.integrations.*')) active @endif">
+                        <a href="{{ route('admin.integrations.index') }}">
+                            <i class="fal fa-plug"></i>
+                            <p>{{ __('Integrations') }}</p>
+                        </a>
+                    </li>
+                @endif
+
                 @if (is_null($roleInfo) || (!empty($rolePermissions) && in_array('Advertise', $rolePermissions)))
                     <li class="nav-item @if (request()->routeIs('admin.advertise.tica_promotions*')) active @endif">
                         <a href="{{ route('admin.advertise.tica_promotions') }}">

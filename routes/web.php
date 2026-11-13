@@ -87,7 +87,9 @@ Route::post(
 Route::get('login/facebook/callback', 'FrontEnd\CustomerController@handleFacebookCallback');
 
 #====google
-Route::get('login/google/callback', 'FrontEnd\CustomerController@handleGoogleCallback');
+// Attendees and organisers both come back here; SocialSignInController picks the account type.
+Route::get('login/google/callback', 'FrontEnd\SocialSignInController@callback');
+Route::get('auth/google/start', 'FrontEnd\SocialSignInController@redirect')->middleware('throttle:20,1')->name('tica.auth.google');
 /*---socialite end---*/
 
 Route::middleware('change.lang')->prefix('/customer')->group(function () {

@@ -604,6 +604,15 @@ class CustomerController extends Controller
 
       $user = Socialite::driver($driver)->user();
       $isUser = Customer::where('provider_id', $user->id)->first();
+      // Someone who signed up with email and later uses "Continue with Google" with the
+      // same, Google-verified address gets their existing account, not a duplicate.
+      $verifiedEmail = $driver === 'google' && (bool) data_get($user->user, 'email_verified', data_get($user->user, 'verified_email', false));
+      if (!$isUser && $verifiedEmail && filled($user->getEmail())) {
+        $isUser = Customer::query()->whereRaw('LOWER(email) = ?', [mb_strtolower(trim((string) $user->getEmail()))])->first();
+        if ($isUser) {
+          $isUser->forceFill(['provider' => $driver, 'provider_id' => $user->id, 'email_verified_at' => $isUser->email_verified_at ?: now()])->save();
+        }
+      }
 
       if ($isUser) {
         if ((int) $isUser->status !== 1) {
@@ -623,31 +632,23 @@ class CustomerController extends Controller
       } else {
         // Store the provider avatar in the same durable object store used by
         // regular profile uploads. Vercel's bundled public directory is read-only.
-        $avatar = $user->getAvatar();
-        $avatarResponse = Http::accept('image/*')->timeout(12)->get($avatar);
-        if (!$avatarResponse->successful()) {
-          throw new \RuntimeException('Provider avatar download failed.');
-        }
-        $contentType = strtolower(trim(strtok((string) $avatarResponse->header('Content-Type'), ';') ?: ''));
-        $extension = match ($contentType) {
-          'image/jpeg' => 'jpg',
-          'image/png' => 'png',
-          'image/webp' => 'webp',
-          'image/gif' => 'gif',
-          default => throw new \RuntimeException('Provider avatar type is not supported.'),
-        };
-        $fileContents = $avatarResponse->body();
-        if ($fileContents === '' || strlen($fileContents) > 5 * 1024 * 1024) {
-          throw new \RuntimeException('Provider avatar is empty or too large.');
-        }
+        // The profile photo is a nice-to-have: a failed download never blocks signing in.
+        $avatarName = rescue(function () use ($user, $driver) {
+          $avatarResponse = Http::accept('image/*')->timeout(12)->get((string) $user->getAvatar());
+          if (!$avatarResponse->successful()) {
+            return null;
+          }
+          $contentType = strtolower(trim(strtok((string) $avatarResponse->header('Content-Type'), ';') ?: ''));
+          $extension = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'][$contentType] ?? null;
+          $fileContents = $avatarResponse->body();
+          if (!$extension || $fileContents === '' || strlen($fileContents) > 5 * 1024 * 1024) {
+            return null;
+          }
+          $name = hash('sha256', $driver . '|' . $user->getId()) . '.' . $extension;
+          UploadFile::storeContents(public_path('assets/admin/img/customer-profile/'), $fileContents, $name, $contentType);
 
-        $avatarName = hash('sha256', $driver . '|' . $user->getId()) . '.' . $extension;
-        UploadFile::storeContents(
-          public_path('assets/admin/img/customer-profile/'),
-          $fileContents,
-          $avatarName,
-          $contentType
-        );
+          return $name;
+        }, null, false);
 
         $createUser = Customer::create([
           'photo' => $avatarName,

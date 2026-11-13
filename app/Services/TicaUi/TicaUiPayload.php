@@ -45,6 +45,7 @@ class TicaUiPayload
       'user' => $this->customer(),
       'organizer' => $this->organizer($language),
       'csrf' => csrf_token(),
+      'googleSignIn' => \App\Http\Controllers\FrontEnd\SocialSignInController::googleReady(),
       'routes' => $this->routes(),
       'flash' => array_filter([
         'success' => Session::get('success'),

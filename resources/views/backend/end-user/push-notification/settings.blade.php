@@ -1,6 +1,7 @@
 @extends('backend.layout')
 
 @section('content')
+  @include('backend.integrations._moved')
   <div class="page-header">
     <h4 class="page-title">{{ __('Settings') }}</h4>
     <ul class="breadcrumbs">

@@ -997,10 +997,11 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
       });
     });
   });
-  all('[data-demo]').forEach(function(b){b.addEventListener('click',function(){
-    if(b.closest('.au').dataset.role==='org'){done(b.closest('form'),'Google sign-in is for attendees. Organisers log in with email and password.');return}
-    location.href='/customer/auth/google';
-  })});
+  /* "Continue with Google" for attendees and organisers; shown only when Admin > Integrations has it on. */
+  all('[data-demo]').forEach(function(b){
+    if(!TICA_DATA.googleSignIn){b.hidden=true;b.style.display='none';var or=b.parentNode&&b.parentNode.querySelector('.au-or');if(or){or.hidden=true;or.style.display='none'}return}
+    b.addEventListener('click',function(){location.href='/auth/google/start?as='+(b.closest('.au').dataset.role==='org'?'org':'att')});
+  });
   /* Tica: a team invite turns the sign-up page into "join this organiser's team". */
   var inv=window.TICA_DATA&&TICA_DATA.teamInvite,sf=document.querySelector('[data-auth=signup]');
   if(inv&&sf){
