@@ -12,7 +12,7 @@
 
 @php($orgShell = Auth::guard('organizer')->check() && empty($payload['adminBuilder']))
 @if ($orgShell)
-<x-shell.organizer :active="$initialPage === 'checkin' ? 'checkin' : ($initialPage === 'create' ? 'events' : (request()->segment(2) ?: 'overview'))" :spa="true" />
+<x-shell.organizer :active="$initialPage === 'checkin' ? 'checkin' : ($initialPage === 'create' ? 'events' : (request()->segment(2) ?: 'overview'))" :spa="true" :title="request()->routeIs('tica.edit') ? 'Edit event' : ($initialPage === 'create' ? 'Create an event' : null)" />
 @endif
 <main id="main" tabindex="-1">
 
