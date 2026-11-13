@@ -61,24 +61,39 @@ class PublicImage
   public static function store(UploadedFile $file, string $directory, int $maxSide): string
   {
     $mime = strtolower((string) $file->getMimeType());
-    if ($mime !== 'image/gif' && function_exists('imagewebp')) {
+    $dir = public_path(trim($directory, '/') . '/');
+    // Best: a resized WebP. If this server's GD has no WebP encoder, a resized
+    // JPEG/PNG still keeps a 4K phone photo from being served as a 3 MB avatar.
+    foreach ([['imagewebp', 'webp', 'image/webp'], [$mime === 'image/png' ? 'imagepng' : 'imagejpeg', $mime === 'image/png' ? 'png' : 'jpg', $mime === 'image/png' ? 'image/png' : 'image/jpeg']] as [$fn, $ext, $type]) {
+      if ($mime === 'image/gif' || !function_exists($fn) || !function_exists('imagecreatefromstring')) {
+        continue;
+      }
       try {
-        $webp = self::toWebp((string) $file->getRealPath(), $maxSide);
-        $name = (string) Str::uuid() . '.webp';
-        UploadFile::storeContents(public_path(trim($directory, '/') . '/'), $webp, $name, 'image/webp');
+        $bytes = self::encode((string) $file->getRealPath(), $maxSide, $fn);
+        $name = (string) Str::uuid() . '.' . $ext;
+        UploadFile::storeContents($dir, $bytes, $name, $type);
 
         return $name;
       } catch (Throwable $exception) {
-        Log::warning('Image optimisation failed; keeping the original upload.', ['directory' => $directory, 'mime' => $mime, 'error' => $exception->getMessage()]);
+        Log::warning('Image optimisation failed.', ['directory' => $directory, 'mime' => $mime, 'encoder' => $fn, 'error' => $exception->getMessage()]);
       }
     }
+    if ($mime !== 'image/gif') {
+      Log::warning('Image stored without resizing: GD is not available on this server.', ['directory' => $directory, 'gd' => function_exists('imagecreatefromstring'), 'webp' => function_exists('imagewebp')]);
+    }
     $name = (string) Str::uuid() . '.' . \App\Rules\ImageMimeTypeRule::extension($file);
-    UploadFile::storeAs(public_path(trim($directory, '/') . '/'), $file, $name);
+    UploadFile::storeAs($dir, $file, $name);
 
     return $name;
   }
 
   public static function toWebp(string $path, int $maxSide, int $quality = 82): string
+  {
+    return self::encode($path, $maxSide, 'imagewebp', $quality);
+  }
+
+  /** Resize so the longest side is at most $maxSide and encode with the given GD function. */
+  private static function encode(string $path, int $maxSide, string $encoder, int $quality = 82): string
   {
     $data = @file_get_contents($path);
     $source = $data === false ? false : @imagecreatefromstring($data);
@@ -89,16 +104,23 @@ class PublicImage
     $height = imagesy($source);
     $scale = min(1, $maxSide / max($width, $height));
     $target = imagecreatetruecolor(max(1, (int) round($width * $scale)), max(1, (int) round($height * $scale)));
-    imagealphablending($target, false);
-    imagesavealpha($target, true);
+    if ($encoder === 'imagejpeg') {
+      imagefill($target, 0, 0, imagecolorallocate($target, 255, 255, 255));
+    } else {
+      imagealphablending($target, false);
+      imagesavealpha($target, true);
+    }
     imagecopyresampled($target, $source, 0, 0, 0, 0, imagesx($target), imagesy($target), $width, $height);
     ob_start();
-    $ok = imagewebp($target, null, $quality);
+    $ok = match ($encoder) {
+      'imagepng' => imagepng($target, null, 6),
+      default => $encoder($target, null, $quality),
+    };
     $out = (string) ob_get_clean();
     imagedestroy($source);
     imagedestroy($target);
     if (!$ok || $out === '') {
-      throw new \RuntimeException('WebP encoding failed.');
+      throw new \RuntimeException('Image encoding failed.');
     }
 
     return $out;
