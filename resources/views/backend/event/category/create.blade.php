@@ -14,25 +14,13 @@
           method="post">
           @csrf
 
-          <div class="tcat-row">
-            <div class="form-group">
-              <label for="tcat-create-name">{{ __('Name') }}*</label>
-              <input type="text" id="tcat-create-name" class="form-control" name="name" placeholder="{{ __('e.g. Concerts') }}">
-              <p id="err_name" class="mt-1 mb-0 text-danger em"></p>
-            </div>
+          <input type="hidden" name="language_id" value="{{ $language->id }}">
 
-            <div class="form-group">
-              <label for="tcat-create-lang">{{ __('Language') }}*</label>
-              <select name="language_id" id="tcat-create-lang" class="form-control">
-                @if (count($langs) > 1)
-                  <option selected disabled>{{ __('Select a language') }}</option>
-                @endif
-                @foreach ($langs as $lang)
-                  <option value="{{ $lang->id }}" {{ count($langs) === 1 || $lang->id === $language->id ? 'selected' : '' }}>{{ $lang->name }}</option>
-                @endforeach
-              </select>
-              <p id="err_language_id" class="mt-1 mb-0 text-danger em"></p>
-            </div>
+          <div class="form-group">
+            <label for="tcat-create-name">{{ __('Name') }}*</label>
+            <input type="text" id="tcat-create-name" class="form-control" name="name" placeholder="{{ __('e.g. Concerts') }}">
+            <p id="err_name" class="mt-1 mb-0 text-danger em"></p>
+            <p id="err_language_id" class="mt-1 mb-0 text-danger em"></p>
           </div>
 
           @include('backend.event.category._icon-picker', ['pickerId' => 'tcat-create-picker', 'errId' => 'err_icon'])
