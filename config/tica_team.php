@@ -112,7 +112,6 @@ return [
     'TicaWorkspaceController@message' => 'attendees.message',
     'TicaWorkspaceController@banks' => 'bank.manage',
     'TicaWorkspaceController@resolveBank' => 'bank.manage',
-    'TicaWorkspaceController@bankCode' => 'bank.manage',
     'TicaWorkspaceController@saveBank' => 'bank.manage',
     'TicaWorkspaceController@payoutSchedule' => 'bank.manage',
     'TicaWorkspaceController@withdraw' => 'withdrawals.request',

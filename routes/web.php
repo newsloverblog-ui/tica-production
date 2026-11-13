@@ -608,7 +608,6 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/guests', 'FrontEnd\TicaWorkspaceController@guest')->middleware('throttle:30,1');
       Route::get('/banks', 'FrontEnd\TicaWorkspaceController@banks')->middleware('throttle:30,1');
       Route::post('/bank/resolve', 'FrontEnd\TicaWorkspaceController@resolveBank')->middleware('throttle:10,1');
-      Route::post('/bank/code', 'FrontEnd\TicaWorkspaceController@bankCode')->middleware('throttle:5,10');
       Route::post('/bank', 'FrontEnd\TicaWorkspaceController@saveBank')->middleware('throttle:10,10');
       Route::post('/payout-schedule', 'FrontEnd\TicaWorkspaceController@payoutSchedule')->middleware('throttle:20,1');
       Route::post('/withdraw', 'FrontEnd\TicaWorkspaceController@withdraw')->middleware('throttle:5,1');

@@ -1519,16 +1519,18 @@ function drawPay(){
     var st=P.staged;
     v.innerHTML=st?'<div class="od-acct"><i aria-hidden="true">'+esc(st.bank.replace(/[^A-Z]/g,'').slice(0,3)||st.bank.slice(0,2))+'</i><div><b>'+esc(st.name)+'</b><span>'+esc(st.bank)+', •••• '+esc(st.last4)+'</span></div>'+(st.status==='name_mismatch'?'<em class="od-badb">Name mismatch</em>':'<em class="od-waitb">Waiting</em>')+'</div><p class="od-fine">'+(st.status==='name_mismatch'?'This account\'s name doesn\'t match your approved name. Add an account in your name.':P.kyc==='pending'?'We\'re checking your identity. This account switches on as soon as you\'re approved.':'Finish your identity check and this account switches on when you\'re approved.')+'</p><a class="btn btn-line" href="'+esc(D.setup.kycUrl)+'">Open identity and bank</a>'
       :'<p class="od-fine">'+(P.kyc==='pending'?'We\'re checking your identity. Add your bank account now and it switches on when you\'re approved.':'Verify your identity and add your bank account in one step. Payouts only go to an account in your name.')+'</p><a class="btn btn-hot" href="'+esc(D.setup.kycUrl)+'">'+(P.kyc==='pending'?'Add bank account':'Verify identity and add bank')+'</a>';
+  }else if(P.review&&!OD.changing&&!(a&&a.verified)){
+    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(P.review.bank.slice(0,2))+'</i><div><b>'+esc(P.review.name)+'</b><span>'+esc(P.review.bank)+', •••• '+esc(P.review.last4)+'</span></div>'+(P.review.status==='rejected'?'<em class="od-badb">Not approved</em>':'<em class="od-waitb">In review</em>')+'</div><p class="od-fine">'+(P.review.status==='rejected'?esc(P.review.reason||'TICA couldn\'t approve this account.')+' Add an account in your verified name.':'The name at the bank doesn\'t match your verified name, so TICA is checking it. This usually takes one working day.')+'</p><button class="od-lk" type="button" id="bk-change">Use a different account</button>';
   }else if(a&&a.verified&&!OD.changing){
-    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(a.bank.replace(/[^A-Z]/g,'').slice(0,3)||a.bank.slice(0,2))+'</i><div><b>'+esc(a.name)+'</b><span>'+esc(a.bank)+', •••• '+esc(a.last4)+'</span></div><em class="od-okb">'+ICO.ok+'Verified</em></div>'+(a.held?'<p class="od-note">'+ICO.warn+'New account. Payouts start 24 hours after it was added.</p>':'')+'<button class="od-lk" type="button" id="bk-change">Change account</button>';
+    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(a.bank.replace(/[^A-Z]/g,'').slice(0,3)||a.bank.slice(0,2))+'</i><div><b>'+esc(a.name)+'</b><span>'+esc(a.bank)+', •••• '+esc(a.last4)+'</span></div><em class="od-okb">'+ICO.ok+'Verified</em></div>'+(a.held?'<p class="od-note">'+ICO.warn+'New account. Payouts start 24 hours after it was added.</p>':'')+(P.review&&P.review.status==='needs_review'?'<p class="od-note">'+ICO.warn+'Your new account ('+esc(P.review.bank)+' •••• '+esc(P.review.last4)+') is with TICA for review. Payouts keep going here until it\'s approved.</p>':P.review&&P.review.status==='rejected'?'<p class="od-note">'+ICO.warn+'TICA didn\'t approve '+esc(P.review.bank)+' •••• '+esc(P.review.last4)+'. '+esc(P.review.reason)+'</p>':'')+'<button class="od-lk" type="button" id="bk-change">Change account</button>';
   }else{
     v.innerHTML='<form class="od-form" id="bk-f" novalidate><p class="od-fine">Payouts can only go to an account in your name, '+esc(D.org.owner)+', or your registered business name.</p>'+
     '<div class="inp"><label for="bk-b">Bank</label><select id="bk-b"><option value="">Loading banks...</option></select></div>'+
     '<div class="inp"><label for="bk-n">Account number</label><input id="bk-n" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="10 digits"></div>'+
     '<div class="od-res" id="bk-r" aria-live="polite"></div>'+
-    '<div id="bk-otp" hidden><div class="inp"><label for="bk-o">Enter the 6-digit code we sent to your email</label><input id="bk-o" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><p class="od-fine">This keeps anyone else from changing where your money goes.</p></div>'+
+    '<div id="bk-otp" hidden><div class="inp"><label for="bk-pw">Your TICA password</label><input id="bk-pw" type="password" autocomplete="current-password"></div>'+(D.profile&&D.profile.totp?'<div class="inp"><label for="bk-o">Code from your authenticator app</label><input id="bk-o" type="text" inputmode="numeric" maxlength="11" autocomplete="one-time-code"></div>':'')+'<p class="od-fine">This keeps anyone else from changing where your money goes.</p></div>'+
     '<button class="btn btn-hot" type="submit" id="bk-save" disabled>Save account</button><p class="hint" id="bk-m" role="status"></p></form>';
-    get('/tica-api/organizer/banks').then(function(r){$('bk-b').innerHTML='<option value="">Choose your bank</option>'+r.banks.map(function(b){return '<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>'}).join('')},function(er){$('bk-b').innerHTML='<option value="">Banks unavailable</option>';$('bk-m').textContent=er.message});
+    get('/tica-api/organizer/banks').then(function(r){$('bk-b').innerHTML='<option value="">Choose your bank</option>'+r.banks.map(function(b){return '<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>'}).join('');if(r.stale)$('bk-m').textContent='The bank list is a saved copy because the bank service is slow. Your bank should still be here.'},function(er){$('bk-b').innerHTML='<option value="">Banks unavailable</option>';$('bk-m').textContent=er.message});
     $('bk-n').addEventListener('input',resolve);$('bk-b').addEventListener('change',resolve);
     $('bk-f').addEventListener('submit',saveBank);
   }
@@ -1542,16 +1544,19 @@ function resolve(){
   r.innerHTML='<p class="od-chk2"><i class="od-spin" aria-hidden="true"></i>Checking with '+esc(b.selectedOptions[0].text)+'…</p>';
   resT=setTimeout(function(){
     api('/tica-api/organizer/bank/resolve',{bank_code:b.value,account_number:n.value}).then(function(x){
-      if(!x.matches){r.innerHTML='<div class="od-name bad"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.warn+'This doesn\'t match your verified name. Use an account in your name or your business\'s name.</p></div>';return}
-      resolved={bank_code:b.value,account_number:n.value};
-      r.innerHTML='<div class="od-name"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.ok+'Matches your verified name</p></div>';
-      $('bk-otp').hidden=false;$('bk-save').disabled=false;$('bk-o').focus();
-    },function(er){r.innerHTML='<p class="od-bad">'+ICO.warn+esc(errText(er))+'</p>'});
+      resolved={bank_code:b.value,account_number:n.value,review:!x.matches};
+      r.innerHTML=x.matches?'<div class="od-name"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.ok+'Matches your verified name</p></div>'
+        :'<div class="od-name bad"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.warn+'This doesn\'t match your verified name. If it\'s your business account, send it to TICA to review. We\'ll keep paying your current account until it\'s approved.</p></div>';
+      $('bk-save').textContent=x.matches?'Save account':'Send for review';
+      $('bk-otp').hidden=false;$('bk-save').disabled=false;$('bk-pw').focus();
+    },function(er){r.innerHTML='<p class="od-bad">'+ICO.warn+esc(errText(er))+(er.data&&er.data.retry?' <button type="button" class="od-lk" id="bk-retry">Try again</button>':'')+'</p>'});
   },500);
 }
-function saveBank(e){e.preventDefault();if(!resolved)return;var c=$('bk-o').value.trim();if(!/^\d{6}$/.test(c)){$('bk-m').textContent='Enter the 6-digit code to confirm.';$('bk-o').focus();return}
-  $('bk-save').disabled=true;api('/tica-api/organizer/bank',Object.assign({code:c},resolved)).then(function(){reload('Bank account saved and verified.')},function(er){$('bk-save').disabled=false;$('bk-m').textContent=errText(er)})}
-document.addEventListener('focusin',function(e){if(e.target.id==='bk-o'&&!e.target.dataset.sent&&resolved){e.target.dataset.sent='1';api('/tica-api/organizer/bank/code',resolved).then(function(){$('bk-m').textContent='We emailed you a 6-digit code.'},function(er){$('bk-m').textContent=errText(er)})}});
+function saveBank(e){e.preventDefault();if(!resolved)return;var pw=$('bk-pw').value,o=$('bk-o');$('bk-m').textContent='';
+  if(!pw){$('bk-m').textContent='Enter your password to confirm.';$('bk-pw').focus();return}
+  if(o&&!o.value.trim()){$('bk-m').textContent='Enter the code from your authenticator app.';o.focus();return}
+  $('bk-save').disabled=true;api('/tica-api/organizer/bank',{bank_code:resolved.bank_code,account_number:resolved.account_number,password:pw,otp:o?o.value.trim():null}).then(function(x){reload(x.status==='needs_review'?'Sent to TICA for review. We\'ll email you within one working day.':'Bank account saved and verified.')},function(er){$('bk-save').disabled=false;$('bk-m').textContent=errText(er)})}
+document.addEventListener('click',function(e){if(e.target.id==='bk-retry')resolve()});
 [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.addEventListener('change',function(){api('/tica-api/organizer/payout-schedule',{schedule:r.value}).then(function(){P.schedule=r.value;toast(r.value==='auto'?'We\'ll send your sales to your bank automatically.':'Your money waits until you press Withdraw.')},function(er){toast(errText(er));drawPay()})})});
 function openWd(){
   var a=P.account,m=P.method,min=m?Math.max(m.min,1):1,max=m&&m.max?Math.min(m.max,P.available):P.available;

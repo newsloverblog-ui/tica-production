@@ -250,6 +250,12 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('withdraw/payment-method/input-option/{id}', 'BackEnd\WithdrawPaymentMethodInputController@get_options')->name('admin.withdraw_payment_method.options');
     Route::post('withdraw/payment-method/input-delete', 'BackEnd\WithdrawPaymentMethodInputController@delete')->name('admin.withdraw_payment_method.options_delete');
 
+    Route::get('payout-accounts', 'BackEnd\PayoutAccountController@index')->name('admin.payout_accounts.index');
+    Route::post('payout-accounts/{account}/review', 'BackEnd\PayoutAccountController@review')->whereUuid('account')->name('admin.payout_accounts.review');
+    Route::post('payout-accounts/{account}/reverify', 'BackEnd\PayoutAccountController@reverify')->whereUuid('account')->middleware('throttle:20,1')->name('admin.payout_accounts.reverify');
+    Route::post('payout-accounts/{account}/lock', 'BackEnd\PayoutAccountController@lock')->whereUuid('account')->name('admin.payout_accounts.lock');
+    Route::post('payout-provider', 'BackEnd\PayoutAccountController@provider')->name('admin.payout_provider.update');
+    Route::post('payout-provider/test', 'BackEnd\PayoutAccountController@test')->middleware('throttle:10,1')->name('admin.payout_provider.test');
     Route::get('withdraw/withdraw-request', 'BackEnd\WithdrawController@index')->name('admin.withdraw.withdraw_request');
     Route::post('withdraw/withdraw-request/export', 'BackEnd\WithdrawController@export')
       ->middleware('permission:Transaction')->name('admin.withdraw_exports.store');

@@ -12,6 +12,7 @@ class OrganizerPayoutAccount extends Model
         'bank_code', 'bank_name', 'account_number', 'account_number_hash',
         'account_last4', 'resolved_account_name', 'name_match_status', 'status',
         'is_default', 'verified_at', 'hold_until', 'locked_at',
+        'review_reason', 'reviewed_by_admin_id', 'reviewed_at',
     ];
 
     protected $casts = [
@@ -19,6 +20,7 @@ class OrganizerPayoutAccount extends Model
         'provider_recipient_code' => 'encrypted',
         'is_default' => 'boolean',
         'verified_at' => 'datetime',
+        'reviewed_at' => 'datetime',
         'hold_until' => 'datetime',
         'locked_at' => 'datetime',
         'recipient_created_at' => 'datetime',
