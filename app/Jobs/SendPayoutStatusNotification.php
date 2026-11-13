@@ -65,6 +65,7 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
                 'organizer_notified_at' => now(),
             ])->save();
             $this->sendSms($organizer, $transfer);
+            $this->inbox($organizer, $transfer);
         }
 
         if (in_array($transfer->status, $financeStatuses, true)
@@ -92,6 +93,19 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
             strtoupper($transfer->currency),
             $audience === 'finance' ? $transfer->last_error : null
         );
+    }
+
+    /** The same news in the organiser's bell. */
+    private function inbox($organizer, PayoutTransfer $transfer): void
+    {
+        $amount = strtoupper((string) $transfer->currency) . ' ' . number_format((float) $transfer->amount, 2);
+        [$title, $body] = match ($transfer->status) {
+            'queued' => ['Payout on its way', $amount . ' is being sent to your bank.'],
+            'success' => ['Payout sent', $amount . ' has been paid to your bank account.'],
+            'reversed' => ['Payout returned', 'Your bank returned ' . $amount . '. It is back in your balance and TICA will be in touch.'],
+            default => ['Payout did not go through', 'We could not send ' . $amount . '. It is back in your balance and TICA will be in touch.'],
+        };
+        \App\Support\OrganizerInbox::send((int) $organizer->id, 'payout.' . $transfer->status, $title, $body, url('/dashboard/payouts'));
     }
 
     /**

@@ -73,6 +73,13 @@ class PayoutAccountController extends Controller
       return back()->with('warning', $exception->getMessage());
     }
 
+    \App\Support\AdminQueues::forget();
+    $owner = (int) \App\Models\OrganizerPayoutAccount::query()->where('public_id', $account)->orWhere('id', ctype_digit($account) ? (int) $account : 0)->value('organizer_id');
+    \App\Support\OrganizerInbox::send($owner, 'payout_account.' . $validated['decision'],
+      $validated['decision'] === 'approve' ? __('Bank account approved') : __('Bank account not approved'),
+      $validated['decision'] === 'approve' ? __('Payouts to this account start after its 24-hour hold.') : (string) ($validated['reason'] ?? ''),
+      url('/dashboard/payouts'));
+
     return back()->with('success', $validated['decision'] === 'approve'
       ? 'Approved. Payouts to this account start after its 24-hour hold.'
       : 'Rejected. The organiser has been emailed your reason.');

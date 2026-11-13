@@ -11,6 +11,9 @@
   $can = fn ($permission) => TeamPermissions::can($permission);
   $name = $organizer ? (optional($organizer->organizer_info)->name ?: ($organizer->verified_legal_name ?: $organizer->username)) : 'Organiser';
   $verified = $organizer && $organizer->kyc_status === 'verified';
+  // The bell is the account owner's: team members never see the owner's payout or identity news.
+  $isOwner = $organizer && !session()->has('tica_team_member');
+  $inbox = $isOwner ? \App\Support\OrganizerInbox::latest((int) $organizer->id, 8) : null;
   $icons = [
     'overview' => '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/>',
     'events' => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
@@ -110,6 +113,26 @@
 <header class="os-top" aria-label="Page">
   <button class="t-icon-btn os-burger" id="os-burger" type="button" aria-label="Open menu" aria-controls="os-side" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <h1 class="os-top__title" id="os-title" @if ($title) data-fixed="1" @endif>{{ $title ?? ($titles[$active] ?? 'Dashboard') }}</h1>
+  @if ($inbox)
+    <details class="t-menu os-bell" id="os-bell" data-unread="{{ $inbox['unread'] }}">
+      <summary class="t-icon-btn" aria-label="{{ $inbox['unread'] ? trans_choice(':count new notification|:count new notifications', $inbox['unread']) : __('Notifications') }}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+        @if ($inbox['unread'])<span class="os-bell__n" aria-hidden="true">{{ $inbox['unread'] > 9 ? '9+' : $inbox['unread'] }}</span>@endif
+      </summary>
+      <div class="t-menu__list os-bell__list">
+        <p class="os-bell__head">{{ __('Notifications') }}</p>
+        @forelse ($inbox['items'] as $item)
+          <a class="os-bell__item{{ $item['read'] ? '' : ' is-new' }}" href="{{ $item['url'] ?: '#' }}">
+            <b>{{ $item['title'] }}</b>
+            @if ($item['body'])<span>{{ $item['body'] }}</span>@endif
+            <small>{{ $item['when'] }}</small>
+          </a>
+        @empty
+          <p class="os-bell__empty">{{ __('Nothing new. We\'ll tell you here when TICA reviews your account, payouts or promotions.') }}</p>
+        @endforelse
+      </div>
+    </details>
+  @endif
   <details class="os-menu">
     <summary aria-label="Account menu"><x-organizer-avatar :organizer="$organizer" size="36" class="t-avatar" /></summary>
     <div class="os-menu__list">
@@ -139,7 +162,15 @@
     if (body.classList.contains('os-drawer-open')) { set(false); burger.focus(); }
     var m = document.querySelector('.os-menu[open]'); if (m) { m.removeAttribute('open'); m.querySelector('summary').focus(); }
   });
-  document.addEventListener('click', function (e) { var m = document.querySelector('.os-menu[open]'); if (m && !m.contains(e.target)) m.removeAttribute('open'); });
+  document.addEventListener('click', function (e) { var m = document.querySelector('.os-menu[open]'); if (m && !m.contains(e.target)) m.removeAttribute('open'); var b = document.querySelector('.os-bell[open]'); if (b && !b.contains(e.target)) b.removeAttribute('open'); });
+  // Opening the bell marks everything read.
+  var bell = document.getElementById('os-bell');
+  if (bell) bell.addEventListener('toggle', function () {
+    if (!bell.open || bell.dataset.unread === '0') return;
+    var token = document.querySelector('meta[name=csrf-token]'); token = token ? token.content : (window.TICA_DATA && TICA_DATA.csrf) || '';
+    fetch('/tica-api/organizer/notifications/read', { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { if (!r.ok) return; bell.dataset.unread = '0'; var n = bell.querySelector('.os-bell__n'); if (n) n.remove(); bell.querySelector('summary').setAttribute('aria-label', 'Notifications'); });
+  });
   // Legacy pages already show a title in their page header; reuse it in the top bar.
   document.addEventListener('DOMContentLoaded', function () {
     var t = document.getElementById('os-title'), pt = document.querySelector('.orgshell-legacy .page-header .page-title, .orgshell-legacy .page-inner h1');

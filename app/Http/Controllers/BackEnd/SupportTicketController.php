@@ -141,6 +141,11 @@ class SupportTicketController extends Controller
       'last_message' => Carbon::now(),
       'status' => 2,
     ]);
+    \App\Support\AdminQueues::forget();
+    $ticket = SupportTicket::query()->find($id);
+    if ($ticket && $ticket->user_type === 'organizer') {
+      \App\Support\OrganizerInbox::send((int) $ticket->user_id, 'support.reply', __('TICA replied to your request'), (string) $ticket->subject, route('organizer.support_tickets.message', $ticket->id));
+    }
 
     Session::flash('success', 'Message Sent Successfully');
     return back();

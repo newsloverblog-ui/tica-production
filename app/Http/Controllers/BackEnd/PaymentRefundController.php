@@ -47,6 +47,9 @@ class PaymentRefundController extends Controller
             return back()->with('warning', $exception->getMessage());
         }
 
+        \App\Support\AdminQueues::forget();
+        \App\Support\OrganizerInbox::send((int) $approved->organizer_id, 'refund.approved', __('Refund approved'), __('Refund :id was approved and is being sent to the buyer.', ['id' => $approved->public_id]), url('/dashboard/orders'));
+
         return back()->with(
             'success',
             'Refund '.$approved->public_id.' was approved and queued for controlled provider submission.'
@@ -68,6 +71,9 @@ class PaymentRefundController extends Controller
         } catch (RuntimeException $exception) {
             return back()->with('warning', $exception->getMessage());
         }
+
+        \App\Support\AdminQueues::forget();
+        \App\Support\OrganizerInbox::send((int) $rejected->organizer_id, 'refund.rejected', __('Refund not approved'), $validated['rejection_reason'], url('/dashboard/orders'));
 
         return back()->with('success', 'Refund '.$rejected->public_id.' was rejected with an audit note.');
     }

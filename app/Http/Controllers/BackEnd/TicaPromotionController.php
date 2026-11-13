@@ -152,6 +152,10 @@ class TicaPromotionController extends Controller
         }
         AuditLogger::record('promotion.reviewed', $record, $before, $record->fresh()->only(array_keys($before)), ['decision' => $validated['decision'], 'admin_id' => Auth::guard('admin')->id()]);
 
+        \App\Support\AdminQueues::forget();
+        $title = ['approved' => __('Promotion approved'), 'scheduled' => __('Promotion approved'), 'rejected' => __('Promotion not approved'), 'paused' => __('Promotion paused'), 'cancelled' => __('Promotion cancelled')][$status] ?? __('Promotion updated');
+        \App\Support\OrganizerInbox::send((int) $record->organizer_id, 'promotion.' . $status, $title, $validated['admin_notes'] ?? null, url('/dashboard/promote'));
+
         return back()->with('success', __('Promotion review saved.'));
     }
 
@@ -171,6 +175,11 @@ class TicaPromotionController extends Controller
             'admin_notes' => $validated['admin_notes'] ?? null,
         ])->save();
         AuditLogger::record('tracking_pixel.reviewed', $record, $before, $record->fresh()->only(array_keys($before)), ['decision' => $validated['decision'], 'admin_id' => Auth::guard('admin')->id()]);
+
+        \App\Support\AdminQueues::forget();
+        \App\Support\OrganizerInbox::send((int) $record->organizer_id, 'pixel.' . $validated['decision'],
+            $validated['decision'] === 'approve' ? __('Tracking pixel approved') : __('Tracking pixel not approved'),
+            $validated['admin_notes'] ?? $record->label, url('/dashboard/promote'));
 
         return back()->with('success', __('Tracking provider review saved.'));
     }

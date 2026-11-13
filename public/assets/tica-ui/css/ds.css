@@ -590,3 +590,18 @@ body.tica-admin.ad-titled .page-inner>.page-header{display:none}
 .ad-me__who b{display:block;color:var(--t-ink);font-size:14px}
 .ad-me__who span{display:block;color:var(--t-muted);font-size:13px;overflow-wrap:anywhere}
 @media (max-width:991px){body.tica-admin .ad-top .os-top__title{font-size:16px}}
+/* Organiser bell */
+.os-bell{margin-left:auto}
+.os-bell+.os-menu{margin-left:var(--t-2)}
+.os-bell>summary{position:relative}
+.os-bell svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.os-bell__n{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--t-red);color:#fff;font:600 11px/18px var(--t-font);text-align:center}
+.os-bell__list{width:min(360px,calc(100vw - 24px));max-height:70vh;overflow:auto}
+.os-bell__head{margin:0;padding:var(--t-2) var(--t-3);font-size:var(--t-text-sm);font-weight:600;color:var(--t-muted)}
+.os-bell__item{display:grid!important;gap:2px;white-space:normal}
+.os-bell__item b{color:var(--t-ink);font-size:14px;font-weight:500}
+.os-bell__item.is-new b{font-weight:600}
+.os-bell__item.is-new{box-shadow:inset 3px 0 0 var(--t-blue)}
+.os-bell__item span{color:var(--t-text-c);font-size:13px;overflow-wrap:anywhere}
+.os-bell__item small{color:var(--t-muted);font-size:12px}
+.os-bell__empty{margin:0;padding:var(--t-3);font-size:14px;color:var(--t-muted)}

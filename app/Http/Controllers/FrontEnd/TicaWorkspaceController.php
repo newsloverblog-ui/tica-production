@@ -781,6 +781,18 @@ class TicaWorkspaceController extends Controller
     return Auth::guard('organizer')->user();
   }
 
+  /** The owner's bell. Team members are refused by the team middleware (not mapped = owner only). */
+  public function notifications(): JsonResponse
+  {
+    return response()->json(\App\Support\OrganizerInbox::latest($this->organizerId(), 20));
+  }
+
+  public function readNotifications(): JsonResponse
+  {
+    \App\Support\OrganizerInbox::markAllRead($this->organizerId());
+    return response()->json(['ok' => true]);
+  }
+
   private function organizerId(): int
   {
     return (int) Auth::guard('organizer')->id();

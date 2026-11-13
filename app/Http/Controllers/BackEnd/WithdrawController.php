@@ -81,6 +81,11 @@ class WithdrawController extends Controller
     } catch (RuntimeException $exception) {
       return redirect()->back()->with('warning', $exception->getMessage());
     }
+    \App\Support\AdminQueues::forget();
+    \App\Support\OrganizerInbox::send((int) $withdraw->organizer_id, 'withdrawal.' . (request()->routeIs('*decline*') || $request->has('decision_reason') ? 'rejected' : 'paid'),
+      $request->has('decision_reason') ? __('Withdrawal declined') : __('Withdrawal paid'),
+      $request->has('decision_reason') ? (string) $request->input('decision_reason') : __('TICA marked your withdrawal as paid.'),
+      url('/dashboard/payouts'));
 
     //mail sending
     // get the website title & mail's smtp information from db
@@ -153,6 +158,11 @@ class WithdrawController extends Controller
     } catch (RuntimeException $exception) {
       return redirect()->back()->with('warning', $exception->getMessage());
     }
+    \App\Support\AdminQueues::forget();
+    \App\Support\OrganizerInbox::send((int) $withdraw->organizer_id, 'withdrawal.' . (request()->routeIs('*decline*') || $request->has('decision_reason') ? 'rejected' : 'paid'),
+      $request->has('decision_reason') ? __('Withdrawal declined') : __('Withdrawal paid'),
+      $request->has('decision_reason') ? (string) $request->input('decision_reason') : __('TICA marked your withdrawal as paid.'),
+      url('/dashboard/payouts'));
 
     //mail sending
     // get the website title & mail's smtp information from db
