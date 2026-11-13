@@ -562,3 +562,31 @@ body.orgshell-legacy .kv-card{border:1px solid var(--t-line);border-radius:var(-
 body.orgshell-legacy .kv .btn-primary{background:var(--t-blue)!important;border-color:var(--t-blue)!important;border-radius:var(--t-radius-sm)}
 body.orgshell-legacy .kv input:not([type=radio]):not([type=checkbox]),body.orgshell-legacy .kv select,body.orgshell-legacy .kv textarea{border:1px solid var(--t-line-strong);border-radius:var(--t-radius-sm);font-family:var(--t-font)}
 body.orgshell-legacy .kv input:focus,body.orgshell-legacy .kv select:focus{outline:none;border-color:var(--t-blue);box-shadow:var(--t-focus)}
+
+/* =====================================================================
+   Admin: same tokens, same top bar pattern as the organiser shell.
+   The admin keeps its own (permission-driven) sidebar contents.
+   ===================================================================== */
+body.tica-admin{font-family:var(--t-font)!important}
+body.tica-admin .sidebar .nav>.nav-item>a p,body.tica-admin .sidebar .nav-collapse li a .sub-item{font-family:var(--t-font)!important}
+body.tica-admin .sidebar .nav>.nav-item.active>a,body.tica-admin .sidebar .nav>.nav-item.submenu>a{background:var(--t-blue-50)!important;color:var(--t-blue)!important}
+body.tica-admin .btn-primary{background:var(--t-blue)!important;border-color:var(--t-blue)!important;background-image:none!important}
+body.tica-admin .card{border-radius:var(--t-radius)!important;box-shadow:none!important;border:1px solid var(--t-line)!important}
+body.tica-admin .ad-top .container-fluid{display:flex;align-items:center;justify-content:space-between;gap:var(--t-4);min-height:var(--t-top)}
+body.tica-admin .ad-top .os-top__title{margin:0;font:600 18px/1.2 var(--t-font);color:var(--t-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+body.tica-admin.ad-titled .page-inner>.page-header{display:none}
+.ad-top__right{display:flex;align-items:center;gap:var(--t-2);margin-left:auto}
+.ad-bell>summary{position:relative}
+.ad-bell svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ad-bell__n{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--t-red);color:#fff;font:600 11px/18px var(--t-font);text-align:center}
+.ad-bell__list{min-width:280px}
+.ad-bell__list a{display:flex!important;align-items:center;justify-content:space-between;gap:var(--t-3)}
+.ad-bell__head{margin:0;padding:var(--t-2) var(--t-3);font-size:var(--t-text-sm);font-weight:600;color:var(--t-muted)}
+.ad-bell__empty{margin:0;padding:var(--t-3);font-size:14px;color:var(--t-muted)}
+.ad-me>summary{list-style:none;cursor:pointer;border-radius:50%}
+.ad-me>summary::-webkit-details-marker{display:none}
+.ad-me>summary:focus-visible{box-shadow:var(--t-focus)}
+.ad-me__who{margin:0;padding:var(--t-2) var(--t-3) var(--t-3);border-bottom:1px solid var(--t-line);margin-bottom:var(--t-1)}
+.ad-me__who b{display:block;color:var(--t-ink);font-size:14px}
+.ad-me__who span{display:block;color:var(--t-muted);font-size:13px;overflow-wrap:anywhere}
+@media (max-width:991px){body.tica-admin .ad-top .os-top__title{font-size:16px}}
