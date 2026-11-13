@@ -25,7 +25,8 @@ jobs:
           tools: composer:v2
       - run: composer update laravel/framework --with-dependencies --no-interaction --no-scripts --no-install
       - run: composer audit --locked --abandoned=fail --no-interaction
-      - uses: actions/upload-artifact@v4
-        with:
-          name: composer-lock
-          path: composer.lock
+      - name: Print the lock diff (applied by hand in the dev environment)
+        run: |
+          echo "=====PATCH-BEGIN====="
+          git diff --no-color composer.lock
+          echo "=====PATCH-END====="
