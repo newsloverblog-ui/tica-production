@@ -43,37 +43,15 @@ class TicaOrganizerController extends Controller
     abort_if(\Illuminate\Support\Facades\Session::get('tica_team_member.role') === 'finance', 403, 'Your team role doesn\'t include creating events.');
     $organizer = Auth::guard('organizer')->user();
 
-    return $this->createEvent($request, (int) $organizer->id, false, 'organizer');
+    return $this->createEvent($request, (int) $organizer->id);
   }
 
-  /** Admins use the same builder and persistence path, with ownership controls. */
-  public function storeAdminEvent(Request $request): JsonResponse
-  {
-    $admin = Auth::guard('admin')->user();
-    abort_unless($admin, 401);
-
-    $ownership = $request->validate([
-      'organizer_id' => ['nullable', 'integer', Rule::exists('organizers', 'id')->where('status', 1)],
-      'is_featured' => ['nullable', 'boolean'],
-    ], [
-      'organizer_id.exists' => 'Choose an active organizer, or leave the event under TICA.',
-    ]);
-    $organizerId = isset($ownership['organizer_id']) ? (int) $ownership['organizer_id'] : null;
-    if ($request->input('entry') === 'corporate' && !$organizerId) {
-      throw ValidationException::withMessages([
-        'organizer_id' => 'Assign an organizer before using registration approvals.',
-      ]);
-    }
-
-    return $this->createEvent($request, $organizerId, $request->boolean('is_featured'), 'admin');
-  }
-
-  private function createEvent(Request $request, ?int $organizerId, bool $featured, string $actor): JsonResponse
+  private function createEvent(Request $request, int $organizerId): JsonResponse
   {
     $draft = $request->boolean('draft');
     $validated = $this->validateEvent($request, $draft);
 
-    $event = DB::transaction(function () use ($request, $validated, $organizerId, $featured, $draft, $actor) {
+    $event = DB::transaction(function () use ($request, $validated, $organizerId, $draft) {
       $online = $validated['mode'] === 'Online';
       $multiple = $request->boolean('multiple');
       [$single, $dates] = $this->dates($validated, $multiple);
@@ -90,7 +68,7 @@ class TicaOrganizerController extends Controller
         'end_time' => $single['end']?->format('H:i'),
         'duration' => $single['start'] && $single['end'] ? DurationCalulate($single['start'], $single['end']) : '',
         'end_date_time' => $multiple ? collect($dates)->max('end') : $single['end'],
-        'is_featured' => $featured ? 'yes' : 'no',
+        'is_featured' => 'no',
         'event_type' => $online ? 'online' : 'venue',
         'is_hybrid' => $validated['mode'] === 'Hybrid',
         'online_join_url' => in_array($validated['mode'], ['Online', 'Hybrid'], true) ? ($validated['online_join_url'] ?? null) : null,
@@ -124,7 +102,7 @@ class TicaOrganizerController extends Controller
       }
 
       AuditLogger::record('event.created_from_tica_ui', $event, [], [
-        'actor' => $actor,
+        'actor' => 'organizer',
         'organizer_id' => $organizerId,
         'is_featured' => $event->is_featured,
         'status' => $event->status,
@@ -152,8 +130,7 @@ class TicaOrganizerController extends Controller
       'name' => $validated['name'],
       'status' => $draft ? 'draft' : 'live',
       'url' => route('event.details', [$slug, $event->id]),
-      'registration_url' => $actor === 'organizer' && $validated['entry'] === 'corporate' ? route('organizer.event.registrations.index', ['event_id' => $event->id]) : null,
-      'redirect_url' => $actor === 'admin' ? route('admin.event_management.event', ['language' => $this->getLanguage()->code]) : null,
+      'registration_url' => $validated['entry'] === 'corporate' ? route('organizer.event.registrations.index', ['event_id' => $event->id]) : null,
     ]);
   }
 

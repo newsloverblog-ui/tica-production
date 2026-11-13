@@ -1620,6 +1620,11 @@ var $=function(i){return document.getElementById(i)},N=function(n){return window
 var f=$('create-form');if(!f)return;
 var CD=TICA_DATA.currency||{},OPTS=CD.options||[],CUR=CD.symbol||'₦';
 var ADMIN=TICA_DATA.adminBuilder||null;
+var requestedType=(new URLSearchParams(location.search).get('type')||'').toLowerCase();
+if(requestedType==='online'||requestedType==='venue'){
+  var requestedMode=f.querySelector('[name=c-mode][value="'+(requestedType==='online'?'Online':'In person')+'"]');
+  if(requestedMode)requestedMode.checked=true;
+}
 if(ADMIN){
   var adminPanel=$('ce-admin'),owner=$('c-owner');adminPanel.hidden=false;document.body.classList.add('admin-builder');
   owner.innerHTML='<option value="">TICA · platform-managed event</option>'+(ADMIN.organizers||[]).map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+(o.email?' · '+esc(o.email):'')+'</option>'}).join('');

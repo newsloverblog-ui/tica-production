@@ -1,8 +1,47 @@
 @extends('backend.layout')
 
+@section('style')
+  <style>
+    .tica-builder-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: 8px 0 22px; padding: 24px 26px; border: 1px solid #dfe7f0; border-radius: 20px; background: linear-gradient(125deg, #fff 0%, #f6f8fc 72%, #fff7ed 100%); box-shadow: 0 10px 30px rgba(11, 36, 71, .05); }
+    .tica-builder-hero h1 { margin: 0 0 7px; color: #0b2447; font-size: clamp(27px, 3vw, 38px); font-weight: 800; letter-spacing: -.035em; }
+    .tica-builder-hero p { max-width: 720px; margin: 0; color: #667085; font-size: 14.5px; line-height: 1.6; }
+    .tica-builder-type { display: inline-flex; flex: none; align-items: center; gap: 9px; min-height: 42px; padding: 0 14px; border: 1px solid #d5e0f7; border-radius: 10px; background: #fff; color: #1f5fcc; font-weight: 700; text-decoration: none !important; }
+    .tica-builder-type:hover { border-color: #9bb8e5; color: #174da8; }
+    .tica-admin-builder-row > .col-md-12 > .card { overflow: visible; border: 1px solid #dfe7f0; border-radius: 20px; box-shadow: 0 12px 36px rgba(11, 36, 71, .06); }
+    .tica-admin-builder-row > .col-md-12 > .card > .card-header { display: none; }
+    .tica-admin-builder-row .card-body { padding: 28px; }
+    .tica-admin-builder-row .col-lg-8.offset-lg-2 { max-width: 1060px; flex: 0 0 100%; margin: 0 auto; }
+    .tica-builder-section-title { display: flex; align-items: center; gap: 11px; margin: 30px 0 18px; padding-top: 27px; border-top: 1px solid #e5eaf1; color: #0b2447; font-size: 18px; font-weight: 800; }
+    .tica-builder-section-title.first { margin-top: 0; padding-top: 0; border-top: 0; }
+    .tica-builder-section-title span { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: #eef3fd; color: #1f5fcc; font-size: 13px; }
+    .tica-admin-controls { padding: 18px 18px 2px; border: 1px solid #f2d3b6; border-radius: 15px; background: linear-gradient(135deg, #fffaf5, #fff); }
+    .tica-admin-controls .tica-builder-section-title { margin-top: 0; padding-top: 0; border: 0; }
+    .tica-admin-controls .tica-builder-section-title span { background: #fff1e6; color: #c45a0b; }
+    .tica-admin-controls .text-warning { margin: 6px 0 0; color: #8a5a32 !important; font-size: 12px; }
+    .tica-admin-builder-row label { color: #24324a; font-size: 13px; font-weight: 700; }
+    .tica-admin-builder-row .form-control,
+    .tica-admin-builder-row .select2-container .select2-selection { min-height: 46px; border: 1px solid #d9e1eb !important; border-radius: 11px !important; background: #fff !important; box-shadow: none !important; }
+    .tica-admin-builder-row textarea.form-control { min-height: 112px; }
+    .tica-admin-builder-row .form-control:focus { border-color: #1f5fcc !important; box-shadow: 0 0 0 3px rgba(31, 95, 204, .11) !important; }
+    .tica-admin-builder-row .selectgroup-button { min-height: 44px; padding: 11px 16px; border-color: #d9e1eb; border-radius: 10px !important; font-weight: 700; }
+    .tica-admin-builder-row .selectgroup-input:checked + .selectgroup-button { border-color: #1f5fcc !important; background: #1f5fcc !important; color: #fff !important; }
+    .tica-admin-builder-row .dropzone { min-height: 165px !important; border: 1.5px dashed #aebdd0 !important; border-radius: 15px !important; background: #f8fafd !important; }
+    .tica-admin-builder-row .thumb-preview { overflow: hidden; width: 190px; height: 125px; border-radius: 14px; background: #f3f6fb; }
+    .tica-admin-builder-row .thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .tica-admin-builder-row .version { overflow: hidden; margin-bottom: 14px; border: 1px solid #dfe7f0 !important; border-radius: 14px !important; }
+    .tica-admin-builder-row .version-header { background: #f7f9fc !important; }
+    .tica-admin-builder-row .version-header .btn { color: #0b2447 !important; font-weight: 800; }
+    .tica-admin-builder-row .version-body { padding: 22px !important; }
+    .tica-admin-builder-row > .col-md-12 > .card > .card-footer { position: sticky; z-index: 10; bottom: 12px; margin: 0 28px 20px; padding: 13px !important; border: 1px solid #dfe7f0 !important; border-radius: 14px !important; background: rgba(255, 255, 255, .95) !important; box-shadow: 0 12px 32px rgba(11, 36, 71, .12); backdrop-filter: blur(12px); }
+    .tica-admin-builder-row #EventSubmit { min-width: 210px; min-height: 46px; border: 0; border-radius: 10px; background: #1f5fcc !important; color: #fff !important; font-weight: 800; }
+    @media (max-width: 767px) { .tica-builder-hero { align-items: flex-start; flex-direction: column; padding: 20px; } .tica-admin-builder-row .card-body { padding: 18px; } .tica-admin-builder-row > .col-md-12 > .card > .card-footer { margin: 0 12px 12px; } .tica-admin-builder-row #EventSubmit { width: 100%; } .tica-admin-builder-row #multiple_dates { overflow-x: auto; } .tica-admin-builder-row #multiple_dates table { min-width: 760px; } }
+    @media (prefers-reduced-motion: reduce) { .tica-builder-type { transition: none; } }
+  </style>
+@endsection
+
 @section('content')
   <div class="page-header">
-    <h4 class="page-title">{{ __('Add Event') }}</h4>
+    <h4 class="page-title">{{ __('Create Event') }}</h4>
     <ul class="breadcrumbs">
       <li class="nav-home">
         <a href="{{ route('admin.dashboard') }}">
@@ -26,16 +65,24 @@
         <i class="flaticon-right-arrow"></i>
       </li>
       <li class="nav-item">
-        <a href="#">{{ __('Add Event') }}</a>
+        <a href="#">{{ __('Create Event') }}</a>
       </li>
     </ul>
   </div>
 
-  <div class="row">
+  <section class="tica-builder-hero" aria-labelledby="event-builder-title">
+    <div>
+      <h1 id="event-builder-title">{{ request()->input('type') === 'online' ? __('Create an online event') : __('Create an in-person event') }}</h1>
+      <p>{{ __('Keep every admin control while following the same event format, details, access and publishing flow used by organizers.') }}</p>
+    </div>
+    <a class="tica-builder-type" href="{{ route('admin.choose-event-type', ['language' => $defaultLang->code]) }}"><i class="fal fa-exchange-alt" aria-hidden="true"></i>{{ __('Change event type') }}</a>
+  </section>
+
+  <div class="row tica-admin-builder-row">
     <div class="col-md-12">
       <div class="card">
         <div class="card-header">
-          <div class="card-title d-inline-block">{{ __('Add Event') }}</div>
+          <div class="card-title d-inline-block">{{ __('Create Event') }}</div>
           <a class="btn btn-info btn-sm float-right d-inline-block"
             href="{{ route('admin.event_management.event', ['language' => $defaultLang->code]) }}">
             <span class="btn-label">
@@ -52,8 +99,9 @@
                 <button type="button" class="close" data-dismiss="alert">×</button>
                 <ul></ul>
               </div>
+              <h2 class="tica-builder-section-title first"><span>1</span>{{ __('Event media') }}</h2>
               <div class="col-lg-12">
-                <label for="" class="mb-2"><strong>Gallery Images **</strong></label>
+                <label for="" class="mb-2"><strong>{{ __('Gallery images') }}</strong></label>
                 <form action="{{ route('admin.event.imagesstore') }}" id="my-dropzone" enctype="multipart/formdata"
                   class="dropzone create">
                   @csrf
@@ -64,7 +112,7 @@
                 <div class=" mb-0" id="errpreimg">
 
                 </div>
-                <p class="text-warning">{{ __('Upload Image') }}</p>
+                <p class="text-warning">{{ __('Upload one or more JPG or PNG images.') }}</p>
               </div>
               <form id="eventForm" action="{{ route('admin.event_management.store_event') }}" method="POST"
                 enctype="multipart/form-data">
@@ -83,8 +131,46 @@
                       <input type="file" class="img-input" name="thumbnail">
                     </div>
                   </div>
-                  <p class="text-warning">{{ __('Upload') }}</p>
+                  <p class="text-warning">{{ __('Use a clear event cover image.') }}</p>
                 </div>
+
+                <section class="tica-admin-controls" aria-labelledby="admin-event-controls">
+                  <h2 class="tica-builder-section-title" id="admin-event-controls"><span>2</span>{{ __('Admin controls') }}</h2>
+                  <div class="row">
+                    <div class="col-lg-4">
+                      <div class="form-group">
+                        <label>{{ __('Publishing status') . '*' }}</label>
+                        <select name="status" class="form-control">
+                          <option value="0">{{ __('Draft / inactive') }}</option>
+                          <option value="1">{{ __('Active') }}</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-lg-4">
+                      <div class="form-group">
+                        <label>{{ __('Featured placement') . '*' }}</label>
+                        <select name="is_featured" class="form-control">
+                          <option value="no">{{ __('Not featured') }}</option>
+                          <option value="yes">{{ __('Featured') }}</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-lg-4">
+                      <div class="form-group">
+                        <label>{{ __('Event owner') }}</label>
+                        <select name="organizer_id" class="form-control js-example-basic-single">
+                          <option value="">{{ __('TICA managed') }}</option>
+                          @foreach ($organizers as $organizer)
+                            <option value="{{ $organizer->id }}">{{ $organizer->username }} · {{ $organizer->email }}</option>
+                          @endforeach
+                        </select>
+                        <p class="text-warning">{{ __('Leave as TICA managed or assign an organizer to manage the event.') }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <h2 class="tica-builder-section-title"><span>3</span>{{ __('Schedule and publishing') }}</h2>
 
                 <div class="row">
                   <div class="col-lg-12">
@@ -118,7 +204,7 @@
 
                         <label class="selectgroup-item">
                           <input type="radio" name="countdown_status" value="0" class="selectgroup-input">
-                          <span class="selectgroup-button">{{ __('Deactive') }}</span>
+                          <span class="selectgroup-button">{{ __('Inactive') }}</span>
                         </label>
                       </div>
                     </div>
@@ -205,57 +291,10 @@
                   </div>
                 </div>
 
-                <div class="row ">
-                  <div class="col-lg-4">
-                    <div class="form-group">
-                      <label for="">{{ __('Status') . '*' }}</label>
-                      <select name="status" class="form-control">
-                        <option selected disabled>{{ __('Select a Status') }}</option>
-                        <option value="1">{{ __('Active') }}</option>
-                        <option value="0">{{ __('Deactive') }}</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-lg-4">
-                    <div class="form-group">
-                      <label for="">{{ __('Is Feature') . '*' }}</label>
-                      <select name="is_featured" class="form-control">
-                        <option selected disabled>{{ __('Select') }}</option>
-                        <option value="yes">{{ __('Yes') }}</option>
-                        <option value="no">{{ __('No') }}</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-lg-4">
-                    <div class="form-group">
-                      <label for="">{{ __('Organizer') }}</label>
-                      <select name="organizer_id" class="form-control js-example-basic-single">
-                        <option selected value="">{{ __('Select Organizer') }}</option>
-                        @foreach ($organizers as $organizer)
-                          <option value="{{ $organizer->id }}">{{ $organizer->username }}</option>
-                        @endforeach
-                      </select>
-                      <p class="text-warning">{{ __("Please leave it blank for Admin's event") }}</p>
-                    </div>
-                  </div>
-                  @if (request()->input('type') == 'venue')
-                    <!--<div class="col-lg-4">-->
-                    <!--  <div class="form-group">-->
-                    <!--    <label for="">{{ __('Latitude') }}</label>-->
-                    <!--    <input type="text" name="latitude" placeholder="Latitude" class="form-control">-->
-                    <!--  </div>-->
-                    <!--</div>-->
-                    <!--<div class="col-lg-4">-->
-                    <!--  <div class="form-group">-->
-                    <!--    <label for="">{{ __('Longitude') }}</label>-->
-                    <!--    <input type="text" placeholder="Longitude" name="longitude" class="form-control">-->
-                    <!--  </div>-->
-                    <!--</div>-->
-                  @endif
-                </div>
                 @if (request()->input('type') == 'online')
                   {{-- /*****--Ticekt limtit & ticket for each customer start--****** --}}
 
+                  <h2 class="tica-builder-section-title"><span>4</span>{{ __('Tickets and online access') }}</h2>
                   <div class="row">
                     <div class="col-lg-12">
                       <div class="form-group">
@@ -391,8 +430,8 @@
                   </div>
                 @endif
 
-
-                <div id="accordion" class="mt-3">
+                <h2 class="tica-builder-section-title"><span>{{ request()->input('type') === 'online' ? '5' : '4' }}</span>{{ __('Event details and languages') }}</h2>
+                <div id="accordion">
                   @foreach ($languages as $language)
                     <div class="version">
                       <div class="version-header" id="heading{{ $language->id }}">
@@ -453,7 +492,7 @@
                               </div>
                               <div class="col-lg-4">
                                 <div class="form-group">
-                                  <label for="">{{ __('County') . '*' }}</label>
+                                  <label for="">{{ __('Country') . '*' }}</label>
                                   <input type="text" name="{{ $language->code }}_country"
                                     placeholder="Enter Country"
                                     class="form-control {{ $language->direction == 1 ? 'rtl text-right' : '' }}">
@@ -461,7 +500,7 @@
                               </div>
                               <div class="col-lg-4">
                                 <div class="form-group">
-                                  <label for="">{{ __('Sate') }}</label>
+                                  <label for="">{{ __('State') }}</label>
                                   <input type="text" name="{{ $language->code }}_state"
                                     class="form-control {{ $language->direction == 1 ? 'rtl text-right' : '' }}"
                                     placeholder="Enter State">
@@ -561,7 +600,7 @@
           <div class="row">
             <div class="col-12 text-center">
               <button type="submit" id="EventSubmit" class="btn btn-success">
-                {{ __('Save') }}
+                {{ __('Save event') }}
               </button>
             </div>
           </div>

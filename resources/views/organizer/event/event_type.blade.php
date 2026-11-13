@@ -1,17 +1,8 @@
 @extends('organizer.layout')
 
-@section('style')
-<style>
-.tica-type-shell{max-width:1040px;margin:24px auto 0}.tica-type-hero{text-align:center}.tica-type-kicker{margin:0;color:#f97316;font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.tica-type-hero h1{margin:10px 0 12px;color:var(--tica-ink);font-size:clamp(32px,5vw,52px);font-weight:850;letter-spacing:-.04em}.tica-type-hero>p:last-child{max-width:620px;margin:0 auto;color:var(--tica-muted);font-size:15px}.tica-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}.tica-type-card{position:relative;display:flex;min-height:330px;overflow:hidden;padding:30px;border:1px solid var(--tica-border);border-radius:24px;background:var(--tica-surface);box-shadow:var(--tica-shadow-sm);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.tica-type-card:hover{border-color:#f97316;box-shadow:0 22px 48px rgba(11,36,71,.14);transform:translateY(-4px)}.tica-type-card:focus-visible{outline:3px solid #f97316;outline-offset:4px}.tica-type-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start}.tica-type-icon{display:grid;width:58px;height:58px;place-items:center;border-radius:17px;background:#fff1e6;color:#f97316;font-size:24px}.tica-type-card h2{margin:80px 0 10px;color:var(--tica-ink);font-size:28px;font-weight:850;letter-spacing:-.035em}.tica-type-card p{max-width:36ch;margin:0;color:var(--tica-muted);line-height:1.7}.tica-type-action{display:inline-flex;align-items:center;gap:9px;margin-top:22px;color:#0f4c9e;font-weight:800}.tica-type-art{position:absolute;right:-28px;top:-34px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(249,115,22,.34),rgba(15,76,158,.08) 55%,transparent 56%)}.tica-type-card.online .tica-type-art{background:radial-gradient(circle at 35% 35%,rgba(15,76,158,.25),rgba(249,115,22,.08) 55%,transparent 56%)}@media(max-width:720px){.tica-type-shell{margin-top:8px}.tica-type-grid{grid-template-columns:1fr}.tica-type-card{min-height:280px}.tica-type-card h2{margin-top:52px}}
-</style>
-@endsection
-
 @section('content')
-<main class="tica-type-shell">
-  <header class="tica-type-hero"><p class="tica-type-kicker">{{ __('Start creating') }}</p><h1>{{ __('What kind of event is it?') }}</h1><p>{{ __('Choose the format now. You can add tickets, registration questions, guests and check-in tools in the guided setup that follows.') }}</p></header>
-  <section class="tica-type-grid" aria-label="{{ __('Event formats') }}">
-    <a class="tica-type-card online" href="{{ route('organizer.add.event.event', ['type' => 'online']) }}"><span class="tica-type-art" aria-hidden="true"></span><span class="tica-type-content"><span class="tica-type-icon"><i class="fal fa-broadcast-tower"></i></span><h2>{{ __('Online event') }}</h2><p>{{ __('Host a virtual experience with a private attendee link, capacity limits and ticket controls.') }}</p><span class="tica-type-action">{{ __('Create online event') }} <i class="fal fa-arrow-right"></i></span></span></a>
-    <a class="tica-type-card" href="{{ route('organizer.add.event.event', ['type' => 'venue']) }}"><span class="tica-type-art" aria-hidden="true"></span><span class="tica-type-content"><span class="tica-type-icon"><i class="fal fa-map-marker-alt"></i></span><h2>{{ __('Venue event') }}</h2><p>{{ __('Create an in-person experience with location details, ticket variations, guest lists and scanning.') }}</p><span class="tica-type-action">{{ __('Create venue event') }} <i class="fal fa-arrow-right"></i></span></span></a>
-  </section>
-</main>
+  @include('shared.event-type-selector', [
+    'venueUrl' => route('organizer.add.event.event', ['type' => 'venue']),
+    'onlineUrl' => route('organizer.add.event.event', ['type' => 'online']),
+  ])
 @endsection
