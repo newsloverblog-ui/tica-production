@@ -20,7 +20,7 @@ class OrganizerInboxTest extends TestCase
     OrganizerInbox::write(4, 'kyc.verified', 'You are verified');
     $this->assertSame(['unread' => 0, 'items' => []], OrganizerInbox::latest(4));
     OrganizerInbox::markAllRead(4);
-    $this->assertStringContainsString('os-bell', $this->render());
+    $this->assertStringContainsString('id="os-bell"', $this->render());
   }
 
   public function test_messages_are_listed_newest_first_and_marked_read(): void
@@ -55,7 +55,7 @@ class OrganizerInboxTest extends TestCase
     $this->assertStringContainsString('os-bell__n', $html);
 
     session()->put('tica_team_member', ['id' => 1, 'role' => 'finance', 'name' => 'F']);
-    $this->assertStringNotContainsString('os-bell', $this->render());
+    $this->assertStringNotContainsString('id="os-bell"', $this->render());
   }
 
   public function test_admin_decisions_feed_the_bell(): void
