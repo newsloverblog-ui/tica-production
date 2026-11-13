@@ -249,7 +249,7 @@
 /* =====================================================================
    TICA app pages inside the shell (body.orgshell)
    ===================================================================== */
-body:not(.orgshell) .os-side,body:not(.orgshell) .os-top,body:not(.orgshell) .os-scrim{display:none}
+body:not(.orgshell):not(.orgshell-legacy) .os-side,body:not(.orgshell):not(.orgshell-legacy) .os-top,body:not(.orgshell):not(.orgshell-legacy) .os-scrim{display:none}
 body.orgshell{background:var(--t-bg)}
 body.orgshell>.topbar,body.orgshell .topbar,body.orgshell>footer,body.orgshell footer.ft{display:none!important}
 body.orgshell #main{margin-left:var(--t-side);padding-top:var(--t-top);min-height:100vh;background:var(--t-bg)}
