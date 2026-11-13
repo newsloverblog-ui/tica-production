@@ -106,7 +106,7 @@
 
       <!-- PROMOTE -->
       <div class="od-p" data-p="promote" hidden>
-        <div class="db-head"><div><h1>Promote</h1><p>Discount codes and trackable links, so you know what's selling tickets.</p></div></div>
+        <div class="db-head"><div><h1>Promote</h1><p>Book TICA placements, create discount codes and track the channels selling your tickets.</p></div></div>
         <section class="db-card od-promo-studio" aria-labelledby="od-campaign-h"><div class="db-ch"><div><h2 id="od-campaign-h">Paid promotion</h2><p class="od-fine">Choose an admin-priced placement. Every campaign is reviewed before it goes live.</p></div><div class="od-promo-balance"><span>Available TICA balance</span><b id="od-promo-balance">—</b></div></div>
           <div class="od-empty-state" id="od-promo-empty" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/></svg></i><h3>Paid promotion is not available yet</h3><p>TICA will show placement options here when campaign plans are available. Your discount codes and tracking links still work.</p></div>
           <form class="od-form" id="od-promo-f" novalidate>

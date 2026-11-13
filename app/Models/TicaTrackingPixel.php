@@ -9,4 +9,9 @@ class TicaTrackingPixel extends Model
     protected $fillable = ['organizer_id', 'approved_by', 'provider', 'pixel_identifier', 'label', 'status', 'admin_notes', 'approved_at'];
 
     protected $casts = ['approved_at' => 'datetime'];
+
+    public function organizer()
+    {
+        return $this->belongsTo(Organizer::class);
+    }
 }

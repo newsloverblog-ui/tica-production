@@ -5,6 +5,13 @@
     <form id="create-form" class="panel ce" novalidate>
       <h1 class="display">Create your event</h1>
       <p class="lead">Fill this in and watch your event card build itself. You can change anything later.</p>
+      <section class="ce-admin" id="ce-admin" hidden aria-labelledby="ce-admin-title">
+        <div class="ce-admin-head"><span class="ce-admin-kicker">Admin controls</span><div><h2 id="ce-admin-title">Event ownership</h2><p>Create for TICA or assign the event to an organizer.</p></div></div>
+        <div class="ce-admin-grid">
+          <div class="inp"><label for="c-owner">Event owner</label><select id="c-owner" name="organizer_id"><option value="">TICA · platform-managed event</option></select><small id="c-owner-note">The selected organizer will manage tickets, attendees and payouts.</small></div>
+          <label class="ce-admin-feature" for="c-featured"><span><b>Feature this event</b><small>Give it priority in approved featured placements.</small></span><input class="ck-sw" type="checkbox" id="c-featured" name="is_featured"></label>
+        </div>
+      </section>
       <ol class="ce-steps" aria-label="Steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Where</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets</a></li><li><a href="#ce-fee" data-ce="ce-fee">4. Fees and payout</a></li><li><a href="#ce-more" data-ce="ce-more">5. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">6. Review</a></li></ol>
       <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 6</p>
 

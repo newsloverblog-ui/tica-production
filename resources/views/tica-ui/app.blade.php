@@ -21,7 +21,7 @@
 @include('tica-ui.partials.footer')
 <script>
 window.TICA_DATA={!! json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
-window.TICA_EVENTS=window.TICA_DATA.events;window.TICA_USER=window.TICA_DATA.user;window.TICA_ORG=!!window.TICA_DATA.organizer;window.TICA_ORGNAME=window.TICA_DATA.organizer?window.TICA_DATA.organizer.name:null;window.TICA_CITY=window.TICA_DATA.city||null;
+window.TICA_EVENTS=window.TICA_DATA.events;window.TICA_USER=window.TICA_DATA.user;window.TICA_ORG=!!window.TICA_DATA.organizer;window.TICA_ADMIN=!!window.TICA_DATA.adminBuilder;window.TICA_ORGNAME=window.TICA_DATA.organizer?window.TICA_DATA.organizer.name:null;window.TICA_CITY=window.TICA_DATA.city||null;
 window.TICA_HEART="<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.1-8 11-8 11z\"/><\/svg>";window.TICA_TICK="<svg viewBox=\"0 0 16 16\" aria-label=\"Verified organiser\" role=\"img\"><circle cx=\"8\" cy=\"8\" r=\"8\" fill=\"#CFCBF0\"/><path d=\"M4.5 8.2l2.4 2.3 4.6-5\" stroke=\"#1E1763\" stroke-width=\"2\" fill=\"none\"/><\/svg>";
 </script>
 <script src="{{ asset('assets/tica-ui/js/qrcode.js') }}?v={{ $assetVersion }}"></script>

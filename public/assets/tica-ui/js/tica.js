@@ -842,7 +842,7 @@ function route(){
   var c0=cur.split('/')[0];
   if(c0==='tickets'&&window.TICA_USER)cur='account';
   if(c0==='account'&&!window.TICA_USER){cur='login';[].forEach.call(document.querySelectorAll('.au'),function(a){a.dataset.role='att'});[].forEach.call(document.querySelectorAll('.au-seg button'),function(b){b.setAttribute('aria-pressed',b.dataset.role==='att'?'true':'false')});try{history.replaceState(null,'','/login')}catch(err){}}
-  if((c0==='create'||c0==='dashboard'||c0==='checkin')&&!window.TICA_ORG&&!(c0==='checkin'&&TICA_DATA.gate)){
+  if((c0==='create'||c0==='dashboard'||c0==='checkin')&&!window.TICA_ORG&&!(c0==='create'&&window.TICA_ADMIN)&&!(c0==='checkin'&&TICA_DATA.gate)){
     cur='signup';
     [].forEach.call(document.querySelectorAll('.au'),function(a){a.dataset.role='org'});
     [].forEach.call(document.querySelectorAll('.au-seg button'),function(b){b.setAttribute('aria-pressed',b.dataset.role==='org'?'true':'false')});
@@ -860,8 +860,8 @@ function route(){
   document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
   var workspaceTitle=document.getElementById('workspace-title'),workspaceRole=document.getElementById('workspace-role'),workspaceAccount=document.getElementById('workspace-account');
   if(workspaceTitle)workspaceTitle.textContent=p==='dashboard'?'Organiser dashboard':p==='account'?'Your account':p==='checkin'?'Gate check-in':p==='create'?'Create an event':'TICA workspace';
-  if(workspaceRole)workspaceRole.textContent=(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':p==='account'?'Customer account':'TICA workspace';
-  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null;workspaceAccount.textContent=(workspaceName||'T').trim().charAt(0).toUpperCase();workspaceAccount.href=customerWorkspace?'/account/profile':'/dashboard/settings'}
+  if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':p==='account'?'Customer account':'TICA workspace';
+  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=window.TICA_ADMIN?(TICA_DATA.adminBuilder.adminName||'TICA admin'):customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null;workspaceAccount.textContent=(workspaceName||'T').trim().charAt(0).toUpperCase();workspaceAccount.href=window.TICA_ADMIN?(TICA_DATA.adminBuilder.backUrl||'/admin/dashboard'):customerWorkspace?'/account/profile':'/dashboard/settings'}
   if(p==='dashboard'&&!route.ran){var workspaceMore=document.getElementById('od-more');if(workspaceMore)workspaceMore.removeAttribute('open')}
   document.body.classList.toggle('authmode',p==='login'||p==='signup'||p==='forgot');
   [].forEach.call(document.querySelectorAll('.pagebar a'),function(a){var h=a.getAttribute('href').slice(1).split('/')[0]||'home';if(h===p)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
@@ -1619,6 +1619,13 @@ if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))renderDash
 var $=function(i){return document.getElementById(i)},N=function(n){return window.TICA_MONEY(n)};
 var f=$('create-form');if(!f)return;
 var CD=TICA_DATA.currency||{},OPTS=CD.options||[],CUR=CD.symbol||'₦';
+var ADMIN=TICA_DATA.adminBuilder||null;
+if(ADMIN){
+  var adminPanel=$('ce-admin'),owner=$('c-owner');adminPanel.hidden=false;document.body.classList.add('admin-builder');
+  owner.innerHTML='<option value="">TICA · platform-managed event</option>'+(ADMIN.organizers||[]).map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+(o.email?' · '+esc(o.email):'')+'</option>'}).join('');
+  var workspaceBack=document.querySelector('.workspace-site');if(workspaceBack)workspaceBack.href=ADMIN.backUrl||'/admin/dashboard';
+  var bank=$('ce-bank');if(bank)bank.innerHTML='<span><b>Payout ownership</b><small>Assign an organizer for organizer payouts. TICA-managed events remain under platform finance.</small></span><a class="btn btn-line" href="'+esc(ADMIN.backUrl||'/admin/dashboard')+'">All events</a>';
+}
 function curOf(code){return OPTS.filter(function(o){return o.code===code})[0]||{code:code,symbol:code,paid:false}}
 /* country picks the currency; the organiser can still change it */
 (function(){
@@ -1718,6 +1725,7 @@ function payload(draft){
   fd.append('ask_question',$('c-askq').checked?'1':'0');fd.append('attendee_question',v('c-question'));
   fd.append('meta_description',v('c-seo'));fd.append('meta_keywords',v('c-keys'));
   if($('c-flyer').files[0])fd.append('flyer',$('c-flyer').files[0]);
+  if(ADMIN){fd.append('organizer_id',$('c-owner').value);fd.append('is_featured',$('c-featured').checked?'1':'0')}
   return fd;
 }
 /* step by step */
@@ -1742,7 +1750,7 @@ function check(i){
     if($('c-multi').checked){var rows=$('ce-dates').children;if(!rows.length||[].some.call(rows,function(r){return !r.querySelector('.ce-md').value||!r.querySelector('.ce-mt').value})){$('c-msg').textContent='Add a date and start time for each day.';return false}return true}
     return need('c-date','Choose the date your event starts.')&&need('c-time','Choose the time your event starts.')}
   if(i===1){if(m!=='Online'&&!(need('c-venue','Enter the venue.')&&need('c-city','Enter the city.')))return false;if(m==='Online'&&!need('c-link','Add the link people use to join.'))return false;return true}
-  if(i===2){if(entry()==='corporate')return true;var tiers=f.querySelectorAll('#ce-tiers .ce-tier'),paid=false,ok=true;
+  if(i===2){if(entry()==='corporate'){if(ADMIN&&!$('c-owner').value){$('c-msg').textContent='Assign an organizer before using registration approvals.';$('c-owner').focus();return false}return true}var tiers=f.querySelectorAll('#ce-tiers .ce-tier'),paid=false,ok=true;
     [].forEach.call(tiers,function(t){var ins=t.querySelectorAll(':scope>.inp input');if(!ins[0].value.trim()&&ok){ok=false;$('c-msg').textContent='Give every ticket type a name.';ins[0].focus()}else if(ins[1].value.trim()===''&&ok){ok=false;$('c-msg').textContent='Enter a price for every ticket. Use 0 for free tickets.';ins[1].focus()}if(parseFloat(ins[1].value)>0)paid=true});
     if(!ok)return false;if(paid&&!curOf(curCode()).paid){$('c-msg').textContent=curCode()+' can\'t take card payments yet. Make the tickets free or change the currency in step 2.';return false}return true}
   if(i===4){if($('c-askq').checked&&!need('c-question','Write the question you want to ask.'))return false;return true}
@@ -1752,21 +1760,22 @@ function summary(){
   var m=mode(),o=curOf(curCode()),tiers=[].map.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t){var ins=t.querySelectorAll(':scope>.inp input');return esc(ins[0].value.trim()||'Ticket')+', '+(parseFloat(ins[1].value)>0?esc(N(+ins[1].value)):'Free')+(ins[2]&&ins[2].value?', '+esc(ins[2].value)+' available':'')});
   var when=$('c-multi').checked?[].map.call($('ce-dates').children,function(r){return r.querySelector('.ce-md').value+' '+r.querySelector('.ce-mt').value}).join('; '):($('c-date').value+' '+$('c-time').value);
   var rows=[['Event',esc($('c-name').value.trim())],['When',esc(when)],['Where',m==='Online'?'Online, '+esc($('c-plat').value):esc([$('c-venue').value,$('c-city').value,$('c-country').value].filter(Boolean).join(', '))+(m==='Hybrid'?' and online':'')],['Currency',esc(o.code+' ('+o.symbol+')')],['Entry',entry()==='corporate'?'Registration, '+($('c-reg-mode').value==='manual'?'you approve each person':'everyone approved'):tiers.join('<br>')],['Booking fee',payer()==='buyer'?'Buyers pay it':'Included in your prices'],['Who can find it',esc($('c-vis').selectedOptions[0].text)],['Flyer',$('c-flyer').files[0]?esc($('c-flyer').files[0].name):'<span class="ce-warn">Add a flyer in step 5 before you publish</span>']];
+  if(ADMIN)rows.splice(1,0,['Owner',$('c-owner').value?esc($('c-owner').selectedOptions[0].text):'TICA · platform-managed'],['Featured',$('c-featured').checked?'Yes':'No']);
   $('ce-sum').innerHTML=rows.map(function(r){return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'}).join('');
 }
 $('ce-next').addEventListener('click',function(){if(check(at))stage(at+1,true)});
 $('ce-back').addEventListener('click',function(){stage(at-1,true)});
 f.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'&&at<STAGES.length-1){e.preventDefault();if(check(at))stage(at+1,true)}});
-var FIELDS={currency:'c-cur',country:'c-country',name:'c-name',category_id:'c-cat',start_date:'c-date',start_time:'c-time',end_date:'c-edate',end_time:'c-etime',address:'c-venue',city:'c-city',online_join_url:'c-link',flyer:'c-flyer',attendee_question:'c-question',dates:'c-multi',tiers:'ce-add'};
+var FIELDS={organizer_id:'c-owner',is_featured:'c-featured',currency:'c-cur',country:'c-country',name:'c-name',category_id:'c-cat',start_date:'c-date',start_time:'c-time',end_date:'c-edate',end_time:'c-etime',address:'c-venue',city:'c-city',online_join_url:'c-link',flyer:'c-flyer',attendee_question:'c-question',dates:'c-multi',tiers:'ce-add'};
 function save(draft){
   var msg=$('c-msg'),btns=f.querySelectorAll('.ce-go .btn');msg.textContent=draft?'Saving your draft...':'Publishing your event...';
   [].forEach.call(btns,function(b){b.disabled=true});
-  fetch('/tica-api/events',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)})
+  fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)})
   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.message||'We couldn\'t save your event. Try again.');e.data=j;throw e}return j})})
   .then(function(r){
     window.TICA_NEW={name:r.name,status:r.status};
     msg.textContent=draft?r.name+' is saved as a draft. Find it under Events, Drafts.':r.name+' is now live.';
-    setTimeout(function(){location.href=r.registration_url||'/dashboard'},900);
+    setTimeout(function(){location.href=r.redirect_url||r.registration_url||(ADMIN?ADMIN.backUrl:'/dashboard')},900);
   },function(er){
     [].forEach.call(btns,function(b){b.disabled=false});
     var errs=er.data&&er.data.errors||{},k=Object.keys(errs)[0],text=k?errs[k][0]:er.message;msg.textContent=text;

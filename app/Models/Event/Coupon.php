@@ -2,6 +2,7 @@
 
 namespace App\Models\Event;
 
+use App\Models\Organizer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,4 +18,9 @@ class Coupon extends Model
       'start_date',
       'end_date'
     ];
+
+    public function organizer()
+    {
+      return $this->belongsTo(Organizer::class);
+    }
 }

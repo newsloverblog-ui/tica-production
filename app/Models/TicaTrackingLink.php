@@ -10,4 +10,14 @@ class TicaTrackingLink extends Model
   protected $table = 'tica_tracking_links';
 
   protected $fillable = ['organizer_id', 'event_id', 'name', 'code', 'clicks'];
+
+  public function organizer()
+  {
+    return $this->belongsTo(Organizer::class);
+  }
+
+  public function event()
+  {
+    return $this->belongsTo(Event::class);
+  }
 }

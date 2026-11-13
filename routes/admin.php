@@ -131,6 +131,9 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('event-cancellation-exports/{export}/download', 'BackEnd\EventCancellationExportController@download')
       ->middleware(['permission:Transaction', 'signed'])->name('admin.event_cancellation_exports.download');
     Route::get('event-management/events/', 'BackEnd\Event\EventController@index')->name('admin.event_management.event');
+    Route::get('event-builder/', 'FrontEnd\TicaUiController@adminCreate')->name('admin.event_builder');
+    Route::post('event-builder/', 'FrontEnd\TicaOrganizerController@storeAdminEvent')
+      ->middleware('throttle:10,1')->name('admin.event_builder.store');
     Route::get('add-event/', 'BackEnd\Event\EventController@add_event')->name('add.event.event');
     Route::get('choose-event-type/', 'BackEnd\Event\EventController@choose_event_type')->name('admin.choose-event-type');
     Route::post('event-imagesstore', 'BackEnd\Event\EventController@gallerystore')->name('admin.event.imagesstore');

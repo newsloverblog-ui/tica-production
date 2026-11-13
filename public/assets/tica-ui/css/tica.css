@@ -4285,6 +4285,23 @@ body{--body:var(--ui);--display:var(--ui);font-family:var(--ui);-webkit-font-smo
 /* create page header: title, lead, steps, then the form, with clear steps of size and space */
 .page[data-page=create] form.ce>h1.display{font-size:clamp(28px,3.2vw,38px);line-height:1.15;font-weight:700;letter-spacing:-.02em;color:#111827;margin:0 0 10px}
 .page[data-page=create] form.ce>.lead{font-size:15.5px;line-height:1.55;color:#6B7280;max-width:52ch;margin:0 0 28px}
+.page[data-page=create] .ce-admin{margin:0 0 24px;padding:18px;border:1px solid #d7e2f5;border-radius:14px;background:linear-gradient(135deg,#f7faff 0%,#fffaf6 100%);box-shadow:0 1px 2px rgba(17,24,39,.03)}
+.page[data-page=create] .ce-admin-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.page[data-page=create] .ce-admin-kicker{flex:none;display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border:1px solid #f3c99f;border-radius:999px;background:#fff7ed;color:#a14d0d;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.page[data-page=create] .ce-admin-head h2{margin:0 0 3px;color:#12213a;font-size:16px;font-weight:750}
+.page[data-page=create] .ce-admin-head p{margin:0;color:#667085;font-size:13px;line-height:1.4}
+.page[data-page=create] .ce-admin-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,1fr);gap:14px;align-items:end}
+.page[data-page=create] .ce-admin-grid .inp{margin:0}
+.page[data-page=create] .ce-admin-grid .inp small{display:block;margin-top:6px;color:#7a8699;font-size:11.5px}
+.page[data-page=create] .ce-admin-feature{display:flex;min-height:67px;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid #e3e8f1;border-radius:11px;background:rgba(255,255,255,.82);cursor:pointer}
+.page[data-page=create] .ce-admin-feature b,.page[data-page=create] .ce-admin-feature small{display:block}
+.page[data-page=create] .ce-admin-feature b{color:#24324a;font-size:13.5px}
+.page[data-page=create] .ce-admin-feature small{margin-top:3px;color:#7a8699;font-size:11.5px;line-height:1.35}
+.page[data-page=create] .ce-admin-feature .ck-sw{flex:none}
+body.admin-builder .workspace-site{font-size:0}
+body.admin-builder .workspace-site::before{content:"All events";font-size:12.5px}
+body.admin-builder footer{display:none}
+@media(max-width:700px){.page[data-page=create] .ce-admin-grid{grid-template-columns:1fr}.page[data-page=create] .ce-admin-head{display:grid}.page[data-page=create] .ce-admin-kicker{justify-self:start}}
 .page[data-page=create] form.ce>.ce-steps{flex-wrap:wrap;gap:6px;margin:0 0 14px;padding:0}
 .page[data-page=create] form.ce>.ce-steps a{min-height:34px;padding:0 12px;font-size:13px;font-weight:500}
 .page[data-page=create] form.ce>.ce-progress{font-size:12.5px;font-weight:500;color:#9AA3B2;margin:0 0 4px;padding-bottom:24px;border-bottom:1px solid #E6EAF0}

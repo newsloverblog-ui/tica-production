@@ -69,4 +69,23 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("h.textContent=p.headline", $client);
         $this->assertStringContainsString("copy.textContent=p.body", $client);
     }
+
+    public function test_admin_promotion_center_covers_the_organizer_governance_flow(): void
+    {
+        $view = file_get_contents(resource_path('views/backend/tica/promotions.blade.php'));
+        $controller = file_get_contents(app_path('Http/Controllers/BackEnd/TicaPromotionController.php'));
+
+        $this->assertIsString($view);
+        foreach (['campaigns', 'plans', 'tracking', 'tools'] as $section) {
+            $this->assertStringContainsString('data-promotion-panel="' . $section . '"', $view);
+        }
+        $this->assertStringContainsString("name=\"starts_at\"", $view);
+        $this->assertStringContainsString("name=\"ends_at\"", $view);
+        $this->assertStringContainsString("name=\"current_password\"", $view);
+
+        $this->assertIsString($controller);
+        $this->assertStringContainsString("Rule::in(['approve', 'reject', 'pause', 'cancel'])", $controller);
+        $this->assertStringContainsString("whereNotNull('paid_at')->sum('price')", $controller);
+        $this->assertStringContainsString('An approved promotion must have an end time in the future.', $controller);
+    }
 }

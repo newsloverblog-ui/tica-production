@@ -69,22 +69,12 @@ class EventController extends Controller
   //choose_event_type
   public function choose_event_type()
   {
-    return view('backend.event.event_type');
+    return redirect()->route('admin.event_builder');
   }
   //online_event
   public function add_event()
   {
-    $information = [];
-    $languages = Language::get();
-    $information['languages'] = $languages;
-    $countries = Country::get();
-    $information['countries'] = $countries;
-    $organizers = Organizer::get();
-    $information['organizers'] = $organizers;
-
-    $information['getCurrencyInfo']  = $this->getCurrencyInfo();
-
-    return view('backend.event.create', $information);
+    return redirect()->route('admin.event_builder');
   }
 
   public function gallerystore(Request $request)
