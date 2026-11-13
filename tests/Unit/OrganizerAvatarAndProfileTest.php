@@ -79,6 +79,18 @@ class OrganizerAvatarAndProfileTest extends TestCase
     }
   }
 
+  public function test_verbatim_tica_pages_contain_no_blade_loops_that_would_print_raw(): void
+  {
+    foreach (glob(resource_path('views/tica-ui/pages/*.blade.php')) as $path) {
+      $source = file_get_contents($path);
+      if (!str_contains($source, '@verbatim')) {
+        continue;
+      }
+      $inside = preg_replace('/@endverbatim.*?(@verbatim|$)/s', '', $source);
+      $this->assertDoesNotMatchRegularExpression('/@(foreach|if|php)\b/', $inside, basename($path) . ' is inside @verbatim.');
+    }
+  }
+
   private function organizer(array $attributes): Organizer
   {
     $organizer = new Organizer();
