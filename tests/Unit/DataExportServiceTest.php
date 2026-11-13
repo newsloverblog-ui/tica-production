@@ -200,7 +200,7 @@ class DataExportServiceTest extends TestCase
     public function test_recurring_schedule_is_actor_scoped_encrypted_and_runs_once_when_due(): void
     {
         Queue::fake();
-        CarbonImmutable::setTestNow('2026-11-02 09:00:00');
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC')); // 09:00 in Lagos, the schedule's start
         $this->insertBooking(1, 10, 'SCHEDULED-ONE', 'Scheduled attendee');
 
         $service = app(DataExportScheduleService::class);
@@ -217,12 +217,12 @@ class DataExportServiceTest extends TestCase
         $this->assertSame(10, $export->organizer_id);
         $this->assertSame('2026-10-27', $export->filters['from_date']);
         $this->assertSame('2026-11-02', $export->filters['to_date']);
-        $this->assertSame('2026-11-03 09:00:00', $schedule->fresh()->next_run_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-11-03 09:00:00', $schedule->fresh()->next_run_at->copy()->setTimezone('Africa/Lagos')->format('Y-m-d H:i:s'));
         Queue::assertPushed(GenerateBookingExport::class, 1);
 
         $this->assertSame(['queued' => 0, 'failed' => 0], $service->runDue());
         Queue::assertPushed(GenerateBookingExport::class, 1);
-        CarbonImmutable::setTestNow();
+        $this->travelBack();
     }
 
     public function test_recurring_schedule_rejects_cross_organizer_ownership(): void

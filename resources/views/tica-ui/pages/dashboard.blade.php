@@ -145,7 +145,9 @@
           <form class="od-form od-invite" id="od-inv" novalidate><div class="inp"><label for="od-ie">Invite by email</label><input id="od-ie" type="email" placeholder="name@example.com"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"><option>Gate staff</option><option>Manager</option><option>Finance</option></select></div><button class="btn btn-hot" type="submit">Send invite</button></form>
           <p class="hint" id="od-inv-m" role="status"></p>
         </section>
-        <dl class="od-roles"><div><dt>Owner</dt><dd>Everything, including the payout account.</dd></div><div><dt>Manager</dt><dd>Create and edit events, see orders, message attendees. No payouts.</dd></div><div><dt>Finance</dt><dd>See sales and request withdrawals. Can't edit events.</dd></div><div><dt>Gate staff</dt><dd>Only the check-in scanner, for the events you choose.</dd></div></dl>
+        <div class="od-roles" id="od-roles"></div>
+          @endforeach
+        </div>
       </div>
 
       <!-- SETTINGS -->
@@ -154,10 +156,10 @@
         <div class="od-pr2">
           <section class="db-card"><div class="db-ch"><div><h2>Organiser profile</h2><p class="hint">These details identify your account and appear where relevant on TICA.</p></div></div>
             <form class="od-form" id="od-prof" novalidate>
-              <div class="od-profile-photo"><img id="od-photo-preview" alt="" hidden><div><label for="od-photo">Profile image</label><input id="od-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><small>JPG, PNG, WebP or GIF, up to 3 MB. TICA verifies the real file type.</small></div></div>
-              <div class="od-row2"><div class="inp"><label for="od-pn">Organiser name</label><input id="od-pn" type="text" autocomplete="organization" required></div><div class="inp"><label for="od-pd">Role or designation</label><input id="od-pd" type="text" placeholder="Founder, event producer"></div></div>
+              <div class="od-profile-photo"><span class="od-photo-frame"><span class="od-photo-ini" id="od-photo-ini" aria-hidden="true"></span><img id="od-photo-preview" alt="Your profile photo" hidden></span><div><span class="od-photo-t">Profile photo</span><div class="od-photo-act"><label class="btn btn-line od-upl" for="od-photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Choose a photo</label><input id="od-photo" class="od-file" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><span class="od-photo-name" id="od-photo-name"></span></div><small>JPG, PNG, WebP or GIF, up to 3 MB. Square photos look best.</small></div></div>
+              <div class="inp"><label for="od-pn">Organiser name</label><input id="od-pn" type="text" autocomplete="organization" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pe">Sign-in email</label><input id="od-pe" type="email" autocomplete="email" required><small>Changing this email signs you out and requires verification.</small></div><div class="inp"><label for="od-pu">Username</label><input id="od-pu" type="text" autocomplete="username" required></div></div>
-              <div class="inp"><label for="od-pcp">Current password</label><input id="od-pcp" type="password" autocomplete="current-password"><small>Only required when changing your sign-in email.</small></div>
+              <div class="inp" id="od-pcp-row" hidden><label for="od-pcp">Current password</label><input id="od-pcp" type="password" autocomplete="current-password"><small>Needed because you're changing your sign-in email.</small></div>
               <div class="inp"><label for="od-pa">About</label><textarea id="od-pa" rows="3"></textarea></div>
               <div class="od-row2"><div class="inp"><label for="od-pw">Phone / WhatsApp</label><input id="od-pw" type="tel" autocomplete="tel"></div><div class="inp"><label for="od-paddr">Address</label><input id="od-paddr" type="text" autocomplete="street-address"></div></div>
               <div class="od-row2"><div class="inp"><label for="od-pcity">City</label><input id="od-pcity" type="text" autocomplete="address-level2"></div><div class="inp"><label for="od-pstate">State</label><input id="od-pstate" type="text" autocomplete="address-level1"></div></div>

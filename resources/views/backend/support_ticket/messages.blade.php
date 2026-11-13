@@ -154,7 +154,7 @@
                           @if ($organizer)
                             @if ($organizer->photo)
                               <img class="avatar-img rounded-circle"
-                                src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}"
+                                src="{{ $organizer->avatar_url }}"
                                 alt="user-photo">
                             @else
                               <img class="avatar-img rounded-circle" src="{{ asset('assets/front/images/profile.jpg') }}"

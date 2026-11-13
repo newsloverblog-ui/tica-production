@@ -620,6 +620,7 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/tracking-pixels', 'FrontEnd\TicaWorkspaceController@storePixel')->middleware('throttle:10,10');
       Route::post('/team', 'FrontEnd\TicaWorkspaceController@invite')->middleware('throttle:10,1');
       Route::post('/team/{member}/remove', 'FrontEnd\TicaWorkspaceController@removeMember')->whereNumber('member')->middleware('throttle:20,1');
+      Route::post('/team/{member}/role', 'FrontEnd\TicaWorkspaceController@changeMemberRole')->whereNumber('member')->middleware('throttle:20,1');
       Route::post('/profile', 'FrontEnd\TicaWorkspaceController@profile')->middleware('throttle:20,1');
       Route::post('/password', 'FrontEnd\TicaWorkspaceController@password')->middleware('throttle:authentication');
       Route::post('/prefs', 'FrontEnd\TicaWorkspaceController@prefs')->middleware('throttle:60,1');

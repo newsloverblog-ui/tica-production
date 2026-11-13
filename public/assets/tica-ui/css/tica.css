@@ -4796,3 +4796,28 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .page[data-page=create] .ce-del:hover{background:#fef3f2}
 .page[data-page=create] .ce-lock{margin:6px 0 0;color:#8a4b14;font-size:12.5px}
 .page[data-page=create] .ce-sold{grid-column:1/-1;margin:-4px 0 0;color:#526079;font-size:12.5px}
+
+/* team role summaries */
+.od-roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.od-role-card{background:#fff;border:1px solid var(--line,#E6E8EF);border-radius:14px;padding:16px}
+.od-role-card h3{margin:0 0 8px;font-size:14px;font-weight:600}
+.od-can,.od-cannot{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.5}
+.od-can li,.od-cannot li{position:relative;padding-left:20px;margin:4px 0}
+.od-can li::before{content:"";position:absolute;left:2px;top:6px;width:9px;height:5px;border-left:2px solid #2E4FD8;border-bottom:2px solid #2E4FD8;transform:rotate(-45deg)}
+.od-cannot{margin-top:8px;color:var(--soft,#6B7280)}
+.od-cannot li::before{content:"";position:absolute;left:3px;top:9px;width:9px;height:2px;background:#C2C7D3}
+.od-rolesel{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line,#E6E8EF);border-radius:8px;padding:4px 8px;background:#fff;color:inherit}
+.od-av{position:relative;overflow:hidden}.od-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* settings: photo upload and inline errors */
+.page[data-page=dashboard] .od-photo-frame{position:relative;width:72px;height:72px;border-radius:16px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#2D6BD8,#174DA8);color:#fff;font-weight:700;font-size:24px}
+.page[data-page=dashboard] .od-photo-frame img{position:absolute;inset:0;width:100%;height:100%;border-radius:0;object-fit:cover}
+.page[data-page=dashboard] .od-photo-t{display:block;margin-bottom:6px;font-size:14px;font-weight:650;color:var(--ink)}
+.od-photo-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.od-upl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;min-height:38px;padding:0 14px}
+.od-upl svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.od-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.od-file:focus-visible+.od-photo-name,.od-photo-act:focus-within .od-upl{outline:2px solid #2E4FD8;outline-offset:2px}
+.od-photo-name{font-size:13px;color:var(--soft)}
+.od-err{display:block;margin-top:5px;font-size:12.5px;font-weight:500;color:#B42318}
+.od-form [aria-invalid=true]{border-color:#E5484D!important;box-shadow:0 0 0 3px rgba(229,72,77,.12)}

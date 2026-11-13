@@ -445,7 +445,7 @@
                         href="{{ route('frontend.organizer.details', [$organizer->id, str_replace(' ', '-', $organizer->username)]) }}">
                         @if ($organizer->photo != null)
                           <img class="lazy"
-                            data-src="{{ asset('assets/admin/img/organizer-photo/' . $organizer->photo) }}"
+                            data-src="{{ $organizer->avatar_url }}"
                             alt="Author">
                         @else
                           <img class="lazy" data-src="{{ asset('assets/front/images/user.png') }}" alt="Author">

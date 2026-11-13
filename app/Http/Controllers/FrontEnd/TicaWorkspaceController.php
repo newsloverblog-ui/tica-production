@@ -73,7 +73,7 @@ class TicaWorkspaceController extends Controller
 
   public function updateEvent(Request $request, int $id): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('events.manage');
     $event = $this->ownedEvent($id);
     $validated = $request->validate([
       'selling' => ['required', 'boolean'],
@@ -178,7 +178,7 @@ class TicaWorkspaceController extends Controller
 
   public function changeDate(Request $request, int $id, EventLifecycleNotificationService $notifications): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('events.manage');
     $event = $this->ownedEvent($id);
     $validated = $request->validate(['date' => ['required', 'date', 'after_or_equal:today'], 'time' => ['required', 'date_format:H:i']]);
     if ($event->date_type === 'multiple') {
@@ -205,7 +205,7 @@ class TicaWorkspaceController extends Controller
 
   public function cancel(Request $request, int $id, EventCancellationService $cancellations): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('events.manage');
     $event = $this->ownedEvent($id);
     $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
     try {
@@ -221,7 +221,7 @@ class TicaWorkspaceController extends Controller
 
   public function attendees(Request $request, OrganizerAttendeeDirectory $directory): JsonResponse
   {
-    $this->allow('orders');
+    $this->allow('orders.view');
     $filters = $this->attendeeFilters($request);
     $page = $directory->page(
       $this->organizerId(),
@@ -235,7 +235,7 @@ class TicaWorkspaceController extends Controller
 
   public function attendeesCsv(Request $request, OrganizerAttendeeDirectory $directory): StreamedResponse
   {
-    $this->allow('orders');
+    $this->allow('orders.export');
     $filters = $this->attendeeFilters($request);
     $organizerId = $this->organizerId();
     $filename = 'tica-attendees-' . now()->format('Y-m-d') . '.csv';
@@ -266,7 +266,7 @@ class TicaWorkspaceController extends Controller
 
   public function resend(int $booking, BookingTicketDeliveryService $deliveries): JsonResponse
   {
-    $this->allow('orders');
+    $this->allow('orders.manage');
     $this->ownedBooking($booking);
     try {
       $deliveries->requestForOrganizer($booking, $this->organizerId());
@@ -279,7 +279,7 @@ class TicaWorkspaceController extends Controller
 
   public function refund(Request $request, int $booking, PaymentRefundService $refunds): JsonResponse
   {
-    $this->allow('payouts');
+    $this->allow('refunds.manage');
     $order = $this->ownedBooking($booking);
     $validated = $request->validate(['amount' => ['required', Rule::in(['full', 'ticket'])], 'reason' => ['required', 'string', 'max:300']]);
     $intent = PaymentIntent::query()->where('booking_id', $order->id)->where('status', 'completed')->first();
@@ -299,7 +299,7 @@ class TicaWorkspaceController extends Controller
   /** Email everyone holding a ticket (or everyone not yet checked in) for one event. */
   public function message(Request $request, ApplicationMailService $mail): JsonResponse
   {
-    $this->allow('orders');
+    $this->allow('attendees.message');
     $validated = $request->validate([
       'event_id' => ['required', 'integer'],
       'audience' => ['required', Rule::in(['all', 'unscanned'])],
@@ -335,7 +335,7 @@ class TicaWorkspaceController extends Controller
   /** A free ticket for a guest, artist or sponsor. It uses stock like any sale. */
   public function guest(Request $request): JsonResponse
   {
-    $this->allow('orders');
+    $this->allow('events.manage');
     $validated = $request->validate([
       'event_id' => ['required', 'integer'],
       'ticket_id' => ['required', 'integer'],
@@ -375,7 +375,7 @@ class TicaWorkspaceController extends Controller
 
   public function banks(OrganizerPayoutAccountService $accounts): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('bank.manage');
     try {
       $banks = Cache::remember('tica-paystack-banks', now()->addHours(12), fn () => $accounts->banks());
     } catch (\Throwable $exception) {
@@ -393,7 +393,7 @@ class TicaWorkspaceController extends Controller
    */
   public function resolveBank(Request $request, OrganizerPayoutAccountService $accounts): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('bank.manage');
     $validated = $request->validate([
       'bank_code' => ['required', 'string', 'max:30'],
       'account_number' => ['required', 'regex:/^[0-9]{10}$/'],
@@ -424,7 +424,7 @@ class TicaWorkspaceController extends Controller
   /** A six-digit code by email confirms a change to where money is sent. */
   public function bankCode(Request $request, ApplicationMailService $mail): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('bank.manage');
     $organizer = $this->organizer();
     $key = 'tica-bank-code:' . $organizer->id;
     if (Cache::get($key . ':sent', 0) >= 5) {
@@ -440,7 +440,7 @@ class TicaWorkspaceController extends Controller
 
   public function saveBank(Request $request, OrganizerPayoutAccountService $accounts): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('bank.manage');
     $validated = $request->validate([
       'bank_code' => ['required', 'string', 'max:30'],
       'account_number' => ['required', 'regex:/^[0-9]{10}$/'],
@@ -468,7 +468,7 @@ class TicaWorkspaceController extends Controller
 
   public function payoutSchedule(Request $request): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('bank.manage');
     $validated = $request->validate(['schedule' => ['required', Rule::in(['auto', 'manual'])]]);
     $organizer = $this->organizer();
     $before = $organizer->payout_schedule;
@@ -480,7 +480,7 @@ class TicaWorkspaceController extends Controller
 
   public function withdraw(Request $request): JsonResponse
   {
-    $this->allow('payouts');
+    $this->allow('withdrawals.request');
     $validated = $request->validate(['amount' => ['required', 'numeric', 'min:1']]);
     $method = WithdrawPaymentMethod::query()->where('status', 1)->orderByRaw("CASE WHEN LOWER(name) LIKE '%bank%' THEN 0 ELSE 1 END")->orderBy('id')->first();
     if (!$method) {
@@ -499,7 +499,7 @@ class TicaWorkspaceController extends Controller
 
   public function storeCode(Request $request): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('promote.manage');
     $request->merge(['code' => strtoupper(preg_replace('/\s+/', '', (string) $request->input('code')))]);
     $validated = $request->validate([
       'code' => ['required', 'regex:/^[A-Z0-9]{3,30}$/', Rule::unique('coupons', 'code')],
@@ -531,7 +531,7 @@ class TicaWorkspaceController extends Controller
 
   public function storeLink(Request $request): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('promote.manage');
     $validated = $request->validate(['name' => ['required', 'string', 'min:2', 'max:120'], 'event_id' => ['nullable', 'integer']]);
     $eventId = !empty($validated['event_id']) ? $this->ownedEvent((int) $validated['event_id'])->id : null;
     do {
@@ -544,7 +544,7 @@ class TicaWorkspaceController extends Controller
 
   public function storePromotion(Request $request): JsonResponse
   {
-    $this->allow('events');
+    $this->allow('promote.manage');
     $validated = $request->validate([
       'event_id' => ['required', 'integer'],
       'plan_id' => ['required', 'integer'],
@@ -591,7 +591,7 @@ class TicaWorkspaceController extends Controller
 
   public function payPromotion(Request $request, int $campaign, TicaPromotionService $promotions): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('promote.pay');
     $validated = $request->validate(['current_password' => ['required', 'string', 'max:255']]);
     if (!Hash::check($validated['current_password'], (string) $this->organizer()->password)) {
       throw ValidationException::withMessages(['current_password' => 'Your password is incorrect.']);
@@ -603,7 +603,7 @@ class TicaWorkspaceController extends Controller
 
   public function cancelPromotion(int $campaign): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('promote.pay');
     $promotion = TicaPromotionCampaign::query()->whereKey($campaign)->where('organizer_id', $this->organizerId())->firstOrFail();
     if (in_array($promotion->status, ['pending_payment', 'pending_review', 'rejected'], true)) {
       $promotion->status = 'cancelled';
@@ -620,7 +620,7 @@ class TicaWorkspaceController extends Controller
 
   public function storePixel(Request $request): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('promote.manage');
     $validated = $request->validate([
       'provider' => ['required', Rule::in(['meta', 'tiktok', 'google'])],
       'pixel_identifier' => ['required', 'string', 'min:5', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
@@ -639,16 +639,25 @@ class TicaWorkspaceController extends Controller
 
   public function invite(Request $request, OrganizerTeam $team): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('team.manage');
     $validated = $request->validate(['email' => ['required', 'email:rfc', 'max:254'], 'role' => ['required', Rule::in(['gate', 'manager', 'finance'])]]);
     $team->invite($this->organizer(), $validated['email'], $validated['role']);
 
     return response()->json(['message' => 'Invite sent.']);
   }
 
+  public function changeMemberRole(Request $request, int $member, OrganizerTeam $team): JsonResponse
+  {
+    $this->allow('team.manage');
+    $validated = $request->validate(['role' => ['required', Rule::in(['manager', 'finance'])]]);
+    $team->changeRole($this->organizer(), $member, $validated['role']);
+
+    return response()->json(['message' => 'Role updated.']);
+  }
+
   public function removeMember(int $member, OrganizerTeam $team): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('team.manage');
     $team->remove($this->organizer(), $member);
 
     return response()->json(['message' => 'Removed.']);
@@ -656,7 +665,7 @@ class TicaWorkspaceController extends Controller
 
   public function profile(Request $request, OrganizerEmailVerificationService $verifications): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('settings.manage');
     $organizer = $this->organizer();
     $requestedEmail = mb_strtolower(trim((string) $request->input('email')));
     $emailChanged = !hash_equals(mb_strtolower(trim((string) $organizer->email)), $requestedEmail);
@@ -666,7 +675,6 @@ class TicaWorkspaceController extends Controller
       'email' => ['required', 'email:rfc', 'max:254', Rule::unique('organizers', 'email')->ignore($organizer->id)],
       'username' => ['required', 'string', 'alpha_dash', 'max:100', Rule::unique('organizers', 'username')->ignore($organizer->id), Rule::notIn(Admin::query()->pluck('username')->filter()->all())],
       'current_password' => $emailChanged ? ['required', 'string'] : ['nullable', 'string'],
-      'designation' => ['nullable', 'string', 'max:100'],
       'country' => ['nullable', 'string', 'max:100'],
       'city' => ['nullable', 'string', 'max:100'],
       'state' => ['nullable', 'string', 'max:100'],
@@ -692,7 +700,6 @@ class TicaWorkspaceController extends Controller
         [
           'name' => $validated['name'],
           'details' => $validated['about'] ?? null,
-          'designation' => $validated['designation'] ?? null,
           'country' => $validated['country'] ?? null,
           'city' => $validated['city'] ?? null,
           'state' => $validated['state'] ?? null,
@@ -749,12 +756,14 @@ class TicaWorkspaceController extends Controller
       ]);
     }
 
-    return response()->json(['message' => 'Saved.', 'photoUrl' => $organizer->photo ? asset('assets/admin/img/organizer-photo/' . basename($organizer->photo)) : null]);
+    $organizer->refresh();
+
+    return response()->json(['message' => 'Saved.', 'photoUrl' => $organizer->avatar_url]);
   }
 
   public function password(Request $request): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('settings.manage');
     $validated = $request->validate([
       'current_password' => ['required', 'string'],
       'new_password' => ['required', 'string', 'confirmed', PasswordPolicy::rule()],
@@ -771,7 +780,7 @@ class TicaWorkspaceController extends Controller
 
   public function prefs(Request $request): JsonResponse
   {
-    $this->allow('owner');
+    $this->allow('settings.manage');
     $keys = array_keys(OrganizerWorkspace::PREFERENCE_DEFAULTS);
     $validated = $request->validate(array_fill_keys($keys, ['sometimes', 'boolean']));
     $organizer = $this->organizer();
@@ -793,22 +802,10 @@ class TicaWorkspaceController extends Controller
     return (int) Auth::guard('organizer')->id();
   }
 
-  /**
-   * Team roles: managers run events and orders but not money; finance sees
-   * sales and payouts but cannot change events; only the owner manages the
-   * bank account, team and settings.
-   */
-  private function allow(string $area): void
+  /** Checks the permission again inside the action; config/tica_team.php is the single source. */
+  private function allow(string $permission): void
   {
-    $role = (string) (Session::get('tica_team_member.role') ?: 'owner');
-    $allowed = match ($area) {
-      'owner' => $role === 'owner',
-      'events' => in_array($role, ['owner', 'manager'], true),
-      'payouts' => in_array($role, ['owner', 'finance'], true),
-      'orders' => in_array($role, ['owner', 'manager', 'finance'], true),
-      default => false,
-    };
-    abort_unless($allowed, 403, 'Your team role doesn\'t include this.');
+    abort_unless(\App\Support\TeamPermissions::can($permission), 403, 'Your team role doesn\'t include this.');
   }
 
   private function ownedEvent(int $id): Event

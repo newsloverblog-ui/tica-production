@@ -23,6 +23,12 @@ class AuditLogger
         [$actorType, $actorId] = self::actor();
         $request = request();
 
+        // Team members act through the owner's organiser session; record who really did it.
+        $member = $request->hasSession() ? $request->session()->get('tica_team_member') : null;
+        if (is_array($member) && isset($member['id'])) {
+            $metadata['team_member'] = ['id' => (int) $member['id'], 'role' => (string) ($member['role'] ?? ''), 'name' => (string) ($member['name'] ?? '')];
+        }
+
         return AuditLog::create([
             'actor_type' => $actorType,
             'actor_id' => $actorId,

@@ -83,6 +83,28 @@ class OrganizerTeam
     });
   }
 
+  /** Move a manager or finance member to the other role. Gate staff use a separate scanner login, so they are removed and re-invited instead. */
+  public function changeRole(Organizer $owner, int $memberId, string $role): OrganizerTeamMember
+  {
+    if (!in_array($role, ['manager', 'finance'], true)) {
+      throw ValidationException::withMessages(['role' => 'Choose Manager or Finance.']);
+    }
+
+    return DB::transaction(function () use ($owner, $memberId, $role) {
+      $member = OrganizerTeamMember::query()->where('organizer_id', $owner->id)->whereKey($memberId)->where('status', '!=', 'removed')->lockForUpdate()->firstOrFail();
+      if (!in_array($member->role, ['manager', 'finance'], true)) {
+        throw ValidationException::withMessages(['role' => 'Gate staff can\'t switch roles. Remove them and send a new invite.']);
+      }
+      $before = $member->role;
+      if ($before !== $role) {
+        $member->forceFill(['role' => $role])->save();
+        AuditLogger::record('organizer.team_member_role_changed', $member, ['role' => $before], ['role' => $role]);
+      }
+
+      return $member;
+    });
+  }
+
   public function invitation(string $token): ?OrganizerTeamMember
   {
     $member = OrganizerTeamMember::query()->where('invite_token_hash', hash('sha256', $token))->where('status', 'invited')->first();

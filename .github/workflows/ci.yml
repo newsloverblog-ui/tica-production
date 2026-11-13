@@ -118,6 +118,8 @@ jobs:
       - name: Prepare application
         run: |
           cp .env.example .env
+          sed -i '/^LARAVEL_STORAGE_PATH=/d' .env
+          mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs bootstrap/cache
           php artisan key:generate --force
 
       - name: Load the legacy baseline and apply application migrations

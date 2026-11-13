@@ -148,7 +148,6 @@ class OrganizerManagementController extends Controller
         $organizer_info->organizer_id = $organizer->id;
       }
       $organizer_info->name = $request[$language->code . '_name'];
-      $organizer_info->designation = $request[$language->code . '_designation'];
       $organizer_info->country = $request[$language->code . '_country'];
       $organizer_info->city = $request[$language->code . '_city'];
       $organizer_info->state = $request[$language->code . '_state'];
@@ -322,7 +321,6 @@ class OrganizerManagementController extends Controller
           $organizer_info->organizer_id = $organizer->id;
         }
         $organizer_info->name = $request[$language->code . '_name'];
-        $organizer_info->designation = $request[$language->code . '_designation'];
         $organizer_info->country = $request[$language->code . '_country'];
         $organizer_info->city = $request[$language->code . '_city'];
         $organizer_info->state = $request[$language->code . '_state'];
