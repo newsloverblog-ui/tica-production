@@ -1446,7 +1446,7 @@ function paintAtt(r){
       '<td data-label="Ticket">'+esc(a.tier)+'<div class="t-muted or-sub">'+esc(a.event)+'</div></td>'+
       '<td data-label="Order">#'+esc(a.ref)+'</td>'+
       '<td data-label="Amount" class="t-num">'+(a.amount?Nc(a.amount,a.cur):'Free')+'</td>'+
-      '<td data-label="Status">'+attStatus(a.status)+'</td>'+
+      '<td data-label="Status">'+attStatus(a.status==='Paid'&&!a.orderTotal?'Free':a.status)+'</td>'+
       '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(a.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>';
   $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=r&&r.more?'Showing '+rows.length+'. Load more, or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s');
 }
@@ -1500,8 +1500,7 @@ function drawPay(){
   $('od-avail').textContent=N(P.available);$('od-pend').textContent=N(P.pending);$('od-paid').textContent=N(P.paid);
   /* balances in other currencies are kept apart and paid out by TICA */
   var bal=document.querySelector('.od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
-  (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="od-b cur"><span>'+esc(c.code)+' balance</span><b>'+esc(Nc(c.amount,c.cur))+'</b><small>Paid out by TICA support. Email hello@tica.ng to withdraw.</small></div>')});
-  var subs=document.querySelectorAll('.od-bal small');if(subs.length===3){subs[0].textContent='Ready to withdraw now';subs[1].textContent='Requested and on its way to your bank';}
+  (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="t-card t-stat od-b cur"><span class="t-stat__label">'+esc(c.code)+' balance</span><b class="t-stat__value">'+esc(Nc(c.amount,c.cur))+'</b><span class="t-stat__note">Paid out by TICA support. Email hello@tica.ng to withdraw.</span></div>')});
   [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.checked=r.value===P.schedule});
   var v=$('od-bank-view'),a=P.account;
   if(P.kyc!=='verified'){
@@ -1523,7 +1522,7 @@ function drawPay(){
     $('bk-n').addEventListener('input',resolve);$('bk-b').addEventListener('change',resolve);
     $('bk-f').addEventListener('submit',saveBank);
   }
-  $('od-hist').innerHTML=P.history.length?'<div class="od-hr th"><span>Date</span><span>Reference</span><span>Amount</span><span>To</span><span>Status</span></div>'+P.history.map(function(h){return '<div class="od-hr"><span>'+esc(h.date)+'</span><span>'+esc(String(h.ref).slice(0,13))+'</span><b>'+N(h.amount)+'</b><span>'+esc(h.to)+'</span><span><em class="st'+(h.status==='Paid'?' new':' warn')+'">'+esc(h.status)+'</em></span></div>'}).join(''):'<p class="od-empty">No payouts yet.'+(P.available>0?' <b>'+N(P.available)+'</b> is ready to withdraw once your bank account is added.':'')+'</p>';
+  $('od-hist').innerHTML=P.history.length?'<div class="t-table-wrap"><table class="t-table t-table--cards"><thead><tr><th scope="col">Date</th><th scope="col">Reference</th><th scope="col" class="t-num">Amount</th><th scope="col">To</th><th scope="col">Status</th></tr></thead><tbody>'+P.history.map(function(h){var c=h.status==='Paid'?'green':/fail|reject|revers/i.test(h.status)?'red':'orange';return '<tr><td data-label="Date">'+esc(h.date)+'</td><td data-label="Reference">'+esc(String(h.ref).slice(0,13))+'</td><td data-label="Amount" class="t-num">'+N(h.amount)+'</td><td data-label="To">'+esc(h.to)+'</td><td data-label="Status"><span class="t-badge t-badge--'+c+'">'+esc(h.status)+'</span></td></tr>'}).join('')+'</tbody></table></div>':'<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5"/></svg></span><h3>No payouts yet</h3><p>'+(P.available>0?N(P.available)+' is ready to withdraw'+(P.account&&P.account.verified?'.':' once your bank account is added.'):'Money from ticket sales appears here once it is sent to your bank.')+'</p></div>';
   drawOverview();
 }
 var resT=null,resolved=null;
@@ -1593,12 +1592,29 @@ document.addEventListener('click',function(e){var pay=e.target.closest('[data-pa
 
 /* team */
 function drawRoles(){var box=$('od-roles'),R=D.roleSummaries||{};if(!box)return;box.innerHTML=[['owner','Owner'],['manager','Manager'],['finance','Finance'],['gate','Gate staff']].map(function(r){var x=R[r[0]]||{can:[],cannot:[]};return '<div class="od-role-card"><h3>'+r[1]+'</h3><ul class="od-can">'+x.can.map(function(l){return '<li>'+esc(l)+'</li>'}).join('')+'</ul>'+(x.cannot.length?'<ul class="od-cannot">'+x.cannot.map(function(l){return '<li>'+esc(l)+'</li>'}).join('')+'</ul>':'')+'</div>'}).join('')}drawRoles();
-function drawTeam(){$('od-team').innerHTML=D.team.map(function(m){return '<li><i aria-hidden="true">'+esc((m.name||'?')[0])+'</i><span><b>'+esc(m.name)+'</b><small>'+esc(m.email)+'</small></span><span class="od-role">'+(m.id&&CAN.team&&(m.roleKey==='manager'||m.roleKey==='finance')?'<select class="od-rolesel" data-rolefor="'+m.id+'" aria-label="Role for '+esc(m.name)+'"><option value="manager"'+(m.roleKey==='manager'?' selected':'')+'>Manager</option><option value="finance"'+(m.roleKey==='finance'?' selected':'')+'>Finance</option></select>':'<b>'+esc(m.role)+'</b>')+'<small>'+esc(m.scope)+'</small></span>'+(m.id&&CAN.team?'<button class="od-lk red" type="button" data-unteam="'+m.id+'">Remove</button>':'')+'</li>'}).join('')}
+function drawTeam(){
+  var T=D.team||[];
+  $('od-team').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards or-table"><thead><tr><th scope="col">Member</th><th scope="col">Role</th><th scope="col">Access</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+T.map(function(m){
+    var edit=m.id&&CAN.team&&(m.roleKey==='manager'||m.roleKey==='finance');
+    return '<tr><td data-label=""><span class="ov-buyer"><span class="t-avatar" style="--av:32px" aria-hidden="true">'+esc((m.name||'?')[0].toUpperCase())+'</span><span><span class="or-name">'+esc(m.name)+'</span><span class="t-muted or-sub">'+esc(m.email)+'</span></span></span></td>'+
+      '<td data-label="Role">'+(edit?'<select class="t-select tm-role" data-rolefor="'+m.id+'" aria-label="Role for '+esc(m.name)+'"><option value="manager"'+(m.roleKey==='manager'?' selected':'')+'>Manager</option><option value="finance"'+(m.roleKey==='finance'?' selected':'')+'>Finance</option></select>':'<span class="t-badge'+(m.roleKey==='owner'||!m.id?' t-badge--blue':'')+'">'+esc(m.role)+'</span>')+'</td>'+
+      '<td data-label="Access">'+esc(m.scope)+'</td>'+
+      '<td class="ev-actions">'+(m.id&&CAN.team?'<button class="t-btn t-btn--ghost t-btn--sm tm-remove" type="button" data-unteam="'+m.id+'">Remove</button>':'')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+    (T.length<=1?'<p class="t-help tm-solo">It\'s just you for now. Invite gate staff to scan tickets, or a manager to help run events.</p>':'');
+  if($('od-inv-open'))$('od-inv-open').hidden=!CAN.team;
+}
 document.addEventListener('change',function(e){var s=e.target.closest('[data-rolefor]');if(!s)return;s.disabled=true;api('/tica-api/organizer/team/'+s.dataset.rolefor+'/role',{role:s.value}).then(function(){reload('Role updated. It applies from their next click.')},function(er){s.disabled=false;toast(errText(er))})});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-unteam]');if(!b)return;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Remove access?';return}api('/tica-api/organizer/team/'+b.dataset.unteam+'/remove').then(function(){reload('Access removed.')},function(er){toast(errText(er))})});
 $('od-ir').innerHTML='<option value="gate">Gate staff</option><option value="manager">Manager</option><option value="finance">Finance</option>';
+var IR_HELP={gate:'Can only scan tickets at the gate.',manager:'Runs events and orders. Cannot see payouts or change the bank account.',finance:'Sees money and exports. Cannot edit events.'};
+function irHelp(){$('od-ir-help').textContent=IR_HELP[$('od-ir').value]||''}$('od-ir').addEventListener('change',irHelp);irHelp();
+/* settings tabs */
+function stab(k,focus){[].forEach.call(document.querySelectorAll('[data-stab]'),function(t){var on=t.dataset.stab===k;t.classList.toggle('is-on',on);t.setAttribute('aria-selected',on?'true':'false');t.tabIndex=on?0:-1;if(on&&focus)t.focus()});[].forEach.call(document.querySelectorAll('[data-spane]'),function(x){x.hidden=x.dataset.spane!==k})}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-stab]');if(t)stab(t.dataset.stab)});
+$('od-stabs').addEventListener('keydown',function(e){if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;var ts=[].slice.call(this.querySelectorAll('[data-stab]')),i=ts.indexOf(document.activeElement);if(i<0)return;e.preventDefault();stab(ts[(i+(e.key==='ArrowRight'?1:ts.length-1))%ts.length].dataset.stab,true)});
+if(location.hash==='#password')stab('security');
 $('od-inv').addEventListener('submit',function(e){e.preventDefault();var m=$('od-ie').value.trim();if(m.indexOf('@')<1||m.indexOf('.')<0){$('od-inv-m').textContent='Enter a valid email address.';return}
-  api('/tica-api/organizer/team',{email:m,role:$('od-ir').value}).then(function(){reload('Invite sent to '+m+'.')},function(er){$('od-inv-m').textContent=errText(er)})});
+  api('/tica-api/organizer/team',{email:m,role:$('od-ir').value}).then(function(){$('od-inv-dlg').close();reload('Invite sent to '+m+'.')},function(er){$('od-inv-m').textContent=errText(er)})});
 
 /* settings */
 function drawSettings(){

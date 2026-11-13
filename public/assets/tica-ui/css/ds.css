@@ -404,3 +404,28 @@ body.orgshell .ov .t-page-head{margin-bottom:0}
 .or-sub{display:block;font-size:13px;overflow-wrap:anywhere}
 .or-skel{padding:var(--t-2) 0}
 @media (max-width:767px){.or-actions{width:100%}.or-actions .t-btn{flex:1}.or-date,.or-date .t-input,.t-toolbar .t-select{width:100%}}
+@media (max-width:767px){
+  .or-table tr{position:relative;padding-right:56px}
+  .or-table td.t-num{text-align:left}
+  .or-table td.ev-actions{position:absolute;top:var(--t-2);right:var(--t-2);width:auto}
+  .t-toolbar .or-date{width:calc(50% - var(--t-1));flex:0 0 auto}
+}
+
+/* =====================================================================
+   Pages: Payouts, Team, Settings
+   ===================================================================== */
+.pay-bal{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--t-4);margin-bottom:var(--t-5)}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--t-4);margin-bottom:var(--t-5);align-items:start}
+.pay-hist .t-table-wrap{border:0;border-radius:0;margin:0 calc(var(--t-pad)*-1) calc(var(--t-pad)*-1)}
+.tm-roles{margin-top:var(--t-6)}
+.tm-roles>h2{margin:0 0 var(--t-3)}
+.tm-role{min-width:140px}
+.tm-remove{color:var(--t-red)}
+.tm-solo{margin-top:var(--t-3)}
+.st-pane{max-width:760px}
+.st-sub{margin:var(--t-5) 0 var(--t-3);font-size:var(--t-text);font-weight:600;color:var(--t-ink)}
+body.orgshell .od-sw{margin:0;padding:0;list-style:none}
+body.orgshell .od-sw li{display:flex;align-items:center;justify-content:space-between;gap:var(--t-4);padding:var(--t-4) 0;border-bottom:1px solid var(--t-line)}
+body.orgshell .od-sw li:last-child{border-bottom:0;padding-bottom:0}
+body.orgshell .od-sw li:first-child{padding-top:0}
+@media (max-width:900px){.pay-grid{grid-template-columns:1fr}}

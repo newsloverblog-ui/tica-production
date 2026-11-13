@@ -50,27 +50,27 @@
 
       <!-- PAYOUTS -->
       <div class="od-p" data-p="payouts" hidden>
-        <div class="db-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><button class="btn btn-hot" type="button" id="od-wd-btn">Withdraw</button></div>
-        <div class="od-bal">
-          <div class="od-b main"><span>Available to withdraw</span><b id="od-avail">₦0</b><small>From events that have ended</small></div>
-          <div class="od-b"><span>Pending</span><b id="od-pend">₦0</b><small>Released 3 working days after each event ends</small></div>
-          <div class="od-b"><span>Paid out so far</span><b id="od-paid">₦418,600</b><small>Since you joined</small></div>
+        <header class="t-page-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><button class="t-btn t-btn--primary" type="button" id="od-wd-btn">Withdraw</button></header>
+        <div class="pay-bal od-bal">
+          <div class="t-card t-stat"><span class="t-stat__label">Available</span><b class="t-stat__value" id="od-avail">₦0</b><span class="t-stat__note">Ready to withdraw now</span></div>
+          <div class="t-card t-stat"><span class="t-stat__label">Pending</span><b class="t-stat__value" id="od-pend">₦0</b><span class="t-stat__note">Requested and on its way to your bank</span></div>
+          <div class="t-card t-stat"><span class="t-stat__label">Paid out</span><b class="t-stat__value" id="od-paid">₦0</b><span class="t-stat__note">Since you joined</span></div>
         </div>
-        <div class="od-pay2">
-          <section class="db-card" id="od-bankcard" aria-labelledby="od-bank-h">
-            <div class="db-ch"><h2 id="od-bank-h">Payout account</h2></div>
+        <div class="pay-grid">
+          <section class="t-card" id="od-bankcard" aria-labelledby="od-bank-h">
+            <div class="t-card__head"><h2 class="t-card__title" id="od-bank-h">Payout account</h2></div>
             <div id="od-bank-view"></div>
           </section>
-          <section class="db-card" aria-labelledby="od-sched-h">
-            <div class="db-ch"><h2 id="od-sched-h">How you get paid</h2></div>
+          <section class="t-card" aria-labelledby="od-sched-h">
+            <div class="t-card__head"><h2 class="t-card__title" id="od-sched-h">How you get paid</h2></div>
             <div class="od-radio" role="radiogroup" aria-labelledby="od-sched-h">
-              <label><input type="radio" name="od-sched" value="auto" checked><span><b>Automatically</b><small>We send each event's sales to your bank as soon as they're released. No need to ask.</small></span></label>
-              <label><input type="radio" name="od-sched" value="manual"><span><b>When I ask</b><small>Money waits in your balance until you press Withdraw. It arrives within minutes.</small></span></label>
+              <label><input type="radio" name="od-sched" value="auto" checked><span><b>Automatically</b><small>We send each event's sales to your bank as soon as they're released.</small></span></label>
+              <label><input type="radio" name="od-sched" value="manual"><span><b>When I ask</b><small>Money waits in your balance until you press Withdraw.</small></span></label>
             </div>
-            <p class="od-fine">Transfers are free. We pause payouts for 24 hours after a bank account change, to protect you from fraud.</p>
+            <p class="t-help">Transfers are free. Payouts pause for 24 hours after a bank account change, to protect you from fraud.</p>
           </section>
         </div>
-        <section class="db-card"><div class="db-ch"><h2>Payout history</h2></div><div class="od-hist" id="od-hist"></div></section>
+        <section class="t-card pay-hist" aria-labelledby="od-hist-h"><div class="t-card__head"><h2 class="t-card__title" id="od-hist-h">Payout history</h2></div><div id="od-hist"></div></section>
       </div>
 
       <!-- PROMOTE -->
@@ -109,22 +109,23 @@
 
       <!-- TEAM -->
       <div class="od-p" data-p="team" hidden>
-        <div class="db-head"><div><h1>Team</h1><p>Let people help run your events, with only the access they need.</p></div></div>
-        <section class="db-card"><ul class="od-team" id="od-team"></ul>
-          <form class="od-form od-invite" id="od-inv" novalidate><div class="inp"><label for="od-ie">Invite by email</label><input id="od-ie" type="email" placeholder="name@example.com"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"><option>Gate staff</option><option>Manager</option><option>Finance</option></select></div><button class="btn btn-hot" type="submit">Send invite</button></form>
-          <p class="hint" id="od-inv-m" role="status"></p>
-        </section>
-        <div class="od-roles" id="od-roles"></div>
-          @endforeach
-        </div>
+        <header class="t-page-head"><div><h1>Team</h1><p>Let people help run your events, with only the access they need.</p></div><button class="t-btn t-btn--primary" type="button" data-dlg="od-inv-dlg" id="od-inv-open">Invite member</button></header>
+        <div id="od-team"></div>
+        <section class="tm-roles" aria-labelledby="od-roles-h"><h2 class="t-card__title" id="od-roles-h">What each role can do</h2><div class="od-roles" id="od-roles"></div></section>
       </div>
 
       <!-- SETTINGS -->
       <div class="od-p" data-p="settings" hidden>
-        <div class="db-head"><div><h1>Settings</h1><p>Manage your organiser identity, account, event defaults and security in one place.</p></div></div>
-        <div class="od-pr2">
-          <section class="db-card"><div class="db-ch"><div><h2>Organiser profile</h2><p class="hint">These details identify your account and appear where relevant on TICA.</p></div></div>
-            <form class="od-form" id="od-prof" novalidate>
+        <header class="t-page-head"><div><h1>Settings</h1><p>Your organiser profile, defaults for new events, notifications and security.</p></div></header>
+        <div class="t-tabs" role="tablist" aria-label="Settings sections" id="od-stabs">
+          <button class="t-tab is-on" type="button" role="tab" aria-selected="true" aria-controls="st-profile" id="stt-profile" data-stab="profile">Profile</button>
+          <button class="t-tab" type="button" role="tab" aria-selected="false" aria-controls="st-defaults" id="stt-defaults" data-stab="defaults" tabindex="-1">Event defaults</button>
+          <button class="t-tab" type="button" role="tab" aria-selected="false" aria-controls="st-notifications" id="stt-notifications" data-stab="notifications" tabindex="-1">Notifications</button>
+          <button class="t-tab" type="button" role="tab" aria-selected="false" aria-controls="st-security" id="stt-security" data-stab="security" tabindex="-1">Security</button>
+        </div>
+        <section class="t-card st-pane" role="tabpanel" id="st-profile" aria-labelledby="stt-profile" data-spane="profile">
+          <div class="t-card__head"><div><h2 class="t-card__title">Organiser profile</h2><p class="t-help">Shown on your public page and on tickets.</p></div></div>
+          <form class="od-form" id="od-prof" novalidate>
               <div class="od-profile-photo"><span class="od-photo-frame"><span class="od-photo-ini" id="od-photo-ini" aria-hidden="true"></span><img id="od-photo-preview" alt="Your profile photo" hidden></span><div><span class="od-photo-t">Profile photo</span><div class="od-photo-act"><label class="btn btn-line od-upl" for="od-photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Choose a photo</label><input id="od-photo" class="od-file" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><span class="od-photo-name" id="od-photo-name"></span></div><small>JPG, PNG, WebP or GIF, up to 3 MB. Square photos look best.</small></div></div>
               <div class="inp"><label for="od-pn">Organiser name</label><input id="od-pn" type="text" autocomplete="organization" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pe">Sign-in email</label><input id="od-pe" type="email" autocomplete="email" required><small>Changing this email signs you out and requires verification.</small></div><div class="inp"><label for="od-pu">Username</label><input id="od-pu" type="text" autocomplete="username" required></div></div>
@@ -133,38 +134,43 @@
               <div class="od-row2"><div class="inp"><label for="od-pw">Phone / WhatsApp</label><input id="od-pw" type="tel" autocomplete="tel"></div><div class="inp"><label for="od-paddr">Address</label><input id="od-paddr" type="text" autocomplete="street-address"></div></div>
               <div class="od-row2"><div class="inp"><label for="od-pcity">City</label><input id="od-pcity" type="text" autocomplete="address-level2"></div><div class="inp"><label for="od-pstate">State</label><input id="od-pstate" type="text" autocomplete="address-level1"></div></div>
               <div class="od-row2"><div class="inp"><label for="od-pcountry">Country</label><input id="od-pcountry" type="text" autocomplete="country-name"></div><div class="inp"><label for="od-pzip">Postcode</label><input id="od-pzip" type="text" autocomplete="postal-code"></div></div>
-              <div class="db-ch od-sub"><h2>Social links</h2></div>
+              <h3 class="st-sub">Social links</h3>
               <div class="od-row2"><div class="inp"><label for="od-pi">Instagram</label><input id="od-pi" type="text" placeholder="@yourhandle"></div><div class="inp"><label for="od-pt">TikTok</label><input id="od-pt" type="text" placeholder="@yourhandle"></div></div>
               <div class="inp"><label for="od-pweb">Website</label><input id="od-pweb" type="url" placeholder="https://example.com"></div>
               <div class="od-row2"><div class="inp"><label for="od-pfb">Facebook URL</label><input id="od-pfb" type="url" placeholder="https://facebook.com/..."></div><div class="inp"><label for="od-px">X / Twitter URL</label><input id="od-px" type="url" placeholder="https://x.com/..."></div></div>
               <div class="od-row2"><div class="inp"><label for="od-pli">LinkedIn URL</label><input id="od-pli" type="url" placeholder="https://linkedin.com/company/..."></div><div class="inp"><label for="od-pyt">YouTube URL</label><input id="od-pyt" type="url" placeholder="https://youtube.com/@..."></div></div>
-              <button class="btn btn-line" type="submit">Save profile</button><p class="hint" id="od-prof-m" role="status"></p>
+              <button class="t-btn t-btn--primary" type="submit">Save profile</button><p class="hint" id="od-prof-m" role="status"></p>
             </form>
           </section>
-          <section class="db-card"><div class="db-ch"><h2>Defaults for new events</h2></div>
-            <ul class="od-sw">
+        <section class="t-card st-pane" role="tabpanel" id="st-defaults" aria-labelledby="stt-defaults" data-spane="defaults" hidden>
+          <div class="t-card__head"><div><h2 class="t-card__title">Defaults for new events</h2><p class="t-help">New events start with these. You can still change them per event. Changes save as you go.</p></div></div>
+          <ul class="od-sw">
               <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee" data-pref="buyers_pay_fee"></li>
               <li><span><b>Show tickets left on event pages</b><small>Creates urgency when stock is low.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left" data-pref="show_remaining"></li>
               <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out" data-pref="waitlist"></li>
               <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets" data-pref="transfers"></li>
             </ul>
-            <div class="db-ch od-sub"><h2>Notifications</h2></div>
-            <ul class="od-sw">
+            </section>
+        <section class="t-card st-pane" role="tabpanel" id="st-notifications" aria-labelledby="stt-notifications" data-spane="notifications" hidden>
+          <div class="t-card__head"><div><h2 class="t-card__title">Notifications</h2><p class="t-help">Choose what TICA tells you about. Changes save as you go.</p></div></div>
+          <ul class="od-sw">
               <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale" data-pref="notify_sale"></li>
               <li><span><b>Daily and weekly sales summaries</b><small>Receive scheduled performance digests for your events.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries" data-pref="daily_summary"></li>
               <li><span><b>Text me about payouts</b><small>An SMS to your phone number when a payout is sent or doesn't go through.</small></span><input class="ck-sw" type="checkbox" aria-label="Text me about payouts" data-pref="payout_sms"></li>
               <li><span><b>Payout status emails</b><small>Always on for account security and transfer records.</small></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
-          <section class="db-card od-security-card" id="password"><div class="db-ch"><div><h2>Security and password</h2><p class="hint">Use a unique password and add a second sign-in step to protect event income and attendee data.</p></div><span class="od-sec-state" id="od-mfa-state">Off</span></div>
+        <div class="st-pane t-stack" role="tabpanel" id="st-security" aria-labelledby="stt-security" data-spane="security" hidden>
+          <section class="t-card" id="password"><div class="t-card__head"><div><h2 class="t-card__title">Password</h2><p class="t-help">Use a password you don't use anywhere else.</p></div></div>
             <form class="od-form" id="od-pass" novalidate>
               <div class="inp"><label for="od-pass-current">Current password</label><input id="od-pass-current" type="password" autocomplete="current-password" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pass-new">New password</label><input id="od-pass-new" type="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters with upper and lowercase letters and a number.</small></div><div class="inp"><label for="od-pass-confirm">Confirm new password</label><input id="od-pass-confirm" type="password" autocomplete="new-password" minlength="8" required></div></div>
-              <button class="btn btn-line" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
+              <button class="t-btn t-btn--secondary" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
             </form>
-            <div class="db-ch od-sub"><div><h2>Two-factor authentication</h2><p class="hint">Sign in with your password and a code from an authenticator app, such as Google Authenticator or Authy. It's also asked for when you change your bank account.</p></div></div>
+            </section>
+          <section class="t-card"><div class="t-card__head"><div><h2 class="t-card__title">Two-factor authentication</h2><p class="t-help">Sign in with your password and a code from an authenticator app. It's also asked for when you change your bank account.</p></div><span class="t-badge od-sec-state" id="od-mfa-state">Off</span></div>
             <div class="od-2fa" id="od-2fa"></div>
-            <p class="od-fine">Prefer codes by email instead? <a id="od-security-link" href="/account-security/organizer">Use email codes</a></p>
+            <p class="t-help">Prefer codes by email instead? <a id="od-security-link" href="/account-security/organizer">Use email codes</a></p>
           </section>
         </div>
       </div>
@@ -172,6 +178,10 @@
   </div>
 </section>
 
+<dialog class="od-dlg" id="od-inv-dlg" aria-labelledby="od-inv-h">
+  <div class="sh-head"><div><h2 id="od-inv-h">Invite a team member</h2><p>They get an email with a link to join. You can change their role or remove them any time.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="od-form" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"></select><small id="od-ir-help"></small></div><button class="t-btn t-btn--primary t-btn--block" type="submit">Send invite</button><p class="hint" id="od-inv-m" role="alert"></p></form>
+</dialog>
 <dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
 <dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>
 <dialog class="od-dlg" id="od-2fa-dlg" aria-labelledby="od-2fa-h"><div id="od-2fa-body"></div></dialog>
