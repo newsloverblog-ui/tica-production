@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -145,6 +146,22 @@ class CheckoutTicketPricingAuthorityTest extends TestCase
             DB::table('events')->where('id', 10)->value('start_time')
         );
         $this->assertSame($expected, session('event_date'));
+    }
+
+    public function test_checkout_reuses_the_browser_submission_id_across_retries(): void
+    {
+        $submissionId = (string) Str::uuid();
+        $selection = [
+            'event_id' => 10,
+            'quantity' => 1,
+            'submission_id' => $submissionId,
+        ];
+
+        app(CheckOutController::class)->checkout2($this->request($selection));
+        $this->assertSame($submissionId, session('checkout_submission_token'));
+
+        app(CheckOutController::class)->checkout2($this->request($selection));
+        $this->assertSame($submissionId, session('checkout_submission_token'));
     }
 
     public function test_multiple_date_selection_must_belong_to_the_event_and_remain_available(): void

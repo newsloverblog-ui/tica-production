@@ -401,10 +401,14 @@ class CheckOutController extends Controller
     Session::put('online_gateways', $online_gateways);
     Session::put('offline_gateways', $offline_gateways);
     Session::put('event_date', $request->event_date);
-    // One token represents one reviewed checkout selection. Free bookings use
-    // its hash as a durable idempotency key so a double click or lost response
-    // cannot consume inventory twice.
-    Session::put('checkout_submission_token', (string) Str::uuid());
+    // One token represents one browser checkout attempt. The TICA checkout UI
+    // supplies a stable UUID so a retry after a lost response resolves to the
+    // original free booking. Legacy forms still receive a server UUID.
+    $submissionToken = trim((string) $request->input('submission_id', ''));
+    if (!Str::isUuid($submissionToken)) {
+      $submissionToken = (string) Str::uuid();
+    }
+    Session::put('checkout_submission_token', $submissionToken);
     // Guests may continue only when the administrator has explicitly enabled
     // event guest checkout. The previous unconditional redirect made the
     // setting ineffective even after a valid ticket selection.

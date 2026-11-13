@@ -334,7 +334,7 @@ function renderEvent(e){
     api('/tica-api/coupon',{event_id:e.id,code:v}).then(function(r){disc={code:r.code,type:r.type,value:+r.value};msg.textContent=r.code+' applied: '+(r.type==='percentage'?r.value+'% off.':naira(+r.value)+' off.');upd()},
       function(){disc=null;msg.textContent='That code isn\'t valid. Check it and try again.';upd()});
   });
-  function cont(){track('select_ticket',{event_id:e.id,quantity:cnt()});PENDING={slug:e.slug,qty:qty.slice(),disc:disc,date:when,people:pend&&pend.people||[]};go('checkout/'+e.slug)}
+  function cont(){track('select_ticket',{event_id:e.id,quantity:cnt()});PENDING={slug:e.slug,qty:qty.slice(),disc:disc,date:when,people:pend&&pend.people||[],submission:checkoutSubmissionId(e.slug,pend&&pend.submission)};go('checkout/'+e.slug)}
   $('tp-go').addEventListener('click',cont);
   $('bb-go').addEventListener('click',function(){if(cnt()){cont()}else{$('tp').scrollIntoView({block:'center'});var pl=$('tp').querySelector('.plus');if(pl)pl.focus({preventScroll:true})}});
   upd();
@@ -343,6 +343,17 @@ function renderEvent(e){
 /* checkout: choose, details, pay */
 var ORDER=null,PENDING=null;
 var FEE_PCT=(TICA_DATA.currency&&TICA_DATA.currency.feePct!=null)?+TICA_DATA.currency.feePct:6,FEE_FLAT=0; /* Tica: booking fee % from admin settings */
+function checkoutSubmissionId(slug,candidate){
+  var valid=function(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''))},key='tica_checkout_'+slug;
+  if(valid(candidate))return candidate;
+  try{var stored=sessionStorage.getItem(key);if(valid(stored))return stored}catch(e){}
+  var id;
+  if(window.crypto&&typeof window.crypto.randomUUID==='function')id=window.crypto.randomUUID();
+  else{var bytes=new Uint8Array(16);if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(bytes);else for(var i=0;i<16;i++)bytes[i]=Math.floor(Math.random()*256);bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;id=Array.prototype.map.call(bytes,function(b,i){return (i===4||i===6||i===8||i===10?'-':'')+b.toString(16).padStart(2,'0')}).join('')}
+  try{sessionStorage.setItem(key,id)}catch(e){}
+  return id;
+}
+function clearCheckoutSubmission(slug){try{sessionStorage.removeItem('tica_checkout_'+slug)}catch(e){}}
 function feeFor(net,paidCount){return paidCount&&net>0?Math.round(net*FEE_PCT)/100+FEE_FLAT*paidCount:0}
 function stepsBar(n){
   return '<ol class="steps">'+['Choose tickets','Your details','Pay','Get your tickets'].map(function(t,i){
@@ -353,7 +364,7 @@ function renderCheckout(e){
   var pend=PENDING&&PENDING.slug===e.slug?PENDING:null;
   if(pend&&(!HOLD||HOLD.slug!==e.slug||HOLD.end<Date.now()))HOLD={slug:e.slug,end:Date.now()+600000};
   var guestOk=!!(TICA_DATA.currency&&TICA_DATA.currency.guestCheckout);
-  var S={login:(!guestOk&&!(window.TICA_USER&&TICA_USER.email))?'id':null,loginId:'',stage:pend?'details':'choose',qty:pend?pend.qty.slice():e.tiers.map(function(){return 0}),people:pend?pend.people.slice():[],open:0,err:{},disc:pend?pend.disc:null,date:pend&&pend.date||(e.dates&&e.dates[0]?e.dates[0].value:'')};
+  var S={login:(!guestOk&&!(window.TICA_USER&&TICA_USER.email))?'id':null,loginId:'',stage:pend?'details':'choose',qty:pend?pend.qty.slice():e.tiers.map(function(){return 0}),people:pend?pend.people.slice():[],open:0,err:{},disc:pend?pend.disc:null,date:pend&&pend.date||(e.dates&&e.dates[0]?e.dates[0].value:''),submission:checkoutSubmissionId(e.slug,pend&&pend.submission)};
   if(pend){S.people=S.people.slice(0,pend.qty.reduce(function(a,b){return a+b},0));S.open=S.people.filter(function(p){return p.done}).length;var _n=pend.qty.reduce(function(a,b){return a+b},0);if(S.open>=_n)S.open=_n-1}
   var view=$('checkout-view');
   /* Tica: free means the chosen tickets cost nothing, not that every ticket type is free. */
@@ -439,10 +450,10 @@ function renderCheckout(e){
   /* Tica: hand the order to the server, then go to the chosen gateway or the confirmation page. */
   function place(onFail){
     var m=$('pay-msg');if(m){m.className='hint';m.textContent=''}
-    api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,
+    api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,submission_id:S.submission,
       buyer:{name:S.people[0].name,email:S.people[0].email,phone:S.people[0].phone},gateway:isFree()?null:gwKey(),
       attendees:S.people.map(function(p){return {name:p.name,email:p.email||'',answer:p.answer||''}})})
-    .then(function(r){HOLD=null;PENDING=null;location.href=r.redirect},function(er){
+    .then(function(r){clearCheckoutSubmission(e.slug);HOLD=null;PENDING=null;location.href=r.redirect},function(er){
       onFail&&onFail();
       if(er.data&&er.data.login){S.stage='details';S.login='id';draw('#al-id');return}
       var mm=$('pay-msg');if(mm){mm.className='payerr';mm.textContent=er.message}else flash(er.message)});
@@ -479,7 +490,7 @@ function renderCheckout(e){
         window.TICA_USER=u;document.body.classList.add('isuser');S.login=null;if(S.people[0]&&!S.people[0].done){S.people[0].email=em;if(!S.people[0].name)S.people[0].name=nm}prefill();draw('.pform.open input')},
         function(x){sb2.disabled=false;er.textContent=x.status===422?'That code is wrong or has expired. Check it or ask for a new one.':x.message;$('al-code').focus()})});
 
-    var bc=$('back-choose');if(bc)bc.addEventListener('click',function(){PENDING={slug:e.slug,qty:S.qty.slice(),disc:S.disc,date:S.date,people:S.people.slice()};go('event/'+e.slug)});
+    var bc=$('back-choose');if(bc)bc.addEventListener('click',function(){PENDING={slug:e.slug,qty:S.qty.slice(),disc:S.disc,date:S.date,people:S.people.slice(),submission:S.submission};go('event/'+e.slug)});
     var bd=$('back-details');if(bd)bd.addEventListener('click',function(){S.stage='details';S.open=S.people.length-1;draw('.pform.open input')});
     view.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){S.open=+b.dataset.edit;S.err={};draw('.pform.open input')})});
     view.querySelectorAll('form.pform').forEach(function(f){f.addEventListener('submit',function(ev){

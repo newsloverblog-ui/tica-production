@@ -84,10 +84,42 @@ class TicaApiController extends Controller
       'attendees.*.email' => ['nullable', 'email:rfc', 'max:191'],
       'attendees.*.answer' => ['nullable', 'string', 'max:500'],
       'gateway' => ['nullable', 'string', 'in:' . implode(',', array_keys(\App\Support\TicaPayments::GATEWAYS))],
+      'submission_id' => ['required', 'uuid'],
     ]);
     $event = Event::query()->findOrFail((int) $validated['event_id']);
     if (($event->visibility ?? 'public') === 'private') {
       return response()->json(['message' => 'This event is by invitation only.'], 403);
+    }
+
+    // A response can be lost after a free booking commits. Resolve that retry
+    // before reserving inventory again so the buyer receives the original
+    // confirmation instead of a second order.
+    $submissionHash = hash('sha256', $validated['submission_id']);
+    $existingBooking = Booking::query()
+      ->where('checkout_submission_hash', $submissionHash)
+      ->first();
+    if ($existingBooking) {
+      $customerId = Auth::guard('customer')->id();
+      $sameBuyer = ($customerId !== null && (int) $existingBooking->customer_id === (int) $customerId)
+        || hash_equals(
+          mb_strtolower(trim((string) $existingBooking->email)),
+          mb_strtolower(trim((string) $validated['buyer']['email']))
+        );
+      if ((int) $existingBooking->event_id !== (int) $event->id
+        || (string) $existingBooking->paymentStatus !== 'free'
+        || !$sameBuyer) {
+        return response()->json([
+          'message' => 'This checkout attempt is already attached to another order. Start a new checkout and try again.',
+        ], 409);
+      }
+
+      return response()->json([
+        'redirect' => app(BookingCompletionUrlService::class)->make(
+          (int) $event->id,
+          (int) $existingBooking->id,
+          'offline'
+        ),
+      ]);
     }
     $quantities = array_map('intval', $validated['quantities']);
 
@@ -95,6 +127,7 @@ class TicaApiController extends Controller
       'event_id' => $event->id,
       'quantity' => $event->event_type === 'online' ? array_sum($quantities) : $quantities,
       'event_date' => $validated['event_date'] ?? null,
+      'submission_id' => $validated['submission_id'],
     ];
     $response = $this->dispatchTo('check-out2', $selection, fn (Request $sub) => app(CheckOutController::class)->checkout2($sub));
     if ($this->redirectsTo($response, route('customer.login'))) {

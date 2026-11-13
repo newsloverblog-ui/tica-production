@@ -3,11 +3,14 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\FrontEnd\Event\BookingController;
+use App\Http\Controllers\FrontEnd\TicaApiController;
 use App\Models\Event;
 use App\Models\Event\Ticket;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FreeBookingIdempotencyTest extends TestCase
@@ -42,7 +45,8 @@ class FreeBookingIdempotencyTest extends TestCase
             'ticket_available' => 5,
             'price' => 0,
         ]);
-        $submissionHash = hash('sha256', 'one-reviewed-checkout');
+        $submissionId = (string) Str::uuid();
+        $submissionHash = hash('sha256', $submissionId);
         $payload = [
             'event_id' => $event->id,
             'price' => 0,
@@ -82,6 +86,39 @@ class FreeBookingIdempotencyTest extends TestCase
         $this->assertSame(3, (int) $ticket->fresh()->ticket_available);
         $this->assertSame(1, DB::table('audit_logs')->where('action', 'booking.created')->count());
         $this->assertSame(1, DB::table('audit_logs')->where('action', 'booking.tickets_issued')->count());
+
+        $request = Request::create('/tica-api/checkout', 'POST', [
+            'event_id' => $event->id,
+            'event_date' => null,
+            'quantities' => [2],
+            'buyer' => [
+                'name' => 'Ada Okafor',
+                'email' => 'ada@example.com',
+                'phone' => '08000000000',
+            ],
+            'attendees' => [],
+            'submission_id' => $submissionId,
+        ]);
+        $request->setLaravelSession(app('session')->driver());
+
+        $response = app(TicaApiController::class)->checkout($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('event-booking-complete', $response->getData(true)['redirect']);
+        $this->assertSame(1, DB::table('bookings')->count());
+        $this->assertSame(3, (int) $ticket->fresh()->ticket_available);
+
+        $request->merge(['buyer' => [
+            'name' => 'Another Buyer',
+            'email' => 'another@example.com',
+            'phone' => '08011111111',
+        ]]);
+        $conflict = app(TicaApiController::class)->checkout($request);
+        $this->assertSame(409, $conflict->getStatusCode());
+
+        $client = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $this->assertStringContainsString('submission_id:S.submission', $client);
+        $this->assertStringContainsString("sessionStorage.setItem(key,id)", $client);
     }
 
     public function test_checkout_submission_hash_migration_is_reversible(): void
