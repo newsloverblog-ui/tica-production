@@ -10,18 +10,20 @@ class AttendeeDateFilterTest extends TestCase
 {
   public function test_date_range_is_inclusive_by_day(): void
   {
-    $query = $this->query(['from' => '2026-11-01', 'to' => '2026-11-13']);
+    $query = $this->directoryQuery(['from' => '2026-11-01', 'to' => '2026-11-13']);
     $bindings = $query->getBindings();
 
-    $this->assertStringContainsString('"bookings"."created_at" >= ?', $query->toSql());
-    $this->assertStringContainsString('"bookings"."created_at" <= ?', $query->toSql());
+    // Quote style differs between MySQL and SQLite, so compare without it.
+    $sql = str_replace(['"', '`'], '', $query->toSql());
+    $this->assertStringContainsString('bookings.created_at >= ?', $sql);
+    $this->assertStringContainsString('bookings.created_at <= ?', $sql);
     $this->assertContains('2026-11-01 00:00:00', $bindings);
     $this->assertContains('2026-11-13 23:59:59', $bindings);
   }
 
   public function test_no_dates_means_no_date_bounds(): void
   {
-    $this->assertStringNotContainsString('created_at', $this->query([])->toSql());
+    $this->assertStringNotContainsString('bookings.created_at >=', str_replace(['"', '`'], '', $this->directoryQuery([])->toSql()));
   }
 
   public function test_page_has_date_filters_and_csv_uses_the_same_query(): void
@@ -35,7 +37,7 @@ class AttendeeDateFilterTest extends TestCase
     $this->assertStringContainsString("attendees?'+attQuery()", $js);
   }
 
-  private function query(array $filters)
+  private function directoryQuery(array $filters)
   {
     $method = new \ReflectionMethod(OrganizerAttendeeDirectory::class, 'query');
     return $method->invoke(app(OrganizerAttendeeDirectory::class), 7, $filters, null);
