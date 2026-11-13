@@ -134,6 +134,9 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('event-builder/', 'FrontEnd\TicaUiController@adminCreate')->name('admin.event_builder');
     Route::post('event-builder/', 'FrontEnd\TicaOrganizerController@storeAdminEvent')
       ->middleware('throttle:10,1')->name('admin.event_builder.store');
+    Route::get('event-builder/{id}/edit', 'FrontEnd\TicaUiController@adminEdit')->whereNumber('id')->name('admin.event_builder.edit');
+    Route::post('event-builder/{id}', 'FrontEnd\TicaOrganizerController@updateAdminEvent')->whereNumber('id')
+      ->middleware('throttle:20,1')->name('admin.event_builder.update');
     Route::get('add-event/', 'BackEnd\Event\EventController@add_event')->name('add.event.event');
     Route::get('choose-event-type/', 'BackEnd\Event\EventController@choose_event_type')->name('admin.choose-event-type');
     Route::post('event-imagesstore', 'BackEnd\Event\EventController@gallerystore')->name('admin.event.imagesstore');

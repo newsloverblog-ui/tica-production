@@ -5,6 +5,8 @@ namespace App\Http\Controllers\FrontEnd;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\UploadFile;
 use App\Models\Event;
+use App\Models\Event\BookingTicket;
+use App\Services\TicaUi\EventBuilderPrefill;
 use App\Models\Event\EventCategory;
 use App\Models\Event\EventContent;
 use App\Models\Event\EventDates;
@@ -157,7 +159,202 @@ class TicaOrganizerController extends Controller
     ]);
   }
 
-  private function validateEvent(Request $request, bool $draft): array
+  /** Organisers edit their own event in the same builder they created it with. */
+  public function updateOrganizerEvent(Request $request, int $id): JsonResponse
+  {
+    abort_if(in_array(\Illuminate\Support\Facades\Session::get('tica_team_member.role'), ['finance', 'gate'], true), 403, 'Your team role doesn\'t include editing events.');
+    $organizer = Auth::guard('organizer')->user();
+    $event = Event::query()->whereKey($id)->where('organizer_id', $organizer->id)->firstOrFail();
+
+    return $this->updateEvent($request, $event, 'organizer');
+  }
+
+  /** Admins edit any event in the builder, plus ownership, status and featured. */
+  public function updateAdminEvent(Request $request, int $id): JsonResponse
+  {
+    abort_unless(Auth::guard('admin')->user(), 401);
+    $event = Event::query()->findOrFail($id);
+    $admin = $request->validate([
+      'organizer_id' => ['nullable', 'integer', Rule::exists('organizers', 'id')->where('status', 1)],
+      'is_featured' => ['nullable', 'boolean'],
+      'status' => ['required', Rule::in(['live', 'draft'])],
+    ], [
+      'organizer_id.exists' => 'Choose an active organizer, or leave the event under TICA.',
+    ]);
+    if ($event->registration_mode === 'corporate' && empty($admin['organizer_id'])) {
+      throw ValidationException::withMessages(['organizer_id' => 'Registration events need an organizer. Assign one first.']);
+    }
+    $request->merge(['draft' => $admin['status'] === 'draft' ? '1' : '0']);
+
+    return $this->updateEvent($request, $event, 'admin', [
+      'organizer_id' => isset($admin['organizer_id']) ? (int) $admin['organizer_id'] : null,
+      'is_featured' => $request->boolean('is_featured') ? 'yes' : 'no',
+    ]);
+  }
+
+  private function updateEvent(Request $request, Event $event, string $actor, array $ownership = []): JsonResponse
+  {
+    $draft = $request->boolean('draft');
+    $sales = EventBuilderPrefill::hasSales($event);
+    // The kind of entry can't change after creation; keep what the event already uses.
+    $request->merge(['entry' => $event->registration_mode === 'corporate' ? 'corporate' : 'ticketing']);
+    if ($sales) {
+      // With tickets sold, the currency and dates stay put (dates move through "Change date", which tells attendees).
+      $request->merge(['currency' => $event->currency ?: $request->input('currency')]);
+    }
+    $validated = $this->validateEvent($request, $draft, (bool) $event->thumbnail);
+
+    DB::transaction(function () use ($request, $validated, $event, $draft, $actor, $ownership, $sales) {
+      $event = Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
+      $before = $event->only(['organizer_id', 'status', 'is_featured', 'event_type', 'fee_payer', 'visibility', 'start_date', 'start_time']);
+      $online = $validated['mode'] === 'Online';
+      $multiple = $request->boolean('multiple');
+
+      $fields = [
+        'status' => $draft ? 0 : 1,
+        'countdown_status' => $request->boolean('countdown') ? 1 : 0,
+        'event_type' => $online ? 'online' : 'venue',
+        'is_hybrid' => $validated['mode'] === 'Hybrid',
+        'online_join_url' => in_array($validated['mode'], ['Online', 'Hybrid'], true) ? ($validated['online_join_url'] ?? null) : null,
+        'fee_payer' => $validated['fee_payer'],
+        'currency' => $validated['currency'],
+        'age_restriction' => $validated['age_restriction'] ?? null,
+        'visibility' => $validated['visibility'],
+        'show_remaining' => $request->boolean('show_remaining'),
+        'waitlist_enabled' => (TicaPlatform::on('waitlist') || $event->waitlist_enabled) && $request->boolean('waitlist_enabled'),
+        'join_reveal_minutes' => (int) ($validated['join_reveal_minutes'] ?? 15),
+        'attendee_question' => TicaPlatform::on('question') && $request->boolean('ask_question') ? ($validated['attendee_question'] ?? null) : null,
+      ];
+      if ($request->hasFile('flyer')) {
+        $fields['thumbnail'] = $this->storeFlyer($request);
+      }
+      if (!$sales) {
+        [$single, $dates] = $this->dates($validated, $multiple);
+        $fields += [
+          'date_type' => $multiple ? 'multiple' : 'single',
+          'start_date' => $single['start']?->toDateString(),
+          'start_time' => $single['start']?->format('H:i'),
+          'end_date' => $single['end']?->toDateString(),
+          'end_time' => $single['end']?->format('H:i'),
+          'duration' => $single['start'] && $single['end'] ? DurationCalulate($single['start'], $single['end']) : '',
+          'end_date_time' => $multiple ? collect($dates)->max('end') : $single['end'],
+        ];
+        EventDates::query()->where('event_id', $event->id)->delete();
+        foreach ($dates as $date) {
+          EventDates::create([
+            'event_id' => $event->id,
+            'start_date' => $date['start']->toDateString(),
+            'start_time' => $date['start']->format('H:i'),
+            'end_date' => $date['end']->toDateString(),
+            'end_time' => $date['end']->format('H:i'),
+            'duration' => DurationCalulate($date['start'], $date['end']),
+            'start_date_time' => $date['start'],
+            'end_date_time' => $date['end'],
+          ]);
+        }
+      }
+      if ($actor === 'admin') {
+        $fields['organizer_id'] = $ownership['organizer_id'];
+        $fields['is_featured'] = $ownership['is_featured'];
+      }
+      $event->forceFill($fields)->save();
+
+      $this->storeContent($event, $validated, $online);
+      if ($validated['entry'] !== 'corporate') {
+        $this->syncTickets($event, $request->input('tiers', []), $validated['tiers'] ?? [], $online);
+      }
+
+      AuditLogger::record('event.edited_from_tica_ui', $event, $before, array_merge(
+        $event->only(array_keys($before)),
+        ['actor' => $actor, 'ticket_types' => count($validated['tiers'] ?? [])]
+      ));
+    });
+
+    $slug = EventContent::query()->where('event_id', $event->id)->value('slug');
+
+    return response()->json([
+      'event_id' => $event->id,
+      'name' => $validated['name'],
+      'status' => $draft ? 'draft' : 'live',
+      'url' => route('event.details', [$slug, $event->id]),
+      'redirect_url' => $actor === 'admin'
+        ? route('admin.event_management.event', ['language' => $this->getLanguage()->code])
+        : url('/dashboard/events'),
+    ]);
+  }
+
+  /**
+   * Updates ticket types by id: sold tickets keep their price and can't drop
+   * below what has sold or be removed; new rows become new ticket types.
+   */
+  private function syncTickets(Event $event, array $raw, array $tiers, bool $online): void
+  {
+    $existing = Ticket::query()->where('event_id', $event->id)->lockForUpdate()->get()->keyBy('id');
+    $kept = [];
+    $new = [];
+    foreach ($tiers as $index => $tier) {
+      $id = (int) ($raw[$index]['id'] ?? 0);
+      if (!$id) {
+        $new[] = $tier;
+        continue;
+      }
+      $ticket = $existing->get($id);
+      if (!$ticket) {
+        throw ValidationException::withMessages(["tiers.$index.name" => 'This ticket type no longer exists. Reload the page and try again.']);
+      }
+      $kept[] = $id;
+      if ($ticket->pricing_type === 'variation') {
+        continue;
+      }
+      $sold = EventBuilderPrefill::soldFor($ticket);
+      $price = round((float) $tier['price'], 2);
+      if ($sold > 0 && abs($price - (float) $ticket->price) > 0.001) {
+        throw ValidationException::withMessages(["tiers.$index.price" => "You've sold {$sold} {$ticket->title} tickets, so its price can't change. Add a new ticket type for a new price."]);
+      }
+      if (!empty($tier['quantity']) && (int) $tier['quantity'] < $sold) {
+        throw ValidationException::withMessages(["tiers.$index.quantity" => "You've sold {$sold} {$ticket->title} tickets. Set the quantity to at least {$sold}."]);
+      }
+      $early = isset($tier['early_price']) && $tier['early_price'] !== '' && $tier['early_price'] !== null && $price > 0;
+      $earlyEnds = $early ? Carbon::parse($tier['early_ends']) : null;
+      $ticket->forceFill([
+        'event_type' => $online ? 'online' : 'venue',
+        'title' => $tier['name'],
+        'pricing_type' => $price > 0 ? 'normal' : 'free',
+        'price' => $price > 0 ? $price : 0,
+        'f_price' => $price > 0 ? $price : null,
+        'ticket_available_type' => empty($tier['quantity']) ? 'unlimited' : 'limited',
+        'ticket_available' => empty($tier['quantity']) ? null : (int) $tier['quantity'] - $sold,
+        'max_ticket_buy_type' => empty($tier['max_per_order']) ? 'unlimited' : 'limited',
+        'max_buy_ticket' => empty($tier['max_per_order']) ? null : (int) $tier['max_per_order'],
+        'early_bird_discount' => $early ? 'enable' : 'disable',
+        'early_bird_discount_type' => $early ? 'fixed' : null,
+        'early_bird_discount_amount' => $early ? round($price - (float) $tier['early_price'], 2) : null,
+        'early_bird_discount_date' => $earlyEnds?->toDateString(),
+        'early_bird_discount_time' => $earlyEnds?->format('H:i'),
+      ])->save();
+      TicketContent::query()->where('ticket_id', $ticket->id)->update([
+        'title' => $tier['name'],
+        'description' => $tier['description'] ?? null,
+      ]);
+    }
+
+    foreach ($existing as $id => $ticket) {
+      if (in_array($id, $kept, true) || $ticket->pricing_type === 'variation') {
+        continue;
+      }
+      $sold = EventBuilderPrefill::soldFor($ticket);
+      if ($sold > 0) {
+        throw ValidationException::withMessages(['tiers' => "You've sold {$sold} {$ticket->title} tickets, so that ticket type can't be removed."]);
+      }
+      $ticket->delete();
+    }
+
+    if ($new) {
+      $this->storeTickets($event, $new, $online);
+    }
+  }
+
+  private function validateEvent(Request $request, bool $draft, bool $hasFlyer = false): array
   {
     $needed = $draft ? 'nullable' : 'required';
     $mode = (string) $request->input('mode');
@@ -203,7 +400,7 @@ class TicaOrganizerController extends Controller
       'registration_form_name' => ['nullable', 'string', 'max:150'],
       'registration_intro' => ['nullable', 'string', 'max:2000'],
       'registration_approval' => ['nullable', Rule::in(['manual', 'automatic'])],
-      'flyer' => [$draft ? 'nullable' : 'required', 'nullable', 'file', 'max:5120', new ImageMimeTypeRule()],
+      'flyer' => [$draft || $hasFlyer ? 'nullable' : 'required', 'nullable', 'file', 'max:5120', new ImageMimeTypeRule()],
     ], [
       'name.required' => 'Give your event a name first.',
       'flyer.required' => 'Add a flyer before you publish.',
@@ -301,7 +498,7 @@ class TicaOrganizerController extends Controller
         ? (EventCategory::query()->where('language_id', $language->id)->where('serial_number', $category->serial_number)->value('id') ?? $category->id)
         : $categoryId;
       // language_id and slug are not mass assignable on EventContent.
-      (new EventContent())->forceFill([
+      EventContent::query()->firstOrNew(['event_id' => $event->id, 'language_id' => $language->id])->forceFill([
         'language_id' => $language->id,
         'event_category_id' => $languageCategory,
         'event_id' => $event->id,

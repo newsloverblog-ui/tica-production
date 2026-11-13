@@ -226,7 +226,7 @@
                               </button>
 
                               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <a href="{{ route('admin.event_management.edit_event', ['id' => $event->id]) }}"
+                                <a href="{{ route('admin.event_builder.edit', ['id' => $event->id]) }}"
                                   class="dropdown-item">
                                   {{ __('Edit') }}
                                 </a>

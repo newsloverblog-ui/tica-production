@@ -46,6 +46,45 @@ class TicaUiController extends Controller
   /** The shared event builder with the small set of controls reserved for admins. */
   public function adminCreate(Request $request, TicaUiPayload $payload)
   {
+    return $this->render($request, $payload, 'create', 'create', 200, null, [
+      'adminBuilder' => $this->adminBuilder(),
+    ]);
+  }
+
+  /** Admins edit an event in the same builder, filled in with the saved event. */
+  public function adminEdit(Request $request, TicaUiPayload $payload, int $id)
+  {
+    $event = Event::query()->findOrFail($id);
+    $language = $this->getLanguage();
+
+    return $this->render($request, $payload, 'create', 'create', 200, null, [
+      'adminBuilder' => $this->adminBuilder(),
+      'builderEdit' => [
+        'event' => (new \App\Services\TicaUi\EventBuilderPrefill())->build($event, (int) $language->id),
+        'endpoint' => route('admin.event_builder.update', ['id' => $event->id]),
+        'deleteUrl' => route('admin.event_management.delete_event', ['id' => $event->id]),
+        'ticketsUrl' => route('admin.event.ticket', ['language' => $language->code, 'event_id' => $event->id, 'event_type' => $event->event_type]),
+      ],
+    ]);
+  }
+
+  /** Organisers edit their own event in the builder they created it with. */
+  public function organizerEdit(Request $request, TicaUiPayload $payload, int $id)
+  {
+    $organizer = \Illuminate\Support\Facades\Auth::guard('organizer')->user();
+    $event = Event::query()->whereKey($id)->where('organizer_id', $organizer->id)->firstOrFail();
+
+    return $this->render($request, $payload, 'create', 'create/' . $event->id, 200, null, [
+      'builderEdit' => [
+        'event' => (new \App\Services\TicaUi\EventBuilderPrefill())->build($event, (int) $this->getLanguage()->id),
+        'endpoint' => url('/tica-api/organizer/events/' . $event->id . '/details'),
+        'backUrl' => url('/dashboard/events'),
+      ],
+    ]);
+  }
+
+  private function adminBuilder(): array
+  {
     $language = $this->getLanguage();
     $names = OrganizerInfo::query()
       ->where('language_id', $language->id)
@@ -60,15 +99,13 @@ class TicaUiController extends Controller
         'email' => (string) $organizer->email,
       ])->values()->all();
 
-    return $this->render($request, $payload, 'create', 'create', 200, null, [
-      'adminBuilder' => [
-        'endpoint' => route('admin.event_builder.store'),
-        'backUrl' => route('admin.event_management.event', ['language' => $language->code]),
-        'settingsUrl' => route('admin.event_management.event', ['language' => $language->code]),
-        'organizers' => $organizers,
-        'adminName' => trim((string) auth('admin')->user()?->first_name . ' ' . (string) auth('admin')->user()?->last_name) ?: 'TICA admin',
-      ],
-    ]);
+    return [
+      'endpoint' => route('admin.event_builder.store'),
+      'backUrl' => route('admin.event_management.event', ['language' => $language->code]),
+      'settingsUrl' => route('admin.event_management.event', ['language' => $language->code]),
+      'organizers' => $organizers,
+      'adminName' => trim((string) auth('admin')->user()?->first_name . ' ' . (string) auth('admin')->user()?->last_name) ?: 'TICA admin',
+    ];
   }
 
   public function event(Request $request, TicaUiPayload $payload, string $slug, int $id)

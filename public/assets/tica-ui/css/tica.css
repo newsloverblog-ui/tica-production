@@ -4786,3 +4786,12 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
   .workspace-context strong{max-width:112px}
   .workspace-actions{padding-right:10px}
 }
+/* builder edit mode */
+.page[data-page=create] .ce-admin-danger{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #e4e9f2}
+.page[data-page=create] .ce-admin-danger[hidden],.page[data-page=create] .ce-admin-edit[hidden]{display:none}
+.page[data-page=create] .ce-admin-danger b{display:block;color:#12213a;font-size:14px}
+.page[data-page=create] .ce-admin-danger small{display:block;color:#667085;font-size:12.5px}
+.page[data-page=create] .ce-del{color:#b42318;border-color:#f3c0bb;min-height:44px}
+.page[data-page=create] .ce-del:hover{background:#fef3f2}
+.page[data-page=create] .ce-lock{margin:6px 0 0;color:#8a4b14;font-size:12.5px}
+.page[data-page=create] .ce-sold{grid-column:1/-1;margin:-4px 0 0;color:#526079;font-size:12.5px}
