@@ -64,7 +64,8 @@ class PublicImageTest extends TestCase
     if (!function_exists('imagewebp')) {
       $this->markTestSkipped('GD WebP support is not installed.');
     }
-    $webp = PublicImage::toWebp(UploadedFile::fake()->image('a.png', 200, 100)->getRealPath(), 512);
+    $small = UploadedFile::fake()->image('a.png', 200, 100); // keep a reference so its temp file lives
+    $webp = PublicImage::toWebp($small->getRealPath(), 512);
     $info = getimagesizefromstring($webp);
     $this->assertSame([200, 100], [$info[0], $info[1]]);
   }
