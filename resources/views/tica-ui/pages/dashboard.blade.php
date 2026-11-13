@@ -174,15 +174,16 @@
           </section>
           <section class="db-card"><div class="db-ch"><h2>Defaults for new events</h2></div>
             <ul class="od-sw">
-              <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee"></li>
-              <li><span><b>Show tickets left on event pages</b><small>Creates urgency when stock is low.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left"></li>
-              <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out"></li>
-              <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets"></li>
+              <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee" data-pref="buyers_pay_fee"></li>
+              <li><span><b>Show tickets left on event pages</b><small>Creates urgency when stock is low.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left" data-pref="show_remaining"></li>
+              <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out" data-pref="waitlist"></li>
+              <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets" data-pref="transfers"></li>
             </ul>
             <div class="db-ch od-sub"><h2>Notifications</h2></div>
             <ul class="od-sw">
-              <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale"></li>
-              <li><span><b>Daily and weekly sales summaries</b><small>Receive scheduled performance digests for your events.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries"></li>
+              <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale" data-pref="notify_sale"></li>
+              <li><span><b>Daily and weekly sales summaries</b><small>Receive scheduled performance digests for your events.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries" data-pref="daily_summary"></li>
+              <li><span><b>Text me about payouts</b><small>An SMS to your phone number when a payout is sent or doesn't go through.</small></span><input class="ck-sw" type="checkbox" aria-label="Text me about payouts" data-pref="payout_sms"></li>
               <li><span><b>Payout status emails</b><small>Always on for account security and transfer records.</small></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
@@ -192,8 +193,9 @@
               <div class="od-row2"><div class="inp"><label for="od-pass-new">New password</label><input id="od-pass-new" type="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters with upper and lowercase letters and a number.</small></div><div class="inp"><label for="od-pass-confirm">Confirm new password</label><input id="od-pass-confirm" type="password" autocomplete="new-password" minlength="8" required></div></div>
               <button class="btn btn-line" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
             </form>
-            <div class="db-ch od-sub"><div><h2>Two-step verification</h2><p class="hint">Require an extra verification step when signing in.</p></div></div>
-            <a class="btn btn-line" id="od-security-link" href="/account-security/organizer">Manage two-step verification</a>
+            <div class="db-ch od-sub"><div><h2>Two-factor authentication</h2><p class="hint">Sign in with your password and a code from an authenticator app, such as Google Authenticator or Authy. It's also asked for when you change your bank account.</p></div></div>
+            <div class="od-2fa" id="od-2fa"></div>
+            <p class="od-fine">Prefer codes by email instead? <a id="od-security-link" href="/account-security/organizer">Use email codes</a></p>
           </section>
         </div>
       </div>
@@ -203,6 +205,7 @@
 
 <dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
 <dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>
+<dialog class="od-dlg" id="od-2fa-dlg" aria-labelledby="od-2fa-h"><div id="od-2fa-body"></div></dialog>
 <dialog class="od-dlg" id="od-msg" aria-labelledby="od-msg-h">
   <div class="sh-head"><div><h2 id="od-msg-h">Message attendees</h2><p>Sent by email and SMS from TICA, with your organiser name.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="od-form" id="od-msg-f" novalidate>

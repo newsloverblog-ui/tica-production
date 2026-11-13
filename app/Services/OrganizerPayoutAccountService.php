@@ -2,9 +2,16 @@
 
 namespace App\Services;
 
+use App\Contracts\PayoutProvider;
+use App\Exceptions\GatewayOutcomeUnknownException;
+use App\Exceptions\PayoutProviderUnavailable;
 use App\Models\Organizer;
 use App\Models\OrganizerPayoutAccount;
+use App\Services\Payouts\BankDirectory;
+use App\Services\Payouts\PaystackPayoutProvider;
+use App\Services\Payouts\PayoutProviders;
 use App\Support\LifecycleMailCatalog;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -14,69 +21,70 @@ use Throwable;
 
 class OrganizerPayoutAccountService
 {
+    /**
+     * Save a payout account after the organiser confirmed it. The bank's name
+     * must match the verified identity; if it doesn't, the account is kept as
+     * "needs_review" for an admin to approve or reject, and isn't used.
+     */
     public function verify(
         int $organizerId,
         string $bankCode,
         string $accountNumber,
-        ?PaystackGatewayClient $client = null
+        mixed $client = null
     ): OrganizerPayoutAccount {
         $organizer = Organizer::findOrFail($organizerId);
         if ($organizer->kyc_status !== 'verified' || trim((string) $organizer->verified_legal_name) === '') {
             throw new RuntimeException('Complete organizer verification before adding a payout account.');
         }
 
-        $client = $client ?: new PaystackGatewayClient();
-        $bank = $this->bankByCode($client, $bankCode);
-        $resolved = $client->resolveAccount($accountNumber, $bankCode);
-        $resolvedData = (array) ($resolved['data'] ?? []);
-        $resolvedNumber = preg_replace('/\D+/', '', (string) ($resolvedData['account_number'] ?? ''));
-        $resolvedName = trim((string) ($resolvedData['account_name'] ?? ''));
-        if ($resolvedNumber !== $accountNumber || $resolvedName === '') {
-            throw new RuntimeException('The bank returned incomplete or inconsistent account details.');
-        }
-        if (!$this->namesMatch($organizer->verified_legal_name, $resolvedName)) {
+        $provider = $this->provider($client);
+        $looked = $this->lookup($bankCode, $accountNumber, $provider);
+        $matched = $this->namesMatch($organizer->verified_legal_name, $looked['name']);
+        if (!$matched) {
             AuditLogger::record('organizer.payout_account_name_mismatch', $organizer, [], [], [
                 'bank_code' => $bankCode,
                 'account_last4' => substr($accountNumber, -4),
-                'resolved_name' => $resolvedName,
+                'resolved_name' => $looked['name'],
             ]);
-            throw new RuntimeException(
-                'The bank account name does not match the verified organizer name. Contact support if this is a legitimate business account.'
-            );
         }
 
         try {
-            return DB::transaction(function () use ($organizerId, $bank, $bankCode, $accountNumber, $resolvedName) {
+            $account = DB::transaction(function () use ($organizerId, $looked, $bankCode, $accountNumber, $matched, $provider) {
                 $organizer = Organizer::whereKey($organizerId)->lockForUpdate()->firstOrFail();
                 if ($organizer->kyc_status !== 'verified') {
                     throw new RuntimeException('Organizer verification changed. Verify the organizer again before continuing.');
                 }
 
-                OrganizerPayoutAccount::where('organizer_id', $organizerId)
-                    ->where('is_default', true)
-                    ->update(['is_default' => false, 'status' => 'replaced']);
+                // A mismatched account waits for review and leaves the current account in place.
+                if ($matched) {
+                    OrganizerPayoutAccount::where('organizer_id', $organizerId)
+                        ->where('is_default', true)
+                        ->update(['is_default' => false, 'status' => 'replaced']);
+                }
+                OrganizerPayoutAccount::where('organizer_id', $organizerId)->where('status', 'needs_review')
+                    ->update(['status' => 'replaced']);
 
                 $account = OrganizerPayoutAccount::create([
                     'public_id' => (string) Str::uuid(),
                     'organizer_id' => $organizerId,
-                    'provider' => 'paystack',
+                    'provider' => $provider->name(),
                     'country_code' => 'NG',
                     'currency' => 'NGN',
                     'bank_code' => $bankCode,
-                    'bank_name' => (string) ($bank['name'] ?? $bankCode),
+                    'bank_name' => $looked['bank'],
                     'account_number' => $accountNumber,
                     'account_number_hash' => $this->accountHash($bankCode, $accountNumber),
                     'account_last4' => substr($accountNumber, -4),
-                    'resolved_account_name' => $resolvedName,
-                    'name_match_status' => 'matched',
-                    'status' => 'verified',
-                    'is_default' => true,
-                    'verified_at' => now(),
+                    'resolved_account_name' => $looked['name'],
+                    'name_match_status' => $matched ? 'matched' : 'mismatch',
+                    'status' => $matched ? 'verified' : 'needs_review',
+                    'is_default' => $matched,
+                    'verified_at' => $matched ? now() : null,
                     'hold_until' => now()->addHours(24),
                 ]);
 
-                AuditLogger::record('organizer.payout_account_verified', $account, [], [
-                    'status' => 'verified',
+                AuditLogger::record($matched ? 'organizer.payout_account_verified' : 'organizer.payout_account_needs_review', $account, [], [
+                    'status' => $account->status,
                     'bank_name' => $account->bank_name,
                     'account_last4' => $account->account_last4,
                 ]);
@@ -91,25 +99,123 @@ class OrganizerPayoutAccountService
             }
             throw $exception;
         }
+
+        if ($account->status === 'verified') {
+            $this->registerRecipient($account, $provider);
+        }
+
+        return $account;
     }
 
-    /** Ask the bank for the name on an account. Returns the bank and the account name. */
-    public function lookup(string $bankCode, string $accountNumber, ?PaystackGatewayClient $client = null): array
+    /**
+     * Create the provider's transfer recipient now, so the first payout doesn't
+     * wait on it. If the provider is down this is retried at transfer time.
+     */
+    public function registerRecipient(OrganizerPayoutAccount $account, ?PayoutProvider $provider = null): void
     {
-        $client = $client ?: new PaystackGatewayClient();
-        $bank = $this->bankByCode($client, $bankCode);
-        try {
-            $resolved = (array) ($client->resolveAccount($accountNumber, $bankCode)['data'] ?? []);
-        } catch (Throwable $exception) {
-            throw new RuntimeException('We couldn\'t find this account at that bank. Check the number and the bank.');
+        if ($account->provider_recipient_code) {
+            return;
         }
-        $number = preg_replace('/\D+/', '', (string) ($resolved['account_number'] ?? ''));
-        $name = trim((string) ($resolved['account_name'] ?? ''));
+        try {
+            $provider ??= app(PayoutProviders::class)->for((string) $account->provider);
+            $code = $provider->createRecipient($account->resolved_account_name, $account->account_number, $account->bank_code, $account->currency);
+            $account->forceFill(['provider_recipient_code' => $code, 'recipient_created_at' => now()])->save();
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    /** Admin decision on an account whose bank name didn't match. */
+    public function review(string $publicId, bool $approve, int $adminId, ?string $reason = null): OrganizerPayoutAccount
+    {
+        $account = DB::transaction(function () use ($publicId, $approve, $adminId, $reason) {
+            $account = OrganizerPayoutAccount::where('public_id', $publicId)->lockForUpdate()->firstOrFail();
+            if ($account->status !== 'needs_review') {
+                throw new RuntimeException('This account is no longer waiting for review.');
+            }
+            if (!$approve && trim((string) $reason) === '') {
+                throw new RuntimeException('Give a reason so the organiser knows what to fix.');
+            }
+            if ($approve) {
+                OrganizerPayoutAccount::where('organizer_id', $account->organizer_id)->where('is_default', true)
+                    ->update(['is_default' => false, 'status' => 'replaced']);
+            }
+            $account->forceFill([
+                'status' => $approve ? 'verified' : 'rejected',
+                'is_default' => $approve,
+                'verified_at' => $approve ? now() : null,
+                // A fresh 24-hour hold starts when the account becomes usable.
+                'hold_until' => $approve ? now()->addHours(24) : $account->hold_until,
+                'review_reason' => $reason,
+                'reviewed_by_admin_id' => $adminId,
+                'reviewed_at' => now(),
+            ])->save();
+            AuditLogger::record($approve ? 'organizer.payout_account_review_approved' : 'organizer.payout_account_review_rejected',
+                $account, ['status' => 'needs_review'], ['status' => $account->status, 'reason' => $reason]);
+
+            return $account;
+        }, 3);
+
+        if ($approve) {
+            $this->registerRecipient($account);
+        }
+        $organizer = Organizer::find($account->organizer_id);
+        if ($organizer) {
+            app(LifecycleMailService::class)->queueSafely(
+                LifecycleMailCatalog::ORGANIZER_PAYOUT_ACCOUNT_CHANGED,
+                $organizer->email,
+                [
+                    'bank_name' => $account->bank_name,
+                    'account_last4' => $account->maskedNumber(),
+                    'changed_at' => now()->format('D, j M Y g:i A'),
+                    'review_outcome' => $approve ? 'approved' : 'rejected',
+                    'review_reason' => $reason,
+                    'account_url' => url('/dashboard/payouts'),
+                ],
+                $account
+            );
+        }
+
+        return $account;
+    }
+
+    /** Ask the bank again for the name on an existing account (admin "re-verify"). */
+    public function reverify(string $publicId): array
+    {
+        $account = OrganizerPayoutAccount::where('public_id', $publicId)->firstOrFail();
+        $looked = $this->lookup($account->bank_code, $account->account_number, app(PayoutProviders::class)->for((string) $account->provider));
+        $organizer = Organizer::find($account->organizer_id);
+        $matches = $organizer && $this->namesMatch((string) $organizer->verified_legal_name, $looked['name']);
+        AuditLogger::record('organizer.payout_account_reverified', $account, [], [
+            'resolved_name' => $looked['name'], 'matches' => $matches,
+        ]);
+
+        return ['name' => $looked['name'], 'matches' => $matches, 'changed' => $looked['name'] !== $account->resolved_account_name];
+    }
+
+    /**
+     * Ask the bank for the name on an account. A slow or unavailable provider
+     * is reported as such, never as "account not found".
+     */
+    public function lookup(string $bankCode, string $accountNumber, mixed $client = null): array
+    {
+        $provider = $this->provider($client);
+        $bank = app(BankDirectory::class)->find($bankCode, null, $provider);
+        try {
+            $resolved = $provider->resolveAccount($accountNumber, $bankCode);
+        } catch (ConnectionException|GatewayOutcomeUnknownException $exception) {
+            report($exception);
+            throw new PayoutProviderUnavailable('Your bank is taking too long to answer. Try again in a minute.', 0, $exception);
+        } catch (Throwable $exception) {
+            throw new RuntimeException('We couldn\'t find this account at that bank. Check the number and the bank.', 0, $exception);
+        }
+        $number = $resolved['account_number'];
+        $name = $resolved['account_name'];
         if ($name === '' || ($number !== '' && $number !== $accountNumber)) {
             throw new RuntimeException('We couldn\'t find this account at that bank. Check the number and the bank.');
         }
 
-        return ['bank' => (string) ($bank['name'] ?? $bankCode), 'name' => $name];
+        return ['bank' => $bank['name'], 'name' => $name];
     }
 
     /** True when the bank's account name matches any of the names the organiser gave. */
@@ -227,13 +333,10 @@ class OrganizerPayoutAccountService
         }, 3);
     }
 
-    public function banks(?PaystackGatewayClient $client = null): array
+    /** @return array<int, array{code: string, name: string}> */
+    public function banks(): array
     {
-        $payload = ($client ?: new PaystackGatewayClient())->listBanks('nigeria', 'NGN');
-        return collect((array) ($payload['data'] ?? []))
-            ->filter(fn ($bank) => !empty($bank['code']) && !empty($bank['name']))
-            ->sortBy(fn ($bank) => strtolower((string) $bank['name']))
-            ->values()->all();
+        return app(BankDirectory::class)->list()['banks'];
     }
 
     public function namesMatch(string $verifiedName, string $bankName): bool
@@ -251,12 +354,17 @@ class OrganizerPayoutAccountService
         return count($shared) >= 2 && count($shared) / count($shorter) >= 0.75;
     }
 
-    private function bankByCode(PaystackGatewayClient $client, string $bankCode): array
+    /** Accepts a provider, a legacy Paystack client (tests), or nothing for the admin's choice. */
+    private function provider(mixed $client): PayoutProvider
     {
-        foreach ($this->banks($client) as $bank) {
-            if (hash_equals((string) $bank['code'], $bankCode)) return $bank;
+        if ($client instanceof PayoutProvider) {
+            return $client;
         }
-        throw new RuntimeException('Select a bank returned by the payout provider.');
+        if ($client instanceof PaystackGatewayClient) {
+            return new PaystackPayoutProvider($client);
+        }
+
+        return app(PayoutProviders::class)->current();
     }
 
     private function accountHash(string $bankCode, string $accountNumber): string

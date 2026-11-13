@@ -48,8 +48,30 @@ class TicaOrganizerController extends Controller
     return $this->createEvent($request, (int) $organizer->id);
   }
 
+  /**
+   * A new event starts from the organiser's saved defaults (Settings > Event
+   * defaults) for anything the request leaves out, so the defaults apply to
+   * every way an event is created, not only the prefilled form.
+   */
+  private function applyOrganizerDefaults(Request $request, int $organizerId): void
+  {
+    $organizer = \App\Models\Organizer::find($organizerId);
+    if (!$organizer) {
+      return;
+    }
+    $platformBuyer = TicaPlatform::all()['default_fee_payer'] === 'buyer';
+    $defaults = [
+      'fee_payer' => $organizer->preferenceEnabled('buyers_pay_fee', $platformBuyer) || !TicaPlatform::on('organizer_pays') ? 'buyer' : 'organizer',
+      'show_remaining' => $organizer->preferenceEnabled('show_remaining', true),
+      'waitlist_enabled' => $organizer->preferenceEnabled('waitlist', true),
+      'allow_transfers' => $organizer->preferenceEnabled('transfers', true),
+    ];
+    $request->merge(array_diff_key($defaults, array_filter($request->all(), fn ($value) => $value !== null)));
+  }
+
   private function createEvent(Request $request, int $organizerId): JsonResponse
   {
+    $this->applyOrganizerDefaults($request, $organizerId);
     $draft = $request->boolean('draft');
     $validated = $this->validateEvent($request, $draft);
 

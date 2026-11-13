@@ -373,17 +373,16 @@ class TicaWorkspaceController extends Controller
 
   /* --------------------------------------------------------------- payouts */
 
-  public function banks(OrganizerPayoutAccountService $accounts): JsonResponse
+  public function banks(\App\Services\Payouts\BankDirectory $directory): JsonResponse
   {
     $this->allow('bank.manage');
     try {
-      $banks = Cache::remember('tica-paystack-banks', now()->addHours(12), fn () => $accounts->banks());
-    } catch (\Throwable $exception) {
-      report($exception);
-      return response()->json(['message' => 'We couldn\'t load the bank list. Try again shortly.'], 503);
+      $list = $directory->list();
+    } catch (RuntimeException $exception) {
+      return response()->json(['message' => $exception->getMessage()], 503);
     }
 
-    return response()->json(['banks' => array_map(fn ($bank) => ['code' => (string) $bank['code'], 'name' => (string) $bank['name']], $banks)]);
+    return response()->json(['banks' => $list['banks'], 'stale' => $list['stale']]);
   }
 
   /**
@@ -409,6 +408,8 @@ class TicaWorkspaceController extends Controller
     }
     try {
       $looked = $accounts->lookup($validated['bank_code'], $validated['account_number']);
+    } catch (\App\Exceptions\PayoutProviderUnavailable $exception) {
+      return response()->json(['message' => $exception->getMessage(), 'retry' => true], 503);
     } catch (RuntimeException $exception) {
       throw ValidationException::withMessages(['account_number' => $exception->getMessage()]);
     }
@@ -422,48 +423,33 @@ class TicaWorkspaceController extends Controller
   }
 
   /** A six-digit code by email confirms a change to where money is sent. */
-  public function bankCode(Request $request, ApplicationMailService $mail): JsonResponse
-  {
-    $this->allow('bank.manage');
-    $organizer = $this->organizer();
-    $key = 'tica-bank-code:' . $organizer->id;
-    if (Cache::get($key . ':sent', 0) >= 5) {
-      throw ValidationException::withMessages(['code' => 'Too many codes requested. Try again in an hour.']);
-    }
-    $code = (string) random_int(100000, 999999);
-    Cache::put($key, ['hash' => hash_hmac('sha256', $code, (string) config('app.key')), 'attempts' => 0], now()->addMinutes(10));
-    Cache::put($key . ':sent', Cache::get($key . ':sent', 0) + 1, now()->addHour());
-    $mail->queueHtml('organizer_payout_code', $organizer->email, 'Your TICA payout code', '<p>Your code to confirm a new payout account is:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px">' . $code . '</p><p>It expires in 10 minutes. If you didn\'t ask for this, change your password and contact TICA support.</p>');
-
-    return response()->json(['message' => 'Code sent.']);
-  }
-
+  /**
+   * Save the payout account. The owner confirms with their password (and their
+   * authenticator code when 2FA is on). A bank name that doesn't match the
+   * verified identity is kept for TICA to review instead of being used.
+   */
   public function saveBank(Request $request, OrganizerPayoutAccountService $accounts): JsonResponse
   {
     $this->allow('bank.manage');
     $validated = $request->validate([
       'bank_code' => ['required', 'string', 'max:30'],
       'account_number' => ['required', 'regex:/^[0-9]{10}$/'],
-      'code' => ['required', 'digits:6'],
-    ]);
+      'password' => ['required', 'string', 'max:200'],
+      'otp' => ['nullable', 'string', 'max:20'],
+    ], ['password.required' => 'Enter your password to confirm.']);
     $organizer = $this->organizer();
-    $key = 'tica-bank-code:' . $organizer->id;
-    $stored = Cache::get($key);
-    if (!$stored || $stored['attempts'] >= 5 || !hash_equals($stored['hash'], hash_hmac('sha256', $validated['code'], (string) config('app.key')))) {
-      if ($stored) {
-        $stored['attempts']++;
-        Cache::put($key, $stored, now()->addMinutes(10));
-      }
-      throw ValidationException::withMessages(['code' => 'That code is wrong or has expired. Ask for a new one.']);
-    }
-    Cache::forget($key);
+    app(\App\Services\SensitiveActionConfirmation::class)->confirm($organizer, $validated['password'], $validated['otp'] ?? null, 'payout-account');
     try {
-      $accounts->verify((int) $organizer->id, $validated['bank_code'], $validated['account_number']);
+      $account = $accounts->verify((int) $organizer->id, $validated['bank_code'], $validated['account_number']);
+    } catch (\App\Exceptions\PayoutProviderUnavailable $exception) {
+      return response()->json(['message' => $exception->getMessage(), 'retry' => true], 503);
     } catch (RuntimeException $exception) {
       throw ValidationException::withMessages(['account_number' => $exception->getMessage()]);
     }
 
-    return response()->json(['message' => 'Bank account saved.']);
+    return response()->json($account->status === 'needs_review'
+      ? ['message' => 'Sent to TICA for review. We\'ll email you within one working day.', 'status' => 'needs_review']
+      : ['message' => 'Bank account saved.', 'status' => 'verified']);
   }
 
   public function payoutSchedule(Request $request): JsonResponse

@@ -79,4 +79,16 @@ return [
     'redirect' => env('GOOGLE_CALLBACK_URL'),
   ],
 
+  /*
+  | Payout keys live in the environment and are only used on the server.
+  | When PAYSTACK_SECRET_KEY is empty, the key saved in Admin > Payment
+  | gateways is used, as before.
+  */
+  'paystack' => [
+    'secret' => env('PAYSTACK_SECRET_KEY'),
+  ],
+  'monnify' => [
+    'disbursement_wallet' => env('MONNIFY_DISBURSEMENT_WALLET'),
+  ],
+
 ];

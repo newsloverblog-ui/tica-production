@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
    */
   public function register()
   {
+    $this->app->bind(\App\Contracts\SmsSender::class, \App\Services\TermiiSmsSender::class);
     //
   }
 

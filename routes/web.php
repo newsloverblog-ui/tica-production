@@ -564,6 +564,8 @@ Route::prefix('/admin')->middleware('guest:admin')->group(function () {
 });
 
 Route::get('/login-verification', 'AccountSecurityController@challenge')->name('mfa.login.challenge');
+Route::get('/login-verification/app', 'TwoFactorController@challenge')->name('totp.login.challenge');
+Route::post('/login-verification/app', 'TwoFactorController@verify')->middleware('throttle:authentication')->name('totp.login.verify');
 Route::post('/login-verification', 'AccountSecurityController@verifyLogin')->middleware('throttle:authentication')->name('mfa.login.verify');
 Route::post('/login-verification/cancel', 'AccountSecurityController@cancel')->middleware('throttle:authentication')->name('mfa.login.cancel');
 Route::get('/account-security/{guard}', 'AccountSecurityController@show')->whereIn('guard', ['admin', 'organizer', 'customer'])->name('account-security.show');
@@ -608,7 +610,6 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/guests', 'FrontEnd\TicaWorkspaceController@guest')->middleware('throttle:30,1');
       Route::get('/banks', 'FrontEnd\TicaWorkspaceController@banks')->middleware('throttle:30,1');
       Route::post('/bank/resolve', 'FrontEnd\TicaWorkspaceController@resolveBank')->middleware('throttle:10,1');
-      Route::post('/bank/code', 'FrontEnd\TicaWorkspaceController@bankCode')->middleware('throttle:5,10');
       Route::post('/bank', 'FrontEnd\TicaWorkspaceController@saveBank')->middleware('throttle:10,10');
       Route::post('/payout-schedule', 'FrontEnd\TicaWorkspaceController@payoutSchedule')->middleware('throttle:20,1');
       Route::post('/withdraw', 'FrontEnd\TicaWorkspaceController@withdraw')->middleware('throttle:5,1');
@@ -619,6 +620,10 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/promotions/{campaign}/cancel', 'FrontEnd\TicaWorkspaceController@cancelPromotion')->whereNumber('campaign')->middleware('throttle:10,1');
       Route::post('/tracking-pixels', 'FrontEnd\TicaWorkspaceController@storePixel')->middleware('throttle:10,10');
       Route::post('/team', 'FrontEnd\TicaWorkspaceController@invite')->middleware('throttle:10,1');
+      Route::post('/two-factor/start', 'TwoFactorController@start')->middleware('throttle:10,1');
+      Route::post('/two-factor/confirm', 'TwoFactorController@confirm')->middleware('throttle:10,1');
+      Route::post('/two-factor/disable', 'TwoFactorController@disable')->middleware('throttle:10,1');
+      Route::post('/two-factor/recovery-codes', 'TwoFactorController@regenerate')->middleware('throttle:10,1');
       Route::post('/team/{member}/remove', 'FrontEnd\TicaWorkspaceController@removeMember')->whereNumber('member')->middleware('throttle:20,1');
       Route::post('/team/{member}/role', 'FrontEnd\TicaWorkspaceController@changeMemberRole')->whereNumber('member')->middleware('throttle:20,1');
       Route::post('/profile', 'FrontEnd\TicaWorkspaceController@profile')->middleware('throttle:20,1');

@@ -87,24 +87,80 @@ class OrganizerPayoutAccountServiceTest extends TestCase
         $this->assertSame(1, DB::table('audit_logs')->where('action', 'organizer.payout_account_locked')->count());
     }
 
-    public function test_bank_name_mismatch_is_rejected_and_recorded_without_storing_the_account(): void
+    public function test_bank_name_mismatch_is_kept_for_review_and_never_used_for_payouts(): void
+    {
+        $organizer = $this->organizer('verified', 'Ada Lovelace');
+        $service = new OrganizerPayoutAccountService();
+        $current = $service->verify($organizer->id, '058', '1111111111', $this->client('1111111111', 'ADA LOVELACE'));
+
+        $account = $service->verify($organizer->id, '058', '0123456789', $this->client('0123456789', 'GRACE HOPPER'));
+
+        $this->assertSame('needs_review', $account->status);
+        $this->assertSame('mismatch', $account->name_match_status);
+        $this->assertFalse($account->is_default);
+        $this->assertNull($account->provider_recipient_code, 'No transfer recipient for an unapproved account.');
+        $this->assertSame('verified', $current->fresh()->status, 'The current account keeps receiving payouts.');
+        $this->assertTrue($current->fresh()->is_default);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'organizer.payout_account_name_mismatch', 'subject_id' => $organizer->id]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'organizer.payout_account_needs_review', 'subject_id' => $account->id]);
+    }
+
+    public function test_admin_approval_makes_a_reviewed_account_the_payout_account_with_a_fresh_hold(): void
+    {
+        $organizer = $this->organizer('verified', 'Ada Lovelace');
+        $service = new OrganizerPayoutAccountService();
+        $current = $service->verify($organizer->id, '058', '1111111111', $this->client('1111111111', 'ADA LOVELACE'));
+        $pending = $service->verify($organizer->id, '058', '0123456789', $this->client('0123456789', 'LOVELACE EVENTS LTD'));
+        $this->travel(2)->days();
+
+        $approved = $service->review($pending->public_id, true, 7, null);
+
+        $this->assertSame('verified', $approved->status);
+        $this->assertTrue($approved->is_default);
+        $this->assertSame(7, (int) $approved->reviewed_by_admin_id);
+        $this->assertTrue($approved->hold_until->isFuture(), 'Approval starts a new 24-hour hold.');
+        $this->assertSame('replaced', $current->fresh()->status);
+    }
+
+    public function test_admin_rejection_needs_a_reason_and_keeps_the_current_account(): void
+    {
+        $organizer = $this->organizer('verified', 'Ada Lovelace');
+        $service = new OrganizerPayoutAccountService();
+        $current = $service->verify($organizer->id, '058', '1111111111', $this->client('1111111111', 'ADA LOVELACE'));
+        $pending = $service->verify($organizer->id, '058', '0123456789', $this->client('0123456789', 'GRACE HOPPER'));
+
+        try {
+            $service->review($pending->public_id, false, 7, '  ');
+            $this->fail('A rejection without a reason should be refused.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('reason', $exception->getMessage());
+        }
+        $rejected = $service->review($pending->public_id, false, 7, 'Account belongs to someone else.');
+
+        $this->assertSame('rejected', $rejected->status);
+        $this->assertSame('Account belongs to someone else.', $rejected->review_reason);
+        $this->assertTrue($current->fresh()->is_default);
+    }
+
+    public function test_a_slow_bank_is_reported_as_slow_not_as_a_wrong_account(): void
+    {
+        $organizer = $this->organizer('verified', 'Ada Lovelace');
+        $client = Mockery::mock(PaystackGatewayClient::class);
+        $client->shouldReceive('listBanks')->andReturn(['status' => true, 'data' => [['name' => 'GTBank', 'code' => '058']]]);
+        $client->shouldReceive('resolveAccount')->andThrow(new \Illuminate\Http\Client\ConnectionException('cURL error 28: timed out'));
+
+        $this->expectException(\App\Exceptions\PayoutProviderUnavailable::class);
+        $this->expectExceptionMessage('taking too long');
+        (new OrganizerPayoutAccountService())->verify($organizer->id, '058', '0123456789', $client);
+    }
+
+    public function test_verified_account_gets_its_transfer_recipient_straight_away(): void
     {
         $organizer = $this->organizer('verified', 'Ada Lovelace');
 
-        try {
-            (new OrganizerPayoutAccountService())->verify(
-                $organizer->id, '058', '0123456789', $this->client('0123456789', 'GRACE HOPPER')
-            );
-            $this->fail('A bank account with another owner should not be accepted.');
-        } catch (RuntimeException $exception) {
-            $this->assertStringContainsString('does not match', $exception->getMessage());
-        }
+        $account = (new OrganizerPayoutAccountService())->verify($organizer->id, '058', '0123456789', $this->client('0123456789', 'ADA LOVELACE'));
 
-        $this->assertDatabaseCount('organizer_payout_accounts', 0);
-        $this->assertDatabaseHas('audit_logs', [
-            'action' => 'organizer.payout_account_name_mismatch',
-            'subject_id' => $organizer->id,
-        ]);
+        $this->assertSame('RCP_0123456789', $account->fresh()->provider_recipient_code);
     }
 
     public function test_unverified_organizer_cannot_add_a_payout_account(): void
@@ -124,7 +180,8 @@ class OrganizerPayoutAccountServiceTest extends TestCase
     private function client(string $number, string $name): PaystackGatewayClient
     {
         $client = Mockery::mock(PaystackGatewayClient::class);
-        $client->shouldReceive('listBanks')->once()->with('nigeria', 'NGN')->andReturn([
+        // The bank list is cached, so a second verify in the same test may not ask again.
+        $client->shouldReceive('listBanks')->atMost()->once()->with('nigeria', 'NGN')->andReturn([
             'status' => true,
             'data' => [['name' => 'Guarantee Trust Bank', 'code' => '058']],
         ]);
@@ -132,6 +189,7 @@ class OrganizerPayoutAccountServiceTest extends TestCase
             'status' => true,
             'data' => ['account_number' => $number, 'account_name' => $name],
         ]);
+        $client->shouldReceive('createTransferRecipient')->andReturn(['status' => true, 'data' => ['recipient_code' => 'RCP_' . $number]])->byDefault();
         return $client;
     }
 
@@ -182,6 +240,11 @@ class OrganizerPayoutAccountServiceTest extends TestCase
             $table->timestamp('verified_at')->nullable();
             $table->timestamp('hold_until')->nullable();
             $table->timestamp('locked_at')->nullable();
+            $table->text('provider_recipient_code')->nullable();
+            $table->timestamp('recipient_created_at')->nullable();
+            $table->string('review_reason', 500)->nullable();
+            $table->unsignedBigInteger('reviewed_by_admin_id')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
             $table->unique(['provider', 'bank_code', 'account_number_hash'], 'payout_account_destination_unique');
         });

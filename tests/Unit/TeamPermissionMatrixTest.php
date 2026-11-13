@@ -52,7 +52,6 @@ class TeamPermissionMatrixTest extends TestCase
     // Money
     ['TicaWorkspaceController@withdraw', null, false, true],
     ['TicaWorkspaceController@saveBank', null, false, false],
-    ['TicaWorkspaceController@bankCode', null, false, false],
     ['TicaWorkspaceController@payoutSchedule', null, false, false],
     // Team and settings: owner only
     ['TicaWorkspaceController@invite', null, false, false],
@@ -61,6 +60,9 @@ class TeamPermissionMatrixTest extends TestCase
     ['TicaWorkspaceController@profile', null, false, false],
     ['TicaWorkspaceController@password', null, false, false],
     ['TicaWorkspaceController@prefs', null, false, false],
+    ['TwoFactorController@start', null, false, false],
+    ['TwoFactorController@disable', null, false, false],
+    ['TwoFactorController@regenerate', null, false, false],
     // Legacy organiser pages
     ['organizer.dashboard', null, true, true],
     ['organizer.logout', null, true, true],

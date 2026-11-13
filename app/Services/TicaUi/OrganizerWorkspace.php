@@ -35,6 +35,7 @@ class OrganizerWorkspace
     'transfers' => true,
     'notify_sale' => false,
     'daily_summary' => true,
+    'payout_sms' => false,
   ];
 
   public function __construct(private Language $language)
@@ -115,6 +116,9 @@ class OrganizerWorkspace
         'twitter' => (string) ($organizer->twitter ?? ''),
         'linkedin' => (string) ($organizer->linkedin ?? ''),
         'mfa' => $organizer->two_factor_enabled_at !== null,
+        'totp' => $organizer->totp_confirmed_at !== null,
+        'totpSince' => $organizer->totp_confirmed_at?->format('j M Y'),
+        'totpCodesLeft' => $organizer->totp_confirmed_at ? count((array) ($organizer->totp_recovery_codes ?? [])) : 0,
         'securityUrl' => route('account-security.show', ['guard' => 'organizer']),
       ],
       'prefs' => array_merge(self::PREFERENCE_DEFAULTS, ['buyers_pay_fee' => \App\Support\TicaPlatform::all()['default_fee_payer'] === 'buyer'], (array) json_decode((string) ($organizer->preferences ?? ''), true)),
@@ -318,6 +322,14 @@ class OrganizerWorkspace
         'verified' => $account->status === 'verified',
         'held' => $account->hold_until && now()->lt($account->hold_until),
         'status' => (string) $account->status,
+      ] : null,
+      // A new account whose bank name didn't match, waiting for TICA to review it.
+      'review' => ($review = OrganizerPayoutAccount::query()->where('organizer_id', $organizer->id)->whereIn('status', ['needs_review', 'rejected'])->where('updated_at', '>=', now()->subDays(30))->latest('id')->first()) ? [
+        'name' => (string) $review->resolved_account_name,
+        'bank' => (string) $review->bank_name,
+        'last4' => (string) $review->account_last4,
+        'status' => (string) $review->status,
+        'reason' => (string) ($review->review_reason ?? ''),
       ] : null,
       // An account given with the identity check, waiting for the approval.
       'staged' => ($staged = OrganizerPayoutAccount::query()->where('organizer_id', $organizer->id)->whereIn('status', ['pending_kyc', 'name_mismatch'])->latest('id')->first()) ? [

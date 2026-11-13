@@ -234,7 +234,7 @@ class WithdrawController extends Controller
 
     return redirect()->back()->with(
       'success',
-      'The Paystack payout was queued with reference ' . $transfer->reference . '. It will only be marked paid after gateway confirmation.'
+      'The payout was queued via ' . ucfirst((string) $transfer->gateway) . ' with reference ' . $transfer->reference . '. It is only marked paid after the provider confirms it.'
     );
   }
 

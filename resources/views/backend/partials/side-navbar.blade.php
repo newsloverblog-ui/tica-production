@@ -306,7 +306,8 @@
           @elseif (request()->routeIs('admin.withdraw.payment_method')) active
           @elseif (request()->routeIs('admin.withdraw_payment_method.mange_input')) active
           @elseif (request()->routeIs('admin.withdraw_payment_method.edit_input')) active
-          @elseif (request()->routeIs('admin.withdraw.withdraw_request')) active @endif">
+          @elseif (request()->routeIs('admin.withdraw.withdraw_request')) active
+          @elseif (request()->routeIs('admin.payout_accounts.*')) active @endif">
                         <a data-toggle="collapse" href="#withdraw_method">
                             <i class="fas fa-credit-card"></i>
                             <p>{{ __('Withdraw Method') }}</p>
@@ -319,7 +320,8 @@
             @elseif (request()->routeIs('admin.withdraw.payment_method')) show
             @elseif (request()->routeIs('admin.withdraw_payment_method.mange_input')) show 
             @elseif (request()->routeIs('admin.withdraw_payment_method.edit_input')) show 
-            @elseif (request()->routeIs('admin.withdraw.withdraw_request')) show @endif">
+            @elseif (request()->routeIs('admin.withdraw.withdraw_request')) show
+            @elseif (request()->routeIs('admin.payout_accounts.*')) show @endif">
                             <ul class="nav nav-collapse">
                                 <li
                                     class="@if (request()->routeIs('admin.withdraw.payment_method')) active 
@@ -336,6 +338,12 @@
                                     <a
                                         href="{{ route('admin.withdraw.withdraw_request', ['language' => $defaultLang->code]) }}">
                                         <span class="sub-item">{{ __('Withdraw Requests') }}</span>
+                                    </a>
+                                </li>
+
+                                <li class="{{ request()->routeIs('admin.payout_accounts.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.payout_accounts.index') }}">
+                                        <span class="sub-item">{{ __('Payout Accounts') }}</span>
                                     </a>
                                 </li>
                             </ul>
