@@ -145,7 +145,15 @@
           <form class="od-form od-invite" id="od-inv" novalidate><div class="inp"><label for="od-ie">Invite by email</label><input id="od-ie" type="email" placeholder="name@example.com"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"><option>Gate staff</option><option>Manager</option><option>Finance</option></select></div><button class="btn btn-hot" type="submit">Send invite</button></form>
           <p class="hint" id="od-inv-m" role="status"></p>
         </section>
-        <dl class="od-roles"><div><dt>Owner</dt><dd>Everything, including the payout account.</dd></div><div><dt>Manager</dt><dd>Create and edit events, see orders, message attendees. No payouts.</dd></div><div><dt>Finance</dt><dd>See sales and request withdrawals. Can't edit events.</dd></div><div><dt>Gate staff</dt><dd>Only the check-in scanner, for the events you choose.</dd></div></dl>
+        <div class="od-roles">
+          @foreach (['owner' => 'Owner', 'manager' => 'Manager', 'finance' => 'Finance', 'gate' => 'Gate staff'] as $roleKey => $roleName)
+            @php($sum = config('tica_team.role_summaries.' . $roleKey))
+            <div class="od-role-card"><h3>{{ $roleName }}</h3>
+              <ul class="od-can">@foreach ($sum['can'] as $line)<li>{{ $line }}</li>@endforeach</ul>
+              @if ($sum['cannot'])<ul class="od-cannot">@foreach ($sum['cannot'] as $line)<li>{{ $line }}</li>@endforeach</ul>@endif
+            </div>
+          @endforeach
+        </div>
       </div>
 
       <!-- SETTINGS -->

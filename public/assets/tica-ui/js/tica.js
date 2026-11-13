@@ -1248,7 +1248,7 @@ function Nc(n,c){var o=window.TICA_CUR;window.TICA_CUR=c||null;var s=N(n);window
 var api=window.TICA_API;
 function get(url){return fetch(url,{credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j.message||'Something went wrong.');e.data=j;throw e}return j})})}
 function errText(er){var e=er.data&&er.data.errors,k=e&&Object.keys(e)[0];return k?e[k][0]:er.message}
-var ROLE=D.role||'owner',CAN={events:ROLE!=='finance',payouts:ROLE!=='manager',team:ROLE==='owner',settings:ROLE==='owner'};
+var ROLE=D.role||'owner',PERMS=D.permissions||['*'],PERM=function(k){return PERMS.indexOf('*')>-1||PERMS.indexOf(k)>-1},CAN={events:PERM('events.manage'),promote:PERM('promote.manage'),payouts:PERM('payouts.view'),withdraw:PERM('withdrawals.request'),refund:PERM('refunds.manage'),team:PERM('team.manage'),settings:PERM('settings.manage'),orders:PERM('orders.view'),checkin:PERM('checkin.run')};
 var toastEl=document.createElement('div');toastEl.className='od-toast';toastEl.setAttribute('role','status');document.body.appendChild(toastEl);
 function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){toastEl.classList.remove('on')},3200)}
 var ICO={ok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',warn:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>',x:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'};
@@ -1264,9 +1264,10 @@ try{var pend=sessionStorage.getItem('tica_od_toast');if(pend){sessionStorage.rem
 /* organiser card and role-limited menu */
 document.querySelector('.od-av').textContent=D.org.initials;
 document.querySelector('.od-ver').textContent=D.org.verified?'Verified organiser':'Not verified yet';document.querySelector('.od-ver').classList.toggle('no',!D.org.verified);
-[].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var p=b.dataset.panel;if((p==='events'||p==='promote')&&!CAN.events||p==='payouts'&&!CAN.payouts||p==='team'&&!CAN.team||p==='settings'&&!CAN.settings)b.hidden=true});
+[].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var p=b.dataset.panel;if(p==='events'&&!PERM('events.view')||p==='promote'&&!CAN.promote||p==='orders'&&!CAN.orders||p==='payouts'&&!CAN.payouts||p==='team'&&!CAN.team||p==='settings'&&!CAN.settings)b.hidden=true});
 if(!CAN.events)[].forEach.call(document.querySelectorAll('.page[data-page=dashboard] a[href="/create"]'),function(a){a.hidden=true});
-[].forEach.call(document.querySelectorAll('.od-tool'),function(a){var ar=a.dataset.area;if(ar==='events'&&!CAN.events||ar==='money'&&!CAN.payouts||ar==='owner'&&ROLE!=='owner')a.hidden=true});
+[].forEach.call(document.querySelectorAll('.od-tool'),function(a){var ar=a.dataset.area;if(ar==='events'&&!CAN.events||ar==='money'&&!CAN.payouts||ar==='owner'&&!PERM('team.manage'))a.hidden=true});
+if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
 /* More tools dropdown: remembers open or closed, and on phones floats below the menu bar */
 (function(){var d=document.getElementById('od-more');if(!d)return;var sum=d.querySelector('summary'),list=d.querySelector('.od-more-l');
   if(!d.querySelector('.od-tool:not([hidden])')){d.hidden=true;return}
@@ -1296,7 +1297,7 @@ if(!CAN.events)[].forEach.call(document.querySelectorAll('.page[data-page=dashbo
 
 /* panels */
 var PANELS=['overview','events','orders','payouts','promote','team','settings'];
-function allowed(p){return !(((p==='events'||p==='promote')&&!CAN.events)||(p==='payouts'&&!CAN.payouts)||(p==='team'&&!CAN.team)||(p==='settings'&&!CAN.settings))}
+function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='promote'&&!CAN.promote)||(p==='orders'&&!CAN.orders)||(p==='payouts'&&!CAN.payouts)||(p==='team'&&!CAN.team)||(p==='settings'&&!CAN.settings))}
 function show(p,push){
   if(PANELS.indexOf(p)<0||!allowed(p))p='overview';
   [].forEach.call(document.querySelectorAll('.od-p'),function(x){x.hidden=x.dataset.p!==p});
@@ -1459,7 +1460,7 @@ function loadAtt(append){
 function paintAtt(r){
   var rows=ATT;
   $('od-att').innerHTML='<div class="od-ar th" role="row"><span role="columnheader">Attendee</span><span role="columnheader">Ticket</span><span role="columnheader">Order</span><span role="columnheader">Status</span><span role="columnheader"><span class="vh">Actions</span></span></div>'+
-  (rows.length?rows.map(function(a,i){return '<div class="od-ar" role="row"><span role="cell" class="od-who"><i aria-hidden="true">'+esc((a.name||'?')[0])+'</i><span><b>'+esc(a.name)+'</b><small>'+esc(a.email)+'</small></span></span><span role="cell"><b>'+esc(a.tier)+'</b><small>'+esc(a.event)+'</small></span><span role="cell"><b>'+(a.amount?Nc(a.amount,a.cur):'Free')+'</b><small>#'+esc(a.ref)+'</small></span><span role="cell"><em class="st'+(a.status==='Paid'?' new':a.status==='Refunded'||a.status==='Refund requested'?' warn':'')+'">'+esc(a.status)+'</em></span><span role="cell" class="od-aa">'+(a.bookingId?'<a class="od-lk" href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Details</a><button type="button" class="od-lk" data-resend="'+i+'">Resend</button>':'')+(a.refundable&&CAN.payouts?'<button type="button" class="od-lk red" data-refund="'+i+'">Refund</button>':'')+'</span></div>'}).join(''):'<p class="od-empty">'+($('od-q').value||$('od-fe').value||$('od-fs').value?'No one matches that search.':'No attendees yet.')+'</p>');
+  (rows.length?rows.map(function(a,i){return '<div class="od-ar" role="row"><span role="cell" class="od-who"><i aria-hidden="true">'+esc((a.name||'?')[0])+'</i><span><b>'+esc(a.name)+'</b><small>'+esc(a.email)+'</small></span></span><span role="cell"><b>'+esc(a.tier)+'</b><small>'+esc(a.event)+'</small></span><span role="cell"><b>'+(a.amount?Nc(a.amount,a.cur):'Free')+'</b><small>#'+esc(a.ref)+'</small></span><span role="cell"><em class="st'+(a.status==='Paid'?' new':a.status==='Refunded'||a.status==='Refund requested'?' warn':'')+'">'+esc(a.status)+'</em></span><span role="cell" class="od-aa">'+(a.bookingId?'<a class="od-lk" href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Details</a><button type="button" class="od-lk" data-resend="'+i+'">Resend</button>':'')+(a.refundable&&CAN.refund?'<button type="button" class="od-lk red" data-refund="'+i+'">Refund</button>':'')+'</span></div>'}).join(''):'<p class="od-empty">'+($('od-q').value||$('od-fe').value||$('od-fs').value?'No one matches that search.':'No attendees yet.')+'</p>');
   $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=rows.length?(r&&r.more?'Showing '+rows.length+' attendees. Load more or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s')+' shown.'):'';
 }
 ['od-q','od-fe','od-fs'].forEach(function(id){$(id).addEventListener('input',drawAtt)});
@@ -1486,7 +1487,7 @@ document.addEventListener('click',function(ev){
   if(t.id==='ev-cancel'){if(!t.dataset.sure){t.dataset.sure='1';t.textContent='Yes, cancel and refund everyone';$('ev-dz').textContent='This can\'t be undone. Press again to confirm.';return}
     t.disabled=true;api('/tica-api/organizer/events/'+curEv+'/cancel',{reason:'Cancelled by the organiser'}).then(function(){reload('Cancellation requested. TICA will refund your buyers and tell them by email.')},function(er){t.disabled=false;$('ev-dz').textContent=errText(er)});return}
   var cp=t.closest('[data-copy]');if(cp){var l=D.links.filter(function(x){return x.id===+cp.dataset.copy})[0],ev2=l.eventId?evById(l.eventId):(D.next||D.events[0]),u=location.origin+(ev2?'/event/'+ev2.slug:'/discover')+'?ref='+l.code;try{navigator.clipboard.writeText(u).then(function(){toast('Link copied.')},function(){toast(u)})}catch(e){toast(u)}return}
-  if(t.id==='od-wd-btn'||t.closest('#od-wd-btn')){openWd();return}
+  if(t.id==='od-wd-btn'||t.closest('#od-wd-btn')){if(CAN.withdraw)openWd();return}
   if(t.id==='wd-go'){sendWd();return}
   if(t.id==='bk-change'){OD.changing=true;drawPay();return}
 });
@@ -1597,7 +1598,8 @@ $('od-pixel-f').addEventListener('submit',function(e){e.preventDefault();var b=e
 document.addEventListener('click',function(e){var pay=e.target.closest('[data-payprom]'),cancel=e.target.closest('[data-cancelprom]');if(pay){var password=window.prompt('Confirm this payment with your organizer password.');if(!password)return;pay.disabled=true;api('/tica-api/organizer/promotions/'+pay.dataset.payprom+'/pay',{current_password:password}).then(function(r){reload(r.message)},function(er){pay.disabled=false;toast(errText(er))});return}if(cancel){if(!cancel.dataset.sure){cancel.dataset.sure='1';cancel.textContent='Confirm cancel';return}cancel.disabled=true;api('/tica-api/organizer/promotions/'+cancel.dataset.cancelprom+'/cancel').then(function(r){reload(r.message)},function(er){cancel.disabled=false;toast(errText(er))})}});
 
 /* team */
-function drawTeam(){$('od-team').innerHTML=D.team.map(function(m){return '<li><i aria-hidden="true">'+esc((m.name||'?')[0])+'</i><span><b>'+esc(m.name)+'</b><small>'+esc(m.email)+'</small></span><span class="od-role"><b>'+esc(m.role)+'</b><small>'+esc(m.scope)+'</small></span>'+(m.id&&CAN.team?'<button class="od-lk red" type="button" data-unteam="'+m.id+'">Remove</button>':'')+'</li>'}).join('')}
+function drawTeam(){$('od-team').innerHTML=D.team.map(function(m){return '<li><i aria-hidden="true">'+esc((m.name||'?')[0])+'</i><span><b>'+esc(m.name)+'</b><small>'+esc(m.email)+'</small></span><span class="od-role">'+(m.id&&CAN.team&&(m.roleKey==='manager'||m.roleKey==='finance')?'<select class="od-rolesel" data-rolefor="'+m.id+'" aria-label="Role for '+esc(m.name)+'"><option value="manager"'+(m.roleKey==='manager'?' selected':'')+'>Manager</option><option value="finance"'+(m.roleKey==='finance'?' selected':'')+'>Finance</option></select>':'<b>'+esc(m.role)+'</b>')+'<small>'+esc(m.scope)+'</small></span>'+(m.id&&CAN.team?'<button class="od-lk red" type="button" data-unteam="'+m.id+'">Remove</button>':'')+'</li>'}).join('')}
+document.addEventListener('change',function(e){var s=e.target.closest('[data-rolefor]');if(!s)return;s.disabled=true;api('/tica-api/organizer/team/'+s.dataset.rolefor+'/role',{role:s.value}).then(function(){reload('Role updated. It applies from their next click.')},function(er){s.disabled=false;toast(errText(er))})});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-unteam]');if(!b)return;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Remove access?';return}api('/tica-api/organizer/team/'+b.dataset.unteam+'/remove').then(function(){reload('Access removed.')},function(er){toast(errText(er))})});
 $('od-ir').innerHTML='<option value="gate">Gate staff</option><option value="manager">Manager</option><option value="finance">Finance</option>';
 $('od-inv').addEventListener('submit',function(e){e.preventDefault();var m=$('od-ie').value.trim();if(m.indexOf('@')<1||m.indexOf('.')<0){$('od-inv-m').textContent='Enter a valid email address.';return}

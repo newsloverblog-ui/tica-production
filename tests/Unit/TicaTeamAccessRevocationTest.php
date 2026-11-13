@@ -112,6 +112,8 @@ class TicaTeamAccessRevocationTest extends TestCase
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
         ]);
+        $route = app('router')->getRoutes()->match($request);
+        $request->setRouteResolver(fn () => $route);
         $session = app('session')->driver();
         $session->start();
         $request->setLaravelSession($session);

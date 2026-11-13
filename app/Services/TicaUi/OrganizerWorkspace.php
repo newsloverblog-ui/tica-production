@@ -60,6 +60,8 @@ class OrganizerWorkspace
 
     return [
       'role' => $role,
+      'permissions' => \App\Support\TeamPermissions::permissionsFor($role),
+      'roleSummaries' => config('tica_team.role_summaries'),
       'org' => [
         'name' => $name,
         'initials' => $this->initials($name),
@@ -458,6 +460,7 @@ class OrganizerWorkspace
       'name' => (string) ($member->name ?: strstr($member->email, '@', true)),
       'email' => (string) $member->email,
       'role' => $roles[$member->role] ?? $member->role,
+      'roleKey' => (string) $member->role,
       'scope' => $member->status === 'invited' ? 'Invite sent' : ($member->role === 'gate' && $member->event_ids ? count($member->event_ids) . ' event' . (count($member->event_ids) === 1 ? '' : 's') : ''),
     ])->all());
   }

@@ -42,7 +42,7 @@ class TicaOrganizerController extends Controller
 
   public function storeEvent(Request $request): JsonResponse
   {
-    abort_if(\Illuminate\Support\Facades\Session::get('tica_team_member.role') === 'finance', 403, 'Your team role doesn\'t include creating events.');
+    abort_unless(\App\Support\TeamPermissions::can('events.manage'), 403, 'Your team role doesn\'t include creating events.');
     $organizer = Auth::guard('organizer')->user();
 
     return $this->createEvent($request, (int) $organizer->id);
@@ -140,7 +140,7 @@ class TicaOrganizerController extends Controller
   /** Organisers edit their own event in the same builder they created it with. */
   public function updateOrganizerEvent(Request $request, int $id): JsonResponse
   {
-    abort_if(in_array(\Illuminate\Support\Facades\Session::get('tica_team_member.role'), ['finance', 'gate'], true), 403, 'Your team role doesn\'t include editing events.');
+    abort_unless(\App\Support\TeamPermissions::can('events.manage'), 403, 'Your team role doesn\'t include editing events.');
     $organizer = Auth::guard('organizer')->user();
     $event = Event::query()->whereKey($id)->where('organizer_id', $organizer->id)->firstOrFail();
 
