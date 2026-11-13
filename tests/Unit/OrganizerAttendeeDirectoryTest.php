@@ -154,6 +154,35 @@ class OrganizerAttendeeDirectoryTest extends TestCase
         (new OrganizerAttendeeDirectory())->page(1, [], 50, 'not-a-cursor');
     }
 
+    public function test_visible_ticket_reference_finds_the_exact_scoped_attendee(): void
+    {
+        $booking = $this->booking(1, 'Reference Buyer');
+        $other = $this->booking(2, 'Private Reference');
+
+        $this->ticket($booking, 10, 100, 1, 'First attendee');
+        $this->ticket($booking, 10, 100, 2, 'Second attendee');
+        $this->ticket($other, 99, 999, 1, 'Private attendee');
+        DB::table('event_contents')->insert([
+            ['language_id' => 1, 'event_id' => 10, 'title' => 'Visible event'],
+            ['language_id' => 1, 'event_id' => 99, 'title' => 'Private event'],
+        ]);
+        DB::table('ticket_contents')->insert([
+            ['language_id' => 1, 'ticket_id' => 100, 'title' => 'General'],
+            ['language_id' => 1, 'ticket_id' => 999, 'title' => 'Private'],
+        ]);
+
+        $directory = new OrganizerAttendeeDirectory();
+        $reference = '#TICA-' . str_pad((string) $booking, 6, '0', STR_PAD_LEFT) . '-2';
+        $result = $directory->page(1, ['q' => $reference]);
+        $privateReference = 'TICA-' . str_pad((string) $other, 6, '0', STR_PAD_LEFT) . '-1';
+        $privateResult = $directory->page(1, ['q' => $privateReference]);
+
+        $this->assertCount(1, $result['rows']);
+        $this->assertSame('Second attendee', $result['rows'][0]['name']);
+        $this->assertSame(ltrim($reference, '#'), $result['rows'][0]['ref']);
+        $this->assertSame([], $privateResult['rows']);
+    }
+
     private function booking(int $organizerId, string $name): int
     {
         [$first, $last] = array_pad(explode(' ', $name, 2), 2, '');

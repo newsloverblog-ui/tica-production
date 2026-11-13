@@ -72,15 +72,18 @@ class OrganizerAttendeeDirectory
         $q = trim((string) ($filters['q'] ?? ''));
         $eventId = (int) ($filters['event'] ?? 0);
         $status = (string) ($filters['status'] ?? '');
+        $ticketReference = $this->ticketReference($q);
 
         return BookingTicket::query()
             ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
             ->where('bookings.organizer_id', $organizerId)
             ->when($eventId > 0, fn (Builder $builder) => $builder->where('booking_tickets.event_id', $eventId))
-            ->when($q !== '', function (Builder $builder) use ($q): void {
+            ->when($q !== '', function (Builder $builder) use ($q, $ticketReference): void {
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
-                $id = (int) preg_replace('/\D+/', '', $q);
-                $builder->where(function (Builder $where) use ($like, $id): void {
+                $id = preg_match('/^#?\d+$/', $q) === 1
+                    ? (int) ltrim($q, '#')
+                    : 0;
+                $builder->where(function (Builder $where) use ($like, $id, $ticketReference): void {
                     $where->where('booking_tickets.holder_name', 'like', $like)
                         ->orWhere('booking_tickets.holder_email', 'like', $like)
                         ->orWhere('bookings.email', 'like', $like)
@@ -90,6 +93,14 @@ class OrganizerAttendeeDirectory
                         ->orWhereRaw("CONCAT(bookings.fname, ' ', bookings.lname) LIKE ?", [$like]);
                     if ($id > 0) {
                         $where->orWhere('bookings.id', $id);
+                    }
+                    if ($ticketReference !== null) {
+                        $where->orWhere(function (Builder $reference) use ($ticketReference): void {
+                            $reference->where('bookings.id', $ticketReference['booking']);
+                            if ($ticketReference['sequence'] !== null) {
+                                $reference->where('booking_tickets.sequence', $ticketReference['sequence']);
+                            }
+                        });
                     }
                 });
             })
@@ -135,6 +146,23 @@ class OrganizerAttendeeDirectory
                 'bookings.refund_status',
                 'bookings.currencyText as order_currency',
             );
+    }
+
+    /** @return array{booking: int, sequence: ?int}|null */
+    private function ticketReference(string $query): ?array
+    {
+        if (preg_match('/^#?TICA-(\d{1,20})(?:-(\d{1,10}))?$/i', $query, $matches) !== 1) {
+            return null;
+        }
+
+        $booking = (int) $matches[1];
+        $sequence = isset($matches[2]) ? (int) $matches[2] : null;
+
+        if ($booking < 1 || ($sequence !== null && $sequence < 1)) {
+            return null;
+        }
+
+        return ['booking' => $booking, 'sequence' => $sequence];
     }
 
     /**
