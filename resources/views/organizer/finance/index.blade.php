@@ -32,7 +32,7 @@
   {{-- Layer 2: next payout, then the breakdown --}}
   <div class="lg-two">
     <section class="t-card" aria-labelledby="fin-next-h">
-      <div class="t-card__head"><h2 class="t-card__title" id="fin-next-h">{{ __('Next payout') }}</h2><span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ __($nextPayout['label']) }}</span></div>
+      <div class="t-card__head"><h2 class="t-card__title" id="fin-next-h">{{ __('Next payout') }}</h2>@if ($nextPayout['scheduled_at'])<span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ __($nextPayout['label']) }}</span>@endif</div>
       <p class="lg-big">
         @if ($nextPayout['scheduled_at'])
           {{ \Carbon\Carbon::parse($nextPayout['scheduled_at'])->timezone(config('payouts.eligibility_policy.timezone', 'Africa/Lagos'))->format('D, j M Y \a\t g:i A') }}
