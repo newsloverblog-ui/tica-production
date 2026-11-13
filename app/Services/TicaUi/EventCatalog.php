@@ -193,7 +193,7 @@ class EventCatalog
         'cur' => [
           'code' => TicaCurrency::normalize($content->currency ?? null),
           'symbol' => TicaCurrency::symbol($content->currency ?? null),
-          'position' => TicaCurrency::isBase($content->currency ?? null) ? $this->currency()['position'] : 'left',
+          'position' => TicaCurrency::isBase($content->currency ?? null) ? (string) ($this->basic()->base_currency_symbol_position ?? 'left') : 'left',
         ],
         'n' => (float) ($minimum ?? 0),
         'art' => $this->art($content, $label, $name, $start, $time),
@@ -436,9 +436,10 @@ class EventCatalog
     if ($code !== null && !TicaCurrency::isBase($code)) {
       return TicaCurrency::symbol($code) . $value;
     }
-    $currency = $this->currency();
+    $basic = $this->basic();
+    $symbol = (string) ($basic->base_currency_symbol ?: TicaCurrency::symbol(TicaCurrency::base()));
 
-    return $currency['position'] === 'right' ? $value . $currency['symbol'] : $currency['symbol'] . $value;
+    return $basic->base_currency_symbol_position === 'right' ? $value . $symbol : $symbol . $value;
   }
 
   private function basic(): Basic

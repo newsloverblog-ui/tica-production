@@ -10,6 +10,7 @@ use App\Models\BasicSettings\Basic;
 use App\Models\Timezone;
 use App\Rules\ImageMimeTypeRule;
 use App\Services\RuntimeDocumentStore;
+use App\Support\TicaCurrency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
@@ -119,6 +120,7 @@ class BasicController extends Controller
         'base_currency_rate' => $request->base_currency_rate
       ]
     );
+    TicaCurrency::reset();
 
     Session::flash('success', 'Updated Successfully');
 
@@ -985,6 +987,7 @@ class BasicController extends Controller
 
       ]
     );
+    TicaCurrency::reset();
 
     Session::flash('success', 'Updated Successfully!');
 

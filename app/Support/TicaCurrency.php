@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\BasicSettings\Basic;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
@@ -15,6 +14,8 @@ use Throwable;
  */
 final class TicaCurrency
 {
+  private const SETTINGS_KEY = 'tica.currency.base-settings';
+
   /** Currencies Paystack can charge in. Paid tickets need one of these. */
   public const PAYSTACK = ['NGN', 'GHS', 'KES', 'ZAR', 'USD', 'XOF', 'EGP'];
 
@@ -47,16 +48,7 @@ final class TicaCurrency
 
   public static function base(): string
   {
-    try {
-      if (Schema::hasTable('basic_settings') && Schema::hasColumn('basic_settings', 'base_currency_text')) {
-        return strtoupper((string) (Basic::query()->value('base_currency_text') ?: 'NGN'));
-      }
-    } catch (Throwable) {
-      // Installation, test, and rolling-deploy schemas may not have the
-      // currency columns yet. Keep money in the known platform base currency.
-    }
-
-    return 'NGN';
+    return self::settings()['code'];
   }
 
   public static function normalize(?string $code): string
@@ -75,18 +67,45 @@ final class TicaCurrency
   {
     $code = self::normalize($code);
     if ($code === self::base()) {
-      try {
-        if (Schema::hasTable('basic_settings') && Schema::hasColumn('basic_settings', 'base_currency_symbol')) {
-          return (string) (Basic::query()->value('base_currency_symbol') ?: self::CURRENCIES[$code]['symbol'] ?? $code);
-        }
-      } catch (Throwable) {
-        // Fall through to the built-in symbol map.
-      }
-
-      return self::CURRENCIES[$code]['symbol'] ?? $code;
+      return self::settings()['symbol'];
     }
 
     return self::CURRENCIES[$code]['symbol'] ?? $code;
+  }
+
+  /** Forget request-local settings after an administrator changes currency. */
+  public static function reset(): void
+  {
+    if (app()->bound(self::SETTINGS_KEY)) {
+      app()->forgetInstance(self::SETTINGS_KEY);
+    }
+  }
+
+  /** @return array{code: string, symbol: string} */
+  private static function settings(): array
+  {
+    if (app()->bound(self::SETTINGS_KEY)) {
+      return app(self::SETTINGS_KEY);
+    }
+
+    $code = 'NGN';
+    $symbol = self::CURRENCIES[$code]['symbol'];
+    try {
+      $settings = Basic::query()->first(['base_currency_text', 'base_currency_symbol']);
+      $storedCode = strtoupper(trim((string) ($settings?->base_currency_text ?? '')));
+      if (isset(self::CURRENCIES[$storedCode])) {
+        $code = $storedCode;
+      }
+      $symbol = trim((string) ($settings?->base_currency_symbol ?? '')) ?: (self::CURRENCIES[$code]['symbol'] ?? $code);
+    } catch (Throwable) {
+      // Installation, test, and rolling-deploy schemas may not have the
+      // settings table or currency columns yet. Keep known safe defaults.
+    }
+
+    $settings = ['code' => $code, 'symbol' => $symbol];
+    app()->instance(self::SETTINGS_KEY, $settings);
+
+    return $settings;
   }
 
   public static function forCountry(?string $country): ?string
