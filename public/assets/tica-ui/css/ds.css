@@ -429,3 +429,41 @@ body.orgshell .od-sw li{display:flex;align-items:center;justify-content:space-be
 body.orgshell .od-sw li:last-child{border-bottom:0;padding-bottom:0}
 body.orgshell .od-sw li:first-child{padding-top:0}
 @media (max-width:900px){.pay-grid{grid-template-columns:1fr}}
+
+/* =====================================================================
+   Page: Gate check-in (inside the organiser shell; gate staff devices
+   without the shell keep the dark, high-contrast scanner screen)
+   ===================================================================== */
+body.orgshell .ck{background:transparent;color:var(--t-text-c);min-height:0}
+body.orgshell .ck-wrap{max-width:none;padding:var(--t-pad)}
+body.orgshell .ck-ev label,body.orgshell .ck-manual label,body.orgshell .ck-sim p{color:var(--t-text-c);font-size:var(--t-text-sm);font-weight:500}
+body.orgshell .ck-ev select,body.orgshell .ck-manual input{background:var(--t-surface);color:var(--t-ink);border:1px solid var(--t-line-strong);border-radius:var(--t-radius-sm,8px);min-height:44px;font:400 var(--t-text)/1.2 var(--t-font);letter-spacing:0}
+body.orgshell .ck-manual input::placeholder{color:var(--t-muted)}
+body.orgshell .ck-sync{color:var(--t-muted);font-size:var(--t-text-sm)}
+body.orgshell .ck-cam{border-radius:12px;background:#111827;max-height:56vh}
+body.orgshell .ck-res{background:var(--t-surface);border:1px solid var(--t-line);border-radius:12px;color:var(--t-ink)}
+body.orgshell .ck-idle{color:var(--t-muted)}
+body.orgshell .ck-res.ok{background:var(--t-green);border-color:var(--t-green);color:#fff}
+body.orgshell .ck-res.used{background:var(--t-orange);border-color:var(--t-orange);color:#fff}
+body.orgshell .ck-res.bad{background:var(--t-red);border-color:var(--t-red);color:#fff}
+body.orgshell .ck-res h2{font-size:var(--t-text-lg);font-weight:600;letter-spacing:0}
+body.orgshell .ck-sim{margin-top:var(--t-4)}
+body.orgshell .ck-sim .btn{min-height:48px;font-size:var(--t-text)}
+body.orgshell .ck-stat,body.orgshell .ck-log,body.orgshell .ck-setup{background:var(--t-surface);border:1px solid var(--t-line);border-radius:12px;color:var(--t-ink);padding:var(--t-pad)}
+body.orgshell .ck-stat span,body.orgshell .ck-stat small,body.orgshell .ck-log span,body.orgshell .ck-log time,body.orgshell .ck-log li.none,body.orgshell .ck-setup small{color:var(--t-muted)}
+body.orgshell .ck-stat b,body.orgshell .ck-stat b span{color:var(--t-ink);font-weight:600;letter-spacing:0}
+body.orgshell .ck-stat b small span{color:inherit}
+body.orgshell .ck-stat p{color:var(--t-text-c)}
+body.orgshell .ck-bar{background:var(--t-subtle)}
+body.orgshell .ck-bar i{background:var(--t-blue)}
+body.orgshell .ck-log h2{font-size:var(--t-text);font-weight:600;color:var(--t-ink)}
+body.orgshell .ck-log li{border-top-color:var(--t-line)}
+body.orgshell .ck-log li>i{background:var(--t-green)}
+body.orgshell .ck-log li.used>i{background:var(--t-orange)}
+body.orgshell .ck-log li.bad>i{background:var(--t-red)}
+body.orgshell .ck-setup b{color:var(--t-ink)}
+body.orgshell .ck-setup svg{stroke:var(--t-muted)}
+body.orgshell .ck-back{display:none}
+body.orgshell .ck-found li{background:var(--t-surface);border:1px solid var(--t-line);border-radius:8px;color:var(--t-ink)}
+body.orgshell .ck-setup:hover{background:var(--t-subtle);border-color:var(--t-line-strong)}
+body.orgshell .ck-setup small{opacity:1}
