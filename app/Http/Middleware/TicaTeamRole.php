@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\OrganizerTeamMember;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Limits organiser team members (signed in for an organiser) to their role
@@ -36,7 +38,25 @@ class TicaTeamRole
 
   public function handle(Request $request, Closure $next)
   {
-    $role = (string) ($request->session()->get('tica_team_member.role') ?: 'owner');
+    $memberSession = $request->session()->get('tica_team_member');
+    if ($memberSession === null) {
+      return $next($request);
+    }
+
+    $member = is_array($memberSession)
+      ? OrganizerTeamMember::query()
+        ->whereKey((int) ($memberSession['id'] ?? 0))
+        ->where('organizer_id', (int) Auth::guard('organizer')->id())
+        ->where('status', 'active')
+        ->whereIn('role', ['manager', 'finance'])
+        ->first()
+      : null;
+    if (!$member) {
+      return $this->revoke($request);
+    }
+
+    $role = (string) $member->role;
+    $request->session()->put('tica_team_member.role', $role);
     if ($role === 'owner') {
       return $next($request);
     }
@@ -54,6 +74,24 @@ class TicaTeamRole
     }
 
     return $next($request);
+  }
+
+  /** A removed or malformed team session must stop working immediately. */
+  private function revoke(Request $request)
+  {
+    Auth::guard('organizer')->logout();
+    $request->session()->forget('tica_team_member');
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    if ($request->expectsJson()) {
+      return response()->json([
+        'message' => 'Your team access has ended. Sign in again.',
+        'redirect' => route('organizer.login'),
+      ], 401);
+    }
+
+    return redirect()->route('organizer.login')->with('error', 'Your team access has ended. Sign in again.');
   }
 
   private function matches(string $route, array $patterns): bool

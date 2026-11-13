@@ -521,12 +521,12 @@ Route::middleware('change.lang')->group(function () {
   Route::get('/account', 'FrontEnd\TicaUiController@page')->defaults('page', 'account')->name('tica.account');
   Route::get('/signup', 'FrontEnd\TicaUiController@page')->defaults('page', 'signup')->name('tica.signup');
   Route::get('/forgot', 'FrontEnd\TicaUiController@page')->defaults('page', 'forgot')->name('tica.forgot');
-  Route::get('/create', 'FrontEnd\TicaUiController@page')->defaults('page', 'create')->name('tica.create');
+  Route::get('/create', 'FrontEnd\TicaUiController@page')->defaults('page', 'create')->middleware('tica.team')->name('tica.create');
   Route::get('/create/{id}', 'FrontEnd\TicaUiController@organizerEdit')->whereNumber('id')
-    ->middleware(['auth:organizer', 'Deactive:organizer'])->name('tica.edit');
+    ->middleware(['auth:organizer', 'Deactive:organizer', 'tica.team'])->name('tica.edit');
   Route::get('/dashboard/{section?}', 'FrontEnd\TicaUiController@page')->defaults('page', 'dashboard')
-    ->where('section', '[a-z-]+')->name('tica.dashboard');
-  Route::get('/checkin', 'FrontEnd\TicaUiController@page')->defaults('page', 'checkin')->name('tica.checkin');
+    ->where('section', '[a-z-]+')->middleware('tica.team')->name('tica.dashboard');
+  Route::get('/checkin', 'FrontEnd\TicaUiController@page')->defaults('page', 'checkin')->middleware('tica.team')->name('tica.checkin');
   Route::get('/team/accept/{token}', 'FrontEnd\TicaUiController@teamAccept')->where('token', '[A-Za-z0-9]{20,100}')->name('tica.team.accept');
 });
 
@@ -593,9 +593,9 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
   Route::post('/checkin/code', 'FrontEnd\TicaApiController@checkinCode')->middleware('throttle:scanner')->name('tica.api.checkin.code');
 
   Route::middleware(['auth:organizer', 'Deactive:organizer', 'EmailStatus:organizer'])->group(function () {
-    Route::post('/events', 'FrontEnd\TicaOrganizerController@storeEvent')->middleware('throttle:20,1')->name('tica.api.events.store');
+    Route::post('/events', 'FrontEnd\TicaOrganizerController@storeEvent')->middleware(['tica.team', 'throttle:20,1'])->name('tica.api.events.store');
 
-    Route::prefix('organizer')->group(function () {
+    Route::prefix('organizer')->middleware('tica.team')->group(function () {
       Route::post('/events/{id}', 'FrontEnd\TicaWorkspaceController@updateEvent')->whereNumber('id')->middleware('throttle:60,1');
       Route::post('/events/{id}/details', 'FrontEnd\TicaOrganizerController@updateOrganizerEvent')->whereNumber('id')->middleware('throttle:30,1');
       Route::post('/events/{id}/date', 'FrontEnd\TicaWorkspaceController@changeDate')->whereNumber('id')->middleware('throttle:10,1');
