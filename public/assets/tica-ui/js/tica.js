@@ -1852,7 +1852,7 @@ function fillEdit(){
   });
   var pay=f.querySelector('[name=c-payer][value='+(E.fee_payer==='organizer'?'me':'buyer')+']');if(pay)pay.checked=true;
   set('c-vis',E.visibility);set('c-ref',E.refund_policy);
-  $('c-left').checked=!!E.show_remaining;$('c-wait').checked=!!E.waitlist_enabled;$('c-cd').checked=!!E.countdown;
+  $('c-left').checked=!!E.show_remaining;$('c-wait').checked=!!E.waitlist_enabled;$('c-trans').checked=!!E.allow_transfers;$('c-cd').checked=!!E.countdown;
   $('c-askq').checked=!!E.attendee_question;set('c-question',E.attendee_question);set('c-seo',E.meta_description);set('c-keys',E.meta_keywords);
   if(E.flyer){$('p-flyer').innerHTML='';var img=new Image();img.alt='Your flyer';img.src=E.flyer;$('p-flyer').appendChild(img);
     var fh=$('c-flyer').closest('.inp');if(fh)fh.insertAdjacentHTML('afterend','<p class="hint">Your current flyer stays unless you choose a new one.</p>')}

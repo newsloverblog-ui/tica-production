@@ -200,6 +200,7 @@ class TicaOrganizerController extends Controller
         'visibility' => $validated['visibility'],
         'show_remaining' => $request->boolean('show_remaining'),
         'waitlist_enabled' => (TicaPlatform::on('waitlist') || $event->waitlist_enabled) && $request->boolean('waitlist_enabled'),
+        'allow_transfers' => (TicaPlatform::on('transfers') || $event->allow_transfers) && $request->boolean('allow_transfers'),
         'join_reveal_minutes' => (int) ($validated['join_reveal_minutes'] ?? 15),
         'attendee_question' => TicaPlatform::on('question') && $request->boolean('ask_question') ? ($validated['attendee_question'] ?? null) : null,
       ];

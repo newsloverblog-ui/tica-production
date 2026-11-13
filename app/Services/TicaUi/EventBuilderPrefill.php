@@ -106,6 +106,7 @@ class EventBuilderPrefill
       'refund_policy' => $refund === false ? '' : $refund,
       'show_remaining' => (bool) $event->show_remaining,
       'waitlist_enabled' => (bool) $event->waitlist_enabled,
+      'allow_transfers' => (bool) $event->allow_transfers,
       'countdown' => (int) $event->countdown_status === 1,
       'attendee_question' => (string) ($event->attendee_question ?? ''),
       'meta_description' => (string) (optional($content)->meta_description ?? ''),
