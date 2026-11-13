@@ -53,13 +53,13 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
 
     public function test_shared_organizer_shell_and_report_keep_the_dashboard_contract(): void
     {
-        $sidebar = file_get_contents(resource_path('views/organizer/partials/side-navbar.blade.php'));
+        $sidebar = file_get_contents(resource_path('views/components/shell/organizer.blade.php'));
         $report = file_get_contents(resource_path('views/organizer/event/booking/report.blade.php'));
         $organizerCss = file_get_contents(public_path('assets/tica-ui/css/organizer-blend.css'));
         $dashboardCss = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
         $adminCss = file_get_contents(public_path('assets/tica-ui/css/admin-blend.css'));
 
-        $positions = array_map(fn (string $section) => strpos($sidebar, "'{$section}']"), [
+        $positions = array_map(fn (string $section) => strpos($sidebar, "'{$section}' => ["), [
             'Main', 'Grow', 'Money', 'Account',
         ]);
         $this->assertNotContains(false, $positions);
@@ -67,7 +67,7 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $sortedPositions = $positions;
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
-        $this->assertStringContainsString("href=\"{{ url('/dashboard/settings') }}\"", $sidebar);
+        $this->assertStringContainsString("'/dashboard/settings'", $sidebar);
 
         $this->assertStringContainsString('class="tica-report-filters"', $report);
         $this->assertStringContainsString('class="table tica-report-table"', $report);
