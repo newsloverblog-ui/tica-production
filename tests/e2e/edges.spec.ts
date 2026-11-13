@@ -65,3 +65,8 @@ test('a ₦100,000,000 balance and a very long name fit', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test('"Continue with Google" stays hidden while Google sign-in is off', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.locator('[data-page="login"] [data-demo]')).toBeHidden();
+});
