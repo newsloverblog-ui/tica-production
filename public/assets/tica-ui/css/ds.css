@@ -253,6 +253,7 @@ body:not(.orgshell):not(.orgshell-legacy) .os-side,body:not(.orgshell):not(.orgs
 body.orgshell{background:var(--t-bg)}
 body.orgshell>.topbar,body.orgshell .topbar,body.orgshell>footer,body.orgshell footer.ft{display:none!important}
 body.orgshell #main{margin-left:var(--t-side);padding-top:var(--t-top);min-height:100vh;background:var(--t-bg)}
+body.orgshell .db.od::after{content:none;display:none}
 body.orgshell .db,body.orgshell .db.od{display:block;min-height:0;background:var(--t-bg)!important;border-radius:0;box-shadow:none;padding:0}
 body.orgshell .db-main,body.orgshell .od-main{max-width:1200px;margin:0 auto;padding:var(--t-5) var(--t-5) var(--t-8)}
 body.orgshell .ce-shell,body.orgshell .ce-shell.has-side{display:block;background:var(--t-bg)}
