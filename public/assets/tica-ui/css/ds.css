@@ -394,3 +394,13 @@ body.orgshell .ov .t-page-head{margin-bottom:0}
   .ev-table tr{position:relative}
   .ev-name{max-width:none;padding-right:40px}
 }
+
+/* =====================================================================
+   Page: Orders and attendees
+   ===================================================================== */
+.or-actions{display:flex;flex-wrap:wrap;gap:var(--t-2)}
+.or-date .t-input{min-width:0;width:160px}
+.or-name{display:block;color:var(--t-ink);font-weight:500;overflow-wrap:anywhere}
+.or-sub{display:block;font-size:13px;overflow-wrap:anywhere}
+.or-skel{padding:var(--t-2) 0}
+@media (max-width:767px){.or-actions{width:100%}.or-actions .t-btn{flex:1}.or-date,.or-date .t-input,.t-toolbar .t-select{width:100%}}

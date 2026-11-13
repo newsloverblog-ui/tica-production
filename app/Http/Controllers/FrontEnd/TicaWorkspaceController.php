@@ -260,6 +260,8 @@ class TicaWorkspaceController extends Controller
       'q' => ['nullable', 'string', 'max:255'],
       'event' => ['nullable', 'integer', 'min:1'],
       'status' => ['nullable', Rule::in(['paid', 'checked_in', 'refunded', 'guest'])],
+      'from' => ['nullable', 'date_format:Y-m-d'],
+      'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
       'cursor' => ['nullable', 'string', 'max:255'],
     ]);
   }

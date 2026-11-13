@@ -1429,17 +1429,29 @@ function drawAtt(){
 }
 function loadAtt(append){
   if(attLoading||append&&!attCursor)return;
-  var q=encodeURIComponent($('od-q').value.trim()),ev=$('od-fe').value,st=$('od-fs').value;
-  var seq=++attRequest,url='/tica-api/organizer/attendees?q='+q+'&event='+ev+'&status='+st+(append?'&cursor='+encodeURIComponent(attCursor):'');
-  attLoading=true;$('od-att').setAttribute('aria-busy','true');$('od-att-more').disabled=true;$('od-att-msg').textContent=append?'Loading more attendees…':'Loading attendees…';
+  var seq=++attRequest,url='/tica-api/organizer/attendees?'+attQuery()+(append?'&cursor='+encodeURIComponent(attCursor):'');
+  attLoading=true;$('od-att').setAttribute('aria-busy','true');$('od-att-more').disabled=true;$('od-att-msg').textContent=append?'Loading more attendees…':'';
+  if(!append)$('od-att').innerHTML='<div class="t-table-wrap or-skel">'+[1,2,3,4,5].map(function(){return '<span class="t-skel" style="height:44px;margin:12px 16px"></span>'}).join('')+'</div>';
   get(url).then(function(r){if(seq!==attRequest)return;ATT=append?ATT.concat(r.rows):r.rows;attCursor=r.nextCursor||null;paintAtt(r)},function(er){if(seq===attRequest){$('od-att-msg').textContent=er.message;$('od-att-more').hidden=true}}).then(function(){if(seq===attRequest){attLoading=false;$('od-att').removeAttribute('aria-busy');$('od-att-more').disabled=false}});
 }
+function attQuery(){return 'q='+encodeURIComponent($('od-q').value.trim())+'&event='+$('od-fe').value+'&status='+$('od-fs').value+'&from='+($('od-from').value||'')+'&to='+($('od-to').value||'')}
+function attStatus(s){var c=s==='Paid'?'green':s==='Checked in'?'blue':s==='Refunded'||s==='Refund requested'?'orange':'';return '<span class="t-badge'+(c?' t-badge--'+c:'')+'">'+esc(s)+'</span>'}
 function paintAtt(r){
-  var rows=ATT;
-  $('od-att').innerHTML='<div class="od-ar th" role="row"><span role="columnheader">Attendee</span><span role="columnheader">Ticket</span><span role="columnheader">Order</span><span role="columnheader">Status</span><span role="columnheader"><span class="vh">Actions</span></span></div>'+
-  (rows.length?rows.map(function(a,i){return '<div class="od-ar" role="row"><span role="cell" class="od-who"><i aria-hidden="true">'+esc((a.name||'?')[0])+'</i><span><b>'+esc(a.name)+'</b><small>'+esc(a.email)+'</small></span></span><span role="cell"><b>'+esc(a.tier)+'</b><small>'+esc(a.event)+'</small></span><span role="cell"><b>'+(a.amount?Nc(a.amount,a.cur):'Free')+'</b><small>#'+esc(a.ref)+'</small></span><span role="cell"><em class="st'+(a.status==='Paid'?' new':a.status==='Refunded'||a.status==='Refund requested'?' warn':'')+'">'+esc(a.status)+'</em></span><span role="cell" class="od-aa">'+(a.bookingId?'<a class="od-lk" href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Details</a><button type="button" class="od-lk" data-resend="'+i+'">Resend</button>':'')+(a.refundable&&CAN.refund?'<button type="button" class="od-lk red" data-refund="'+i+'">Refund</button>':'')+'</span></div>'}).join(''):'<p class="od-empty">'+($('od-q').value||$('od-fe').value||$('od-fs').value?'No one matches that search.':'No attendees yet.')+'</p>');
-  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=rows.length?(r&&r.more?'Showing '+rows.length+' attendees. Load more or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s')+' shown.'):'';
+  var rows=ATT,filtered=!!($('od-q').value.trim()||$('od-fe').value||$('od-fs').value||$('od-from').value||$('od-to').value);
+  $('od-clear').hidden=!filtered;
+  if(!rows.length){$('od-att').innerHTML='<div class="t-card"><div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></span><h3>'+(filtered?'No one matches these filters':'No attendees yet')+'</h3><p>'+(filtered?'Try a different name, event or date.':'People who buy tickets or get added as guests appear here.')+'</p>'+(filtered?'<button class="t-btn t-btn--secondary" type="button" id="od-clear2">Clear filters</button>':(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':''))+'</div></div>';$('od-att-more').hidden=true;$('od-att-msg').textContent='';return}
+  $('od-att').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards or-table"><thead><tr><th scope="col">Attendee</th><th scope="col">Ticket</th><th scope="col">Order</th><th scope="col" class="t-num">Amount</th><th scope="col">Status</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+rows.map(function(a,i){
+    var menu=[];if(a.bookingId){menu.push('<a href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Order details</a>');if(CAN.events||PERM('orders.manage'))menu.push('<button type="button" data-resend="'+i+'">Resend tickets</button>')}if(a.refundable&&CAN.refund)menu.push('<button type="button" class="is-danger" data-refund="'+i+'">Refund order</button>');
+    return '<tr><td data-label=""><span class="ov-buyer"><span class="t-avatar" style="--av:32px" aria-hidden="true">'+esc((a.name||'?')[0].toUpperCase())+'</span><span><span class="or-name">'+esc(a.name)+'</span><span class="t-muted or-sub">'+esc(a.email)+'</span></span></span></td>'+
+      '<td data-label="Ticket">'+esc(a.tier)+'<div class="t-muted or-sub">'+esc(a.event)+'</div></td>'+
+      '<td data-label="Order">#'+esc(a.ref)+'</td>'+
+      '<td data-label="Amount" class="t-num">'+(a.amount?Nc(a.amount,a.cur):'Free')+'</td>'+
+      '<td data-label="Status">'+attStatus(a.status)+'</td>'+
+      '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(a.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>';
+  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=r&&r.more?'Showing '+rows.length+'. Load more, or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s');
 }
+document.addEventListener('click',function(e){if(e.target.id==='od-clear'||e.target.id==='od-clear2'){['od-q','od-from','od-to'].forEach(function(id){$(id).value=''});$('od-fe').value='';$('od-fs').value='';drawAtt()}});
+['od-from','od-to'].forEach(function(id){$(id).addEventListener('change',drawAtt)});
 ['od-q','od-fe','od-fs'].forEach(function(id){$(id).addEventListener('input',drawAtt)});
 var refundI=null;
 document.addEventListener('click',function(ev){
@@ -1455,7 +1467,7 @@ document.addEventListener('click',function(ev){
   var d=t.closest('[data-dlg]');if(d){if(d.dataset.dlg==='od-msg'||d.dataset.dlg==='od-comp')fillDlg(d.dataset.dlg);$(d.dataset.dlg).showModal();return}
   if(t.closest('[data-close]')){var dl=t.closest('dialog');if(dl)dl.close();return}
   if(t.tagName==='DIALOG'&&t.classList.contains('od-dlg')){t.close();return}
-  if(t.id==='od-export'){location.href='/tica-api/organizer/attendees.csv?q='+encodeURIComponent($('od-q').value.trim())+'&event='+$('od-fe').value+'&status='+$('od-fs').value;toast('Attendee list downloading.');return}
+  if(t.id==='od-export'){location.href='/tica-api/organizer/attendees.csv?'+attQuery();toast('Attendee list downloading.');return}
   if(t.id==='od-att-more'){loadAtt(true);return}
   if(t.id==='ev-addt'){var nt=$('ev-newt');nt.hidden=false;t.hidden=true;$('ev-nt-n').focus();return}
   if(t.id==='ev-post'){var pf=$('ev-postf');if(pf.hidden){pf.hidden=false;t.textContent='Save new date';$('ev-dz').textContent='Tickets stay valid. Buyers are emailed the new date and can ask for a refund.';return}

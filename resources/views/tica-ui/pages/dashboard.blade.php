@@ -34,13 +34,18 @@
 
       <!-- ORDERS -->
       <div class="od-p" data-p="orders" hidden>
-        <div class="db-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
-          <div class="btns"><button class="btn btn-line" type="button" id="od-export">Export CSV</button><button class="btn btn-line" type="button" data-dlg="od-comp">Add guest</button><button class="btn btn-hot" type="button" data-dlg="od-msg">Message attendees</button></div></div>
-        <div class="od-tools"><label class="od-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="vh">Search attendees</span><input id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
-          <select id="od-fe" aria-label="Event"><option value="">All events</option></select>
-          <select id="od-fs" aria-label="Status"><option value="">Any status</option><option>Paid</option><option>Checked in</option><option>Refunded</option><option>Guest</option></select></div>
-        <div class="od-att" id="od-att" role="table" aria-label="Attendees"></div>
-        <div class="od-att-foot"><p class="hint" id="od-att-msg" role="status"></p><button class="btn btn-line" id="od-att-more" type="button" hidden>Load more</button></div>
+        <header class="t-page-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
+          <div class="or-actions"><button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button></div></header>
+        <div class="t-toolbar">
+          <label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search attendees</span><input class="t-input" id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
+          <select class="t-select" id="od-fe" aria-label="Event"><option value="">All events</option></select>
+          <select class="t-select" id="od-fs" aria-label="Status"><option value="">Any status</option></select>
+          <label class="or-date"><span class="t-sr">Ordered from</span><input class="t-input" id="od-from" type="date" aria-label="Ordered from"></label>
+          <label class="or-date"><span class="t-sr">Ordered to</span><input class="t-input" id="od-to" type="date" aria-label="Ordered to"></label>
+          <button class="t-btn t-btn--ghost t-btn--sm" type="button" id="od-clear" hidden>Clear filters</button>
+        </div>
+        <div id="od-att" aria-live="polite"></div>
+        <div class="t-pager"><span id="od-att-msg" role="status"></span><button class="t-btn t-btn--secondary t-btn--sm" id="od-att-more" type="button" hidden>Load more</button></div>
       </div>
 
       <!-- PAYOUTS -->
