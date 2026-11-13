@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Http\Middleware\TicaRetiredAdminPage;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class TicaPromotionGovernanceTest extends TestCase
@@ -87,5 +89,23 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("Rule::in(['approve', 'reject', 'pause', 'cancel'])", $controller);
         $this->assertStringContainsString("whereNotNull('paid_at')->sum('price')", $controller);
         $this->assertStringContainsString('An approved promotion must have an end time in the future.', $controller);
+    }
+
+    public function test_modern_promotion_center_is_not_redirected_as_a_retired_advertising_page(): void
+    {
+        $routes = app('router')->getRoutes();
+        $promotion = Request::create('/admin/advertise/tica-promotions', 'GET');
+        $promotion->setRouteResolver(fn () => $routes->getByName('admin.advertise.tica_promotions'));
+
+        $response = (new TicaRetiredAdminPage())->handle($promotion, fn () => response('promotion center'));
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('promotion center', $response->getContent());
+
+        $legacy = Request::create('/admin/advertise/settings', 'GET');
+        $legacy->setRouteResolver(fn () => $routes->getByName('admin.advertise.settings'));
+        $redirect = (new TicaRetiredAdminPage())->handle($legacy, fn () => response('legacy'));
+
+        $this->assertTrue($redirect->isRedirect(route('admin.tica.website', ['tab' => 'home'])));
     }
 }

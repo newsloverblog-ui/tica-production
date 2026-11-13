@@ -17,7 +17,7 @@ class TicaRetiredAdminPage
     [['admin.menu_builder', 'admin.menu_builder.*'], 'menu'],
     [['admin.footer.*', 'admin.basic_settings.footer_logo'], 'footer'],
     [['admin.basic_settings.contact_page', 'admin.contact.page', 'admin.basic_settings.social_medias'], 'contact'],
-    [['admin.advertise.*', 'admin.announcement_popups', 'admin.announcement_popups.*', 'admin.basic_settings.breadcrumb', 'admin.basic_settings.page_headings', 'admin.basic_settings.cookie_alert'], 'home'],
+    [['admin.advertise.settings', 'admin.advertise.advertisements', 'admin.announcement_popups', 'admin.announcement_popups.*', 'admin.basic_settings.breadcrumb', 'admin.basic_settings.page_headings', 'admin.basic_settings.cookie_alert'], 'home'],
   ];
 
   public function handle(Request $request, Closure $next)
