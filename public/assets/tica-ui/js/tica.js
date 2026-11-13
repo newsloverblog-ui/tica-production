@@ -1499,7 +1499,7 @@ var P=D.payouts;
 function drawPay(){
   $('od-avail').textContent=N(P.available);$('od-pend').textContent=N(P.pending);$('od-paid').textContent=N(P.paid);
   /* balances in other currencies are kept apart and paid out by TICA */
-  var bal=document.querySelector('.od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
+  var bal=$('od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
   (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="t-card t-stat od-b cur"><span class="t-stat__label">'+esc(c.code)+' balance</span><b class="t-stat__value">'+esc(Nc(c.amount,c.cur))+'</b><span class="t-stat__note">Paid out by TICA support. Email hello@tica.ng to withdraw.</span></div>')});
   [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.checked=r.value===P.schedule});
   var v=$('od-bank-view'),a=P.account;
