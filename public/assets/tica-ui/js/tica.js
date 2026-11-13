@@ -1825,6 +1825,7 @@ function stage(i,focus){
   STAGES.forEach(function(id,k){$(id).hidden=k!==at});
   [].forEach.call(f.querySelectorAll('.ce-steps a'),function(a,k){if(k===at)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');a.classList.toggle('done',k<at||k<=reached&&k!==at)});
   $('ce-progress').textContent='Step '+(at+1)+' of '+STAGES.length+': '+STEPNAME[at];
+  var cur=f.querySelector('.ce-steps a[aria-current=step]'),bar=f.querySelector('.ce-steps');if(cur&&bar&&bar.scrollWidth>bar.clientWidth)bar.scrollLeft=Math.max(0,cur.offsetLeft-bar.offsetLeft-16);
   var last=at===STAGES.length-1;$('ce-back').hidden=at===0;$('ce-next').hidden=last;$('ce-draft').hidden=!last;$('ce-publish').hidden=!last;
   if(last)summary();
   $('c-msg').textContent='';
