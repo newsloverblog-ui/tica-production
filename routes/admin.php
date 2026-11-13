@@ -15,12 +15,15 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
   // admin redirect to dashboard route
   Route::get('/dashboard', 'BackEnd\AdminController@redirectToDashboard')->name('admin.dashboard');
 
-  // Integrations: payment, payout, email, SMS, push, sign-in and storage keys (super admin only).
-  Route::get('/integrations', 'BackEnd\IntegrationController@index')->name('admin.integrations.index');
-  Route::get('/integrations/{key}', 'BackEnd\IntegrationController@show')->where('key', '[a-z_]+')->name('admin.integrations.show');
-  Route::post('/integrations/{key}', 'BackEnd\IntegrationController@update')->where('key', '[a-z_]+')->middleware('throttle:20,1')->name('admin.integrations.update');
-  Route::post('/integrations/{key}/test', 'BackEnd\IntegrationController@test')->where('key', '[a-z_]+')->middleware('throttle:10,1')->name('admin.integrations.test');
-  Route::post('/integrations/{key}/generate', 'BackEnd\IntegrationController@generate')->where('key', '[a-z_]+')->middleware('throttle:5,1')->name('admin.integrations.generate');
+  // Integrations: payment, payout, email, SMS, push, sign-in and storage keys.
+  // The permission middleware is the route boundary; the controller also requires a super admin.
+  Route::prefix('/integrations')->middleware('permission:Basic Settings')->group(function () {
+    Route::get('/', 'BackEnd\IntegrationController@index')->name('admin.integrations.index');
+    Route::get('/{key}', 'BackEnd\IntegrationController@show')->where('key', '[a-z_]+')->name('admin.integrations.show');
+    Route::post('/{key}', 'BackEnd\IntegrationController@update')->where('key', '[a-z_]+')->middleware('throttle:20,1')->name('admin.integrations.update');
+    Route::post('/{key}/test', 'BackEnd\IntegrationController@test')->where('key', '[a-z_]+')->middleware('throttle:10,1')->name('admin.integrations.test');
+    Route::post('/{key}/generate', 'BackEnd\IntegrationController@generate')->where('key', '[a-z_]+')->middleware('throttle:5,1')->name('admin.integrations.generate');
+  });
   Route::middleware('permission:Basic Settings')->group(function () {
     Route::get('/platform-settings', 'BackEnd\TicaPlatformController@show')->name('admin.tica.platform');
     Route::post('/platform-settings', 'BackEnd\TicaPlatformController@update')->name('admin.tica.platform.update');
