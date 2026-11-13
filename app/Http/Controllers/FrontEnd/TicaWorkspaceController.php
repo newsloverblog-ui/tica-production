@@ -36,6 +36,7 @@ use App\Services\PasswordPolicy;
 use App\Services\PaidBookingFulfillmentService;
 use App\Services\PaymentRefundService;
 use App\Services\PaystackGatewayClient;
+use App\Services\TicaUi\OrganizerAttendeeDirectory;
 use App\Services\TicaUi\OrganizerTeam;
 use App\Services\TicaUi\OrganizerWorkspace;
 use App\Services\WithdrawalService;
@@ -218,103 +219,49 @@ class TicaWorkspaceController extends Controller
 
   /* ------------------------------------------------------------- attendees */
 
-  public function attendees(Request $request): JsonResponse
+  public function attendees(Request $request, OrganizerAttendeeDirectory $directory): JsonResponse
   {
     $this->allow('orders');
-    [$rows, $more] = $this->attendeeRows($request, 300);
+    $filters = $this->attendeeFilters($request);
+    $page = $directory->page(
+      $this->organizerId(),
+      $filters,
+      OrganizerAttendeeDirectory::PAGE_SIZE,
+      $request->query('cursor'),
+    );
 
-    return response()->json(['rows' => $rows, 'more' => $more]);
+    return response()->json($page);
   }
 
-  public function attendeesCsv(Request $request): StreamedResponse
+  public function attendeesCsv(Request $request, OrganizerAttendeeDirectory $directory): StreamedResponse
   {
     $this->allow('orders');
-    [$rows] = $this->attendeeRows($request, 50000);
+    $filters = $this->attendeeFilters($request);
+    $organizerId = $this->organizerId();
     $filename = 'tica-attendees-' . now()->format('Y-m-d') . '.csv';
 
-    return response()->streamDownload(function () use ($rows) {
+    return response()->streamDownload(function () use ($directory, $filters, $organizerId) {
       $out = fopen('php://output', 'w');
       fputcsv($out, ['Name', 'Email', 'Ticket', 'Event', 'Order', 'Amount', 'Status', 'Answer']);
-      foreach ($rows as $row) {
-        fputcsv($out, array_map(fn ($value) => preg_match('/^[=+\-@]/', (string) $value) ? "'" . $value : $value, [
-          $row['name'], $row['email'], $row['tier'], $row['event'], $row['ref'], $row['amount'], $row['status'], $row['answer'],
-        ]));
+      foreach ($directory->batches($organizerId, $filters) as $rows) {
+        foreach ($rows as $row) {
+          fputcsv($out, array_map(fn ($value) => preg_match('/^[=+\-@]/', (string) $value) ? "'" . $value : $value, [
+            $row['name'], $row['email'], $row['tier'], $row['event'], $row['ref'], $row['amount'], $row['status'], $row['answer'],
+          ]));
+        }
       }
       fclose($out);
     }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'no-store']);
   }
 
-  /** One row per ticket, newest orders first. */
-  private function attendeeRows(Request $request, int $limit): array
+  private function attendeeFilters(Request $request): array
   {
-    $organizerId = $this->organizerId();
-    $q = trim((string) $request->query('q', ''));
-    $eventId = (int) $request->query('event', 0);
-    $status = (string) $request->query('status', '');
-    $titles = EventContent::query()->whereIn('event_id', Event::query()->where('organizer_id', $organizerId)->pluck('id'))
-      ->orderBy('language_id')->get()->unique('event_id')->pluck('title', 'event_id');
-    $ticketTitles = TicketContent::query()->orderBy('language_id')->get(['ticket_id', 'title'])->unique('ticket_id')->pluck('title', 'ticket_id');
-    $refundable = PaymentIntent::query()->whereNotNull('booking_id')->where('status', 'completed')->pluck('id', 'booking_id');
-
-    $query = BookingTicket::query()
-      ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
-      ->where('bookings.organizer_id', $organizerId)
-      ->when($eventId > 0, fn ($builder) => $builder->where('booking_tickets.event_id', $eventId))
-      ->when($q !== '', function ($builder) use ($q) {
-        $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
-        $id = (int) preg_replace('/\D+/', '', $q);
-        $builder->where(function ($where) use ($like, $id) {
-          $where->where('booking_tickets.holder_name', 'like', $like)
-            ->orWhere('booking_tickets.holder_email', 'like', $like)
-            ->orWhere('bookings.email', 'like', $like)
-            ->orWhere('bookings.phone', 'like', $like)
-            ->orWhereRaw("CONCAT(bookings.fname, ' ', bookings.lname) LIKE ?", [$like]);
-          if ($id > 0) {
-            $where->orWhere('bookings.id', $id);
-          }
-        });
-      })
-      ->when($status === 'checked_in', fn ($builder) => $builder->whereNotNull('booking_tickets.checked_in_at'))
-      ->when($status === 'refunded', fn ($builder) => $builder->where(fn ($w) => $w->whereIn('booking_tickets.status', ['refunded', 'revoked'])->orWhere('bookings.paymentStatus', 'refunded')))
-      ->when($status === 'guest', fn ($builder) => $builder->where('bookings.paymentStatus', 'free')->where('bookings.paymentMethod', 'Guest'))
-      ->when($status === 'paid', fn ($builder) => $builder->where('bookings.paymentStatus', 'completed')->whereNull('booking_tickets.checked_in_at')->where('booking_tickets.status', 'issued'))
-      ->orderByDesc('bookings.id')
-      ->orderBy('booking_tickets.sequence')
-      ->limit($limit + 1)
-      ->select('booking_tickets.*', 'bookings.fname', 'bookings.lname', 'bookings.email as buyer_email', 'bookings.paymentStatus', 'bookings.paymentMethod', 'bookings.price as order_price', 'bookings.tax as order_tax', 'bookings.quantity as order_quantity', 'bookings.refund_status', 'bookings.currencyText as order_currency');
-
-    $rows = $query->get();
-    $more = $rows->count() > $limit;
-
-    return [$rows->take($limit)->map(function ($ticket) use ($titles, $ticketTitles, $refundable) {
-      $quantity = max(1, (int) $ticket->order_quantity);
-      $orderTotal = round((float) $ticket->order_price + (float) $ticket->order_tax, 2);
-      $statusLabel = match (true) {
-        in_array($ticket->status, ['refunded', 'revoked'], true) || $ticket->paymentStatus === 'refunded' => 'Refunded',
-        in_array((string) $ticket->refund_status, ['approval_pending', 'pending', 'processing'], true) => 'Refund requested',
-        $ticket->checked_in_at !== null => 'Checked in',
-        $ticket->paymentStatus === 'free' && $ticket->paymentMethod === 'Guest' => 'Guest',
-        $ticket->paymentStatus === 'free' => 'Free',
-        default => 'Paid',
-      };
-
-      return [
-        'bookingId' => (int) $ticket->booking_id,
-        'name' => $ticket->holder_name ?: trim($ticket->fname . ' ' . $ticket->lname),
-        'email' => $ticket->holder_email ?: $ticket->buyer_email,
-        'buyerEmail' => (string) $ticket->buyer_email,
-        'tier' => $ticket->variation_name ?: ($ticketTitles[$ticket->ticket_id] ?? __('General admission')),
-        'event' => (string) ($titles[$ticket->event_id] ?? ''),
-        'ref' => 'TICA-' . str_pad((string) $ticket->booking_id, 6, '0', STR_PAD_LEFT) . '-' . $ticket->sequence,
-        'amount' => round($orderTotal / $quantity, 2),
-        'orderTotal' => $orderTotal,
-        'orderTickets' => round((float) $ticket->order_price, 2),
-        'cur' => \App\Support\TicaCurrency::isBase($ticket->order_currency) ? null : ['code' => \App\Support\TicaCurrency::normalize($ticket->order_currency), 'symbol' => \App\Support\TicaCurrency::symbol($ticket->order_currency), 'position' => 'left'],
-        'status' => $statusLabel,
-        'answer' => (string) ($ticket->attendee_answer ?? ''),
-        'refundable' => $statusLabel === 'Paid' && isset($refundable[$ticket->booking_id]),
-      ];
-    })->values()->all(), $more];
+    return $request->validate([
+      'q' => ['nullable', 'string', 'max:255'],
+      'event' => ['nullable', 'integer', 'min:1'],
+      'status' => ['nullable', Rule::in(['paid', 'checked_in', 'refunded', 'guest'])],
+      'cursor' => ['nullable', 'string', 'max:255'],
+    ]);
   }
 
   public function resend(int $booking, BookingTicketDeliveryService $deliveries): JsonResponse

@@ -2111,6 +2111,7 @@ body.isuser .nav-actions .m-cta .m-login,body.isorg .nav-actions .m-cta .m-login
 .od-lk:hover{background:var(--tint)}
 .od-lk.red{color:#B42318}
 .od-empty{padding:20px 16px;color:var(--soft);font-size:14px}
+.od-att-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding-top:10px}.od-att-foot .hint{margin:0}.od-att-foot .btn{min-height:38px;padding:8px 14px;white-space:nowrap}.od-att-foot .btn[hidden]{display:none}
 .od-bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
 .od-b{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
 .od-b span{display:block;font-size:13px;color:var(--soft)}

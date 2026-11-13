@@ -76,7 +76,7 @@
           <select id="od-fe" aria-label="Event"><option value="">All events</option></select>
           <select id="od-fs" aria-label="Status"><option value="">Any status</option><option>Paid</option><option>Checked in</option><option>Refunded</option><option>Guest</option></select></div>
         <div class="od-att" id="od-att" role="table" aria-label="Attendees"></div>
-        <p class="hint" id="od-att-msg" role="status"></p>
+        <div class="od-att-foot"><p class="hint" id="od-att-msg" role="status"></p><button class="btn btn-line" id="od-att-more" type="button" hidden>Load more</button></div>
       </div>
 
       <!-- PAYOUTS -->
