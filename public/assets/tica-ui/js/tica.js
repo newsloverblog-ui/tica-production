@@ -1591,7 +1591,7 @@ function drawSettings(){
   $('od-pt').value=p.tiktok||'';$('od-pweb').value=p.website||'';$('od-pfb').value=p.facebook||'';$('od-px').value=p.twitter||'';$('od-pli').value=p.linkedin||'';$('od-pyt').value=p.youtube||'';
   var img=$('od-photo-preview');if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
   var state=$('od-mfa-state'),sec=$('od-security-link');if(state){state.textContent=p.mfa?'On':'Off';state.classList.toggle('on',!!p.mfa)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
-  var sws=document.querySelectorAll('[data-p=settings] .ck-sw'),keys=['buyers_pay_fee','show_remaining','waitlist','transfers','notify_sale','daily_summary','payout_text'];
+  var sws=document.querySelectorAll('[data-p=settings] .ck-sw'),keys=['buyers_pay_fee','show_remaining','waitlist','transfers','notify_sale','daily_summary'];
   [].forEach.call(sws,function(s,i){s.dataset.pref=keys[i];s.checked=!!D.prefs[keys[i]]});
 }
 document.addEventListener('change',function(e){var s=e.target.closest('[data-pref]');if(!s)return;var body={};body[s.dataset.pref]=s.checked;api('/tica-api/organizer/prefs',body).then(function(){D.prefs[s.dataset.pref]=s.checked;toast('Saved.')},function(er){s.checked=!s.checked;toast(errText(er))})});

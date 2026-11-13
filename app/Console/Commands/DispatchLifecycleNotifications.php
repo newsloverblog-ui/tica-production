@@ -121,6 +121,12 @@ class DispatchLifecycleNotifications extends Command
         $count = 0;
         Organizer::query()->where('status', 1)->whereNotNull('email')->chunkById(100, function ($organizers) use ($from, $periodKey, $mode, &$count): void {
             foreach ($organizers as $organizer) {
+                // One preference controls both scheduled digests. Keeping the
+                // daily and weekly sends behind the same opt-in prevents a
+                // disabled setting from continuing to generate weekly mail.
+                if (!$organizer->preferenceEnabled('daily_summary', true)) {
+                    continue;
+                }
                 $sales = Booking::query()->where('organizer_id', $organizer->id)
                     ->whereIn('paymentStatus', ['completed', 'free', '1'])->where('created_at', '>=', $from);
                 $orders = (clone $sales)->count();

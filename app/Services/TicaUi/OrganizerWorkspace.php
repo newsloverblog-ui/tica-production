@@ -35,7 +35,6 @@ class OrganizerWorkspace
     'transfers' => true,
     'notify_sale' => false,
     'daily_summary' => true,
-    'payout_text' => true,
   ];
 
   public function __construct(private Language $language)

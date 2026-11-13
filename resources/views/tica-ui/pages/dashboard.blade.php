@@ -180,8 +180,8 @@
             <div class="db-ch od-sub"><h2>Notifications</h2></div>
             <ul class="od-sw">
               <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale"></li>
-              <li><span><b>Daily sales summary</b></span><input class="ck-sw" type="checkbox" checked aria-label="Daily sales summary"></li>
-              <li><span><b>Text me when a payout is sent</b></span><input class="ck-sw" type="checkbox" checked aria-label="Text me when a payout is sent"></li>
+              <li><span><b>Daily and weekly sales summaries</b><small>Receive scheduled performance digests for your events.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries"></li>
+              <li><span><b>Payout status emails</b><small>Always on for account security and transfer records.</small></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
           <section class="db-card od-security-card" id="password"><div class="db-ch"><div><h2>Security and password</h2><p class="hint">Use a unique password and add a second sign-in step to protect event income and attendee data.</p></div><span class="od-sec-state" id="od-mfa-state">Off</span></div>

@@ -34,6 +34,32 @@ class Organizer extends Model implements AuthenticatableContract
     'two_factor_enabled_at' => 'datetime',
   ];
 
+  /**
+   * Read a saved boolean preference without treating malformed string values
+   * such as "false" as truthy. Older rows may contain either JSON booleans or
+   * their form-encoded string equivalents.
+   */
+  public function preferenceEnabled(string $key, bool $default = false): bool
+  {
+    $preferences = $this->preferences;
+    if (is_string($preferences)) {
+      $preferences = json_decode($preferences, true);
+    }
+    if (!is_array($preferences) || !array_key_exists($key, $preferences)) {
+      return $default;
+    }
+
+    $value = $preferences[$key];
+    if (is_bool($value)) {
+      return $value;
+    }
+    if (is_int($value) || is_float($value)) {
+      return $value !== 0 && $value !== 0.0;
+    }
+
+    return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+  }
+
   //withdraw
   public function withdraws()
   {

@@ -657,7 +657,8 @@ class BookingController extends Controller
         );
       }
 
-      if ($bookingInfo->organizer?->email) {
+      if ($bookingInfo->organizer?->email
+        && $bookingInfo->organizer->preferenceEnabled('notify_sale', false)) {
         app(LifecycleMailService::class)->queueOnce(
           LifecycleMailCatalog::ORGANIZER_NEW_SALE,
           $bookingInfo->organizer->email,
