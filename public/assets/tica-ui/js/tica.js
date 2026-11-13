@@ -1682,7 +1682,9 @@ document.addEventListener('submit',function(e){var f=e.target;if(!/^tfa-f/.test(
   api(url,{password:$('tfa-pw').value,otp:$('tfa-otp').value}).then(function(r){if(k==='off'){$('od-2fa-dlg').close();reload('Two-factor is off.');return}TFA_CODES=r.recovery_codes;tfaOpen(tfaCodes('New recovery codes','Your old codes no longer work. Save these somewhere safe. We won\'t show them again.',''))},function(er){done();tfaErr('tfa-m',er)});
 });
 /* create page uses the organiser's saved defaults */
-(function(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers})();
+function ceDefaults(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers}ceDefaults();
+/* Defaults changed in Settings apply to the next new event without a reload, as long as nothing has been typed yet. */
+window.addEventListener('tica:navigate',function(){var n=$('c-name');if(location.pathname==='/create'&&n&&!n.value.trim())ceDefaults()});
 /* platform rules from the admin: hide features that are switched off */
 (function(){var P=(TICA_DATA.currency||{}).platform,f=document.getElementById('create-form');if(!P||!f)return;
   function drop(el){if(!el)return;var l=el.closest('label,li')||el;l.hidden=true;l.style.display='none';if(el.checked){el.checked=false}}
