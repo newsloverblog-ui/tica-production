@@ -26,9 +26,10 @@
 
       <!-- EVENTS -->
       <div class="od-p" data-p="events" hidden>
-        <div class="db-head"><div><h1>Events</h1><p>Edit details, control sales and manage tickets for each event.</p></div><a class="btn btn-line od-events-create" href="/create">Create an event</a></div>
-        <div class="od-tabs" role="group" aria-label="Show events"><button type="button" aria-pressed="true" data-ef="up">Upcoming</button><button type="button" aria-pressed="false" data-ef="draft">Drafts</button><button type="button" aria-pressed="false" data-ef="past">Past</button></div>
-        <div class="od-evlist" id="od-evlist"></div>
+        <header class="t-page-head"><div><h1>Events</h1><p>Edit details, control sales and manage tickets for each event.</p></div><a class="t-btn t-btn--primary od-events-create" href="/create">Create an event</a></header>
+        <div class="t-tabs" role="tablist" aria-label="Show events"><button class="t-tab" type="button" role="tab" aria-selected="true" data-ef="up">Upcoming<span class="t-count" data-efc="up">0</span></button><button class="t-tab" type="button" role="tab" aria-selected="false" data-ef="draft">Drafts<span class="t-count" data-efc="draft">0</span></button><button class="t-tab" type="button" role="tab" aria-selected="false" data-ef="past">Past<span class="t-count" data-efc="past">0</span></button></div>
+        <div class="t-toolbar"><label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search events</span><input class="t-input" id="ev-q" type="search" placeholder="Search by name or city"></label></div>
+        <div id="od-evlist"></div>
       </div>
 
       <!-- ORDERS -->

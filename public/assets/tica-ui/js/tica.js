@@ -1349,19 +1349,36 @@ function renderDash(){
 window.TICA_renderDash=renderDash;
 
 /* events */
-function evRows(){return D.events.filter(function(r){return r.state===OD.ef}).sort(function(a,b){return OD.ef==='past'?b.ts-a.ts:a.ts-b.ts})}
+function evRows(){var q=($('ev-q')&&$('ev-q').value||'').trim().toLowerCase();return D.events.filter(function(r){return r.state===OD.ef&&(!q||(r.name+' '+(r.city||'')+' '+(r.venue||'')).toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return OD.ef==='past'?b.ts-a.ts:a.ts-b.ts})}
+OD.evPage=0;var EV_PER=10;
+function evStatus(r){var cls=r.status==='On sale'?'green':r.status==='Sales paused'||r.status==='Cancelling'?'orange':r.status==='Cancelled'?'red':r.state==='draft'?'':'blue';return '<span class="t-badge'+(cls?' t-badge--'+cls:'')+'">'+esc(r.status)+'</span>'}
 function drawEvents(){
-  [].forEach.call(document.querySelectorAll('[data-ef]'),function(b){b.setAttribute('aria-pressed',b.dataset.ef===OD.ef?'true':'false')});
-  var rows=evRows();
-  $('od-evlist').innerHTML=rows.length?rows.map(function(r){
-    var pct=r.cap?Math.round(r.sold/r.cap*100):0,live=r.status==='On sale';
-    var note=r.state==='draft'?'Add a flyer and ticket prices to publish':r.status==='Ended'&&r.revenue?Nc(r.revenue,r.cur)+' from this event':'';
-    return '<article class="od-ev"><div class="od-th flyer" aria-hidden="true">'+r.art+'</div>'+
-    '<div class="od-evi"><div class="od-tags"><em class="st'+(live?' new':r.status==='Sales paused'||r.status==='Cancelling'?' warn':'')+'">'+esc(r.status)+'</em><em class="od-mode'+(r.mode!=='In person'?' on':'')+'">'+esc(r.mode)+'</em>'+(r.payer==='me'?'<em class="od-mode">Fees included</em>':'')+(r.regMode==='corporate'?'<em class="od-mode">Registration</em>':'')+'</div><h3>'+esc(r.name)+'</h3><p>'+esc(ds(r)+', '+r.time)+'</p>'+(note?'<p class="od-evn">'+esc(note)+'</p>':'')+'</div>'+
-    (r.state!=='draft'?'<div class="od-evs"><small>'+r.sold+(r.cap?' of '+r.cap:'')+' sold</small><i class="bar"><i style="width:'+pct+'%"></i></i><b>'+Nc(r.revenue,r.cur)+'</b></div>':'<div class="od-evs"></div>')+
-    '<div class="od-eva">'+(r.state==='draft'?'<a class="btn btn-hot" href="'+esc(r.editUrl)+'">Continue editing</a>':r.state==='past'?'<button class="btn btn-line" type="button" data-panel="payouts">Get paid</button><a class="btn btn-line" href="/event/'+r.slug+'">View page</a>':'<button class="btn btn-hot" type="button" data-manage="'+r.id+'">Manage</button><a class="btn btn-line" href="/event/'+r.slug+'">View page</a>')+(r.registrationUrl?'<a class="btn btn-line" href="'+esc(r.registrationUrl)+'">Registrations</a>':'')+'</div></article>';
-  }).join(''):'<p class="od-empty">'+({up:'No upcoming events yet.',draft:'No drafts.',past:'No past events yet.'})[OD.ef]+'</p>';
+  [].forEach.call(document.querySelectorAll('[data-ef]'),function(b){b.setAttribute('aria-selected',b.dataset.ef===OD.ef?'true':'false')});
+  ['up','draft','past'].forEach(function(k){var c=document.querySelector('[data-efc='+k+']');if(c)c.textContent=D.events.filter(function(r){return r.state===k}).length});
+  var create=document.querySelector('.od-events-create');if(create)create.hidden=!CAN.events;
+  var all=evRows(),pages=Math.max(1,Math.ceil(all.length/EV_PER));OD.evPage=Math.min(OD.evPage,pages-1);
+  var rows=all.slice(OD.evPage*EV_PER,OD.evPage*EV_PER+EV_PER),q=$('ev-q')&&$('ev-q').value.trim();
+  if(!rows.length){
+    var empty={up:['No upcoming events','Create your next event and it shows here with its sales.'],draft:['No drafts','Events you save without publishing wait here.'],past:['No past events yet','Finished events move here, with their final sales.']}[OD.ef];
+    $('od-evlist').innerHTML='<div class="t-card"><div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>'+(q?'No events match "'+esc(q)+'"':empty[0])+'</h3><p>'+(q?'Try another name or city.':empty[1])+'</p>'+(!q&&CAN.events&&OD.ef!=='past'?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div></div>';return}
+  $('od-evlist').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards ev-table"><thead><tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col">Sold</th><th scope="col" class="t-num">Revenue</th><th scope="col">Status</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+rows.map(function(r){
+    var pct=r.cap?Math.min(100,Math.round(r.sold/r.cap*100)):0,menu=[];
+    if(r.state==='draft'){if(CAN.events)menu.push('<a href="'+esc(r.editUrl)+'">Continue editing</a>')}
+    else{if(CAN.events&&r.state!=='past')menu.push('<button type="button" data-manage="'+r.id+'">Manage sales and settings</button>');if(CAN.events&&r.editUrl)menu.push('<a href="'+esc(r.editUrl)+'">Edit details</a>');menu.push('<a href="/event/'+esc(r.slug)+'" target="_blank" rel="noopener">View event page</a>');if(CAN.orders)menu.push('<button type="button" data-ev-orders="'+r.id+'">See attendees</button>');if(r.registrationUrl)menu.push('<a href="'+esc(r.registrationUrl)+'">Registrations</a>');if(r.state==='past'&&CAN.payouts)menu.push('<button type="button" data-panel="payouts">Get paid</button>')}
+    var tags=[r.mode!=='In person'?r.mode:'',r.payer==='me'?'Fees included':'',r.regMode==='corporate'?'Registration':''].filter(Boolean);
+    return '<tr><td data-label=""><div class="ev-cell"><span class="ev-thumb flyer" aria-hidden="true">'+r.art+'</span><span><span class="ev-name">'+esc(r.name)+'</span>'+(tags.length?'<span class="ev-tags">'+tags.map(function(t){return '<span class="t-badge">'+esc(t)+'</span>'}).join('')+'</span>':'')+'</span></div></td>'+
+      '<td data-label="Date">'+esc(ds(r))+'<div class="t-muted">'+esc(r.time)+'</div></td>'+
+      '<td data-label="Sold" class="ev-sold">'+(r.state==='draft'?'<span class="t-muted">Not on sale</span>':'<span><b>'+r.sold.toLocaleString('en-NG')+'</b>'+(r.cap?' of '+r.cap.toLocaleString('en-NG'):'')+'</span>'+(r.cap?'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>':''))+'</td>'+
+      '<td data-label="Revenue" class="t-num">'+(r.state==='draft'?'<span class="t-muted">—</span>':Nc(r.revenue,r.cur))+'</td>'+
+      '<td data-label="Status">'+evStatus(r)+'</td>'+
+      '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(r.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+    (pages>1?'<div class="t-pager"><span>'+(OD.evPage*EV_PER+1)+'–'+(OD.evPage*EV_PER+rows.length)+' of '+all.length+'</span><span class="t-pager__btns"><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="-1"'+(OD.evPage===0?' disabled':'')+'>Previous</button><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="1"'+(OD.evPage>=pages-1?' disabled':'')+'>Next</button></span></div>':'');
 }
+document.addEventListener('input',function(e){if(e.target.id==='ev-q'){OD.evPage=0;drawEvents()}});
+document.addEventListener('click',function(e){var p=e.target.closest('[data-evpage]');if(p){OD.evPage+=+p.dataset.evpage;drawEvents();return}
+  var o=e.target.closest('[data-ev-orders]');if(o){var f=$('od-fe');show('orders',true);if(f){f.value=o.dataset.evOrders;f.dispatchEvent(new Event('change',{bubbles:true}))}return}
+  var m=document.querySelector('.t-menu[open]');if(m&&!m.contains(e.target))m.removeAttribute('open')});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.querySelector('.t-menu[open]');if(m){m.removeAttribute('open');m.querySelector('summary').focus()}}});
 
 /* event control dialog */
 var curEv=null;
@@ -1434,7 +1451,7 @@ document.addEventListener('click',function(ev){
   if(t.id==='rf-go'){var a3=ATT[refundI];t.disabled=true;api('/tica-api/organizer/orders/'+a3.bookingId+'/refund',{amount:document.querySelector('[name=rf-amt]:checked').value,reason:$('rf-why').value}).then(function(){$('od-wd').close();loadAtt();toast('Refund requested. '+a3.name+' will get an email once it\'s sent.')},function(er){t.disabled=false;$('rf-m').textContent=errText(er)});return}
   var m=t.closest('[data-manage]');if(m){openEv(m.dataset.manage);return}
   var p=t.closest('.page[data-page=dashboard] [data-panel], .od-dlg [data-panel]');if(p){var dl0=p.closest('dialog');if(dl0)dl0.close();show(p.dataset.panel,true);return}
-  var ef=t.closest('[data-ef]');if(ef){OD.ef=ef.dataset.ef;drawEvents();return}
+  var ef=t.closest('[data-ef]');if(ef){OD.ef=ef.dataset.ef;OD.evPage=0;drawEvents();return}
   var d=t.closest('[data-dlg]');if(d){if(d.dataset.dlg==='od-msg'||d.dataset.dlg==='od-comp')fillDlg(d.dataset.dlg);$(d.dataset.dlg).showModal();return}
   if(t.closest('[data-close]')){var dl=t.closest('dialog');if(dl)dl.close();return}
   if(t.tagName==='DIALOG'&&t.classList.contains('od-dlg')){t.close();return}
