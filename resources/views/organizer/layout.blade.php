@@ -22,7 +22,7 @@
     @yield('style')
   </head>
 
-  <body class="tica-control-center tica-organizer" data-background-color="white">
+  <body class="tica-control-center tica-organizer orgshell-legacy t-app" data-background-color="white">
     <a class="tica-skip-link" href="#tica-main-content">{{ __('Skip to main content') }}</a>
     {{-- loader start --}}
     <div class="request-loader">
@@ -31,13 +31,13 @@
     {{-- loader end --}}
 
     <div class="wrapper">
-      {{-- top navbar area start --}}
-      @includeIf('organizer.partials.top-navbar')
-      {{-- top navbar area end --}}
-
-      {{-- side navbar area start --}}
-      @includeIf('organizer.partials.side-navbar')
-      {{-- side navbar area end --}}
+      {{-- The one organiser shell, shared with the TICA app pages. --}}
+      @php
+        $shellActive = request()->routeIs('organizer.event_management.*', 'organizer.event.*', 'organizer.add.event.*', 'choose-event-type', 'organizer.ticket_management.*') ? 'events'
+          : (request()->routeIs('organizer.withdraw*', 'organizer.payout*') ? 'payouts'
+          : (request()->routeIs('organizer.event_booking.index', 'organizer.event_booking.details', 'organizer.event-booking*') && !request()->routeIs('organizer.event_booking.report') ? 'orders' : 'tools'));
+      @endphp
+      <x-shell.organizer :active="$shellActive" :title="trim($__env->yieldContent('page-title')) ?: null" />
 
       <div class="main-panel">
         <div class="content">

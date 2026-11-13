@@ -876,7 +876,7 @@ function route(){
     else renderTicket(e);
   }else if(window.TICA_DATA&&TICA_DATA.content&&cur===TICA_DATA.path&&document.querySelector('.page[data-page=content]')){p='content'}else if(!TITLES[p])p='missing';
   [].forEach.call(document.querySelectorAll('.page'),function(s){s.hidden=s.dataset.page!==p});
-  document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
+  document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('orgshell',!!document.getElementById('os-side')&&['dashboard','create','checkin'].indexOf(p)>-1);document.body.classList.toggle('t-app',document.body.classList.contains('orgshell'));document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
   var workspaceTitle=document.getElementById('workspace-title'),workspaceRole=document.getElementById('workspace-role'),workspaceAccount=document.getElementById('workspace-account');
   if(workspaceTitle)workspaceTitle.textContent=p==='dashboard'?'Organiser dashboard':p==='account'?'Your account':p==='checkin'?'Gate check-in':p==='create'?'Create an event':'TICA workspace';
   if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':p==='account'?'Customer account':'TICA workspace';
@@ -1263,8 +1263,7 @@ try{var pend=sessionStorage.getItem('tica_od_toast');if(pend){sessionStorage.rem
 
 /* organiser card and role-limited menu */
 function drawAvatar(){[].forEach.call(document.querySelectorAll('.od-av'),function(el){el.textContent=D.org.initials;if(D.org.avatar){var im=new Image();im.alt='';im.onerror=function(){im.remove()};im.src=D.org.avatar;el.appendChild(im)}})}drawAvatar();
-document.querySelector('.od-ver').textContent=D.org.verified?'Verified organiser':'Not verified yet';document.querySelector('.od-ver').classList.toggle('no',!D.org.verified);
-[].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var p=b.dataset.panel;if(p==='events'&&!PERM('events.view')||p==='promote'&&!CAN.promote||p==='orders'&&!CAN.orders||p==='payouts'&&!CAN.payouts||p==='team'&&!CAN.team||p==='settings'&&!CAN.settings)b.hidden=true});
+
 if(!CAN.events)[].forEach.call(document.querySelectorAll('.page[data-page=dashboard] a[href="/create"]'),function(a){a.hidden=true});
 [].forEach.call(document.querySelectorAll('.od-tool'),function(a){var ar=a.dataset.area;if(ar==='events'&&!CAN.events||ar==='money'&&!CAN.payouts||ar==='owner'&&!PERM('team.manage'))a.hidden=true});
 if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
@@ -1281,19 +1280,11 @@ if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
   list.addEventListener('click',function(e){if(e.target.closest('a')&&narrow())d.open=false});
 })();
 
-/* One organiser menu: it lives on the dashboard and moves into the create-event page while that page is open. */
-(function(){var side=document.querySelector('.page[data-page=dashboard] .od-side'),home=side&&side.parentNode,slot=$('ce-side'),shell=$('ce-shell');
-  if(!side||!slot)return;
-  function place(){var onCreate=!!document.querySelector('.page[data-page=create]:not([hidden])');
-    if(onCreate&&side.parentNode!==slot){slot.appendChild(side);$('db-org').textContent=D.org.name}
-    else if(!onCreate&&side.parentNode!==home){home.insertBefore(side,home.firstChild)}
-    shell.classList.toggle('has-side',onCreate);
-    [].forEach.call(side.querySelectorAll('[data-panel]'),function(b){b.classList.toggle('on',!onCreate&&b.classList.contains('on'))});
-    var nb=side.querySelector('.od-new');if(nb)nb.classList.toggle('on',onCreate);
-  }
-  slot.addEventListener('click',function(ev){var b=ev.target.closest('[data-panel]');if(!b)return;ev.preventDefault();ev.stopPropagation();var p=b.dataset.panel;window.TICA_go(p==='overview'?'dashboard':'dashboard/'+p)},true);
-  window.addEventListener('tica:navigate',place);place();
-})();
+/* One organiser menu: rendered once by the server (components/shell/organizer). */
+function osActive(key,title){[].forEach.call(document.querySelectorAll('#os-side .os-link[href]'),function(l){var on=l.dataset.panel===key||(!l.dataset.panel&&key==='checkin'&&l.getAttribute('href')==='/checkin');l.classList.toggle('is-active',on);if(on)l.setAttribute('aria-current','page');else l.removeAttribute('aria-current')});var t=document.getElementById('os-title');if(t&&title)t.textContent=title}
+document.addEventListener('click',function(ev){var l=ev.target.closest('#os-side [data-panel]');if(!l||ev.metaKey||ev.ctrlKey||ev.shiftKey)return;ev.preventDefault();var p=l.dataset.panel;
+  if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))show(p,true);else window.TICA_go(p==='overview'?'dashboard':'dashboard/'+p)});
+window.addEventListener('tica:navigate',function(){var pg=document.querySelector('.page:not([hidden])'),k=pg&&pg.dataset.page;if(k==='create')osActive('events',document.querySelector('[data-page=create] h1')?document.querySelector('[data-page=create] h1').textContent:'Create an event');else if(k==='checkin')osActive('checkin','Gate check-in')});
 
 /* panels */
 var PANELS=['overview','events','orders','payouts','promote','team','settings'];
@@ -1301,7 +1292,7 @@ function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='promote
 function show(p,push){
   if(PANELS.indexOf(p)<0||!allowed(p))p='overview';
   [].forEach.call(document.querySelectorAll('.od-p'),function(x){x.hidden=x.dataset.p!==p});
-  [].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var on=b.dataset.panel===p;b.classList.toggle('on',on);if(on){b.setAttribute('aria-current','page');var n=b.parentElement;if(n.scrollWidth>n.clientWidth)n.scrollTo({left:b.offsetLeft-16,behavior:'smooth'})}else b.removeAttribute('aria-current')});
+  osActive(p,{overview:'Overview',events:'Events',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]);
   if(push){try{history.replaceState(null,'','/dashboard'+(p==='overview'?'':'/'+p))}catch(e){}window.scrollTo({top:0,behavior:'instant'})}
   var DRAW={events:drawEvents,orders:drawAtt,payouts:drawPay,promote:drawPromote,team:drawTeam,overview:drawOverview,settings:drawSettings};
   DRAW[p]&&DRAW[p]();
@@ -1327,7 +1318,7 @@ function drawOverview(){
     setup.innerHTML='<div><h2 id="od-setup-h">Finish setting up to get paid</h2><p>'+doneN+' of 3 done. '+next[0]+'</p></div><ol><li'+(s.identity?' class="done"':'')+'>Verify your identity</li><li'+(s.published?' class="done"':'')+'>Publish your first event</li><li'+(s.payout?' class="done"':'')+'>Add your payout account</li></ol>'+
       (next[2]?'<a class="btn btn-hot" href="'+esc(next[2])+'">'+next[1]+'</a>':'<button class="btn btn-hot" type="button" data-panel="payouts">'+next[1]+'</button>');
   }
-  $('od-paydot').hidden=s.payout||!CAN.payouts;
+  if($('od-paydot'))$('od-paydot').hidden=s.payout||!CAN.payouts;
   var e=D.next;
   if(e){
     var days=Math.max(0,Math.round((e.ts-Date.now())/864e5));
@@ -1373,7 +1364,7 @@ function drawOverviewKpis(range){
 }
 function renderDash(){
   drawAccount();
-  $('db-org').textContent=D.org.name;
+  if($('db-org'))$('db-org').textContent=D.org.name;
   $('db-hi').textContent='Welcome back, '+D.org.name.split(' ')[0];
   var nw=window.TICA_NEW;$('db-flag').hidden=!nw;if(nw)$('db-flag').textContent=nw.name+(nw.status==='draft'?' is saved as a draft.':' is now live.');
   drawOverviewKpis($('od-range').value);

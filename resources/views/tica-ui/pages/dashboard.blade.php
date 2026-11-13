@@ -1,29 +1,6 @@
 @verbatim
 <section class="page" data-page="dashboard">
   <div class="db od">
-    <aside class="db-side od-side" aria-label="Organiser menu">
-      <a class="od-orgc od-orgc-top" href="/dashboard/settings" aria-label="Open organiser profile and settings"><i class="od-av" aria-hidden="true">VE</i><div><p class="db-org" id="db-org">Vibes Events</p><span class="od-ver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Verified organiser</span></div></a>
-      <a class="btn btn-hot od-new" href="/create">Create an event</a>
-      <nav>
-        <span class="od-nav-label">Main</span>
-        <button type="button" class="on" data-panel="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>Overview</button>
-        <button type="button" data-panel="events"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Events</button>
-        <button type="button" data-panel="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/></svg>Orders and attendees</button>
-        <a class="db-lnk" href="/checkin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg>Gate check-in</a>
-        <span class="od-nav-label">Grow</span>
-        <button type="button" data-panel="promote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/></svg>Promote</button>
-        <span class="od-nav-label">Money</span>
-        <button type="button" data-panel="payouts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg>Payouts<em class="od-dot" id="od-paydot" aria-label="Action needed"></em></button>
-        <span class="od-nav-label">Account</span>
-        <button type="button" data-panel="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>Team</button>
-        <button type="button" data-panel="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.3z"/></svg>Settings</button>
-        <details class="od-more" id="od-more"><summary class="db-lnk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><span>More tools</span><svg class="more-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="od-more-l">
-        <a class="db-lnk od-tool" data-area="all" href="/organizer/event-booking/report">Booking report</a><a class="db-lnk od-tool" data-area="events" href="/organizer/event/guest-list">Guest lists and RSVPs</a><a class="db-lnk od-tool" data-area="events" href="/organizer/event/registrations">Registration forms</a><a class="db-lnk od-tool" data-area="money" href="/organizer/transaction">Transactions</a><a class="db-lnk od-tool" data-area="money" href="/organizer/withdraw/exports">Payout exports</a><a class="db-lnk od-tool" data-area="money" href="/organizer/finance">Finance statement</a><a class="db-lnk od-tool" data-area="all" href="/organizer/event-booking/exports">Data exports</a><a class="db-lnk od-tool" data-area="all" href="/organizer/check-in-ledger/exports">Check-in ledger</a><a class="db-lnk od-tool" data-area="owner" href="/organizer/pwa">Gate staff and devices</a><a class="db-lnk od-tool" data-area="owner" href="/organizer/kyc">Identity and bank account</a><a class="db-lnk od-tool" data-area="all" href="/organizer/support-tikcet/tickets">Support</a>
-        </div></details>
-      </nav>
-      <div class="od-side-foot"><button class="db-lnk od-logout" type="button" data-logout="organizer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>Log out</button></div>
-    </aside>
-
     <div class="db-main od-main" id="db-top">
       <p class="db-flag" id="db-flag" hidden></p>
 

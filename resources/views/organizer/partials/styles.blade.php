@@ -39,3 +39,4 @@
 
 {{-- TICA design: blends these pages with the organiser workspace --}}
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/organizer-blend.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/ds.css')) }}">
