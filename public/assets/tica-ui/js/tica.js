@@ -1569,7 +1569,15 @@ function sendWd(){
 }
 
 /* promote */
+function prUrl(){var id=+$('pr-ev').value,e=evById(id);return location.origin+(e?'/event/'+e.slug:'/discover')}
+function drawShare(){var sel=$('pr-ev');if(!sel)return;var evs=D.events.filter(function(r){return r.state==='up'||r.state==='live'});if(!evs.length)evs=D.events;var keep=sel.value;
+  sel.innerHTML=evs.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('')||'<option value="">No events yet</option>';if(keep)sel.value=keep;
+  var u=prUrl(),e=evById(+sel.value),txt=encodeURIComponent((e?e.name+' — get your tickets on TICA: ':'Find events on TICA: ')+u);$('pr-url').value=u;$('pr-copy').disabled=!evs.length;
+  $('pr-social').innerHTML=[['WhatsApp','https://wa.me/?text='+txt],['X','https://x.com/intent/tweet?text='+txt],['Facebook','https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u)],['LinkedIn','https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(u)],['Email','mailto:?subject='+encodeURIComponent(e?e.name:'TICA')+'&body='+txt]].map(function(x){return '<a class="t-btn t-btn--secondary t-btn--sm" href="'+esc(x[1])+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>'}).join('')}
+document.addEventListener('change',function(e){if(e.target.id==='pr-ev')drawShare()});
+document.addEventListener('click',function(e){if(e.target.id!=='pr-copy')return;var u=$('pr-url').value;try{navigator.clipboard.writeText(u).then(function(){toast('Link copied.')},function(){$('pr-url').select();toast('Press Ctrl+C to copy.')})}catch(er){$('pr-url').select()}});
 function drawPromote(){
+  drawShare();
   $('od-cv').innerHTML='<option value="p:10">10% off</option><option value="p:20">20% off</option><option value="p:50">50% off</option><option value="f:1000">'+esc(N(1000))+' off</option>';
   $('od-codes').innerHTML=D.codes.length?D.codes.map(function(c){var lab=c.label.indexOf('fixed:')===0?N(+c.label.slice(6))+' off':c.label;return '<li><code>'+esc(c.code)+'</code><span><b>'+esc(lab)+'</b><small>'+esc(c.scope)+'</small></span><span class="od-use"><small>'+c.used+(c.max?' of '+c.max:'')+' used</small><i class="bar"><i style="width:'+(c.max?Math.round(c.used/c.max*100):0)+'%"></i></i></span><em class="st'+(c.active?' new':'')+'">'+(c.active?'Active':'Used up')+'</em></li>'}).join(''):'<li class="od-empty">No discount codes yet.</li>';
   $('od-links').innerHTML=D.links.length?D.links.map(function(l){return '<li><span><b>'+esc(l.name)+'</b><small>'+l.clicks.toLocaleString('en-NG')+' clicks, '+l.sales+' sales</small></span><button class="od-lk" type="button" data-copy="'+l.id+'">Copy link</button></li>'}).join(''):'<li class="od-empty">No tracking links yet.</li>';
