@@ -86,6 +86,16 @@ class PublicImageTest extends TestCase
     $this->assertSame($actual, $listed, 'Run: php artisan tica:static-images to refresh resources/static-images.json');
   }
 
+  public function test_shipped_images_are_actually_deployed(): void
+  {
+    // Images listed as static must not be excluded from Vercel deployments,
+    // or their links fall through to storage where they may not exist.
+    $ignore = file_get_contents(base_path('.vercelignore'));
+    $this->assertStringContainsString('!public/assets/admin/img/event/thumbnail', $ignore);
+    $this->assertStringContainsString('!public/assets/admin/img/organizer-photo', $ignore);
+    $this->assertDoesNotMatchRegularExpression('/^public\/assets\/admin\/img\/?$/m', $ignore, 'The whole admin img folder must not be excluded.');
+  }
+
   public function test_no_code_builds_flyer_urls_by_hand(): void
   {
     $hits = [];

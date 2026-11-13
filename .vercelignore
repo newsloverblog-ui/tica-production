@@ -31,7 +31,14 @@ scripts
 !public/**/*.jpeg
 !public/**/*.webp
 public/installer
-public/assets/admin/img
+# Most admin images live in Supabase storage. Event flyers and organiser
+# photos that ship in the repo are deployed as static files, because pages
+# link to them directly (see resources/static-images.json).
+public/assets/admin/img/*
+!public/assets/admin/img/event
+public/assets/admin/img/event/*
+!public/assets/admin/img/event/thumbnail
+!public/assets/admin/img/organizer-photo
 public/assets/front/images/home
 public/qa-*
 public/*-preview.html
