@@ -26,7 +26,7 @@ class EventCategoryRequest extends FormRequest
   {
     return [
       'language_id' => 'required',
-      'image' => 'required',
+      'icon' => ['required', Rule::in(array_keys(config('category_icons')))],
       'name' => 'required',
       'status' => 'required',
       'serial_number' => 'required',
@@ -37,7 +37,9 @@ class EventCategoryRequest extends FormRequest
   public function messages()
   {
     return [
-      'language_id.required' => 'The language field is required.'
+      'language_id.required' => 'The language field is required.',
+      'icon.required' => 'Pick an icon for this category.',
+      'icon.in' => 'Pick an icon from the list.'
     ];
   }
 }

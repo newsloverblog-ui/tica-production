@@ -92,8 +92,15 @@ class EventCatalog
       ->where('language_id', $this->language->id)
       ->where('status', 1)
       ->orderBy('serial_number')
-      ->get(['id', 'name', 'slug', 'is_featured'])
-      ->map(fn ($category) => ['id' => (int) $category->id, 'key' => $this->categoryKey($category->slug, $category->id), 'name' => $category->name, 'featured' => $category->is_featured === 'yes'])
+      ->get(['id', 'name', 'slug', 'icon', 'is_featured'])
+      ->map(fn ($category) => [
+        'id' => (int) $category->id,
+        'key' => $this->categoryKey($category->slug, $category->id),
+        'name' => $category->name,
+        'featured' => $category->is_featured === 'yes',
+        'icon' => $category->icon,
+        'svg' => config('category_icons.' . $category->icon . '.svg'),
+      ])
       ->values()
       ->all();
   }

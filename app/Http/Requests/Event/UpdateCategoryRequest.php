@@ -25,6 +25,7 @@ class UpdateCategoryRequest extends FormRequest
     {
       return [
         'name' => 'required',
+        'icon' => ['required', \Illuminate\Validation\Rule::in(array_keys(config('category_icons')))],
         'status' => 'required',
         'serial_number' => 'required',
         'is_featured' => 'required',
@@ -34,7 +35,9 @@ class UpdateCategoryRequest extends FormRequest
     public function messages()
     {
       return [
-        'language_id.required' => 'The language field is required.'
+        'language_id.required' => 'The language field is required.',
+        'icon.required' => 'Pick an icon for this category.',
+        'icon.in' => 'Pick an icon from the list.'
       ];
     }
 }
