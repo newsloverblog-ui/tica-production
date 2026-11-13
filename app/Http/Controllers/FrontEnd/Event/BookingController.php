@@ -611,7 +611,7 @@ class BookingController extends Controller
       [
         'first_name' => $bookingInfo->fname,
         'event_title' => $eventTitle,
-        'event_image' => $event->thumbnail ? asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) : null,
+        'event_image' => $event->thumbnail ? \App\Support\PublicImage::flyer($event->thumbnail) : null,
         'event_date' => $start->timezone(config('app.timezone'))->format('D, j M Y'),
         'event_time' => $start->timezone(config('app.timezone'))->format('g:i A'),
         'event_venue' => $venue,

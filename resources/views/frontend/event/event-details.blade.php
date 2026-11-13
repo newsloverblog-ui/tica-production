@@ -221,7 +221,7 @@
         @php
           $eventPosterPath = 'assets/admin/img/event/thumbnail/' . $content->thumbnail;
           $eventPoster = !empty($content->thumbnail)
-              ? asset($eventPosterPath)
+              ? \App\Support\PublicImage::flyer($content->thumbnail)
               : asset('assets/front/images/home/city-pulse-hero.png');
         @endphp
         <div class="event-details-image">
@@ -1032,7 +1032,7 @@
               <div class="event-image">
                 <a href="{{ route('event.details', [$event->slug, $event->id]) }}">
                   @if ($hasRelatedThumbnail)
-                    <img src="{{ asset($relatedThumbnailPath) }}" alt="{{ $event->title }}">
+                    <img src="{{ \App\Support\PublicImage::flyer($event->thumbnail) }}" alt="{{ $event->title }}">
                   @else
                     <img src="{{ asset('assets/admin/img/event/thumbnail/1776131871.jpeg') }}"
                       alt="{{ $event->title }}">

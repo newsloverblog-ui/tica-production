@@ -50,9 +50,7 @@ class Organizer extends Model implements AuthenticatableContract
     if ($file === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $file)) {
       return null;
     }
-    $version = $this->updated_at ? $this->updated_at->getTimestamp() : null;
-
-    return asset('assets/admin/img/organizer-photo/' . $file) . ($version ? '?v=' . $version : '');
+    return \App\Support\PublicImage::url('assets/admin/img/organizer-photo', $file, $this->updated_at);
   }
 
   /** Up to two initials for the avatar fallback. */

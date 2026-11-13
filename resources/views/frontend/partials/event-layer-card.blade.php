@@ -1,7 +1,7 @@
 @php
   $eventThumbnailPath = 'assets/admin/img/event/thumbnail/' . $event->thumbnail;
   $eventThumbnail = !empty($event->thumbnail)
-      ? asset($eventThumbnailPath)
+      ? \App\Support\PublicImage::flyer($event->thumbnail)
       : asset('assets/front/images/home/city-pulse-hero.png');
 
   if ($event->date_type == 'multiple') {

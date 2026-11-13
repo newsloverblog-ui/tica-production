@@ -477,12 +477,8 @@ class TicaOrganizerController extends Controller
     if (!$request->hasFile('flyer')) {
       return '';
     }
-    $file = $request->file('flyer');
-    $filename = (string) Str::uuid() . '.' . ImageMimeTypeRule::extension($file);
-    $directory = public_path('assets/admin/img/event/thumbnail/');
-    UploadFile::storeAs($directory, $file, $filename);
-
-    return $filename;
+    // Saved as a WebP no larger than 1600px so pages load fast on mobile data.
+    return \App\Support\PublicImage::store($request->file('flyer'), 'assets/admin/img/event/thumbnail', 1600);
   }
 
   private function storeContent(Event $event, array $validated, bool $online): void

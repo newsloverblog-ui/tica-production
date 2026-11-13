@@ -92,7 +92,7 @@
                           <div class="event-image">
                             <a href="{{ route('event.details', [$event->information->slug, $event->id]) }}">
                               <img class="lazy"
-                                data-src="{{ asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) }}"
+                                data-src="{{ \App\Support\PublicImage::flyer($event->thumbnail) }}"
                                 alt="Event">
                             </a>
                           </div>
@@ -336,7 +336,7 @@
                             <div class="event-image">
                               <a href="{{ route('event.details', [$event->information->slug, $event->id]) }}">
                                 <img class="lazy"
-                                  data-src="{{ asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) }}"
+                                  data-src="{{ \App\Support\PublicImage::flyer($event->thumbnail) }}"
                                   alt="Event">
                               </a>
                             </div>

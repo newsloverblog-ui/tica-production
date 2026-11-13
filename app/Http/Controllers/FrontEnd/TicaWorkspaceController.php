@@ -713,13 +713,9 @@ class TicaWorkspaceController extends Controller
       $changes['email_verified_at'] = null;
     }
     if ($request->hasFile('photo')) {
-      $file = $request->file('photo');
-      $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
-      $extension = $extensions[$file->getMimeType()] ?? null;
-      abort_if($extension === null, 422, 'Unsupported profile image type.');
+      // A 512px WebP: sharp at every avatar size, a fraction of a phone photo's weight.
       $directory = public_path('assets/admin/img/organizer-photo/');
-      $filename = Str::uuid() . '.' . $extension;
-      UploadFile::storeAs($directory, $file, $filename);
+      $filename = \App\Support\PublicImage::store($request->file('photo'), 'assets/admin/img/organizer-photo', 512);
       UploadFile::delete($directory, (string) $organizer->photo);
       $changes['photo'] = $filename;
     }
