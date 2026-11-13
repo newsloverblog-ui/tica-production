@@ -11,6 +11,14 @@ var ICON={cal:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" wid
  pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>'};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function hydrateImages(root){
+  if(!root)return;
+  var page=root.closest&&root.closest('.page');if(page&&page.hidden)return;
+  var images=[];if(root.matches&&root.matches('img[data-src]'))images.push(root);
+  if(root.querySelectorAll)images=images.concat([].slice.call(root.querySelectorAll('img[data-src]')));
+  images.forEach(function(img){var src=img.dataset.src;if(!src)return;img.src=src;img.removeAttribute('data-src')});
+}
+var imageRoot=document.getElementById('main');if(imageRoot&&'MutationObserver' in window)new MutationObserver(function(records){records.forEach(function(record){[].forEach.call(record.addedNodes,function(node){if(node.nodeType===1)hydrateImages(node)})})}).observe(imageRoot,{childList:true,subtree:true});
 function naira(n){return n===0?'Free':window.TICA_MONEY(n)}
 /* Tica: the booking fee percentage set by the admin. */
 window.TICA_FEE_PCT=(TICA_DATA.currency&&TICA_DATA.currency.feePct!=null)?+TICA_DATA.currency.feePct:6;
@@ -883,6 +891,7 @@ function route(){
   reveal(pg);cdTick();refreshStock();
   var main=$('main');if(parts[0]!==undefined&&route.ran)main.focus({preventScroll:true});route.ran=true;
   if(p==='discover')filter();
+  hydrateImages(pg);
   var first=$('tica-first-page');if(first)first.remove();
   try{window.dispatchEvent(new Event('tica:navigate'))}catch(err){}
 }

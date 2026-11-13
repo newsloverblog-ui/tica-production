@@ -11,7 +11,7 @@
   <div class="h-hero">
     <div class="h-frame">
       @endverbatim
-      <div class="h-slides" aria-hidden="true">@foreach ($tsHome['hero_images'] as $tsI => $tsPath)<div class="h-slide {{ $tsI % 2 ? 'm-blue' : 'm-ember' }}{{ $tsI === 0 ? ' on' : '' }}"><img src="{{ $tsImg($tsPath) }}" alt="" decoding="async" @if ($tsI) loading="lazy" @endif></div>@endforeach</div>
+      <div class="h-slides" aria-hidden="true">@foreach ($tsHome['hero_images'] as $tsI => $tsPath)<div class="h-slide {{ $tsI % 2 ? 'm-blue' : 'm-ember' }}{{ $tsI === 0 ? ' on' : '' }}"><img data-src="{{ $tsImg($tsPath) }}" alt="" decoding="async" loading="lazy"></div>@endforeach</div>
 @verbatim
 
       <div class="h-shade"></div><div class="h-light" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -99,8 +99,8 @@
 @endverbatim
   <div class="org"{!! $tsOff('organisers') !!}><div class="wrap org-in">
     <div class="org-art duo-art" aria-hidden="true">
-      <div class="da-main"><img loading="lazy" decoding="async" src="{{ $tsImg($tsHome['organisers_images'][0] ?? '') }}" alt=""></div>
-      <div class="da-sub"><img loading="lazy" decoding="async" src="{{ $tsImg($tsHome['organisers_images'][1] ?? '') }}" alt=""></div>
+      <div class="da-main"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['organisers_images'][0] ?? '') }}" alt=""></div>
+      <div class="da-sub"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['organisers_images'][1] ?? '') }}" alt=""></div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/></svg>Your event, live in minutes</span>
     </div>
     <div>
@@ -125,13 +125,13 @@
       <a class="btn btn-line" href="/how">How TICA works</a>
     </div>
     <div class="tk-art duo-art" aria-hidden="true">
-      <div class="da-main"><img loading="lazy" decoding="async" src="{{ $tsImg($tsHome['eticket_images'][0] ?? '') }}" alt=""></div>
-      <div class="da-sub"><img loading="lazy" decoding="async" src="{{ $tsImg($tsHome['eticket_images'][1] ?? '') }}" alt=""></div>
+      <div class="da-main"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][0] ?? '') }}" alt=""></div>
+      <div class="da-sub"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][1] ?? '') }}" alt=""></div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2z"/></svg>E-ticket sent to your email</span>
     </div>
   </div>
 
-  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p><div class="partner-marks" aria-label="TICA partners">@foreach ($tsHome['partners'] as $tsI => $tsPartner)@if (!empty($tsPartner['logo']))<span class="partner-logo has-img" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><img src="{{ $tsImg($tsPartner['logo']) }}" alt="" loading="lazy"></span>@else<span class="partner-logo {{ ['coh', 'ndfa'][$tsI % 2] }}" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><b>{{ $tsPartner['short'] }}</b><small>{!! nl2br(e($tsPartner['name']), false) !!}</small></span>@endif @endforeach</div></div></div>
+  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p><div class="partner-marks" aria-label="TICA partners">@foreach ($tsHome['partners'] as $tsI => $tsPartner)@if (!empty($tsPartner['logo']))<span class="partner-logo has-img" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><img data-src="{{ $tsImg($tsPartner['logo']) }}" alt="" loading="lazy"></span>@else<span class="partner-logo {{ ['coh', 'ndfa'][$tsI % 2] }}" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><b>{{ $tsPartner['short'] }}</b><small>{!! nl2br(e($tsPartner['name']), false) !!}</small></span>@endif @endforeach</div></div></div>
 </section>
 @verbatim
 

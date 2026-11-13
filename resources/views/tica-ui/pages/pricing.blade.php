@@ -28,7 +28,7 @@
 
   <div class="wrap x-sec">
     <div class="x-big nz">
-      <img loading="lazy" src="https://images.unsplash.com/photo-1778847195159-874f36cf4e3b?auto=format&fit=crop&w=1400&q=72" alt="">
+      <img loading="lazy" data-src="https://images.unsplash.com/photo-1778847195159-874f36cf4e3b?auto=format&fit=crop&w=1400&q=72" alt="">
       <div><h2 class="x-h2">Running something bigger?</h2><p>Talk to us about festivals, tours and campus-wide events.</p><a class="btn btn-hot" href="/contact">Contact us</a></div>
     </div>
   </div>

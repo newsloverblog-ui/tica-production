@@ -387,7 +387,7 @@ class EventCatalog
     $colour = self::POSTER_COLOURS[(int) $content->id % count(self::POSTER_COLOURS)];
     $image = $this->image($content->thumbnail);
     $escape = fn ($value) => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-    $img = $image ? '<img src="' . $escape($image) . '" alt="" loading="lazy" decoding="async">' : '';
+    $img = $image ? '<img data-src="' . $escape($image) . '" alt="" loading="lazy" decoding="async">' : '';
 
     return '<div class="p' . ($image ? ' pp' : '') . '" style="background:' . $colour . ($image ? '' : ';color:#fff') . '">' . $img
       . ($image ? '<b></b>' : '') . '<em>' . $escape($label) . '</em><strong>' . $escape($name) . '</strong>'

@@ -25,7 +25,7 @@
         <div class="tc-grid">
           @foreach ($content['posts'] as $i => $post)
             <a class="tc-card @if ($i === 0 && !$content['category']) lead-card @endif" href="/blog/{{ $post->slug }}">
-              <span class="tc-img">@if ($tcImg($post->image))<img src="{{ $tcImg($post->image) }}" alt="" loading="lazy" decoding="async">@endif</span>
+              <span class="tc-img">@if ($tcImg($post->image))<img data-src="{{ $tcImg($post->image) }}" alt="" loading="lazy" decoding="async">@endif</span>
               <span class="tc-body">
                 <span class="tc-meta">@if ($post->category)<em>{{ $post->category }}</em>@endif<span>{{ $tcDate($post->created_at) }}</span></span>
                 <b>{{ $post->title }}</b>
@@ -46,7 +46,7 @@
         <h1 class="display">{{ $post->title }}</h1>
       </div>
       @if ($tcImg($post->image))
-        <div class="wrap tc-wide"><img class="tc-hero" src="{{ $tcImg($post->image) }}" alt=""></div>
+        <div class="wrap tc-wide"><img class="tc-hero" data-src="{{ $tcImg($post->image) }}" alt=""></div>
       @endif
       <div class="wrap tc-narrow">
         <div class="tc-prose">{!! \Mews\Purifier\Facades\Purifier::clean($post->content, 'youtube') !!}</div>
@@ -59,7 +59,7 @@
         <div class="tc-grid three">
           @foreach ($content['related'] as $rel)
             <a class="tc-card" href="/blog/{{ $rel->slug }}">
-              <span class="tc-img">@if ($tcImg($rel->image))<img src="{{ $tcImg($rel->image) }}" alt="" loading="lazy" decoding="async">@endif</span>
+              <span class="tc-img">@if ($tcImg($rel->image))<img data-src="{{ $tcImg($rel->image) }}" alt="" loading="lazy" decoding="async">@endif</span>
               <span class="tc-body"><span class="tc-meta"><span>{{ $tcDate($rel->created_at) }}</span></span><b>{{ $rel->title }}</b><span class="tc-ex">{{ $tcExcerpt($rel->content) }}</span></span>
             </a>
           @endforeach

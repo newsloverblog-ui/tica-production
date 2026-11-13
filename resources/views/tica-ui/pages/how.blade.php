@@ -7,8 +7,8 @@
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-line" href="/discover">Discover events</a></div>
     </div>
     <div class="x-collage">
-      <img class="ph a" src="https://images.unsplash.com/photo-1690013429722-87852aae164b?auto=format&fit=crop&w=900&q=72" alt="A performer on a lit stage in front of a large crowd">
-      <img class="ph b" loading="lazy" src="https://images.unsplash.com/photo-1740761026455-5af64649899e?auto=format&fit=crop&w=600&q=72" alt="A speaker on stage in front of an audience">
+      <img class="ph a" data-src="https://images.unsplash.com/photo-1690013429722-87852aae164b?auto=format&fit=crop&w=900&q=72" alt="A performer on a lit stage in front of a large crowd">
+      <img class="ph b" loading="lazy" data-src="https://images.unsplash.com/photo-1740761026455-5af64649899e?auto=format&fit=crop&w=600&q=72" alt="A speaker on stage in front of an audience">
       <div class="float x-f"><span>Instant e-tickets</span><b>QR ready at the gate</b></div>
     </div>
   </div>
@@ -54,7 +54,7 @@
         <div class="bn-num"><b>₦1.84M</b><span>gross ticket revenue</span></div>
       </article>
       <article class="bn pic s7 nz">
-        <img loading="lazy" src="https://images.unsplash.com/photo-1711743658461-38c875d37c8e?auto=format&fit=crop&w=1000&q=72" alt="">
+        <img loading="lazy" data-src="https://images.unsplash.com/photo-1711743658461-38c875d37c8e?auto=format&fit=crop&w=1000&q=72" alt="">
         <div class="bn-cap"><h3>Share one link everywhere</h3><p>Your event gets its own page, ready for WhatsApp, Instagram and anywhere your people are.</p></div>
       </article>
     </div>

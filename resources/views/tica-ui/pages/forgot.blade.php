@@ -1,7 +1,7 @@
 @verbatim
 <section class="page au" data-page="forgot" data-role="att"><div class="au-shell"><aside class="au-art">
-    <img class="for-att" src="https://images.unsplash.com/photo-1711743658461-38c875d37c8e?auto=format&fit=crop&w=1100&q=72" alt="">
-    <img class="for-org" loading="lazy" src="https://images.unsplash.com/photo-1778877032995-4ab6cd8fe106?auto=format&fit=crop&w=1100&q=72" alt="">
+    <img class="for-att" data-src="https://images.unsplash.com/photo-1711743658461-38c875d37c8e?auto=format&fit=crop&w=1100&q=72" alt="">
+    <img class="for-org" loading="lazy" data-src="https://images.unsplash.com/photo-1778877032995-4ab6cd8fe106?auto=format&fit=crop&w=1100&q=72" alt="">
     <div class="au-shade"></div>
     <div class="au-top"><a class="logo" href="/" aria-label="TICA home"><img src="/assets/tica-ui/img/tica-logo.png" alt="TICA"></a><a class="au-back" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Back to site</a></div>
     <div class="au-glass for-att"><h2>Never miss a night out</h2><p>Your TICA account gives you:</p><ul><li><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg></i><span>All your tickets in one place</span></li><li><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.500-7-10a4 4 0 0 1 7-2.500A4 4 0 0 1 19 10c0 5.500-7 10-7 10z"/></svg></i><span>Saved events you can come back to</span></li><li><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.500 7-11a7 7 0 0 0-14 0c0 4.500 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/></svg></i><span>Events happening near you</span></li></ul></div>
