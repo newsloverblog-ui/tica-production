@@ -32,7 +32,7 @@ class SensitiveActionConfirmation
       if (trim((string) $otp) === '') {
         throw ValidationException::withMessages(['otp' => 'Enter the 6-digit code from your authenticator app.']);
       }
-      if (!app(TwoFactorAuthenticator::class)->verify($organizer, (string) $otp)) {
+      if (!app(AccountMfaService::class)->verifyCode($organizer, (string) $otp)) {
         RateLimiter::hit($key, 900);
         AuditLogger::record('organizer.sensitive_confirmation_failed', $organizer, [], [], ['action' => $action, 'reason' => 'otp']);
         throw ValidationException::withMessages(['otp' => 'That code isn\'t right. Use the current code from your app, or a recovery code.']);
@@ -44,6 +44,6 @@ class SensitiveActionConfirmation
 
   public function needsAuthenticatorCode(Organizer $organizer): bool
   {
-    return !empty($organizer->totp_confirmed_at);
+    return app(AccountMfaService::class)->method($organizer) === 'authenticator';
   }
 }

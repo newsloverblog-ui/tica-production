@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Organizer;
 use App\Models\OrganizerInfo;
 use App\Services\AccountMfaService;
-use App\Services\TwoFactorAuthenticator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,11 +70,6 @@ class SocialSignInController extends Controller
 
   private function signIn(Request $request, Organizer $organizer): RedirectResponse
   {
-    $twoFactor = app(TwoFactorAuthenticator::class);
-    if ($twoFactor->enabled($organizer)) {
-      $twoFactor->beginLogin($request, $organizer, '/dashboard');
-      return redirect()->route('totp.login.challenge');
-    }
     $mfa = app(AccountMfaService::class);
     if ($mfa->enabled($organizer)) {
       $mfa->beginLogin($request, 'organizer', $organizer, '/dashboard');

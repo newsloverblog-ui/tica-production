@@ -9,7 +9,9 @@ class TicaTrackingLink extends Model
 {
   protected $table = 'tica_tracking_links';
 
-  protected $fillable = ['organizer_id', 'event_id', 'name', 'code', 'clicks'];
+  protected $fillable = ['organizer_id', 'event_id', 'name', 'channel', 'influencer', 'code', 'clicks', 'is_active', 'last_clicked_at'];
+
+  protected $casts = ['is_active' => 'boolean', 'last_clicked_at' => 'datetime'];
 
   public function organizer()
   {

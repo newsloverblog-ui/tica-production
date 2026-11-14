@@ -47,6 +47,8 @@ class Customer extends Model implements AuthenticatableContract
   protected $casts = [
     'email_verified_at' => 'datetime',
     'two_factor_enabled_at' => 'datetime',
+    'two_factor_secret' => 'encrypted',
+    'two_factor_recovery_codes' => 'encrypted:array',
   ];
   /**
    * The accessors to append to the model's array form.

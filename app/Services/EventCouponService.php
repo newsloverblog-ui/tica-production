@@ -20,6 +20,12 @@ final class EventCouponService
         if ($eventId < 1 || $discountableTotal <= 0) {
             return null;
         }
+        if (isset($coupon->is_active) && !$coupon->is_active) {
+            return null;
+        }
+        if ((float) ($coupon->minimum_purchase ?? 0) > $discountableTotal) {
+            return null;
+        }
 
         try {
             $startsAt = CarbonImmutable::parse($coupon->start_date)->startOfDay();

@@ -15,6 +15,7 @@ class SyncTicaPromotions extends Command
     {
         TicaPromotionCampaign::query()
             ->whereIn('status', ['approved', 'scheduled'])
+            ->where('payment_status', 'paid')
             ->whereNotNull('approved_at')
             ->where('starts_at', '<=', now())
             ->where('ends_at', '>', now())

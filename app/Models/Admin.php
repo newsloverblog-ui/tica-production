@@ -36,10 +36,12 @@ class Admin extends Model implements AuthenticatableContract
    *
    * @var array
    */
-  protected $hidden = ['password'];
+  protected $hidden = ['password', 'two_factor_secret', 'two_factor_recovery_codes'];
 
   protected $casts = [
     'two_factor_enabled_at' => 'datetime',
+    'two_factor_secret' => 'encrypted',
+    'two_factor_recovery_codes' => 'encrypted:array',
   ];
 
   public function role()

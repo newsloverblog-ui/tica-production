@@ -53,6 +53,7 @@ class Booking extends Model
     'event_date',
     'scan_status',
     'conversation_id'
+    , 'coupon_id', 'tracking_link_id', 'promotion_campaign_id'
   ];
 
   protected $hidden = ['checkout_submission_hash', 'buyer_email_hash', 'buyer_email_hash_version'];
@@ -89,5 +90,10 @@ class Booking extends Model
   public function ticketDeliveryRequests()
   {
     return $this->hasMany(BookingTicketDeliveryRequest::class)->latest('id');
+  }
+
+  public function promotionCampaign()
+  {
+    return $this->belongsTo(\App\Models\TicaPromotionCampaign::class, 'promotion_campaign_id');
   }
 }

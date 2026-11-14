@@ -82,4 +82,72 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
             $this->assertStringContainsString('#B4682E', $css);
         }
     }
+
+    public function test_create_event_uses_the_same_responsive_organizer_shell(): void
+    {
+        $create = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('id="ce-side"', $create);
+        $this->assertStringContainsString('class="db-side od-side"', $dashboard);
+        $this->assertStringContainsString("slot.appendChild(side)", $script);
+        $this->assertStringContainsString('.ce-shell.has-side{grid-template-columns:248px minmax(0,1fr)', $css);
+        $this->assertStringContainsString('body.dashnav-open .ce-side .db-side{transform:none;visibility:visible}', $css);
+        $this->assertStringContainsString('.od-side .od-orgc.od-orgc-top{margin:0 4px 10px!important', $css);
+        $this->assertStringContainsString('.od-side .od-new{width:calc(100% - 8px);min-height:42px;margin:0 4px 2px', $css);
+        $this->assertStringContainsString('.ce-side .db-side a.od-new.on{background:var(--dash-primary)!important', $css);
+        $this->assertStringNotContainsString('.page[data-page=dashboard] .od-orgc.od-orgc-top{margin:', $css);
+        $this->assertStringContainsString('body.isorg.appmode footer{display:none}', $css);
+        $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
+    }
+
+    public function test_create_event_has_five_responsive_stages_with_tickets_and_fees_together(): void
+    {
+        $create = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('3. Tickets &amp; fees', $create);
+        $this->assertStringContainsString('Step 1 of 5: Basics', $create);
+        $this->assertStringContainsString('class="ce-subsection" id="ce-fee"', $create);
+        $this->assertStringContainsString("var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review']", $script);
+        $this->assertStringContainsString("var STEPNAME=['Basics','Location','Tickets & fees','Settings','Review']", $script);
+        $this->assertStringNotContainsString("'ce-tix','ce-fee','ce-more'", $script);
+        $this->assertStringContainsString('.page[data-page=create] .creategrid>.preview{order:-1;display:grid', $css);
+        $this->assertStringContainsString('.page[data-page=create] .preview{position:static', $css);
+        $this->assertStringContainsString('grid-template-columns:minmax(0,1fr) minmax(310px,340px)', $css);
+        $this->assertStringContainsString('.page[data-page=create] .preview .flyer{aspect-ratio:4/5}', $css);
+        $this->assertStringContainsString('.page[data-page=dashboard] .od-main{width:100%;min-width:0', $css);
+        $this->assertStringContainsString('.page[data-page=dashboard] .od{grid-template-columns:minmax(0,1fr);width:100%}', $css);
+    }
+
+    public function test_team_workspace_has_no_raw_blade_and_explains_server_enforcement(): void
+    {
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringNotContainsString('@endforeach', $dashboard);
+        $this->assertStringNotContainsString('Every protected action is checked on the server', $dashboard);
+        $this->assertStringContainsString("D.roleSummaries||{}", $script);
+        $this->assertStringContainsString("[['manager','Manager'],['finance','Finance'],['gate','Gate staff']]", $script);
+        $this->assertStringNotContainsString("['owner','Owner']", $script);
+        $this->assertStringContainsString("Role updated. It applies from their next action.", $script);
+    }
+
+    public function test_settings_are_grouped_into_profile_preferences_notifications_and_security(): void
+    {
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('class="od-settings-layout"', $dashboard);
+        $this->assertStringContainsString('class="od-settings-stack"', $dashboard);
+        foreach (['Public profile', 'Sign-in details', 'Contact and location', 'Social profiles', 'Defaults for new events', 'Notifications', 'Security'] as $heading) {
+            $this->assertStringContainsString($heading, $dashboard);
+        }
+        $this->assertStringNotContainsString('Sales update automatically as orders come in.', $dashboard);
+        $this->assertStringNotContainsString('These details identify your account and appear where relevant on TICA.', $dashboard);
+        $this->assertStringContainsString('.od-settings-layout{display:grid;grid-template-columns:', $css);
+    }
 }

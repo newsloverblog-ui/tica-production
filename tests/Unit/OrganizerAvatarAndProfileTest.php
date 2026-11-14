@@ -79,6 +79,29 @@ class OrganizerAvatarAndProfileTest extends TestCase
     }
   }
 
+  public function test_workspace_toolbar_uses_the_saved_organizer_avatar_with_initials_fallback(): void
+  {
+    $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+    $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+    $this->assertStringContainsString('window.TICA_DATA.dashboard.org.avatar', $script);
+    $this->assertStringContainsString("workspaceAccount.classList.add('has-photo')", $script);
+    $this->assertStringContainsString("workspaceAccount.classList.remove('has-photo')", $script);
+    $this->assertStringContainsString('.workspace-avatar img{position:absolute;inset:0;z-index:1', $css);
+  }
+
+  public function test_team_owner_row_uses_the_saved_organizer_avatar_with_initials_fallback(): void
+  {
+    $workspace = file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php'));
+    $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+    $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+    $this->assertStringContainsString("'avatar' => \$organizer->avatar_url", $workspace);
+    $this->assertStringContainsString('data-team-avatar', $script);
+    $this->assertStringContainsString("img.addEventListener('error',function(){this.remove()})", $script);
+    $this->assertStringContainsString('.od-team-avatar>img{position:absolute;inset:0;z-index:1', $css);
+  }
+
   public function test_verbatim_tica_pages_contain_no_blade_loops_that_would_print_raw(): void
   {
     foreach (glob(resource_path('views/tica-ui/pages/*.blade.php')) as $path) {
@@ -87,7 +110,7 @@ class OrganizerAvatarAndProfileTest extends TestCase
         continue;
       }
       $inside = preg_replace('/@endverbatim.*?(@verbatim|$)/s', '', $source);
-      $this->assertDoesNotMatchRegularExpression('/@(foreach|if|php)\b/', $inside, basename($path) . ' is inside @verbatim.');
+      $this->assertDoesNotMatchRegularExpression('/@(foreach|endforeach|if|endif|php|endphp)\b/', $inside, basename($path) . ' is inside @verbatim.');
     }
   }
 

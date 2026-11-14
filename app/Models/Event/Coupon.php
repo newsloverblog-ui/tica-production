@@ -17,7 +17,10 @@ class Coupon extends Model
       'events',
       'start_date',
       'end_date'
+      , 'organizer_id', 'max_uses', 'used_count', 'minimum_purchase', 'is_active', 'paused_at'
     ];
+
+    protected $casts = ['is_active' => 'boolean', 'paused_at' => 'datetime', 'minimum_purchase' => 'decimal:2'];
 
     public function organizer()
     {

@@ -103,7 +103,126 @@ BEGIN
   END IF;
 END $$;
 
--- 6. Keep these tables private --------------------------------------------
+-- 6. Authenticator sign-in for admins, organisers and attendees -----------
+DO $$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['admins', 'organizers', 'customers'] LOOP
+    IF to_regclass('public.' || t) IS NOT NULL THEN
+      EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS two_factor_secret text NULL', t);
+      EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS two_factor_recovery_codes text NULL', t);
+    END IF;
+  END LOOP;
+  PERFORM pg_temp.tica_mark_migration('2026_11_14_160000_add_totp_to_account_actors');
+END $$;
+
+-- 7. Promotion packages, campaign payments and tracking --------------------
+DO $$
+BEGIN
+  IF to_regclass('public.tica_promotion_plans') IS NULL OR to_regclass('public.tica_promotion_campaigns') IS NULL THEN
+    RAISE NOTICE 'Promotion tables do not exist yet: skipped the promotion update.';
+    RETURN;
+  END IF;
+
+  ALTER TABLE public.tica_promotion_plans
+    ADD COLUMN IF NOT EXISTS slug varchar(140) NULL,
+    ADD COLUMN IF NOT EXISTS type varchar(40) NULL,
+    ADD COLUMN IF NOT EXISTS status varchar(24) NOT NULL DEFAULT 'published',
+    ADD COLUMN IF NOT EXISTS benefits json NULL,
+    ADD COLUMN IF NOT EXISTS placements json NULL,
+    ADD COLUMN IF NOT EXISTS eligibility json NULL,
+    ADD COLUMN IF NOT EXISTS approval_required boolean NOT NULL DEFAULT true,
+    ADD COLUMN IF NOT EXISTS priority smallint NOT NULL DEFAULT 100,
+    ADD COLUMN IF NOT EXISTS capacity smallint NULL,
+    ADD COLUMN IF NOT EXISTS max_concurrent smallint NULL,
+    ADD COLUMN IF NOT EXISTS available_from timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS available_until timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS archived_at timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS duplicated_from_id bigint NULL;
+  CREATE UNIQUE INDEX IF NOT EXISTS tica_promotion_plans_slug_unique ON public.tica_promotion_plans (slug);
+
+  -- Give existing plans a unique slug, a type and default benefits.
+  UPDATE public.tica_promotion_plans p
+     SET slug = COALESCE(NULLIF(trim(BOTH '-' FROM regexp_replace(lower(p.name), '[^a-z0-9]+', '-', 'g')), ''), 'promotion-plan') || '-' || p.id,
+         type = CASE WHEN p.placement = 'event_popup' THEN 'pop_event' ELSE p.placement END,
+         benefits = CASE p.placement
+           WHEN 'featured_event' THEN '["Priority discovery placement","Featured badge","Performance reporting"]'::json
+           WHEN 'event_popup' THEN '["Rotating public-site placement","Frequency-controlled display","Performance reporting"]'::json
+           ELSE '["Sponsored placement","Performance reporting"]'::json END,
+         placements = json_build_array(p.placement),
+         eligibility = '{"published_event":true}'::json
+   WHERE p.slug IS NULL;
+
+  ALTER TABLE public.tica_promotion_campaigns
+    ADD COLUMN IF NOT EXISTS reference varchar(32) NULL,
+    ADD COLUMN IF NOT EXISTS placement varchar(40) NULL,
+    ADD COLUMN IF NOT EXISTS payment_status varchar(24) NOT NULL DEFAULT 'pending',
+    ADD COLUMN IF NOT EXISTS payment_reference varchar(100) NULL,
+    ADD COLUMN IF NOT EXISTS priority smallint NOT NULL DEFAULT 100,
+    ADD COLUMN IF NOT EXISTS impressions bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS clicks bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS attributed_orders bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS attributed_tickets bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS attributed_revenue numeric(14,2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS change_request text NULL,
+    ADD COLUMN IF NOT EXISTS paused_at timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS cancelled_at timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS refunded_at timestamp(0) without time zone NULL,
+    ADD COLUMN IF NOT EXISTS metadata json NULL;
+  CREATE UNIQUE INDEX IF NOT EXISTS tica_promotion_campaigns_reference_unique ON public.tica_promotion_campaigns (reference);
+  CREATE UNIQUE INDEX IF NOT EXISTS tica_promotion_campaigns_payment_reference_unique ON public.tica_promotion_campaigns (payment_reference);
+
+  UPDATE public.tica_promotion_campaigns c
+     SET reference = 'TP-' || lpad(c.id::text, 8, '0'),
+         placement = (SELECT p.placement FROM public.tica_promotion_plans p WHERE p.id = c.plan_id),
+         payment_status = CASE WHEN c.paid_at IS NOT NULL THEN 'paid' ELSE 'pending' END,
+         payment_reference = CASE WHEN c.payment_transaction_id IS NOT NULL THEN 'BAL-' || c.payment_transaction_id ELSE NULL END
+   WHERE c.reference IS NULL;
+
+  CREATE TABLE IF NOT EXISTS public.tica_promotion_events (
+    id bigserial PRIMARY KEY,
+    campaign_id bigint NOT NULL,
+    booking_id bigint NULL,
+    event_type varchar(24) NOT NULL,
+    visitor_hash char(64) NULL,
+    amount numeric(14,2) NOT NULL DEFAULT 0,
+    currency varchar(3) NULL,
+    occurred_at timestamp(0) without time zone NOT NULL,
+    created_at timestamp(0) without time zone NULL,
+    updated_at timestamp(0) without time zone NULL,
+    CONSTRAINT tica_promotion_event_visitor_unique UNIQUE (campaign_id, event_type, visitor_hash),
+    CONSTRAINT tica_promotion_event_booking_unique UNIQUE (campaign_id, event_type, booking_id)
+  );
+  CREATE INDEX IF NOT EXISTS tica_promotion_events_campaign_id_index ON public.tica_promotion_events (campaign_id);
+  CREATE INDEX IF NOT EXISTS tica_promotion_events_booking_id_index ON public.tica_promotion_events (booking_id);
+  CREATE INDEX IF NOT EXISTS tica_promotion_events_event_type_occurred_at_index ON public.tica_promotion_events (event_type, occurred_at);
+  ALTER TABLE public.tica_promotion_events ENABLE ROW LEVEL SECURITY;
+
+  IF to_regclass('public.tica_tracking_links') IS NOT NULL THEN
+    ALTER TABLE public.tica_tracking_links
+      ADD COLUMN IF NOT EXISTS channel varchar(80) NULL,
+      ADD COLUMN IF NOT EXISTS influencer varchar(120) NULL,
+      ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS last_clicked_at timestamp(0) without time zone NULL;
+  END IF;
+  IF to_regclass('public.coupons') IS NOT NULL THEN
+    ALTER TABLE public.coupons
+      ADD COLUMN IF NOT EXISTS minimum_purchase numeric(12,2) NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS paused_at timestamp(0) without time zone NULL;
+  END IF;
+  IF to_regclass('public.bookings') IS NOT NULL THEN
+    ALTER TABLE public.bookings
+      ADD COLUMN IF NOT EXISTS promotion_campaign_id bigint NULL,
+      ADD COLUMN IF NOT EXISTS coupon_id bigint NULL;
+    CREATE INDEX IF NOT EXISTS bookings_promotion_campaign_id_index ON public.bookings (promotion_campaign_id);
+    CREATE INDEX IF NOT EXISTS bookings_coupon_id_index ON public.bookings (coupon_id);
+  END IF;
+
+  PERFORM pg_temp.tica_mark_migration('2026_11_14_180000_expand_tica_promotion_system');
+END $$;
+
+-- 8. Keep these tables private --------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -263,6 +382,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('testimonial_sections'),
   ('testimonials'),
   ('tica_promotion_campaigns'),
+  ('tica_promotion_events'),
   ('tica_promotion_plans'),
   ('tica_tracking_links'),
   ('tica_tracking_pixels'),
@@ -419,7 +539,9 @@ SELECT 'update not recorded', m.name
   ('2026_11_13_130000_add_totp_to_organizers'),
   ('2026_11_13_200000_create_organizer_notifications_table'),
   ('2026_11_13_220000_create_platform_integrations_table'),
-  ('2026_11_14_100000_make_registration_forms_reusable')
+  ('2026_11_14_100000_make_registration_forms_reusable'),
+  ('2026_11_14_160000_add_totp_to_account_actors'),
+  ('2026_11_14_180000_expand_tica_promotion_system')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

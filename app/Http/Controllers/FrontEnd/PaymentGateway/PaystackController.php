@@ -21,6 +21,7 @@ use App\Services\PaymentRefundService;
 use App\Services\PayoutTransferService;
 use App\Services\ProductPaystackPaymentService;
 use App\Services\ProductGatewayRefundService;
+use App\Services\TicaPromotionPaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
@@ -254,6 +255,12 @@ class PaystackController extends Controller
                     json_decode(json_encode($event->data ?? []), true)
                 );
                 if (!$refund) {
+                    $refund = app(TicaPromotionPaystackService::class)->acceptRefundWebhook(
+                        $eventName,
+                        json_decode(json_encode($event->data ?? []), true)
+                    );
+                }
+                if (!$refund) {
                     Log::warning('Webhook: Refund event did not match a local controlled refund', [
                         'event' => $eventName,
                     ]);
@@ -302,6 +309,19 @@ class PaystackController extends Controller
         }
         $arrData = $intent->payload;
         $eventId = $intent->event_id;
+
+        if (($arrData['payment_kind'] ?? null) === 'promotion') {
+            try {
+                $campaign = app(TicaPromotionPaystackService::class)->acceptWebhook(json_decode(json_encode($event->data), true));
+                return response()->json(['status' => $campaign->payment_status === 'paid' ? 'success' : 'accepted'], 200);
+            } catch (\Throwable $exception) {
+                Log::error('Promotion Paystack webhook processing failed.', [
+                    'reference' => $reference, 'exception_type' => $exception::class,
+                    'request_id' => $request->attributes->get('request_id'),
+                ]);
+                return response()->json(['status' => 'error'], 500);
+            }
+        }
 
         $verificationErrors = PaystackPaymentVerifier::errors(
             json_decode(json_encode($event->data), true),

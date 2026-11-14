@@ -32,12 +32,11 @@ class Organizer extends Model implements AuthenticatableContract
     'email_verified_at' => 'datetime',
     'kyc_verified_at' => 'datetime',
     'two_factor_enabled_at' => 'datetime',
-    'totp_secret' => 'encrypted',
-    'totp_recovery_codes' => 'encrypted:array',
-    'totp_confirmed_at' => 'datetime',
+    'two_factor_secret' => 'encrypted',
+    'two_factor_recovery_codes' => 'encrypted:array',
   ];
 
-  protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_recovery_codes'];
+  protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
 
   /**
    * The one place an organiser's photo URL is built. The ?v= stamp changes
@@ -50,7 +49,9 @@ class Organizer extends Model implements AuthenticatableContract
     if ($file === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $file)) {
       return null;
     }
-    return \App\Support\PublicImage::url('assets/admin/img/organizer-photo', $file, $this->updated_at);
+    $version = $this->updated_at ? $this->updated_at->getTimestamp() : null;
+
+    return asset('assets/admin/img/organizer-photo/' . $file) . ($version ? '?v=' . $version : '');
   }
 
   /** Up to two initials for the avatar fallback. */

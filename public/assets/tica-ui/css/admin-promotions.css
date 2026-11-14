@@ -269,7 +269,7 @@
 }
 
 .promotion-filters label { margin: 0; }
-.promotion-filters input, .promotion-filters select, .review-drawer input, .review-drawer select, .review-drawer textarea, .plan-editor input, .plan-editor textarea {
+.promotion-filters input, .promotion-filters select, .review-drawer input, .review-drawer select, .review-drawer textarea, .plan-editor input, .plan-editor select, .plan-editor textarea {
   width: 100%;
   min-height: 40px;
   padding: 8px 11px;
@@ -419,6 +419,23 @@
 .tool-policy-note p { display: grid; gap: 2px; margin: 0; font-size: 11px; line-height: 1.45; }
 
 .tica-promotion-center button, .tica-promotion-center a, .tica-promotion-center summary { transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease; }
+.package-create { margin: 0 24px 20px; border: 1px dashed #bdcbe1; border-radius: 14px; background: #fbfcff; }
+.package-create > summary { display: flex; align-items: center; gap: 9px; padding: 15px 18px; color: var(--promo-blue); cursor: pointer; font-size: 12px; font-weight: 750; list-style: none; }
+.package-create > summary::-webkit-details-marker { display: none; }
+.package-create .plan-editor { margin: 0; border: 0; border-top: 1px solid var(--promo-line); border-radius: 0 0 14px 14px; }
+.plan-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn-plan-secondary, .btn-plan-danger { min-height: 38px; padding: 0 13px; border: 1px solid var(--promo-line); border-radius: 9px; background: #fff; color: var(--promo-text); font-size: 11px; font-weight: 700; }
+.btn-plan-danger { border-color: #efcaca; color: #a63c3c; }
+.inventory-strip { display: flex; gap: 8px; overflow-x: auto; grid-column: 1 / -1; padding: 10px 0 2px; }
+.inventory-strip > span { display: grid; flex: 0 0 auto; gap: 2px; min-width: 125px; padding: 9px 11px; border: 1px solid #dce4f1; border-radius: 9px; background: #f8faff; }
+.inventory-strip b { color: var(--promo-ink); font-size: 10px; }.inventory-strip small { color: var(--promo-muted); font-size: 9px; text-transform: capitalize; }
+.analytics-summary { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; padding: 0 24px 24px; }
+.analytics-summary article { display: grid; gap: 4px; padding: 18px; border: 1px solid var(--promo-line); border-radius: 13px; background: linear-gradient(145deg,#fff,#f8faff); }
+.analytics-summary span { color: var(--promo-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.analytics-summary strong { color: var(--promo-ink); font-size: 19px; }
+.analytics-summary small { color: var(--promo-blue); font-size: 10px; }
+@media (max-width: 760px) { .analytics-summary { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 0 16px 18px; } .package-create { margin: 0 16px 16px; } }
+@media (max-width: 480px) { .analytics-summary { grid-template-columns: 1fr; } }
 .tica-promotion-center button:focus-visible, .tica-promotion-center a:focus-visible, .tica-promotion-center summary:focus-visible, .tica-promotion-center input:focus, .tica-promotion-center select:focus, .tica-promotion-center textarea:focus { outline: 3px solid rgba(47, 91, 211, .16); outline-offset: 2px; border-color: var(--promo-blue); }
 
 @media (max-width: 1199.98px) {
