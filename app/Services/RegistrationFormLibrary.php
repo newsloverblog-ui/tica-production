@@ -141,7 +141,7 @@ class RegistrationFormLibrary
   public function useOnEvents(EventRegistrationForm $library, int $organizerId, array $eventIds, bool $publish): array
   {
     $this->assertLibrary($library, $organizerId);
-    $library->loadMissing('questions');
+    $library->load('questions');
     $events = Event::with('information')->where('organizer_id', $organizerId)->whereIn('id', array_map('intval', $eventIds))->get();
     $results = [];
     foreach ($events as $event) {
@@ -191,7 +191,7 @@ class RegistrationFormLibrary
   /** Copy fields from one form to another, replacing what the target had. */
   private function copyQuestions(EventRegistrationForm $from, EventRegistrationForm $to, bool $toEvent): void
   {
-    $from->loadMissing('questions');
+    $from->load('questions');
     if ($from->questions->count() > (int) config('registration.max_questions_per_form')) {
       throw ValidationException::withMessages(['form' => 'This form has more fields than an event form allows.']);
     }
