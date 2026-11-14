@@ -33,9 +33,8 @@
     <div class="wrapper">
       {{-- The one organiser shell, shared with the TICA app pages. --}}
       @php
-        $shellActive = request()->routeIs('organizer.event_management.*', 'organizer.event.*', 'organizer.add.event.*', 'choose-event-type', 'organizer.ticket_management.*') ? 'events'
-          : (request()->routeIs('organizer.withdraw*', 'organizer.payout*') ? 'payouts'
-          : (request()->routeIs('organizer.event_booking.index', 'organizer.event_booking.details', 'organizer.event-booking*') && !request()->routeIs('organizer.event_booking.report') ? 'orders' : 'tools'));
+        // The shell works out the active item from the address (see components/shell/organizer).
+        $shellActive = null;
       @endphp
       <x-shell.organizer :active="$shellActive" :title="trim($__env->yieldContent('page-title')) ?: null" />
 

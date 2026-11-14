@@ -52,7 +52,7 @@ class OrganizerShellTest extends TestCase
   public function test_sub_pages_highlight_their_parent(): void
   {
     $html = $this->render('events', 'Edit event');
-    $this->assertMatchesRegularExpression('/os-link is-active[^>]*href="\/dashboard\/events"/', $html);
+    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/dashboard\/events"/', $html);
     $this->assertStringContainsString('Edit event', $html);
   }
 
@@ -74,6 +74,32 @@ class OrganizerShellTest extends TestCase
     $this->assertStringContainsString('<x-shell.organizer', $app);
     $this->assertStringNotContainsString("organizer.partials.side-navbar", $legacy);
     $this->assertStringNotContainsString('od-side', file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php')));
+  }
+
+  public function test_shell_is_isolated_and_the_profile_is_always_there(): void
+  {
+    foreach (['overview', 'forms', 'payouts'] as $active) {
+      $html = $this->render($active);
+      $this->assertSame(1, substr_count($html, 'id="tica-shell"'), $active);
+      $this->assertStringContainsString('class="tsh-org"', $html, 'Organiser profile on '.$active);
+      $this->assertStringContainsString('tsh-org__name', $html);
+      $this->assertSame(1, substr_count($html, 'aria-current="page"'), $active);
+    }
+    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/organizer\/forms"/', $this->render('forms'));
+  }
+
+  public function test_shell_styles_load_last_in_both_layouts(): void
+  {
+    $legacy = file_get_contents(resource_path('views/organizer/partials/styles.blade.php'));
+    $app = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
+    foreach (['legacy' => $legacy, 'app' => $app] as $name => $html) {
+      $shell = strrpos($html, 'tica-ui/css/shell.css');
+      $this->assertNotFalse($shell, $name);
+      preg_match_all('/\.css/', $html, $all, PREG_OFFSET_CAPTURE);
+      $lastCss = end($all[0])[1];
+      $this->assertGreaterThanOrEqual($lastCss, $shell + strlen('tica-ui/css/shell'), $name.': shell.css must be the last stylesheet.');
+    }
+    $this->assertStringNotContainsString('.os-side{', str_replace(' ', '', file_get_contents(public_path('assets/tica-ui/css/ds.css'))));
   }
 
   /* ------------------------------------------------------------- helpers */

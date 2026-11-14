@@ -63,7 +63,7 @@ return [
       'organizer.event.imagermv', 'organizer.event.imgdbrmv', 'organizer.event.delete.date', 'organizer.event.images',
       'organizer.event.update', 'organizer.event.preview', 'organizer.event.ticket', 'organizer.event.add.ticket',
       'organizer.event.edit.ticket', 'organizer.ticket_management.*', 'organizer.event_cancellations.store',
-      'organizer.event.registrations.*', 'organizer.event.guest-list.*',
+      'organizer.event.registrations.*', 'organizer.forms.*', 'organizer.event.guest-list.*',
     ],
     'orders.view' => ['organizer.event.booking', 'organizer.event_booking.details', 'organizer.event_booking.invoice', 'organizer.event_booking.attachment'],
     'orders.manage' => ['organizer.event_booking.resend-tickets', 'organizer.event_booking.ticket.reissue', 'organizer.event_booking.ticket.revoke'],

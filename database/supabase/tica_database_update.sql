@@ -87,7 +87,23 @@ CREATE TABLE IF NOT EXISTS public.platform_integrations (
 );
 SELECT pg_temp.tica_mark_migration('2026_11_13_220000_create_platform_integrations_table');
 
--- 5. Keep these tables private --------------------------------------------
+-- 5. Reusable registration forms (forms library) -------------------------
+-- A form can live in the organiser's library without an event; each event
+-- copy remembers the library form it came from.
+DO $$
+BEGIN
+  IF to_regclass('public.event_registration_forms') IS NOT NULL THEN
+    -- Allows empty event_id; removes no data.
+    ALTER TABLE public.event_registration_forms ALTER COLUMN event_id DROP NOT NULL;
+    ALTER TABLE public.event_registration_forms ADD COLUMN IF NOT EXISTS source_form_id bigint NULL;
+    CREATE INDEX IF NOT EXISTS event_registration_forms_source_form_id_index ON public.event_registration_forms (source_form_id);
+    PERFORM pg_temp.tica_mark_migration('2026_11_14_100000_make_registration_forms_reusable');
+  ELSE
+    RAISE NOTICE 'event_registration_forms does not exist yet: skipped the forms library update.';
+  END IF;
+END $$;
+
+-- 6. Keep these tables private --------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -402,7 +418,8 @@ SELECT 'update not recorded', m.name
   ('2026_11_13_120000_add_review_fields_to_organizer_payout_accounts'),
   ('2026_11_13_130000_add_totp_to_organizers'),
   ('2026_11_13_200000_create_organizer_notifications_table'),
-  ('2026_11_13_220000_create_platform_integrations_table')
+  ('2026_11_13_220000_create_platform_integrations_table'),
+  ('2026_11_14_100000_make_registration_forms_reusable')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

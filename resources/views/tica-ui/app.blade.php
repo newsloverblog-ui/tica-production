@@ -4,6 +4,8 @@
 <script>window.TICA_FB="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='xMidYMid slice'%3E%3Crect width='800' height='600' fill='%23F1F3F6'/%3E%3Cg fill='none' stroke='%23A3ADBD' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' transform='translate(340 240)'%3E%3Crect x='0' y='0' width='120' height='96' rx='12'/%3E%3Ccircle cx='38' cy='34' r='12'/%3E%3Cpath d='M0 80l36-32 28 22 22-18 34 28'/%3E%3C/g%3E%3C/svg%3E";document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&!t.dataset.fb){t.dataset.fb=1;t.removeAttribute("srcset");t.src=window.TICA_FB}},true);</script>
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/tica.css') }}?v={{ $assetVersion }}">
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ $assetVersion }}">
+<link rel="preload" href="{{ asset('assets/tica-ui/fonts/inter-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/shell.css') }}?v={{ $assetVersion }}">
 <style id="tica-first-page">.page:not([data-page="{{ $initialPage }}"]){display:none}</style>
 @if(!empty($structuredData))<script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>@endif
 </head>

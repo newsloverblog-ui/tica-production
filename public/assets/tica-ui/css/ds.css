@@ -212,64 +212,12 @@
 .t-skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);transform:translateX(-100%);animation:t-shimmer 1.2s infinite}
 @keyframes t-shimmer{to{transform:translateX(100%)}}
 
-/* =====================================================================
-   Organiser / admin shell: one sidebar, one top bar
-   ===================================================================== */
-.os-side{position:fixed;inset:0 auto 0 0;z-index:60;width:var(--t-side);display:flex;flex-direction:column;gap:var(--t-4);padding:var(--t-4);background:var(--t-surface);border-right:1px solid var(--t-line);overflow-y:auto;font-family:var(--t-font)}
-.os-logo{display:flex;align-items:center;height:40px;padding:0 var(--t-2)}
-.os-logo img{height:28px;width:auto}
-.os-org{display:flex;align-items:center;gap:var(--t-3);padding:var(--t-3);border:1px solid var(--t-line);border-radius:var(--t-radius);text-decoration:none!important;color:inherit}
-.os-org:hover{background:var(--t-subtle)}
-.os-org__name{display:block;font:600 14px/1.3 var(--t-font);color:var(--t-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
-.os-org .t-badge{margin-top:2px}
-.os-nav{display:grid;gap:2px;flex:1}
-.os-group{margin:var(--t-3) 0 var(--t-1);padding:0 var(--t-3);font:500 12px/1 var(--t-font);color:var(--t-muted)}
-.os-group:first-child{margin-top:0}
-.os-link{display:flex;align-items:center;gap:var(--t-3);min-height:40px;padding:0 var(--t-3);border:0;border-radius:var(--t-radius-sm);background:none;color:var(--t-text-c)!important;font:500 14px/1.2 var(--t-font);text-decoration:none!important;text-align:left;cursor:pointer;width:100%;transition:background var(--t-fast) var(--t-ease),color var(--t-fast) var(--t-ease)}
-.os-link svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--t-muted)}
-.os-link:hover{background:var(--t-subtle);color:var(--t-ink)!important}
-.os-link.is-active,.os-link[aria-current=page]{background:var(--t-blue-50);color:var(--t-blue)!important}
-.os-link.is-active svg,.os-link[aria-current=page] svg{color:var(--t-blue)}
-.os-link .os-dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--t-orange)}
-.os-more summary{list-style:none}
-.os-more summary::-webkit-details-marker{display:none}
-.os-more summary .os-chev{margin-left:auto;transition:transform var(--t-fast) var(--t-ease)}
-.os-more[open] summary .os-chev{transform:rotate(180deg)}
-.os-more .os-sub{display:grid;gap:2px;padding:2px 0 var(--t-2) 30px}
-.os-more .os-sub .os-link{min-height:34px;font-weight:400}
-.os-foot{border-top:1px solid var(--t-line);padding-top:var(--t-3)}
-
-.os-top{position:fixed;top:0;right:0;left:var(--t-side);z-index:50;height:var(--t-top);display:flex;align-items:center;gap:var(--t-3);padding:0 var(--t-5);background:rgba(255,255,255,.96);border-bottom:1px solid var(--t-line);font-family:var(--t-font)}
-.os-top__title{margin:0;flex:1;min-width:0;font:600 16px/1.2 var(--t-font);color:var(--t-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.os-burger{display:none}
-.os-menu{position:relative}
-.os-menu>summary{list-style:none;cursor:pointer;border-radius:50%}
-.os-menu>summary::-webkit-details-marker{display:none}
-.os-menu__list{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;padding:var(--t-2);background:var(--t-surface);border:1px solid var(--t-line);border-radius:var(--t-radius);box-shadow:var(--t-shadow-pop);display:grid;gap:2px;animation:t-pop var(--t-fast) var(--t-ease)}
-.os-menu__list a,.os-menu__list button{display:block;width:100%;padding:var(--t-2) var(--t-3);border:0;border-radius:var(--t-radius-sm);background:none;text-align:left;color:var(--t-text-c)!important;font:400 14px/1.4 var(--t-font);text-decoration:none!important;cursor:pointer}
-.os-menu__list a:hover,.os-menu__list button:hover{background:var(--t-subtle)}
-.os-menu__who{padding:var(--t-2) var(--t-3) var(--t-3);border-bottom:1px solid var(--t-line);margin-bottom:var(--t-1)}
-.os-menu__who b{display:block;color:var(--t-ink);font-weight:600}
-.os-menu__who small{color:var(--t-muted);font-size:var(--t-text-sm)}
-.os-scrim{position:fixed;inset:0;z-index:55;background:rgba(17,24,39,.4);opacity:0;pointer-events:none;transition:opacity var(--t-med) var(--t-ease)}
-
-/* content area next to the shell */
-.os-main{margin-left:var(--t-side);padding:calc(var(--t-top) + var(--t-5)) var(--t-5) var(--t-8);min-height:100vh;background:var(--t-bg)}
-
-@media (max-width:1023px){
-  .os-side{transform:translateX(-100%);transition:transform var(--t-med) var(--t-ease);box-shadow:var(--t-shadow-pop)}
-  .os-top{left:0;padding:0 var(--t-4)}
-  .os-burger{display:inline-grid}
-  .os-main{margin-left:0;padding:calc(var(--t-top) + var(--t-4)) var(--t-4) var(--t-7)}
-  body.os-drawer-open .os-side{transform:none}
-  body.os-drawer-open .os-scrim{opacity:1;pointer-events:auto}
-  body.os-drawer-open{overflow:hidden}
-}
+/* The organiser sidebar and top bar live in shell.css (loaded last on every organiser page). */
 
 /* =====================================================================
    TICA app pages inside the shell (body.orgshell)
    ===================================================================== */
-body:not(.orgshell):not(.orgshell-legacy) .os-side,body:not(.orgshell):not(.orgshell-legacy) .os-top,body:not(.orgshell):not(.orgshell-legacy) .os-scrim{display:none}
+body:not(.orgshell):not(.orgshell-legacy) .tsh-unused{display:none}
 body.orgshell{background:var(--t-bg)}
 body.orgshell>.topbar,body.orgshell .topbar,body.orgshell>footer,body.orgshell footer.ft{display:none!important}
 body.orgshell #main{margin-left:var(--t-side);padding-top:var(--t-top);min-height:100vh;background:var(--t-bg)}

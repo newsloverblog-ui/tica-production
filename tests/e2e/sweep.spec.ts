@@ -11,7 +11,7 @@ const ORGANISER = [
   '/organizer/transaction', '/organizer/finance', '/organizer/kyc',
   '/organizer/support-tikcet/tickets', '/organizer/support-tikcet/create',
   // The rest of "More tools"
-  '/organizer/event-booking/report', '/organizer/event/guest-list', '/organizer/event/registrations',
+  '/organizer/event-booking/report', '/organizer/event/guest-list', '/organizer/event/registrations', '/organizer/forms',
   '/organizer/withdraw/exports', '/organizer/event-booking/exports', '/organizer/check-in-ledger/exports', '/organizer/pwa',
 ];
 const ADMIN = ['/admin/dashboard', '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email', '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage', '/admin/organizer-management/kyc', '/admin/payout-accounts', '/admin/withdraw/withdraw-request', '/admin/advertise/tica-promotions', '/admin/support/tickets'];

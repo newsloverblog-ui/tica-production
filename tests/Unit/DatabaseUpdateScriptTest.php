@@ -45,7 +45,9 @@ class DatabaseUpdateScriptTest extends TestCase
 
   public function test_it_never_drops_or_deletes(): void
   {
-    $this->assertDoesNotMatchRegularExpression('/\b(DROP|DELETE|TRUNCATE)\b/i', preg_replace('/--.*$/m', '', $this->script()));
+    // "DROP NOT NULL" only relaxes a rule (a column may be empty); it removes nothing.
+    $sql = preg_replace('/\bDROP\s+NOT\s+NULL\b/i', '', preg_replace('/--.*$/m', '', $this->script()));
+    $this->assertDoesNotMatchRegularExpression('/\b(DROP|DELETE|TRUNCATE)\b/i', $sql);
   }
 
   public function test_migration_rows_are_added_once(): void

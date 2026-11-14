@@ -2,8 +2,8 @@
 
 @section('content')
   <div class="tica-workspace-hero">
-    <div><p class="tica-eyebrow">{{ __('Data collection') }}</p><h1>{{ __('Registration forms') }}</h1><p class="tica-lede">{{ __('Build a clear, privacy-aware application flow and review submissions in one workspace.') }}</p></div>
-    <div class="tica-quick-actions"><a class="btn btn-outline-primary" href="{{ route('organizer.event_management.event') }}">{{ __('All events') }}</a></div>
+    <div><p class="tica-eyebrow">{{ __('Event registration') }}</p><h1>{{ __('Registrations for an event') }}</h1><p class="tica-lede">{{ __('Review registrations, sessions, badges and sponsor places for one event. To build or reuse a form, use your forms library.') }}</p></div>
+    <div class="tica-quick-actions"><a class="btn btn-primary" href="{{ route('organizer.forms.index') }}">{{ __('My forms') }}</a> <a class="btn btn-outline-primary" href="{{ route('organizer.event_management.event') }}">{{ __('All events') }}</a></div>
   </div>
 
   <div class="card mb-4">
@@ -24,6 +24,10 @@
       </form>
     </div>
   </div>
+
+  @if ($event && $event->registrationForm?->source)
+    <div class="alert alert-info">{{ __('This event uses “:name” from your forms. Edit the fields there, then choose “Update events with my changes”.', ['name' => $event->registrationForm->source->name]) }} <a href="{{ route('organizer.forms.show', $event->registrationForm->source) }}">{{ __('Open form') }}</a></div>
+  @endif
 
   @if ($event)
     <div class="row">
