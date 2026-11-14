@@ -107,6 +107,8 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringNotContainsString('@endforeach', $dashboard);
         $this->assertStringContainsString('Every protected action is checked on the server', $dashboard);
         $this->assertStringContainsString("D.roleSummaries||{}", $script);
+        $this->assertStringContainsString("[['manager','Manager'],['finance','Finance'],['gate','Gate staff']]", $script);
+        $this->assertStringNotContainsString("['owner','Owner']", $script);
         $this->assertStringContainsString("Role updated. It applies from their next action.", $script);
     }
 }

@@ -4836,7 +4836,7 @@ body.isorg.appmode .workspace-context{gap:0}
 .ce-shell.has-side .ce-shell-main>.tint.full{min-height:calc(100vh - var(--hdr));padding-block:32px 56px;background:transparent}
 
 /* Team access: compact member management plus a readable permission guide. */
-.od-team-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.8fr);gap:16px;align-items:start}
+.od-team-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
 .od-team-card,.od-role-guide{min-width:0}
 .od-team-heading{align-items:flex-start}
 .od-team-count{display:inline-flex;min-height:28px;align-items:center;padding:0 10px;border-radius:999px;background:var(--dash-primary-soft);color:var(--dash-primary);font-size:11px;font-weight:800;white-space:nowrap}
@@ -4855,9 +4855,8 @@ body.isorg.appmode .workspace-context{gap:0}
 .od-invite{margin-top:0;padding-top:0;border-top:0;grid-template-columns:minmax(180px,1.45fr) minmax(140px,.8fr) auto}
 .od-role-guide .db-ch{padding-bottom:14px;border-bottom:1px solid var(--dash-border)}
 .od-role-guide .od-fine{margin-bottom:0}
-.od-role-guide .od-roles{grid-template-columns:1fr;gap:10px;margin-top:14px}
+.od-role-guide .od-roles{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
 .od-role-card{border-color:var(--dash-border);border-radius:12px;padding:14px;background:#fff}
-.od-role-card:first-child{border-color:var(--accent-300);background:var(--accent-50)}
 .od-role-card h3{margin:0 0 10px;color:var(--dash-text);font-size:14px;font-weight:750}
 .od-role-label{margin:9px 0 3px;color:var(--dash-muted);font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
 .od-role-label.can{color:var(--dash-primary)}
@@ -4872,8 +4871,7 @@ body.isorg.appmode .workspace-context{gap:0}
   body.dashnav-collapsed .ce-side .db-side{width:0;padding-inline:0;overflow:hidden;visibility:hidden;border:0!important}
 }
 @media (max-width:1100px){
-  .od-team-layout{grid-template-columns:1fr}
-  .od-role-guide .od-roles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .od-role-guide .od-roles{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:860px){
   .ce-shell.has-side{grid-template-columns:minmax(0,1fr)}
