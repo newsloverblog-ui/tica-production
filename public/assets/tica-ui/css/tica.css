@@ -4979,6 +4979,7 @@ body.isorg.appmode .workspace-context{gap:0}
 }
 
 @media (max-width:860px){
+  .page[data-page=dashboard] .od{grid-template-columns:minmax(0,1fr);width:100%}
   .page[data-page=create] .ce-shell-main>.tint.full{padding-block:16px 34px}
   .page[data-page=create] .creategrid{grid-template-columns:minmax(0,1fr);gap:14px;padding-inline:16px}
   .page[data-page=create] .creategrid>.preview{order:-1;display:grid;grid-template-columns:104px minmax(0,1fr);align-items:end;max-width:none;margin:0}
