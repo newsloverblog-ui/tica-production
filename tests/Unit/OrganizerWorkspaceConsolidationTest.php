@@ -95,6 +95,10 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString("slot.appendChild(side)", $script);
         $this->assertStringContainsString('.ce-shell.has-side{grid-template-columns:248px minmax(0,1fr)', $css);
         $this->assertStringContainsString('body.dashnav-open .ce-side .db-side{transform:none;visibility:visible}', $css);
+        $this->assertStringContainsString('.od-side .od-orgc.od-orgc-top{margin:0 4px 10px!important', $css);
+        $this->assertStringContainsString('.od-side .od-new{width:calc(100% - 8px);min-height:42px;margin:0 4px 2px', $css);
+        $this->assertStringContainsString('.ce-side .db-side a.od-new.on{background:var(--dash-primary)!important', $css);
+        $this->assertStringNotContainsString('.page[data-page=dashboard] .od-orgc.od-orgc-top{margin:', $css);
         $this->assertStringContainsString('body.isorg.appmode footer{display:none}', $css);
         $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
     }
