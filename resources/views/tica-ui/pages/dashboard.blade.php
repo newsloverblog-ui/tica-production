@@ -141,12 +141,20 @@
       <!-- TEAM -->
       <div class="od-p" data-p="team" hidden>
         <div class="db-head"><div><h1>Team</h1><p>Let people help run your events, with only the access they need.</p></div></div>
-        <section class="db-card"><ul class="od-team" id="od-team"></ul>
-          <form class="od-form od-invite" id="od-inv" novalidate><div class="inp"><label for="od-ie">Invite by email</label><input id="od-ie" type="email" placeholder="name@example.com"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"><option>Gate staff</option><option>Manager</option><option>Finance</option></select></div><button class="btn btn-hot" type="submit">Send invite</button></form>
-          <p class="hint" id="od-inv-m" role="status"></p>
-        </section>
-        <div class="od-roles" id="od-roles"></div>
-          @endforeach
+        <div class="od-team-layout">
+          <section class="db-card od-team-card" aria-labelledby="od-team-members-h">
+            <div class="db-ch od-team-heading"><div><h2 id="od-team-members-h">People with access</h2><p class="od-fine">Role changes take effect on the person's next action.</p></div><span class="od-team-count" id="od-team-count" aria-live="polite"></span></div>
+            <ul class="od-team" id="od-team"></ul>
+            <div class="od-invite-wrap">
+              <div><h3>Invite someone</h3><p class="od-fine">Choose the smallest role that gives them the access they need.</p></div>
+              <form class="od-form od-invite" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email address</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email" required></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"><option>Gate staff</option><option>Manager</option><option>Finance</option></select></div><button class="btn btn-hot" type="submit">Send invite</button></form>
+              <p class="hint" id="od-inv-m" role="status"></p>
+            </div>
+          </section>
+          <aside class="db-card od-role-guide" aria-labelledby="od-role-guide-h">
+            <div class="db-ch"><div><h2 id="od-role-guide-h">Role permissions</h2><p class="od-fine">Every protected action is checked on the server, not only hidden in the menu.</p></div></div>
+            <div class="od-roles" id="od-roles"></div>
+          </aside>
         </div>
       </div>
 

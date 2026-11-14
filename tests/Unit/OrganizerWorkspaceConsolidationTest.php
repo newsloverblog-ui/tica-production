@@ -82,4 +82,31 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
             $this->assertStringContainsString('#B4682E', $css);
         }
     }
+
+    public function test_create_event_uses_the_same_responsive_organizer_shell(): void
+    {
+        $create = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('id="ce-side"', $create);
+        $this->assertStringContainsString('class="db-side od-side"', $dashboard);
+        $this->assertStringContainsString("slot.appendChild(side)", $script);
+        $this->assertStringContainsString('.ce-shell.has-side{grid-template-columns:248px minmax(0,1fr)', $css);
+        $this->assertStringContainsString('body.dashnav-open .ce-side .db-side{transform:none;visibility:visible}', $css);
+        $this->assertStringContainsString('body.isorg.appmode footer{display:none}', $css);
+        $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
+    }
+
+    public function test_team_workspace_has_no_raw_blade_and_explains_server_enforcement(): void
+    {
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringNotContainsString('@endforeach', $dashboard);
+        $this->assertStringContainsString('Every protected action is checked on the server', $dashboard);
+        $this->assertStringContainsString("D.roleSummaries||{}", $script);
+        $this->assertStringContainsString("Role updated. It applies from their next action.", $script);
+    }
 }

@@ -4821,3 +4821,74 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .od-photo-name{font-size:13px;color:var(--soft)}
 .od-err{display:block;margin-top:5px;font-size:12.5px;font-weight:500;color:#B42318}
 .od-form [aria-invalid=true]{border-color:#E5484D!important;box-shadow:0 0 0 3px rgba(229,72,77,.12)}
+
+/* v56: one organiser workspace shell across Overview, Create event and Team. */
+body.isorg.appmode footer{display:none}
+body.isorg.appmode .workspace-menu{display:grid}
+body.isorg.appmode .workspace-badge,
+body.isorg.appmode #workspace-role{display:none}
+body.isorg.appmode .workspace-context{gap:0}
+
+.ce-shell.has-side{grid-template-columns:248px minmax(0,1fr);min-height:calc(100vh - var(--hdr));background:var(--dash-bg)!important;background-image:none!important}
+.ce-shell.has-side .ce-side{min-width:0}
+.ce-shell.has-side .ce-side .od-side{top:var(--hdr);height:calc(100vh - var(--hdr));padding:18px 14px}
+.ce-shell.has-side .ce-shell-main{min-width:0}
+.ce-shell.has-side .ce-shell-main>.tint.full{min-height:calc(100vh - var(--hdr));padding-block:32px 56px;background:transparent}
+
+/* Team access: compact member management plus a readable permission guide. */
+.od-team-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.8fr);gap:16px;align-items:start}
+.od-team-card,.od-role-guide{min-width:0}
+.od-team-heading{align-items:flex-start}
+.od-team-count{display:inline-flex;min-height:28px;align-items:center;padding:0 10px;border-radius:999px;background:var(--dash-primary-soft);color:var(--dash-primary);font-size:11px;font-weight:800;white-space:nowrap}
+.od-team li{grid-template-columns:40px minmax(150px,1fr) minmax(150px,.75fr) auto;gap:12px;padding:14px 0}
+.od-team li>i{background:var(--dash-primary-soft);color:var(--dash-primary);box-shadow:inset 0 0 0 1px var(--dash-primary-line)}
+.od-team .od-member,.od-team .od-role{min-width:0}
+.od-team .od-member b,.od-team .od-member small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.od-team .od-role{text-align:left}
+.od-team .od-role small{margin-top:3px;line-height:1.35}
+.od-role-fixed{align-self:center;color:var(--dash-muted);font-size:11px;font-weight:700;white-space:nowrap}
+.od-team-empty{grid-template-columns:40px minmax(0,1fr)!important;padding:24px 0!important}
+.od-team-empty>i{border:1px dashed var(--dash-primary-line);background:#fff!important}
+.od-invite-wrap{margin-top:10px;padding:18px;border:1px solid var(--dash-primary-line);border-radius:12px;background:var(--dash-primary-soft)}
+.od-invite-wrap h3{margin:0;font-size:15px}
+.od-invite-wrap .od-fine{margin-bottom:10px}
+.od-invite{margin-top:0;padding-top:0;border-top:0;grid-template-columns:minmax(180px,1.45fr) minmax(140px,.8fr) auto}
+.od-role-guide .db-ch{padding-bottom:14px;border-bottom:1px solid var(--dash-border)}
+.od-role-guide .od-fine{margin-bottom:0}
+.od-role-guide .od-roles{grid-template-columns:1fr;gap:10px;margin-top:14px}
+.od-role-card{border-color:var(--dash-border);border-radius:12px;padding:14px;background:#fff}
+.od-role-card:first-child{border-color:var(--accent-300);background:var(--accent-50)}
+.od-role-card h3{margin:0 0 10px;color:var(--dash-text);font-size:14px;font-weight:750}
+.od-role-label{margin:9px 0 3px;color:var(--dash-muted);font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.od-role-label.can{color:var(--dash-primary)}
+.od-role-label.cannot{color:#8a4b14}
+.od-can,.od-cannot{font-size:12.5px;line-height:1.45}
+.od-can li,.od-cannot li{margin:3px 0}
+.od-rolesel{width:100%;min-height:38px;border-color:var(--dash-border);border-radius:9px;padding:0 10px}
+.od-rolesel:disabled{cursor:progress;opacity:.65}
+
+@media (min-width:861px){
+  body.dashnav-collapsed .ce-shell.has-side{grid-template-columns:0 minmax(0,1fr)}
+  body.dashnav-collapsed .ce-side .db-side{width:0;padding-inline:0;overflow:hidden;visibility:hidden;border:0!important}
+}
+@media (max-width:1100px){
+  .od-team-layout{grid-template-columns:1fr}
+  .od-role-guide .od-roles{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:860px){
+  .ce-shell.has-side{grid-template-columns:minmax(0,1fr)}
+  .ce-shell.has-side .ce-side{position:static;min-width:0}
+  .ce-shell.has-side .ce-side .od-side{position:fixed!important;z-index:70;top:58px!important;bottom:0;left:0;width:min(84vw,310px);height:auto!important;padding:18px 14px!important;overflow-y:auto!important;display:flex!important;flex-direction:column;transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility .22s;background:#fff!important;box-shadow:18px 0 45px rgba(18,33,58,.14)!important}
+  body.dashnav-open .ce-side .db-side{transform:none;visibility:visible}
+  .ce-shell.has-side .ce-side .db-side nav{display:grid!important;overflow:visible!important;white-space:normal!important}
+  .ce-shell.has-side .ce-side .od-new{display:none!important}
+  .ce-shell.has-side .ce-shell-main>.tint.full{min-height:calc(100vh - 58px);padding-block:24px 44px}
+}
+@media (max-width:680px){
+  .od-team li{grid-template-columns:40px minmax(0,1fr) auto}
+  .od-team .od-role{grid-column:2/4;width:100%}
+  .od-team .od-lk,.od-team .od-role-fixed{grid-column:3;grid-row:1}
+  .od-invite{grid-template-columns:1fr}
+  .od-invite .btn{width:100%}
+  .od-role-guide .od-roles{grid-template-columns:1fr}
+}

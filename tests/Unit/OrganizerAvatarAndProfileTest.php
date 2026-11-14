@@ -87,7 +87,7 @@ class OrganizerAvatarAndProfileTest extends TestCase
         continue;
       }
       $inside = preg_replace('/@endverbatim.*?(@verbatim|$)/s', '', $source);
-      $this->assertDoesNotMatchRegularExpression('/@(foreach|if|php)\b/', $inside, basename($path) . ' is inside @verbatim.');
+      $this->assertDoesNotMatchRegularExpression('/@(foreach|endforeach|if|endif|php|endphp)\b/', $inside, basename($path) . ' is inside @verbatim.');
     }
   }
 
