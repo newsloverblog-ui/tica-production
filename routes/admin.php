@@ -17,8 +17,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
   // Database updates (migrations) applied from the admin: cPanel has no deploy step.
   Route::prefix('/database-updates')->middleware('permission:Basic Settings')->group(function () {
-    Route::get('/', 'BackEnd\DatabaseUpdateController@index')->name('admin.database_updates.index');
-    Route::post('/apply', 'BackEnd\DatabaseUpdateController@apply')->middleware('throttle:5,1')->name('admin.database_updates.apply');
+    Route::get('/', 'BackEnd\DatabaseHealthController@index')->name('admin.database.index');
+    Route::post('/apply', 'BackEnd\DatabaseHealthController@apply')->middleware('throttle:5,1')->name('admin.database.apply');
   });
 
   // Integrations: payment, payout, email, SMS, push, sign-in and storage keys.

@@ -655,7 +655,7 @@ Route::get('/{slug}', 'FrontEnd\TicaUiController@customPage')->name('dynamic_pag
 Route::fallback('FrontEnd\TicaUiController@missing')->middleware('change.lang');
 
 // Database updates without a terminal (cPanel). Off unless DB_UPDATE_TOKEN is set; no session or cache needed.
-Route::get('/system/update', 'SystemUpdateController@show')
+Route::get('/system/update', 'SystemUpdateController@show')->name('system.database.show')->middleware('throttle:30,1')
   ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);
-Route::post('/system/update', 'SystemUpdateController@apply')
+Route::post('/system/update', 'SystemUpdateController@apply')->name('system.database.apply')->middleware('throttle:10,1')
   ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);

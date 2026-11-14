@@ -40,7 +40,7 @@
 
     @if ($s['ok'] && $s['pending'])
       <aside class="in-side">
-        <form class="t-card" method="POST" action="{{ route('admin.database_updates.apply') }}">
+        <form class="t-card" method="POST" action="{{ route('admin.database.apply') }}">
           @csrf
           <h2 class="t-card__title">{{ __('Apply updates') }}</h2>
           <p class="t-help">{{ __('First download a backup (cPanel: phpMyAdmin → Export; Supabase: Database → Backups). It usually takes under a minute.') }}</p>

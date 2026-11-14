@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /** Admin > Database updates: see and apply the updates this code needs. Super admin only. */
-class DatabaseUpdateController extends Controller
+class DatabaseHealthController extends Controller
 {
   public function index()
   {
@@ -32,7 +32,7 @@ class DatabaseUpdateController extends Controller
     $after = DatabaseUpdates::status()['pending'];
     AuditLogger::record('database.updates_applied', null, [], ['applied' => array_values(array_diff($before, $after)), 'still_pending' => count($after), 'ok' => $result['ok']]);
 
-    return redirect()->route('admin.database_updates.index')
+    return redirect()->route('admin.database.index')
       ->with($result['ok'] ? 'success' : 'warning', $result['ok']
         ? (count($before) - count($after)) . ' update(s) applied. The database is up to date.'
         : 'Updates stopped before finishing. Nothing already applied is lost; fix the problem below and press Apply again.')

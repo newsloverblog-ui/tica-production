@@ -84,8 +84,8 @@
                             <p>{{ __('Integrations') }}</p>
                         </a>
                     </li>
-                    <li class="nav-item @if (request()->routeIs('admin.database_updates.*')) active @endif">
-                        <a href="{{ route('admin.database_updates.index') }}">
+                    <li class="nav-item @if (request()->routeIs('admin.database.*')) active @endif">
+                        <a href="{{ route('admin.database.index') }}">
                             <i class="fal fa-database"></i>
                             <p>{{ __('Database updates') }}</p>
                             @php $dbPending = \App\Support\DatabaseUpdates::pendingCount(); @endphp

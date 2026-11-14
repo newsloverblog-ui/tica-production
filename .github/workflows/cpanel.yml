@@ -72,8 +72,8 @@ jobs:
 
       - name: An old Evento database, like the one on cPanel today
         run: |
-          mariadb --host=127.0.0.1 --user=root --password=root tica < database/evento_v2.0.sql
-          echo "Updates recorded before: $(mariadb -h127.0.0.1 -uroot -proot -N tica -e 'select count(*) from migrations')"
+          mysql --host=127.0.0.1 --user=root --password=root tica < database/evento_v2.0.sql
+          echo "Updates recorded before: $(mysql -h127.0.0.1 -uroot -proot -N tica -e 'select count(*) from migrations')"
 
       - name: Settings file as the guide tells people to write it
         run: |
