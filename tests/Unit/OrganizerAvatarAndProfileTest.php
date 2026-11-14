@@ -79,6 +79,17 @@ class OrganizerAvatarAndProfileTest extends TestCase
     }
   }
 
+  public function test_workspace_toolbar_uses_the_saved_organizer_avatar_with_initials_fallback(): void
+  {
+    $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+    $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+    $this->assertStringContainsString('window.TICA_DATA.dashboard.org.avatar', $script);
+    $this->assertStringContainsString("workspaceAccount.classList.add('has-photo')", $script);
+    $this->assertStringContainsString("workspaceAccount.classList.remove('has-photo')", $script);
+    $this->assertStringContainsString('.workspace-avatar img{position:absolute;inset:0;z-index:1', $css);
+  }
+
   public function test_verbatim_tica_pages_contain_no_blade_loops_that_would_print_raw(): void
   {
     foreach (glob(resource_path('views/tica-ui/pages/*.blade.php')) as $path) {

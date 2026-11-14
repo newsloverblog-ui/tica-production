@@ -4891,3 +4891,37 @@ body.isorg.appmode .workspace-context{gap:0}
   .od-invite .btn{width:100%}
   .od-role-guide .od-roles{grid-template-columns:1fr}
 }
+
+/* v57: settings hierarchy and shared workspace profile imagery. */
+.workspace-avatar{overflow:hidden}
+.workspace-avatar img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.workspace-avatar.has-photo{background:var(--dash-primary-soft);color:transparent}
+.od-settings-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.8fr);gap:16px;align-items:start}
+.od-settings-stack{display:grid;gap:16px;align-items:start}
+.od-settings-profile,.od-settings-stack>.db-card{min-width:0}
+.od-settings-profile .od-form{display:grid;gap:0}
+.od-settings-profile .od-profile-photo{margin-bottom:2px}
+.od-settings-group{min-inline-size:0;margin:18px 0 0;padding:18px 0 0;border:0;border-top:1px solid var(--dash-border)}
+.od-settings-group legend{float:left;width:100%;margin:0 0 14px;padding:0;color:var(--dash-text);font-size:13px;font-weight:800}
+.od-settings-group legend+*{clear:both}
+.od-settings-group .inp:last-child{margin-bottom:0}
+.od-settings-actions{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid var(--dash-border)}
+.od-settings-actions .btn{min-width:132px}
+.od-settings-actions .hint{margin:0}
+.od-settings-stack .od-security-card .od-row2{grid-template-columns:1fr}
+.od-settings-stack .od-security-card .btn{width:100%;justify-content:center}
+.od-settings-stack .od-sub{margin-top:18px;padding-top:18px;border-top:1px solid var(--dash-border)}
+
+@media (max-width:1100px){
+  .od-settings-layout{grid-template-columns:1fr}
+  .od-settings-stack{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .od-settings-stack .od-security-card{grid-column:1/-1}
+  .od-settings-stack .od-security-card .od-row2{grid-template-columns:1fr 1fr}
+}
+@media (max-width:700px){
+  .od-settings-stack{grid-template-columns:1fr}
+  .od-settings-stack .od-security-card{grid-column:auto}
+  .od-settings-stack .od-security-card .od-row2,.od-settings-profile .od-row2{grid-template-columns:1fr}
+  .od-settings-actions{align-items:stretch;flex-direction:column}
+  .od-settings-actions .btn{width:100%}
+}

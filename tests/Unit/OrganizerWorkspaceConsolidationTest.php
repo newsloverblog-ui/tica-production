@@ -109,10 +109,25 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
 
         $this->assertStringNotContainsString('@endforeach', $dashboard);
-        $this->assertStringContainsString('Every protected action is checked on the server', $dashboard);
+        $this->assertStringNotContainsString('Every protected action is checked on the server', $dashboard);
         $this->assertStringContainsString("D.roleSummaries||{}", $script);
         $this->assertStringContainsString("[['manager','Manager'],['finance','Finance'],['gate','Gate staff']]", $script);
         $this->assertStringNotContainsString("['owner','Owner']", $script);
         $this->assertStringContainsString("Role updated. It applies from their next action.", $script);
+    }
+
+    public function test_settings_are_grouped_into_profile_preferences_notifications_and_security(): void
+    {
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('class="od-settings-layout"', $dashboard);
+        $this->assertStringContainsString('class="od-settings-stack"', $dashboard);
+        foreach (['Public profile', 'Sign-in details', 'Contact and location', 'Social profiles', 'Defaults for new events', 'Notifications', 'Security'] as $heading) {
+            $this->assertStringContainsString($heading, $dashboard);
+        }
+        $this->assertStringNotContainsString('Sales update automatically as orders come in.', $dashboard);
+        $this->assertStringNotContainsString('These details identify your account and appear where relevant on TICA.', $dashboard);
+        $this->assertStringContainsString('.od-settings-layout{display:grid;grid-template-columns:', $css);
     }
 }

@@ -39,7 +39,6 @@
           <button class="btn btn-hot" type="button" data-panel="payouts">Add bank account</button>
         </section>
         <nav class="od-quick" aria-label="Quick actions"><a class="od-quick-create" href="/create">Create event</a><a href="/checkin">Scan tickets</a><button type="button" data-panel="promote">Share event link</button><button type="button" data-panel="payouts">Withdraw</button></nav>
-        <p class="db-ex">Sales update automatically as orders come in.</p>
         <div class="db-kpis" id="db-kpis"></div>
         <p class="od-currency-note">Dashboard totals use your TICA base currency. Event rows keep the currency used for each sale.</p>
         <div class="od-grid">
@@ -152,7 +151,7 @@
             </div>
           </section>
           <aside class="db-card od-role-guide" aria-labelledby="od-role-guide-h">
-            <div class="db-ch"><div><h2 id="od-role-guide-h">Role permissions</h2><p class="od-fine">Every protected action is checked on the server, not only hidden in the menu.</p></div></div>
+            <div class="db-ch"><h2 id="od-role-guide-h">Role permissions</h2></div>
             <div class="od-roles" id="od-roles"></div>
           </aside>
         </div>
@@ -160,49 +159,59 @@
 
       <!-- SETTINGS -->
       <div class="od-p" data-p="settings" hidden>
-        <div class="db-head"><div><h1>Settings</h1><p>Manage your organiser identity, account, event defaults and security in one place.</p></div></div>
-        <div class="od-pr2">
-          <section class="db-card"><div class="db-ch"><div><h2>Organiser profile</h2><p class="hint">These details identify your account and appear where relevant on TICA.</p></div></div>
+        <div class="db-head"><div><h1>Settings</h1></div></div>
+        <div class="od-settings-layout">
+          <section class="db-card od-settings-profile"><div class="db-ch"><h2>Profile and account</h2></div>
             <form class="od-form" id="od-prof" novalidate>
               <div class="od-profile-photo"><span class="od-photo-frame"><span class="od-photo-ini" id="od-photo-ini" aria-hidden="true"></span><img id="od-photo-preview" alt="Your profile photo" hidden></span><div><span class="od-photo-t">Profile photo</span><div class="od-photo-act"><label class="btn btn-line od-upl" for="od-photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Choose a photo</label><input id="od-photo" class="od-file" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><span class="od-photo-name" id="od-photo-name"></span></div><small>JPG, PNG, WebP or GIF, up to 3 MB. Square photos look best.</small></div></div>
-              <div class="inp"><label for="od-pn">Organiser name</label><input id="od-pn" type="text" autocomplete="organization" required></div>
-              <div class="od-row2"><div class="inp"><label for="od-pe">Sign-in email</label><input id="od-pe" type="email" autocomplete="email" required><small>Changing this email signs you out and requires verification.</small></div><div class="inp"><label for="od-pu">Username</label><input id="od-pu" type="text" autocomplete="username" required></div></div>
-              <div class="inp" id="od-pcp-row" hidden><label for="od-pcp">Current password</label><input id="od-pcp" type="password" autocomplete="current-password"><small>Needed because you're changing your sign-in email.</small></div>
-              <div class="inp"><label for="od-pa">About</label><textarea id="od-pa" rows="3"></textarea></div>
-              <div class="od-row2"><div class="inp"><label for="od-pw">Phone / WhatsApp</label><input id="od-pw" type="tel" autocomplete="tel"></div><div class="inp"><label for="od-paddr">Address</label><input id="od-paddr" type="text" autocomplete="street-address"></div></div>
-              <div class="od-row2"><div class="inp"><label for="od-pcity">City</label><input id="od-pcity" type="text" autocomplete="address-level2"></div><div class="inp"><label for="od-pstate">State</label><input id="od-pstate" type="text" autocomplete="address-level1"></div></div>
-              <div class="od-row2"><div class="inp"><label for="od-pcountry">Country</label><input id="od-pcountry" type="text" autocomplete="country-name"></div><div class="inp"><label for="od-pzip">Postcode</label><input id="od-pzip" type="text" autocomplete="postal-code"></div></div>
-              <div class="db-ch od-sub"><h2>Social links</h2></div>
-              <div class="od-row2"><div class="inp"><label for="od-pi">Instagram</label><input id="od-pi" type="text" placeholder="@yourhandle"></div><div class="inp"><label for="od-pt">TikTok</label><input id="od-pt" type="text" placeholder="@yourhandle"></div></div>
-              <div class="inp"><label for="od-pweb">Website</label><input id="od-pweb" type="url" placeholder="https://example.com"></div>
-              <div class="od-row2"><div class="inp"><label for="od-pfb">Facebook URL</label><input id="od-pfb" type="url" placeholder="https://facebook.com/..."></div><div class="inp"><label for="od-px">X / Twitter URL</label><input id="od-px" type="url" placeholder="https://x.com/..."></div></div>
-              <div class="od-row2"><div class="inp"><label for="od-pli">LinkedIn URL</label><input id="od-pli" type="url" placeholder="https://linkedin.com/company/..."></div><div class="inp"><label for="od-pyt">YouTube URL</label><input id="od-pyt" type="url" placeholder="https://youtube.com/@..."></div></div>
-              <button class="btn btn-line" type="submit">Save profile</button><p class="hint" id="od-prof-m" role="status"></p>
+              <fieldset class="od-settings-group"><legend>Public profile</legend>
+                <div class="inp"><label for="od-pn">Organiser name</label><input id="od-pn" type="text" autocomplete="organization" required></div>
+                <div class="inp"><label for="od-pa">About</label><textarea id="od-pa" rows="3"></textarea></div>
+              </fieldset>
+              <fieldset class="od-settings-group"><legend>Sign-in details</legend>
+                <div class="od-row2"><div class="inp"><label for="od-pe">Email</label><input id="od-pe" type="email" autocomplete="email" required><small>Changing this email signs you out and requires verification.</small></div><div class="inp"><label for="od-pu">Username</label><input id="od-pu" type="text" autocomplete="username" required></div></div>
+                <div class="inp" id="od-pcp-row" hidden><label for="od-pcp">Current password</label><input id="od-pcp" type="password" autocomplete="current-password"></div>
+              </fieldset>
+              <fieldset class="od-settings-group"><legend>Contact and location</legend>
+                <div class="od-row2"><div class="inp"><label for="od-pw">Phone / WhatsApp</label><input id="od-pw" type="tel" autocomplete="tel"></div><div class="inp"><label for="od-paddr">Address</label><input id="od-paddr" type="text" autocomplete="street-address"></div></div>
+                <div class="od-row2"><div class="inp"><label for="od-pcity">City</label><input id="od-pcity" type="text" autocomplete="address-level2"></div><div class="inp"><label for="od-pstate">State</label><input id="od-pstate" type="text" autocomplete="address-level1"></div></div>
+                <div class="od-row2"><div class="inp"><label for="od-pcountry">Country</label><input id="od-pcountry" type="text" autocomplete="country-name"></div><div class="inp"><label for="od-pzip">Postcode</label><input id="od-pzip" type="text" autocomplete="postal-code"></div></div>
+              </fieldset>
+              <fieldset class="od-settings-group"><legend>Social profiles</legend>
+                <div class="od-row2"><div class="inp"><label for="od-pi">Instagram</label><input id="od-pi" type="text" placeholder="@yourhandle"></div><div class="inp"><label for="od-pt">TikTok</label><input id="od-pt" type="text" placeholder="@yourhandle"></div></div>
+                <div class="inp"><label for="od-pweb">Website</label><input id="od-pweb" type="url" placeholder="https://example.com"></div>
+                <div class="od-row2"><div class="inp"><label for="od-pfb">Facebook URL</label><input id="od-pfb" type="url" placeholder="https://facebook.com/..."></div><div class="inp"><label for="od-px">X / Twitter URL</label><input id="od-px" type="url" placeholder="https://x.com/..."></div></div>
+                <div class="od-row2"><div class="inp"><label for="od-pli">LinkedIn URL</label><input id="od-pli" type="url" placeholder="https://linkedin.com/company/..."></div><div class="inp"><label for="od-pyt">YouTube URL</label><input id="od-pyt" type="url" placeholder="https://youtube.com/@..."></div></div>
+              </fieldset>
+              <div class="od-settings-actions"><button class="btn btn-hot" type="submit">Save changes</button><p class="hint" id="od-prof-m" role="status"></p></div>
             </form>
           </section>
+          <div class="od-settings-stack">
           <section class="db-card"><div class="db-ch"><h2>Defaults for new events</h2></div>
             <ul class="od-sw">
               <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee"></li>
-              <li><span><b>Show tickets left on event pages</b><small>Creates urgency when stock is low.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left"></li>
+              <li><span><b>Show tickets left on event pages</b></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left"></li>
               <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out"></li>
               <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets"></li>
             </ul>
-            <div class="db-ch od-sub"><h2>Notifications</h2></div>
+          </section>
+          <section class="db-card"><div class="db-ch"><h2>Notifications</h2></div>
             <ul class="od-sw">
               <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale"></li>
-              <li><span><b>Daily and weekly sales summaries</b><small>Receive scheduled performance digests for your events.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries"></li>
-              <li><span><b>Payout status emails</b><small>Always on for account security and transfer records.</small></span><span class="od-sec-state on">Always on</span></li>
+              <li><span><b>Daily and weekly sales summaries</b></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries"></li>
+              <li><span><b>Payout status emails</b></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
-          <section class="db-card od-security-card" id="password"><div class="db-ch"><div><h2>Security and password</h2><p class="hint">Use a unique password and add a second sign-in step to protect event income and attendee data.</p></div><span class="od-sec-state" id="od-mfa-state">Off</span></div>
+          <section class="db-card od-security-card" id="password"><div class="db-ch"><h2>Security</h2><span class="od-sec-state" id="od-mfa-state">Off</span></div>
             <form class="od-form" id="od-pass" novalidate>
               <div class="inp"><label for="od-pass-current">Current password</label><input id="od-pass-current" type="password" autocomplete="current-password" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pass-new">New password</label><input id="od-pass-new" type="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters with upper and lowercase letters and a number.</small></div><div class="inp"><label for="od-pass-confirm">Confirm new password</label><input id="od-pass-confirm" type="password" autocomplete="new-password" minlength="8" required></div></div>
               <button class="btn btn-line" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
             </form>
-            <div class="db-ch od-sub"><div><h2>Two-step verification</h2><p class="hint">Require an extra verification step when signing in.</p></div></div>
+            <div class="db-ch od-sub"><h2>Two-step verification</h2></div>
             <a class="btn btn-line" id="od-security-link" href="/account-security/organizer">Manage two-step verification</a>
           </section>
+          </div>
         </div>
       </div>
     </div>
