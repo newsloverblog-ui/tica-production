@@ -15,6 +15,17 @@ $app = new Illuminate\Foundation\Application(
   $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+// An empty LARAVEL_STORAGE_PATH (common when copying a .env between hosts)
+// would point storage nowhere and break every page; treat it as unset.
+$app->afterLoadingEnvironment(function () {
+  if (isset($_ENV['LARAVEL_STORAGE_PATH']) && trim((string) $_ENV['LARAVEL_STORAGE_PATH']) === '') {
+    unset($_ENV['LARAVEL_STORAGE_PATH']);
+  }
+  if (isset($_SERVER['LARAVEL_STORAGE_PATH']) && trim((string) $_SERVER['LARAVEL_STORAGE_PATH']) === '') {
+    unset($_SERVER['LARAVEL_STORAGE_PATH']);
+  }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
