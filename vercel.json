@@ -9,7 +9,7 @@
       "runtime": "vercel-php@0.9.0",
       "memory": 1024,
       "maxDuration": 60,
-      "excludeFiles": "{node_modules/**,.vercel-static/**,public/assets/**,public/build/assets/**,public/installer/**,database/**,documentation/**,updater/**,tmp/**,audit-uiux/**,storage/**}"
+      "excludeFiles": "{node_modules/**,.vercel-static/**,public/assets/**,public/build/assets/**,public/installer/**,documentation/**,updater/**,tmp/**,audit-uiux/**,storage/**}"
     }
   },
   "routes": [

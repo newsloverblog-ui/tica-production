@@ -24,6 +24,23 @@ Route::get('/api/vercel/cron', App\Http\Controllers\VercelCronController::class)
   ->middleware('throttle:6,1')
   ->name('vercel.cron');
 
+Route::post('/_ops-promotions-25c2fc0', function (\Illuminate\Http\Request $request) {
+  abort_unless(app()->environment('production') && (string) env('VERCEL') === '1', 404);
+  abort_unless(hash_equals('3d212d48f432be49a09fff1f60ef3e562421dd4ce822cb214eabd3137e2740b6', hash('sha256', (string) $request->header('X-Tica-Migration-Nonce'))), 404);
+
+  $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', [
+    '--path' => 'database/migrations/2026_11_14_180000_expand_tica_promotion_system.php',
+    '--force' => true,
+    '--env' => 'production',
+  ]);
+
+  return response()->json([
+    'ok' => $exitCode === 0,
+    'exit_code' => $exitCode,
+    'output' => trim(\Illuminate\Support\Facades\Artisan::output()),
+  ], $exitCode === 0 ? 200 : 500);
+})->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class)->middleware('throttle:1,10');
+
 Route::post('/analytics/events', 'FrontEnd\AnalyticsController@store')
   ->middleware('throttle:60,1')
   ->name('analytics.events.store');
