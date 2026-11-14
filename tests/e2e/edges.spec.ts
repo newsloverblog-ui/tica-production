@@ -9,7 +9,6 @@ test.describe('edge cases (owner)', () => {
 
   test('a setting saves once on double-click and survives a reload', async ({ page }) => {
     await page.goto('/dashboard/settings');
-    await page.click('[data-stab="notifications"]');
     const sw = page.locator('[data-pref="notify_sale"]');
     const before = await sw.isChecked();
     const saves: number[] = [];
@@ -18,7 +17,6 @@ test.describe('edge cases (owner)', () => {
     await page.waitForTimeout(1500);
     expect(saves.length, 'each click saves at most once').toBeLessThanOrEqual(2);
     await page.reload();
-    await page.click('[data-stab="notifications"]');
     expect(await page.locator('[data-pref="notify_sale"]').isChecked()).toBe(before);
   });
 
