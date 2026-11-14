@@ -103,6 +103,23 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
     }
 
+    public function test_create_event_has_five_responsive_stages_with_tickets_and_fees_together(): void
+    {
+        $create = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('3. Tickets &amp; fees', $create);
+        $this->assertStringContainsString('Step 1 of 5: Basics', $create);
+        $this->assertStringContainsString('class="ce-subsection" id="ce-fee"', $create);
+        $this->assertStringContainsString("var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review']", $script);
+        $this->assertStringContainsString("var STEPNAME=['Basics','Location','Tickets & fees','Settings','Review']", $script);
+        $this->assertStringNotContainsString("'ce-tix','ce-fee','ce-more'", $script);
+        $this->assertStringContainsString('.page[data-page=create] .creategrid>.preview{order:-1;display:grid', $css);
+        $this->assertStringContainsString('.page[data-page=create] .preview{position:static', $css);
+        $this->assertStringContainsString('.page[data-page=dashboard] .od-main{width:100%;min-width:0', $css);
+    }
+
     public function test_team_workspace_has_no_raw_blade_and_explains_server_enforcement(): void
     {
         $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));

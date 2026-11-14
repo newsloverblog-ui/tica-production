@@ -14,8 +14,8 @@
         </div>
         <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
       </section>
-      <ol class="ce-steps" aria-label="Steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Where</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets</a></li><li><a href="#ce-fee" data-ce="ce-fee">4. Fees and payout</a></li><li><a href="#ce-more" data-ce="ce-more">5. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">6. Review</a></li></ol>
-      <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 6</p>
+      <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">5. Review</a></li></ol>
+      <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 5: Basics</p>
 
       <fieldset id="ce-basics"><legend>The basics</legend>
         <div class="inp"><label for="c-name">Event name</label><input id="c-name" name="name" type="text" maxlength="255" placeholder="Give it a name people will remember"></div>
@@ -87,15 +87,15 @@
           <div class="inp"><label for="c-reg-intro">Message on the form</label><textarea id="c-reg-intro" name="registration_intro" rows="2" placeholder="Who should apply, and what happens next."></textarea></div>
           <p class="hint">After publishing, add your questions, sessions and badges from the event's registration page.</p>
         </div>
-      </fieldset>
-
-      <fieldset id="ce-fee"><legend>Fees and payout</legend>
+        <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
+        <h2 id="ce-fee-title">Fees &amp; payout</h2>
         <p class="ce-q">Who pays the <span data-fee-pct>6%</span> booking fee?</p>
         <div class="ce-payer" role="radiogroup" aria-label="Who pays the booking fee">
           <label><input type="radio" name="c-payer" value="buyer" checked><span><b>Buyers pay it</b><small id="ce-ex-b">Buyer pays ₦5,300. You get ₦5,000.</small></span></label>
           <label><input type="radio" name="c-payer" value="me"><span><b>I'll include it</b><small id="ce-ex-m">Buyer pays ₦5,000. You get ₦4,700.</small></span></label>
         </div>
         <div class="ce-bank" id="ce-bank"><span><b>Payout account</b><small>Not added yet. Add it before your event so you're paid on time.</small></span><a class="btn btn-line" href="/dashboard/payouts">Add bank account</a></div>
+        </section>
       </fieldset>
 
       <fieldset id="ce-more"><legend>Settings</legend>

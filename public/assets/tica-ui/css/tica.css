@@ -4928,3 +4928,112 @@ body.isorg.appmode .workspace-context{gap:0}
   .od-settings-actions{align-items:stretch;flex-direction:column}
   .od-settings-actions .btn{width:100%}
 }
+
+/* v58: a viewport-aware event builder and resilient organiser workspace. */
+.page[data-page=create]{overflow-x:clip}
+.page[data-page=create] .ce-shell-main,
+.page[data-page=create] .creategrid,
+.page[data-page=create] .panel.ce,
+.page[data-page=create] .preview{min-width:0}
+.page[data-page=create] .ce-shell-main>.tint.full{padding-block:24px 40px}
+.page[data-page=create] .creategrid{
+  width:100%;
+  max-width:none;
+  grid-template-columns:minmax(0,1fr) minmax(230px,280px);
+  gap:24px;
+  padding-inline:clamp(18px,2.4vw,40px)
+}
+.page[data-page=create] .panel.ce{padding:clamp(20px,2.1vw,28px);border-radius:16px}
+.page[data-page=create] .creategrid h1.display{font-size:clamp(30px,3vw,42px);line-height:1.08}
+.page[data-page=create] form.ce>.lead{margin-bottom:20px}
+.page[data-page=create] form.ce>.ce-steps{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+  overflow:visible;
+  margin-bottom:12px
+}
+.page[data-page=create] form.ce>.ce-steps li{min-width:0}
+.page[data-page=create] form.ce>.ce-steps a{width:100%;min-height:38px;justify-content:center;padding-inline:8px;text-align:center}
+.page[data-page=create] form.ce>.ce-progress{padding-bottom:16px}
+.page[data-page=create] form.ce>fieldset{margin-top:20px}
+.page[data-page=create] form.ce>fieldset>legend{margin-bottom:13px}
+.page[data-page=create] form.ce .inp{margin-bottom:13px}
+.page[data-page=create] form.ce :is(input,select,textarea){max-width:100%}
+.page[data-page=create] .ce-subsection{margin-top:22px;padding-top:20px;border-top:1px solid var(--dash-border)}
+.page[data-page=create] .ce-subsection h2{margin:0 0 12px;color:var(--dash-text);font-size:16px;font-weight:700;letter-spacing:-.01em}
+.page[data-page=create] .preview{position:static;align-self:start;width:100%;max-width:280px;margin:0}
+.page[data-page=create] .previewlabel{margin:2px 0 10px;font-size:13px}
+.page[data-page=create] .preview .card{overflow:hidden;border-color:var(--dash-border);border-radius:14px;box-shadow:0 1px 2px rgba(18,33,58,.04)}
+.page[data-page=create] .preview .flyer{aspect-ratio:4/3}
+.page[data-page=create] .preview .cardbody{padding:14px}
+.page[data-page=create] .preview .cardbody h3{font-size:16px;line-height:1.25}
+.page[data-page=create] .preview .meta{font-size:12.5px}
+
+@media (max-width:1180px){
+  .page[data-page=create] .creategrid{grid-template-columns:minmax(0,1fr) 236px;gap:16px;padding-inline:20px}
+  .page[data-page=create] .panel.ce{padding:22px}
+  .page[data-page=create] form.ce>.ce-steps{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
+  .page[data-page=create] form.ce>.ce-steps li{flex:0 0 auto;scroll-snap-align:start}
+  .page[data-page=create] form.ce>.ce-steps a{width:auto;min-height:40px;padding-inline:12px}
+}
+
+@media (max-width:860px){
+  .page[data-page=create] .ce-shell-main>.tint.full{padding-block:16px 34px}
+  .page[data-page=create] .creategrid{grid-template-columns:minmax(0,1fr);gap:14px;padding-inline:16px}
+  .page[data-page=create] .creategrid>.preview{order:-1;display:grid;grid-template-columns:104px minmax(0,1fr);align-items:end;max-width:none;margin:0}
+  .page[data-page=create] .previewlabel{grid-column:1/-1;margin:0 0 7px}
+  .page[data-page=create] .preview .card{display:grid;grid-column:1/-1;grid-template-columns:104px minmax(0,1fr);min-height:104px}
+  .page[data-page=create] .preview .card>div:first-child{min-width:0}
+  .page[data-page=create] .preview .flyer{height:100%;aspect-ratio:1/1}
+  .page[data-page=create] .preview .cardbody{display:flex;min-width:0;flex-direction:column;justify-content:center;padding:12px 14px}
+  .page[data-page=create] .preview .cardbody :is(h3,.meta,.cdate){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .page[data-page=create] .preview .buy{margin-top:5px}
+}
+
+@media (max-width:640px){
+  .page[data-page=create] .creategrid{padding-inline:12px}
+  .page[data-page=create] .panel.ce{padding:18px 16px;border-radius:14px}
+  .page[data-page=create] .creategrid h1.display{font-size:29px}
+  .page[data-page=create] form.ce>.lead{margin-bottom:17px;font-size:14px}
+  .page[data-page=create] form.ce>.ce-steps{margin-inline:-2px;padding:0 2px 5px}
+  .page[data-page=create] form.ce>.ce-steps a{min-height:44px}
+  .page[data-page=create] form.ce>.ce-progress{padding-bottom:14px}
+  .page[data-page=create] form.ce>fieldset{margin-top:18px}
+  .page[data-page=create] .two,
+  .page[data-page=create] .ce-payer{grid-template-columns:1fr}
+  .page[data-page=create] .ce-tier{grid-template-columns:minmax(0,1fr) minmax(92px,.55fr)}
+  .page[data-page=create] .ce-tier .inp:first-child{grid-column:1/-1}
+  .page[data-page=create] .ce-tier .ce-rm{grid-column:1/-1;width:100%;height:42px;margin-bottom:12px;font-size:0}
+  .page[data-page=create] .ce-tier .ce-rm::after{content:"Remove ticket type";font-size:13px;font-weight:700}
+  .page[data-page=create] .ce-tier.ce-date .ce-rm::after{content:"Remove date"}
+  .page[data-page=create] .ce-bank{align-items:stretch;flex-direction:column}
+  .page[data-page=create] .ce-bank .btn{width:100%;justify-content:center}
+  .page[data-page=create] .ce-go{position:sticky;z-index:4;bottom:8px;margin:18px -6px -6px;padding:8px;border:1px solid rgba(213,224,247,.9);border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 10px 28px rgba(18,33,58,.12);backdrop-filter:blur(12px)}
+
+  .page[data-page=dashboard] .od-main{width:100%;min-width:0;padding:16px 12px 30px}
+  .page[data-page=dashboard] .db-card{min-width:0;padding:14px}
+  .page[data-page=dashboard] .db-head{gap:12px;margin-bottom:16px}
+  .page[data-page=dashboard] .db-head h1{font-size:25px}
+  .page[data-page=dashboard] .db-head .btns{display:grid;grid-template-columns:1fr;width:100%}
+  .page[data-page=dashboard] .db-head .btns>*{width:100%}
+  .page[data-page=dashboard] .od-tabs{display:flex;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none}
+  .page[data-page=dashboard] .od-tabs button{flex:none;min-height:44px}
+  .page[data-page=dashboard] .od-tools>*{flex:1 1 100%;width:100%}
+  .page[data-page=dashboard] .od-eva{display:grid;grid-template-columns:1fr}
+  .page[data-page=dashboard] .od-eva .btn{width:100%}
+  .page[data-page=dashboard] .od-pay2,
+  .page[data-page=dashboard] .od-pr2,
+  .page[data-page=dashboard] .db-two{grid-template-columns:minmax(0,1fr)}
+}
+
+@media (max-width:390px){
+  .page[data-page=create] .creategrid{padding-inline:8px}
+  .page[data-page=create] .panel.ce{padding-inline:13px}
+  .page[data-page=create] .creategrid>.preview{grid-template-columns:88px minmax(0,1fr)}
+  .page[data-page=create] .preview .card{grid-template-columns:88px minmax(0,1fr);min-height:88px}
+  .page[data-page=create] .preview .cardbody{padding:9px 11px}
+  .page[data-page=create] .preview .cdate{font-size:11px}
+  .page[data-page=create] .preview .cardbody h3{font-size:14px}
+  .page[data-page=create] .preview .meta{font-size:11.5px}
+}
