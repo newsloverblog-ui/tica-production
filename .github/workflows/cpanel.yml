@@ -1,0 +1,134 @@
+name: cPanel package
+
+# Proves TICA runs the way cPanel hosts it (MariaDB 11.4, PHP 8.4, no Node,
+# file sessions and cache), including a one-time upgrade of an old Evento
+# database, then builds tica-cpanel.zip to upload with File Manager.
+on:
+  push:
+    branches: ['organiser-redesign', 'main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpanel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cpanel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: tica
+          MARIADB_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: http://127.0.0.1:8000
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: tica
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      SESSION_DRIVER: file
+      CACHE_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      QUEUE_SYNC_ALLOWED: 'true'
+      SESSION_SECURE_COOKIE: 'false'
+      MAIL_MAILER: log
+      LOG_CHANNEL: stack
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pdo_mysql, simplexml, zip
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Build exactly what goes to the server
+        run: |
+          composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+          npm ci
+          npm run build
+
+      - name: An old Evento database, like the one on cPanel today
+        run: |
+          mariadb --host=127.0.0.1 --user=root --password=root tica < database/evento_v2.0.sql
+          echo "Updates recorded before: $(mariadb -h127.0.0.1 -uroot -proot -N tica -e 'select count(*) from migrations')"
+
+      - name: Settings file as the guide tells people to write it
+        run: |
+          cp deploy/cpanel/env.cpanel.example .env
+          sed -i 's#^APP_URL=.*#APP_URL=http://127.0.0.1:8000#; s#^DB_DATABASE=.*#DB_DATABASE=tica#; s#^DB_USERNAME=.*#DB_USERNAME=root#; s#^DB_PASSWORD=.*#DB_PASSWORD=root#; s#^SESSION_SECURE_COOKIE=.*#SESSION_SECURE_COOKIE=false#' .env
+          php artisan key:generate --force
+          for k in TICKET_SIGNING_KEY TICKET_BUYER_IDENTITY_HASH_KEY CRON_SECRET; do sed -i "s#^$k=.*#$k=$(openssl rand -hex 32)#" .env; done
+          echo "DB_UPDATE_TOKEN=$(openssl rand -hex 24)" >> .env
+          mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs bootstrap/cache
+
+      - name: Upgrade the database without a terminal (/system/update)
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/system/update && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8000/system/update | grep -q "database update(s) waiting"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -d token=wrong http://127.0.0.1:8000/system/update)" = 403
+          TOKEN=$(grep ^DB_UPDATE_TOKEN= .env | cut -d= -f2)
+          curl -fsS -X POST --data-urlencode "token=$TOKEN" --max-time 600 http://127.0.0.1:8000/system/update > /tmp/update.html
+          grep -q "The database is up to date" /tmp/update.html || { sed 's/<[^>]*>/ /g' /tmp/update.html | tail -40; exit 1; }
+          php artisan migrate --force | tee /tmp/second.txt
+          grep -q "Nothing to migrate" /tmp/second.txt
+
+      - name: The site answers on MariaDB
+        run: |
+          for path in / /login /signup /discover /admin; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$path")
+            echo "$path $code"; test "$code" -lt 500
+          done
+
+      - name: Turn the update page off again and check it is gone
+        run: |
+          sed -i '/^DB_UPDATE_TOKEN=/d' .env
+          pkill -f "artisan serve" || true
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/system/update)" = 404
+
+      - name: Server errors
+        if: always()
+        run: tail -n 120 storage/logs/*.log 2>/dev/null || true
+
+      - name: Package for File Manager
+        run: |
+          rm -f .env storage/logs/*.log
+          rm -rf storage/framework/views/* storage/framework/sessions/* storage/framework/cache/data/* bootstrap/cache/*.php
+          zip -qr tica-cpanel.zip . \
+            -x '.git/*' '.github/*' 'node_modules/*' 'tests/*' '.claude/*' '.codex/*' '.agents/*' \
+               'audit-uiux/*' 'documentation/*' 'design-system/*' 'docs/*' 'updater/*' 'api/*' \
+               'storage/playwright-report/*' 'test-results/*' 'database/evento_v2.0.sql' \
+               '*.md' 'vercel.json' '.vercelignore' 'build-vercel-static.mjs' 'playwright.config.ts' 'phpunit.xml'
+          zip -q tica-cpanel.zip deploy/cpanel/README.md
+          ls -lh tica-cpanel.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tica-cpanel
+          path: tica-cpanel.zip
+          if-no-files-found: error

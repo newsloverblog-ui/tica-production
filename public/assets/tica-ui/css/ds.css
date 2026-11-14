@@ -647,3 +647,7 @@ body.tica-admin .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-s
 .in-copy__row{display:flex;gap:var(--t-2)}
 .in-copy__row .t-input{flex:1;min-width:0;background:var(--t-subtle);font-size:13px}
 @media (max-width:991px){.in-layout{grid-template-columns:1fr}}
+/* Admin > Database updates */
+.db-out{white-space:pre-wrap;overflow:auto;max-height:420px;background:var(--t-subtle);border:1px solid var(--t-line);border-radius:8px;padding:var(--t-3);font-size:12px;color:var(--t-ink)}
+.db-list summary{cursor:pointer;color:var(--t-blue);font-size:14px;margin-bottom:var(--t-2)}
+.db-list ol{margin:0;padding-left:var(--t-5);font-size:13px;max-height:320px;overflow:auto}

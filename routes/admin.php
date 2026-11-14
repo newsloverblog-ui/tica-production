@@ -15,6 +15,12 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
   // admin redirect to dashboard route
   Route::get('/dashboard', 'BackEnd\AdminController@redirectToDashboard')->name('admin.dashboard');
 
+  // Database updates (migrations) applied from the admin: cPanel has no deploy step.
+  Route::prefix('/database-updates')->middleware('permission:Basic Settings')->group(function () {
+    Route::get('/', 'BackEnd\DatabaseUpdateController@index')->name('admin.database_updates.index');
+    Route::post('/apply', 'BackEnd\DatabaseUpdateController@apply')->middleware('throttle:5,1')->name('admin.database_updates.apply');
+  });
+
   // Integrations: payment, payout, email, SMS, push, sign-in and storage keys.
   // The permission middleware is the route boundary; the controller also requires a super admin.
   Route::prefix('/integrations')->middleware('permission:Basic Settings')->group(function () {

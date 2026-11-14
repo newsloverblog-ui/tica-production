@@ -84,6 +84,14 @@
                             <p>{{ __('Integrations') }}</p>
                         </a>
                     </li>
+                    <li class="nav-item @if (request()->routeIs('admin.database_updates.*')) active @endif">
+                        <a href="{{ route('admin.database_updates.index') }}">
+                            <i class="fal fa-database"></i>
+                            <p>{{ __('Database updates') }}</p>
+                            @php $dbPending = \App\Support\DatabaseUpdates::pendingCount(); @endphp
+                            @if ($dbPending)<span class="badge badge-warning">{{ $dbPending }}</span>@endif
+                        </a>
+                    </li>
                 @endif
 
                 @if (is_null($roleInfo) || (!empty($rolePermissions) && in_array('Advertise', $rolePermissions)))

@@ -653,3 +653,9 @@ Route::get('/{slug}', 'FrontEnd\TicaUiController@customPage')->name('dynamic_pag
 
 // fallback route
 Route::fallback('FrontEnd\TicaUiController@missing')->middleware('change.lang');
+
+// Database updates without a terminal (cPanel). Off unless DB_UPDATE_TOKEN is set; no session or cache needed.
+Route::get('/system/update', 'SystemUpdateController@show')
+  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);
+Route::post('/system/update', 'SystemUpdateController@apply')
+  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);
