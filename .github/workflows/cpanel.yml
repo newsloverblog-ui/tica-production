@@ -87,8 +87,16 @@ jobs:
       - name: Upgrade the database without a terminal (/system/update)
         run: |
           php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
-          for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/system/update && break; sleep 1; done
-          curl -fsS http://127.0.0.1:8000/system/update | grep -q "database update(s) waiting"
+          for i in $(seq 1 30); do curl -sS -o /dev/null http://127.0.0.1:8000/system/update && break; sleep 1; done
+          code=$(curl -s -o /tmp/first.html -w '%{http_code}' http://127.0.0.1:8000/system/update)
+          if [ "$code" != 200 ]; then
+            echo "First page answered $code. Details:"; cat /tmp/serve.log | tail -40
+            pkill -f "artisan serve" || true; sleep 1
+            APP_DEBUG=true php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
+            sleep 3; curl -s http://127.0.0.1:8000/system/update | sed 's/<[^>]*>/ /g' | grep -E "Exception|SQLSTATE|Error|at /|\.php" | head -30
+            exit 1
+          fi
+          grep -q "database update(s) waiting" /tmp/first.html
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -d token=wrong http://127.0.0.1:8000/system/update)" = 403
           TOKEN=$(grep ^DB_UPDATE_TOKEN= .env | cut -d= -f2)
           curl -fsS -X POST --data-urlencode "token=$TOKEN" --max-time 600 http://127.0.0.1:8000/system/update > /tmp/update.html
@@ -113,7 +121,9 @@ jobs:
 
       - name: Server errors
         if: always()
-        run: tail -n 120 storage/logs/*.log 2>/dev/null || true
+        run: |
+          tail -n 120 storage/logs/*.log 2>/dev/null || true
+          tail -n 60 /tmp/serve.log 2>/dev/null || true
 
       - name: Package for File Manager
         run: |
