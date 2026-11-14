@@ -117,6 +117,8 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringNotContainsString("'ce-tix','ce-fee','ce-more'", $script);
         $this->assertStringContainsString('.page[data-page=create] .creategrid>.preview{order:-1;display:grid', $css);
         $this->assertStringContainsString('.page[data-page=create] .preview{position:static', $css);
+        $this->assertStringContainsString('grid-template-columns:minmax(0,1fr) minmax(310px,340px)', $css);
+        $this->assertStringContainsString('.page[data-page=create] .preview .flyer{aspect-ratio:4/5}', $css);
         $this->assertStringContainsString('.page[data-page=dashboard] .od-main{width:100%;min-width:0', $css);
         $this->assertStringContainsString('.page[data-page=dashboard] .od{grid-template-columns:minmax(0,1fr);width:100%}', $css);
     }

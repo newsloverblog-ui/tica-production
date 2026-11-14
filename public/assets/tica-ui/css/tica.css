@@ -4939,7 +4939,7 @@ body.isorg.appmode .workspace-context{gap:0}
 .page[data-page=create] .creategrid{
   width:100%;
   max-width:none;
-  grid-template-columns:minmax(0,1fr) minmax(230px,280px);
+  grid-template-columns:minmax(0,1fr) minmax(310px,340px);
   gap:24px;
   padding-inline:clamp(18px,2.4vw,40px)
 }
@@ -4962,16 +4962,17 @@ body.isorg.appmode .workspace-context{gap:0}
 .page[data-page=create] form.ce :is(input,select,textarea){max-width:100%}
 .page[data-page=create] .ce-subsection{margin-top:22px;padding-top:20px;border-top:1px solid var(--dash-border)}
 .page[data-page=create] .ce-subsection h2{margin:0 0 12px;color:var(--dash-text);font-size:16px;font-weight:700;letter-spacing:-.01em}
-.page[data-page=create] .preview{position:static;align-self:start;width:100%;max-width:280px;margin:0}
+.page[data-page=create] .preview{position:static;align-self:start;width:100%;max-width:340px;margin:0}
 .page[data-page=create] .previewlabel{margin:2px 0 10px;font-size:13px}
 .page[data-page=create] .preview .card{overflow:hidden;border-color:var(--dash-border);border-radius:14px;box-shadow:0 1px 2px rgba(18,33,58,.04)}
-.page[data-page=create] .preview .flyer{aspect-ratio:4/3}
+.page[data-page=create] .preview .flyer{aspect-ratio:4/5}
 .page[data-page=create] .preview .cardbody{padding:14px}
 .page[data-page=create] .preview .cardbody h3{font-size:16px;line-height:1.25}
 .page[data-page=create] .preview .meta{font-size:12.5px}
 
 @media (max-width:1180px){
-  .page[data-page=create] .creategrid{grid-template-columns:minmax(0,1fr) 236px;gap:16px;padding-inline:20px}
+  .page[data-page=create] .creategrid{grid-template-columns:minmax(0,1fr) 280px;gap:18px;padding-inline:20px}
+  .page[data-page=create] .preview{max-width:280px}
   .page[data-page=create] .panel.ce{padding:22px}
   .page[data-page=create] form.ce>.ce-steps{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
   .page[data-page=create] form.ce>.ce-steps li{flex:0 0 auto;scroll-snap-align:start}
