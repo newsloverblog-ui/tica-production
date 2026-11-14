@@ -32,7 +32,11 @@ class Organizer extends Model implements AuthenticatableContract
     'email_verified_at' => 'datetime',
     'kyc_verified_at' => 'datetime',
     'two_factor_enabled_at' => 'datetime',
+    'two_factor_secret' => 'encrypted',
+    'two_factor_recovery_codes' => 'encrypted:array',
   ];
+
+  protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
 
   /**
    * The one place an organiser's photo URL is built. The ?v= stamp changes

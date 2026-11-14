@@ -569,6 +569,7 @@ Route::post('/login-verification/cancel', 'AccountSecurityController@cancel')->m
 Route::get('/account-security/{guard}', 'AccountSecurityController@show')->whereIn('guard', ['admin', 'organizer', 'customer'])->name('account-security.show');
 Route::post('/account-security/{guard}/request', 'AccountSecurityController@requestChange')->whereIn('guard', ['admin', 'organizer', 'customer'])->middleware('throttle:3,10')->name('account-security.request');
 Route::post('/account-security/{guard}/verify', 'AccountSecurityController@verifyChange')->whereIn('guard', ['admin', 'organizer', 'customer'])->middleware('throttle:authentication')->name('account-security.verify');
+Route::post('/account-security/{guard}/cancel', 'AccountSecurityController@cancelChange')->whereIn('guard', ['admin', 'organizer', 'customer'])->middleware('throttle:authentication')->name('account-security.cancel');
 
 
 /*
