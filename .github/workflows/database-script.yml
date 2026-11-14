@@ -1,0 +1,59 @@
+name: Database update script
+
+# Runs database/supabase/tica_database_update.sql twice on a real Postgres
+# (the live database is Supabase Postgres) and checks it is safe to repeat.
+on:
+  push:
+    paths: ['database/**', '.github/workflows/database-script.yml']
+  pull_request:
+    paths: ['database/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: A database like the live one (migrations id without a default)
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "create table organizers (id bigserial primary key, email varchar(255));
+            create table organizer_payout_accounts (id bigserial primary key, organizer_id bigint);
+            create table migrations (id int primary key, migration varchar(255) not null, batch int not null);
+            insert into migrations values (1, 'older_update', 1);"
+      - name: Run the script twice
+        run: |
+          psql -v ON_ERROR_STOP=1 -f database/supabase/tica_database_update.sql > first.txt
+          psql -v ON_ERROR_STOP=1 -f database/supabase/tica_database_update.sql > second.txt
+          tail -n 5 second.txt
+      - name: Check the result
+        run: |
+          set -e
+          q() { psql -tAc "$1"; }
+          test "$(q "select count(*) from information_schema.columns where table_name='organizer_payout_accounts' and column_name in ('review_reason','reviewed_by_admin_id','reviewed_at')")" = 3
+          test "$(q "select count(*) from information_schema.columns where table_name='organizers' and column_name like 'totp_%'")" = 4
+          test "$(q "select to_regclass('public.organizer_notifications') is not null and to_regclass('public.platform_integrations') is not null")" = t
+          test "$(q "select count(*) from migrations where migration like '2026_11_13_%'")" = 4
+          test "$(q "select count(*) - count(distinct migration) from migrations")" = 0
+          q "insert into organizer_notifications (organizer_id, kind, title) values (1, 'kyc.verified', 'You are verified')"
+          q "insert into platform_integrations (key, enabled) values ('sms', true)"
+          grep -q "missing table" second.txt   # the health check reports this small database as incomplete
+          echo "Script is safe to repeat and creates everything the new code needs."

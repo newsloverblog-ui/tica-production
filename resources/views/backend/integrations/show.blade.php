@@ -20,7 +20,7 @@
     <div class="t-card in-note in-note--orange" role="note">{{ __($note) }}</div>
   @endforeach
   @if ($i['needs_store'] && !$storeReady)
-    <div class="t-card in-note in-note--orange" role="note">{{ __('Settings marked "saved here" need the database update first (database/supabase/2026_11_13_platform_integrations.sql). Until then the server variables are used.') }}</div>
+    <div class="t-card in-note in-note--orange" role="note">{{ __('Settings marked "saved here" need the database update first (database/supabase/tica_database_update.sql). Until then the server variables are used.') }}</div>
   @endif
 
   <div class="in-layout">

@@ -11,7 +11,7 @@
   @if (!$storeReady)
     <div class="t-card in-note in-note--orange" role="status">
       <b>{{ __('One database update is waiting.') }}</b>
-      {{ __('Payments, email and sign-in work now. SMS, push, storage and payout extras can be saved after running database/supabase/2026_11_13_platform_integrations.sql in Supabase.') }}
+      {{ __('Payments, email and sign-in work now. SMS, push, storage and payout extras can be saved after running database/supabase/tica_database_update.sql in Supabase.') }}
     </div>
   @endif
 
