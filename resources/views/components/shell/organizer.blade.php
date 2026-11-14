@@ -31,7 +31,6 @@
     'Main' => [
       ['overview', 'Overview', '/dashboard', 'overview.view'],
       ['events', 'Events', '/dashboard/events', 'events.view'],
-      ['forms', 'Registration forms', '/organizer/forms', 'events.manage'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
     ],
@@ -43,6 +42,7 @@
     ],
   ];
   $tools = array_values(array_filter([
+    ['Registration forms', '/organizer/forms', 'events.manage'],
     ['Booking report', '/organizer/event-booking/report', 'reports.view'],
     ['Guest lists and RSVPs', '/organizer/event/guest-list', 'events.manage'],
     ['Transactions', '/organizer/transaction', 'reports.view'],
@@ -60,7 +60,7 @@
     $path = '/' . ltrim(request()->path(), '/');
     $toolHit = collect($tools)->first(fn ($tool) => str_starts_with($path, $tool[1]));
     $active = match (true) {
-      str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'forms',
+      str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'tools',
       $toolHit !== null => 'tools',
       request()->routeIs('organizer.withdraw*', 'organizer.payout*') => 'payouts',
       request()->routeIs('organizer.event_booking.index', 'organizer.event_booking.details') => 'orders',
@@ -80,8 +80,8 @@
   <a class="tsh-org" href="{{ $can('settings.manage') ? '/dashboard/settings' : '/dashboard' }}" aria-label="Profile and settings for {{ $name }}">
     <x-organizer-avatar :organizer="$organizer" size="40" class="tsh-avatar" />
     <span class="tsh-org__text">
-      <span class="tsh-org__name">{{ $name }}</span>
-      <span class="tsh-org__status {{ $verified ? 'is-ok' : 'is-warn' }}">{{ $verified ? 'Verified organiser' : 'Not verified yet' }}</span>
+      <span class="tsh-org__name"><span class="tsh-org__nm">{{ $name }}</span>@if ($verified)<svg class="tsh-verified" viewBox="0 0 24 24" role="img" aria-label="Verified organiser"><title>Verified organiser</title><path class="tsh-verified__seal" d="M12 1.8l2.4 1.8 3-.2.9 2.9 2.5 1.7-.9 2.9.9 2.9-2.5 1.7-.9 2.9-3-.2L12 22.2l-2.4-1.8-3 .2-.9-2.9-2.5-1.7.9-2.9-.9-2.9 2.5-1.7.9-2.9 3 .2z"/><path class="tsh-verified__tick" d="M8.2 12.3l2.5 2.5 5.1-5.3"/></svg>@endif</span>
+      @unless ($verified)<span class="tsh-org__status is-warn">Not verified yet</span>@endunless
     </span>
   </a>
 
@@ -108,7 +108,7 @@
         <summary class="tsh-link {{ $toolsActive ? 'is-active' : '' }}"><svg viewBox="0 0 24 24" aria-hidden="true">{!! $icons['tools'] !!}</svg><span class="tsh-link__label">More tools</span><svg class="tsh-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
         <div class="tsh-sub">
           @foreach ($tools as [$label, $href])
-            @php($on = $toolsActive && request()->is(ltrim($href, '/') . '*'))
+            @php($on = $toolsActive && (request()->is(ltrim($href, '/') . '*') || ($href === '/organizer/forms' && request()->is('organizer/event/registrations*'))))
             <a class="tsh-sublink os-link {{ $on ? 'is-active' : '' }}" href="{{ $href }}" @if ($on) aria-current="page" @endif>{{ $label }}</a>
           @endforeach
         </div>

@@ -32,7 +32,11 @@
 #tica-shell .tsh-org{display:flex;align-items:center;gap:12px;height:64px;padding:0 12px;border:1px solid #E3E7ED;border-radius:12px;background:#fff;flex:none;transition:background-color 150ms ease}
 #tica-shell .tsh-org:hover{background:#F1F3F6}
 #tica-shell .tsh-org__text{display:flex;flex-direction:column;gap:2px;min-width:0}
-#tica-shell .tsh-org__name{display:block;font-size:14px;line-height:18px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tica-shell .tsh-org__name{display:flex;align-items:center;gap:4px;min-width:0;font-size:14px;line-height:18px;font-weight:600;color:#111827}
+#tica-shell .tsh-org__nm{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tica-shell svg.tsh-verified{flex:none;width:18px!important;height:18px!important;stroke:none!important}
+#tica-shell .tsh-verified__seal{fill:#1D9BF0;stroke:none}
+#tica-shell .tsh-verified__tick{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #tica-shell .tsh-org__status{display:block;font-size:12px;line-height:16px;font-weight:500}
 #tica-shell .tsh-org__status.is-ok{color:#0F7A3D}
 #tica-shell .tsh-org__status.is-warn{color:#B4580F}

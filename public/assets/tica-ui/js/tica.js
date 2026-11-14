@@ -1647,6 +1647,14 @@ $('od-pass').addEventListener('submit',function(e){e.preventDefault();var b=e.ta
 
 /* create page uses the organiser's saved defaults */
 function ceDefaults(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers}ceDefaults();
+/* Create event: offer the organiser's saved registration forms. */
+function ceForms(){var sel=$('c-reg-form'),box=$('ce-reg-pick');if(!sel||!box)return;var L=(D&&D.registrationForms)||[],keep=sel.value;
+  if(TICA_DATA.builderEdit||!L.length){box.hidden=true;$('ce-reg-new').hidden=false;return}
+  sel.innerHTML='<option value="">Start a new form for this event</option>'+L.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+x.fields+' field'+(x.fields===1?'':'s')+'</option>'}).join('');
+  if(keep)sel.value=keep;box.hidden=false;ceFormPicked()}
+function ceFormPicked(){var sel=$('c-reg-form');if(!sel)return;var on=!!sel.value;$('ce-reg-new').hidden=on;$('c-reg-form-note').textContent=on?'This event will use that form. Edit its fields any time under More tools › Registration forms.':'Pick one of your saved forms and its fields are added to this event.'}
+document.addEventListener('change',function(e){if(e.target.id==='c-reg-form')ceFormPicked()});
+ceForms();
 /* Defaults changed in Settings apply to the next new event without a reload, as long as nothing has been typed yet. */
 window.addEventListener('tica:navigate',function(){var n=$('c-name');if(location.pathname==='/create'&&n&&!n.value.trim())ceDefaults()});
 /* platform rules from the admin: hide features that are switched off */
@@ -1768,7 +1776,7 @@ function payload(draft){
   fd.append('currency',curCode());fd.append('country',$('c-country').value);
   if(m!=='Online'){fd.append('address',v('c-venue'));fd.append('city',v('c-city'));fd.append('state',v('c-state'))}
   if(m!=='In person'){fd.append('online_join_url',v('c-link'));fd.append('join_reveal_minutes',$('c-rev').value)}
-  if(entry()==='corporate'){fd.append('registration_form_name',v('c-reg-name'));fd.append('registration_intro',$('c-reg-intro').value);fd.append('registration_approval',$('c-reg-mode').value)}
+  if(entry()==='corporate'){if($('c-reg-form')&&$('c-reg-form').value&&!$('ce-reg-pick').hidden)fd.append('registration_form_id',$('c-reg-form').value);fd.append('registration_form_name',v('c-reg-name'));fd.append('registration_intro',$('c-reg-intro').value);fd.append('registration_approval',$('c-reg-mode').value)}
   else [].forEach.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t,i){
     var ins=t.querySelectorAll(':scope>.inp input'),x=t.querySelector('.ce-x'),adv=x&&x.querySelector('.ce-xsw').checked,unl=adv&&x.querySelector('.ce-tunl').value==='unlimited';
     if(t.dataset.tid)fd.append('tiers['+i+'][id]',t.dataset.tid);fd.append('tiers['+i+'][name]',ins[0].value.trim());fd.append('tiers['+i+'][price]',ins[1].value||'0');if(!unl&&ins[2].value)fd.append('tiers['+i+'][quantity]',ins[2].value);

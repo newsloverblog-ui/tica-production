@@ -35,6 +35,21 @@
   .rf-side{display:grid;gap:16px}
   .rf-errors{border:1px solid #f3c2c2;background:#fff4f4;color:#9b1c1c;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px}
   .rf-errors ul{margin:0;padding-left:18px}
+  .rf-palette{display:grid;gap:14px}
+  .rf-palette__label{margin:0 0 6px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t-muted,#5b6475)}
+  .rf-palette__items{display:flex;flex-wrap:wrap;gap:8px}
+  .rf-chip-form{margin:0}
+  .rf-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--t-line,#e3e7ef);border-radius:999px;background:#fff;color:#1d2433;font:500 13.5px/1 inherit;cursor:grab;transition:border-color .15s,background-color .15s}
+  .rf-chip span{color:#2E4FD8;font-weight:700}
+  .rf-chip:hover{border-color:#2E4FD8;background:#F3F6FF}
+  .rf-chip:active{cursor:grabbing}
+  .rf-handle{flex:none;width:18px;color:#98A2B3;cursor:grab;font-size:14px;line-height:1;letter-spacing:-2px;user-select:none}
+  .rf-handle.is-off{visibility:hidden}
+  [data-rf-item]{cursor:default}
+  [data-rf-item].is-dragging{opacity:.45}
+  .rf-marker{list-style:none;height:4px;margin:2px 0;border-radius:4px;background:#2E4FD8}
+  [data-rf-list].is-target{outline:2px dashed #C7D2FE;outline-offset:6px;border-radius:10px}
+  .rf-drop-empty{list-style:none;padding:20px;border:1.5px dashed #C7D2FE;border-radius:10px;text-align:center;color:#5b6475;font-size:14px}
   @media (max-width:1023px){.rf-start,.rf-builder{grid-template-columns:1fr}}
   @media (max-width:560px){.rf-grid{grid-template-columns:1fr}}
 </style>

@@ -35,20 +35,68 @@
 
   <div class="rf-builder">
     <div class="rf-side">
-      {{-- Fields --}}
+      {{-- Field picker: click a field to add it, or drag it into the list --}}
+      @php
+        $palette = [
+          'Basics' => [['text', __('Short answer')], ['textarea', __('Paragraph')], ['email', __('Email')], ['phone', __('Phone number')], ['number', __('Number')], ['date', __('Date')]],
+          'Choices' => [['select', __('Dropdown')], ['radio', __('Single choice')], ['multi_select', __('Multiple choice')], ['checkbox', __('Yes / no')]],
+          'About the person' => [['company', __('Company')], ['job_title', __('Job title')], ['country', __('Country')], ['state', __('State')]],
+          'More' => [['file', __('File upload')], ['consent', __('Consent')], ['terms', __('Terms text')]],
+        ];
+        $defaults = [
+          'consent' => ['label' => __('I agree to be contacted about this event'), 'help' => __('We will only use your details for this event.')],
+          'terms' => ['label' => __('Terms and conditions'), 'help' => __('Write your terms here.')],
+          'checkbox' => ['label' => __('Will you attend in person?')],
+        ];
+      @endphp
+      <section class="t-card" aria-labelledby="rf-pick-h">
+        <div class="t-card__head"><h2 class="t-card__title" id="rf-pick-h">{{ __('Add fields') }}</h2></div>
+        <p class="t-help">{{ __('Click a field to add it, or drag it into the list at the spot you want.') }}</p>
+        <div class="rf-palette">
+          @foreach ($palette as $group => $items)
+            <div class="rf-palette__group">
+              <p class="rf-palette__label">{{ __($group) }}</p>
+              <div class="rf-palette__items">
+                @foreach ($items as [$type, $label])
+                  <form method="POST" action="{{ route('organizer.event.registrations.questions.store', $form) }}" class="rf-chip-form">
+                    @csrf
+                    <input type="hidden" name="quick" value="1">
+                    <input type="hidden" name="type" value="{{ $type }}">
+                    <input type="hidden" name="scope" value="registrant">
+                    <input type="hidden" name="is_required" value="0">
+                    <input type="hidden" name="label" value="{{ $defaults[$type]['label'] ?? $label }}">
+                    @if (isset($defaults[$type]['help']))<input type="hidden" name="help_text" value="{{ $defaults[$type]['help'] }}">@endif
+                    @if (in_array($type, $choiceTypes, true))<input type="hidden" name="options" value="{{ __('Option 1') }}&#10;{{ __('Option 2') }}">@endif
+                    <input type="hidden" name="position" value="" data-rf-position>
+                    <button class="rf-chip" type="submit" draggable="true" data-rf-chip aria-label="{{ __('Add a :type field', ['type' => $label]) }}">
+                      <span aria-hidden="true">+</span>{{ $label }}
+                    </button>
+                  </form>
+                @endforeach
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </section>
+
+      {{-- Fields in this form: drag to reorder --}}
       <section class="t-card" aria-labelledby="rf-fields-h">
-        <div class="t-card__head"><h2 class="t-card__title" id="rf-fields-h">{{ __('Fields') }}</h2><span class="t-badge">{{ $form->questions->count() }} / {{ $max }}</span></div>
-        <ul class="rf-fields">
-          <li class="rf-field rf-fixed"><div class="rf-field__body"><div class="rf-field__label">{{ __('Full name') }}</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
-          <li class="rf-field rf-fixed"><div class="rf-field__body"><div class="rf-field__label">{{ __('Email') }}</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
+        <div class="t-card__head"><h2 class="t-card__title" id="rf-fields-h">{{ __('Fields in this form') }}</h2><span class="t-badge">{{ $form->questions->count() }} / {{ $max }}</span></div>
+        <form id="rf-order" method="POST" action="{{ route('organizer.event.registrations.questions.reorder', $form) }}">@csrf</form>
+        <p class="t-help">{{ __('Drag a field by its handle to move it. Name and email are always asked first.') }}</p>
+        <ul class="rf-fields" data-rf-list>
+          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true">⋮⋮</span><div class="rf-field__body"><div class="rf-field__label">{{ __('Full name') }} *</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
+          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true">⋮⋮</span><div class="rf-field__body"><div class="rf-field__label">{{ __('Email') }} *</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
           @foreach ($form->questions as $question)
-            <li class="rf-field{{ $f && $f->id === $question->id ? ' is-editing' : '' }}">
+            <li class="rf-field{{ $f && $f->id === $question->id ? ' is-editing' : '' }}" draggable="true" data-rf-item data-id="{{ $question->public_id }}">
+              <span class="rf-handle" aria-hidden="true" title="{{ __('Drag to move') }}">⋮⋮</span>
               <div class="rf-field__body">
                 <div class="rf-field__label">{{ $question->label }}@if ($question->is_required) <span aria-label="{{ __('required') }}">*</span>@endif</div>
                 <div class="rf-field__type">
                   {{ $typeLabels[$question->type] ?? $question->type }}
                   @if ($question->scope === 'attendee') · {{ __('per attendee') }}@endif
                   @if ($question->condition) · {{ __('shown only sometimes') }}@endif
+                  @if (in_array($question->type, $choiceTypes, true)) · {{ trans_choice(':count choice|:count choices', count($question->options ?? []), ['count' => count($question->options ?? [])]) }}@endif
                 </div>
               </div>
               <div class="rf-field__tools">
@@ -59,13 +107,16 @@
               </div>
             </li>
           @endforeach
+          @if ($form->questions->isEmpty())
+            <li class="rf-drop-empty" data-rf-empty>{{ __('Drop a field here, or click one above.') }}</li>
+          @endif
         </ul>
       </section>
 
       {{-- Add / edit a field --}}
       <section class="t-card" aria-labelledby="rf-editor-h" id="rf-editor">
         <div class="t-card__head">
-          <h2 class="t-card__title" id="rf-editor-h">{{ $f ? __('Edit field') : __('Add a field') }}</h2>
+          <h2 class="t-card__title" id="rf-editor-h">{{ $f ? __('Edit field') : __('Add a custom field') }}</h2>
           @if ($f)<a class="t-btn t-btn--ghost t-btn--sm" href="{{ route('organizer.forms.show', $form) }}">{{ __('Cancel') }}</a>@endif
         </div>
         <form method="POST" action="{{ $f ? route('organizer.event.registrations.questions.update', $f) : route('organizer.event.registrations.questions.store', $form) }}" data-rf-field-form>
@@ -241,6 +292,56 @@
     </div>
   </div>
 
+  <script>
+    // Drag fields to reorder; drag a field type from the picker into the list to add it there.
+    (function () {
+      var list = document.querySelector('[data-rf-list]');
+      if (!list) return;
+      var dragging = null, chip = null, marker = document.createElement('li');
+      marker.className = 'rf-marker';
+      function items() { return [].slice.call(list.querySelectorAll('[data-rf-item]')); }
+      function slotAfter(y) {
+        var best = null;
+        items().forEach(function (el) { if (el === dragging) return; var r = el.getBoundingClientRect(); if (y > r.top + r.height / 2) best = el; });
+        return best;
+      }
+      function place(y) {
+        var after = slotAfter(y), fixed = list.querySelectorAll('.rf-fixed');
+        var anchor = after || fixed[fixed.length - 1];
+        anchor.parentNode.insertBefore(marker, anchor.nextSibling);
+      }
+      list.addEventListener('dragstart', function (e) {
+        var li = e.target.closest('[data-rf-item]'); if (!li) return;
+        dragging = li; li.classList.add('is-dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', li.dataset.id);
+      });
+      document.addEventListener('dragstart', function (e) {
+        var c = e.target.closest && e.target.closest('[data-rf-chip]'); if (!c) return;
+        chip = c.closest('form'); e.dataTransfer.effectAllowed = 'copy'; e.dataTransfer.setData('text/plain', 'new');
+        list.classList.add('is-target');
+      });
+      list.addEventListener('dragover', function (e) { if (!dragging && !chip) return; e.preventDefault(); place(e.clientY); });
+      list.addEventListener('dragleave', function (e) { if (!list.contains(e.relatedTarget)) marker.remove(); });
+      list.addEventListener('drop', function (e) {
+        if (!dragging && !chip) return; e.preventDefault();
+        var before = [].slice.call(list.children).filter(function (el) { return el.matches('[data-rf-item]') && el !== dragging; });
+        var index = before.filter(function (el) { return el.compareDocumentPosition(marker) & Node.DOCUMENT_POSITION_FOLLOWING; }).length;
+        if (chip) {
+          chip.querySelector('[data-rf-position]').value = index + 1;
+          chip.submit();
+        } else {
+          marker.parentNode.insertBefore(dragging, marker);
+          var order = document.getElementById('rf-order');
+          items().forEach(function (el) { var i = document.createElement('input'); i.type = 'hidden'; i.name = 'ordered_questions[]'; i.value = el.dataset.id; order.appendChild(i); });
+          order.submit();
+        }
+        marker.remove();
+      });
+      document.addEventListener('dragend', function () {
+        if (dragging) dragging.classList.remove('is-dragging');
+        dragging = null; chip = null; marker.remove(); list.classList.remove('is-target');
+      });
+    })();
+  </script>
   <script>
     (function () {
       var form = document.querySelector('[data-rf-field-form]');

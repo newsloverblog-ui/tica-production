@@ -78,14 +78,18 @@ class OrganizerShellTest extends TestCase
 
   public function test_shell_is_isolated_and_the_profile_is_always_there(): void
   {
-    foreach (['overview', 'forms', 'payouts'] as $active) {
+    foreach (['overview', 'events', 'payouts'] as $active) {
       $html = $this->render($active);
       $this->assertSame(1, substr_count($html, 'id="tica-shell"'), $active);
       $this->assertStringContainsString('class="tsh-org"', $html, 'Organiser profile on '.$active);
-      $this->assertStringContainsString('tsh-org__name', $html);
+      $this->assertStringContainsString('tsh-org__nm', $html);
       $this->assertSame(1, substr_count($html, 'aria-current="page"'), $active);
     }
-    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/organizer\/forms"/', $this->render('forms'));
+    // Registration forms lives under More tools, and a verified organiser gets a badge, not text.
+    $html = $this->render('overview');
+    $this->assertMatchesRegularExpression('/<div class="tsh-sub">.*href="\/organizer\/forms"/s', $html);
+    $this->assertStringContainsString('class="tsh-verified"', $html);
+    $this->assertStringNotContainsString('>Verified organiser</span>', $html);
   }
 
   public function test_shell_styles_load_last_in_both_layouts(): void

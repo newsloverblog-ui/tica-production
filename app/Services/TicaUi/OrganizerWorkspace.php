@@ -63,6 +63,7 @@ class OrganizerWorkspace
       'role' => $role,
       'permissions' => \App\Support\TeamPermissions::permissionsFor($role),
       'roleSummaries' => config('tica_team.role_summaries'),
+      'registrationForms' => $this->registrationForms($organizer),
       'org' => [
         'name' => $name,
         'initials' => $this->initials($name),
@@ -542,5 +543,19 @@ class OrganizerWorkspace
     $letters = array_map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)), array_slice($words, 0, 2));
 
     return implode('', $letters) ?: 'T';
+  }
+
+  /** The organiser's own form library, offered when creating an event. */
+  private function registrationForms(Organizer $organizer): array
+  {
+    if (!Schema::hasTable('event_registration_forms') || !Schema::hasColumn('event_registration_forms', 'source_form_id')) {
+      return [];
+    }
+
+    return \App\Models\EventRegistrationForm::query()
+      ->whereNull('event_id')->where('organizer_id', $organizer->id)
+      ->withCount('questions')->orderBy('name')->limit(100)->get()
+      ->map(fn ($form) => ['id' => $form->public_id, 'name' => $form->name, 'fields' => (int) $form->questions_count, 'approval' => $form->approval_mode])
+      ->all();
   }
 }
