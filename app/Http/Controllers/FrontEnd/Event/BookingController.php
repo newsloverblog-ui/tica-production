@@ -29,6 +29,7 @@ use App\Models\Event\EventDates;
 use App\Models\Event\EventImage;
 use App\Models\Event\Ticket;
 use App\Models\Organizer;
+use App\Models\TicaPromotionCampaign;
 use App\Models\PaymentGateway\OfflineGateway;
 use App\Models\PaymentGateway\OnlineGateway;
 use App\Services\AuditLogger;
@@ -44,6 +45,7 @@ use App\Support\LifecycleMailCatalog;
 use App\Services\PaidBookingFulfillmentService;
 use App\Services\EventCheckoutQuoteService;
 use App\Services\EventTicketPurchaseLimitService;
+use App\Services\TicaPromotionAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -484,11 +486,27 @@ class BookingController extends Controller
       // tracking link the buyer arrived through.
       $couponId = filter_var($info['coupon_id'] ?? null, FILTER_VALIDATE_INT);
       if ($couponId && (float) ($info['discount'] ?? 0) > 0) {
-        Coupon::query()->whereKey($couponId)->increment('used_count');
+        $claimed = Coupon::query()->whereKey($couponId)->where('is_active', true)
+          ->where(fn ($query) => $query->whereNull('max_uses')->orWhereColumn('used_count', '<', 'max_uses'))
+          ->increment('used_count');
+        if ($claimed !== 1) {
+          throw new RuntimeException('This discount code reached its usage limit. Refresh checkout and try again.');
+        }
+        if (Schema::hasColumn('bookings', 'coupon_id')) {
+          $booking->forceFill(['coupon_id' => (int) $couponId])->save();
+        }
       }
       $trackingLinkId = filter_var($info['tracking_link_id'] ?? null, FILTER_VALIDATE_INT);
       if ($trackingLinkId && Schema::hasColumn('bookings', 'tracking_link_id')) {
         $booking->forceFill(['tracking_link_id' => $trackingLinkId])->save();
+      }
+      $promotionCampaignId = filter_var($info['promotion_campaign_id'] ?? Session::get('tica_promotion_campaign_id'), FILTER_VALIDATE_INT);
+      if ($promotionCampaignId && Schema::hasColumn('bookings', 'promotion_campaign_id')) {
+        $campaign = TicaPromotionCampaign::query()->whereKey((int) $promotionCampaignId)->first();
+        if ($campaign && (int) $campaign->event_id === (int) $booking->event_id) {
+          $booking->forceFill(['promotion_campaign_id' => $campaign->id])->save();
+          app(TicaPromotionAnalyticsService::class)->recordConversion($campaign, $booking);
+        }
       }
 
       $units = (new TicketIssuanceService())->issueForBooking($booking);

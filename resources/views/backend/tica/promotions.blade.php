@@ -14,6 +14,8 @@
         'pending_review', 'cancellation_requested' => 'attention',
         'pending_payment', 'scheduled' => 'info',
         'rejected', 'cancelled' => 'negative',
+        'change_requested' => 'attention',
+        'refunded' => 'muted',
         'paused' => 'muted',
         default => 'neutral',
       };
@@ -81,6 +83,11 @@
         <strong>{{ number_format($stats['cancellations']) }}</strong>
         <small>{{ __('Organizer requests') }}</small>
       </div>
+      <div class="pulse-item">
+        <span>{{ __('Attributed tickets') }}</span>
+        <strong>{{ number_format($stats['tickets']) }}</strong>
+        <small>{{ number_format($stats['impressions']) }} {{ __('tracked impressions') }}</small>
+      </div>
     </section>
 
     <section class="placement-rail" aria-labelledby="placement-rail-title">
@@ -117,6 +124,9 @@
       </button>
       <button type="button" id="promotion-tab-plans" data-promotion-tab="plans" aria-controls="promotion-panel-plans" class="{{ $activeSection === 'plans' ? 'is-active' : '' }}">
         <i class="fas fa-tags" aria-hidden="true"></i><span>{{ __('Plans and pricing') }}</span>
+      </button>
+      <button type="button" id="promotion-tab-analytics" data-promotion-tab="analytics" aria-controls="promotion-panel-analytics" class="{{ $activeSection === 'analytics' ? 'is-active' : '' }}">
+        <i class="fas fa-chart-bar" aria-hidden="true"></i><span>{{ __('Analytics') }}</span>
       </button>
       <button type="button" id="promotion-tab-tracking" data-promotion-tab="tracking" aria-controls="promotion-panel-tracking" class="{{ $activeSection === 'tracking' ? 'is-active' : '' }}">
         <i class="fas fa-chart-line" aria-hidden="true"></i><span>{{ __('Tracking approvals') }}</span>
@@ -195,7 +205,7 @@
                     </div>
                     <div>
                       <strong>{{ $campaign->headline ?: $title }}</strong>
-                      <span>{{ $campaign->organizer->username ?? __('Unknown organizer') }}</span>
+                      <span>{{ $campaign->organizer->username ?? __('Unknown organizer') }} · {{ $campaign->reference ?: '#'.$campaign->id }}</span>
                       <small>{{ $campaign->organizer->email ?? '' }}</small>
                     </div>
                   </div>
@@ -214,6 +224,7 @@
                     <i class="fas {{ $campaign->paid_at ? 'fa-check-circle' : 'fa-clock' }}" aria-hidden="true"></i>
                     {{ $campaign->paid_at ? __('Paid') : __('Not paid') }}
                   </span>
+                  @if($campaign->payment_reference)<small class="date-range">{{ $campaign->payment_reference }}</small>@endif
                 </td>
                 <td data-label="{{ __('Status') }}">
                   <span class="status-pill is-{{ $statusTone($campaign->status) }}"><i aria-hidden="true"></i>{{ ucwords(str_replace('_', ' ', $campaign->status)) }}</span>
@@ -231,9 +242,12 @@
                       <label>{{ __('Decision') }}
                         <select name="decision" required>
                           <option value="approve">{{ in_array($campaign->status, ['paused', 'rejected'], true) ? __('Approve / resume') : __('Approve') }}</option>
+                          <option value="request_changes">{{ __('Request changes') }}</option>
+                          <option value="resume">{{ __('Resume') }}</option>
                           <option value="pause">{{ __('Pause placement') }}</option>
                           <option value="reject">{{ __('Reject request') }}</option>
                           <option value="cancel">{{ __('Cancel campaign') }}</option>
+                          @if($campaign->payment_status === 'paid')<option value="refund">{{ optional($campaign->paymentTransaction)->gateway === 'paystack' ? __('Refund through Paystack') : __('Refund to organizer balance') }}</option>@endif
                         </select>
                       </label>
                       <div class="review-date-grid">
@@ -243,6 +257,12 @@
                         <label>{{ __('Ends') }}
                           <input name="ends_at" type="datetime-local" value="{{ optional($campaign->ends_at)->format('Y-m-d\TH:i') }}">
                         </label>
+                      </div>
+                      <div class="review-date-grid">
+                        <label>{{ __('Placement') }}
+                          <select name="placement">@foreach($placementLabels as $key => $label)<option value="{{ $key }}" @selected(($campaign->placement ?: optional($campaign->plan)->placement) === $key)>{{ __($label) }}</option>@endforeach</select>
+                        </label>
+                        <label>{{ __('Priority') }}<input name="priority" type="number" min="1" max="1000" value="{{ $campaign->priority ?: 100 }}"></label>
                       </div>
                       <label>{{ __('Internal review note') }}
                         <textarea name="admin_notes" maxlength="2000" rows="3" placeholder="{{ __('Why this decision was made') }}">{{ $campaign->admin_notes }}</textarea>
@@ -272,6 +292,33 @@
         <div><h2>{{ __('Plans and placement pricing') }}</h2><p>{{ __('Changes here appear in the organizer promotion studio immediately. Hidden plans remain attached to historical campaigns.') }}</p></div>
         <span class="panel-result-count">{{ trans_choice(':count plan|:count plans', $plans->count(), ['count' => $plans->count()]) }}</span>
       </div>
+      <details class="package-create">
+        <summary><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Create promotion package') }}</summary>
+        <form method="post" action="{{ route('admin.advertise.tica_promotions.plan.store') }}" class="plan-editor plan-editor--create">
+          @csrf
+          <div class="plan-editor-fields">
+            <label>{{ __('Package name') }}<input name="name" required maxlength="100"></label>
+            <label>{{ __('Type') }}<select name="type" required><option value="featured_event">{{ __('Featured Event') }}</option><option value="pop_event">{{ __('Pop Events') }}</option><option value="sponsored_event">{{ __('Sponsored event') }}</option></select></label>
+            <label>{{ __('Placement key') }}<input name="placement" required maxlength="40" pattern="[a-z0-9_-]+" placeholder="homepage_pop"></label>
+            <label>{{ __('Price') }}<input name="price" type="number" min="0" max="100000000" step="0.01" required></label>
+            <label>{{ __('Duration (days)') }}<input name="duration_days" type="number" min="1" max="365" value="7" required></label>
+            <label>{{ __('Status') }}<select name="status"><option value="draft">{{ __('Draft') }}</option><option value="published">{{ __('Published') }}</option><option value="unpublished">{{ __('Unpublished') }}</option></select></label>
+            <label class="field-wide">{{ __('Description') }}<textarea name="description" maxlength="500" rows="2"></textarea></label>
+            <label class="field-wide">{{ __('Benefits (one per line)') }}<textarea name="benefits" maxlength="2000" rows="3"></textarea></label>
+            <label>{{ __('Priority') }}<input name="priority" type="number" min="1" max="1000" value="100" required></label>
+            <label>{{ __('Capacity') }}<input name="capacity" type="number" min="1" max="10000"></label>
+            <label>{{ __('Maximum concurrent') }}<input name="max_concurrent" type="number" min="1" max="10000"></label>
+            <label>{{ __('Available from') }}<input name="available_from" type="datetime-local"></label>
+            <label>{{ __('Available until') }}<input name="available_until" type="datetime-local"></label>
+            <label>{{ __('Rotation interval (seconds)') }}<input name="rotation_interval_seconds" type="number" min="10" max="86400" value="30"></label>
+            <label>{{ __('Display duration (seconds)') }}<input name="display_seconds" type="number" min="3" max="3600" value="8"></label>
+            <label class="plan-switch"><input name="approval_required" value="1" type="checkbox" checked><span aria-hidden="true"></span><em>{{ __('Admin approval required') }}</em></label>
+            <label class="plan-switch"><input name="is_active" value="1" type="checkbox"><span aria-hidden="true"></span><em>{{ __('Publish immediately') }}</em></label>
+            <label>{{ __('Admin password') }}<input name="current_password" type="password" autocomplete="current-password" required></label>
+          </div>
+          <button class="btn-plan-save" type="submit"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Create package') }}</button>
+        </form>
+      </details>
       <div class="plan-editor-list">
         @forelse ($plans as $plan)
           <form method="post" action="{{ route('admin.advertise.tica_promotions.plan', $plan) }}" class="plan-editor">
@@ -281,23 +328,54 @@
               <div>
                 <span>{{ $placementLabels[$plan->placement] ?? str_replace('_', ' ', $plan->placement) }}</span>
                 <strong>{{ $plan->name }}</strong>
-                <small>{{ $plan->is_active ? __('Visible to organizers') : __('Currently hidden') }}</small>
+                <small>{{ $plan->is_active ? __('Visible to organizers') : __('Currently hidden') }} · {{ number_format($inventory[$plan->id]['reserved'] ?? 0) }} {{ __('reserved') }}@if(($inventory[$plan->id]['limit'] ?? 0) > 0) / {{ number_format($inventory[$plan->id]['limit']) }}@endif</small>
               </div>
             </div>
+            @if(($inventory[$plan->id]['next'] ?? collect())->isNotEmpty())
+              <div class="inventory-strip" aria-label="{{ __('Upcoming occupied inventory') }}">@foreach($inventory[$plan->id]['next'] as $slot)<span><b>{{ $slot->reference }}</b><small>{{ optional($slot->starts_at)->format('j M') }}–{{ optional($slot->ends_at)->format('j M') }} · {{ str_replace('_',' ', $slot->status) }}</small></span>@endforeach</div>
+            @endif
             <div class="plan-editor-fields">
               <label>{{ __('Plan name') }}<input name="name" value="{{ $plan->name }}" required maxlength="100"></label>
+              <label>{{ __('Type') }}<select name="type"><option value="featured_event" @selected($plan->type === 'featured_event')>{{ __('Featured Event') }}</option><option value="pop_event" @selected($plan->type === 'pop_event')>{{ __('Pop Events') }}</option><option value="sponsored_event" @selected($plan->type === 'sponsored_event')>{{ __('Sponsored event') }}</option><option value="{{ $plan->type }}" @selected(!in_array($plan->type, ['featured_event','pop_event','sponsored_event']))>{{ ucwords(str_replace('_',' ', $plan->type)) }}</option></select></label>
+              <label>{{ __('Placement key') }}<input name="placement" value="{{ $plan->placement }}" required maxlength="40"></label>
               <label class="field-wide">{{ __('Organizer-facing description') }}<textarea name="description" maxlength="500" rows="2">{{ $plan->description }}</textarea></label>
+              <label class="field-wide">{{ __('Benefits (one per line)') }}<textarea name="benefits" maxlength="2000" rows="3">{{ implode("\n", $plan->benefits ?: []) }}</textarea></label>
               <label>{{ __('Price') }} <small>({{ \App\Support\TicaCurrency::base() }})</small><input name="price" type="number" min="0" max="100000000" step="0.01" value="{{ $plan->price }}" required></label>
-              <label>{{ __('Duration') }} <small>{{ __('days') }}</small><input name="duration_days" type="number" min="1" max="90" value="{{ $plan->duration_days }}" required></label>
+              <label>{{ __('Duration') }} <small>{{ __('days') }}</small><input name="duration_days" type="number" min="1" max="365" value="{{ $plan->duration_days }}" required></label>
+              <label>{{ __('Status') }}<select name="status"><option value="draft" @selected($plan->status === 'draft')>{{ __('Draft') }}</option><option value="published" @selected($plan->status === 'published')>{{ __('Published') }}</option><option value="unpublished" @selected($plan->status === 'unpublished')>{{ __('Unpublished') }}</option><option value="archived" @selected($plan->status === 'archived')>{{ __('Archived') }}</option></select></label>
+              <label>{{ __('Priority') }}<input name="priority" type="number" min="1" max="1000" value="{{ $plan->priority ?: 100 }}" required></label>
+              <label>{{ __('Capacity') }}<input name="capacity" type="number" min="1" max="10000" value="{{ $plan->capacity }}"></label>
+              <label>{{ __('Maximum concurrent') }}<input name="max_concurrent" type="number" min="1" max="10000" value="{{ $plan->max_concurrent }}"></label>
+              <label>{{ __('Available from') }}<input name="available_from" type="datetime-local" value="{{ optional($plan->available_from)->format('Y-m-d\TH:i') }}"></label>
+              <label>{{ __('Available until') }}<input name="available_until" type="datetime-local" value="{{ optional($plan->available_until)->format('Y-m-d\TH:i') }}"></label>
+              <label>{{ __('Rotation interval') }}<input name="rotation_interval_seconds" type="number" min="10" max="86400" value="{{ data_get($plan->settings, 'rotation_interval_seconds', 30) }}"></label>
+              <label>{{ __('Display seconds') }}<input name="display_seconds" type="number" min="3" max="3600" value="{{ data_get($plan->settings, 'display_seconds', 8) }}"></label>
+              <label class="plan-switch"><input name="approval_required" value="1" type="checkbox" @checked($plan->approval_required)><span aria-hidden="true"></span><em>{{ __('Approval required') }}</em></label>
               <label class="plan-switch"><input name="is_active" value="1" type="checkbox" @checked($plan->is_active)><span aria-hidden="true"></span><em>{{ __('Available to organizers') }}</em></label>
               <label>{{ __('Admin password') }}<input name="current_password" type="password" autocomplete="current-password" required placeholder="{{ __('Required to save') }}"></label>
             </div>
-            <button class="btn-plan-save" type="submit"><i class="fas fa-save" aria-hidden="true"></i>{{ __('Save plan') }}</button>
+            <div class="plan-actions"><button class="btn-plan-save" type="submit"><i class="fas fa-save" aria-hidden="true"></i>{{ __('Save plan') }}</button><button class="btn-plan-secondary" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.duplicate', $plan) }}"><i class="fas fa-copy"></i>{{ __('Duplicate') }}</button>@if(!$plan->archived_at)<button class="btn-plan-danger" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.archive', $plan) }}"><i class="fas fa-archive"></i>{{ __('Archive') }}</button>@endif</div>
           </form>
         @empty
           <div class="promotion-empty"><i class="fas fa-tags" aria-hidden="true"></i><strong>{{ __('No promotion plans') }}</strong><span>{{ __('Run the promotion governance migration to create the supported TICA placements.') }}</span></div>
         @endforelse
       </div>
+    </section>
+
+    <section class="promotion-panel" id="promotion-panel-analytics" role="tabpanel" aria-labelledby="promotion-tab-analytics" data-promotion-panel="analytics" @if ($activeSection !== 'analytics') hidden @endif>
+      <div class="panel-heading"><div><h2>{{ __('Promotion analytics') }}</h2><p>{{ __('Promotion spend is kept separate from ticket revenue. Every figure below comes from recorded payments or tracked events.') }}</p></div></div>
+      <div class="analytics-summary">
+        <article><span>{{ __('Promotion revenue') }}</span><strong>{{ \App\Support\TicaCurrency::base() }} {{ number_format($stats['revenue'], 0) }}</strong></article>
+        <article><span>{{ __('Package purchases') }}</span><strong>{{ number_format($stats['purchases']) }}</strong></article>
+        <article><span>{{ __('Impressions') }}</span><strong>{{ number_format($stats['impressions']) }}</strong></article>
+        <article><span>{{ __('Clicks') }}</span><strong>{{ number_format($stats['clicks']) }}</strong><small>{{ $stats['impressions'] ? number_format(($stats['clicks'] / $stats['impressions']) * 100, 1) : 0 }}% CTR</small></article>
+        <article><span>{{ __('Attributed tickets') }}</span><strong>{{ number_format($stats['tickets']) }}</strong></article>
+        <article><span>{{ __('Attributed ticket revenue') }}</span><strong>{{ \App\Support\TicaCurrency::base() }} {{ number_format($stats['ticketRevenue'], 0) }}</strong></article>
+      </div>
+      <div class="promotion-table-wrap"><table class="promotion-table"><thead><tr><th>{{ __('Package') }}</th><th>{{ __('Purchases') }}</th><th>{{ __('Promotion revenue') }}</th><th>{{ __('Impressions') }}</th><th>{{ __('Clicks') }}</th><th>{{ __('Tickets') }}</th></tr></thead><tbody>
+        @forelse($revenueByPackage as $row)<tr><td data-label="{{ __('Package') }}"><strong>{{ $row->name }}</strong></td><td data-label="{{ __('Purchases') }}">{{ number_format($row->sales) }}</td><td data-label="{{ __('Promotion revenue') }}">{{ \App\Support\TicaCurrency::base() }} {{ number_format($row->revenue, 0) }}</td><td data-label="{{ __('Impressions') }}">{{ number_format($row->impressions) }}</td><td data-label="{{ __('Clicks') }}">{{ number_format($row->clicks) }}</td><td data-label="{{ __('Tickets') }}">{{ number_format($row->tickets) }}</td></tr>
+        @empty<tr><td colspan="6"><div class="promotion-empty"><strong>{{ __('No paid promotion activity yet') }}</strong><span>{{ __('Package performance will appear after verified purchases and tracked placement activity.') }}</span></div></td></tr>@endforelse
+      </tbody></table></div>
     </section>
 
     <section class="promotion-panel" id="promotion-panel-tracking" role="tabpanel" aria-labelledby="promotion-tab-tracking" data-promotion-panel="tracking" @if ($activeSection !== 'tracking') hidden @endif>

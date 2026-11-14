@@ -614,9 +614,12 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/payout-schedule', 'FrontEnd\TicaWorkspaceController@payoutSchedule')->middleware('throttle:20,1');
       Route::post('/withdraw', 'FrontEnd\TicaWorkspaceController@withdraw')->middleware('throttle:5,1');
       Route::post('/codes', 'FrontEnd\TicaWorkspaceController@storeCode')->middleware('throttle:20,1');
+      Route::post('/codes/{coupon}', 'FrontEnd\TicaWorkspaceController@updateCode')->whereNumber('coupon')->middleware('throttle:20,1');
       Route::post('/links', 'FrontEnd\TicaWorkspaceController@storeLink')->middleware('throttle:20,1');
+      Route::post('/links/{link}', 'FrontEnd\TicaWorkspaceController@updateLink')->whereNumber('link')->middleware('throttle:20,1');
       Route::post('/promotions', 'FrontEnd\TicaWorkspaceController@storePromotion')->middleware('throttle:10,1');
       Route::post('/promotions/{campaign}/pay', 'FrontEnd\TicaWorkspaceController@payPromotion')->whereNumber('campaign')->middleware('throttle:5,10');
+      Route::post('/promotions/{campaign}/checkout', 'FrontEnd\TicaWorkspaceController@checkoutPromotion')->whereNumber('campaign')->middleware('throttle:5,10');
       Route::post('/promotions/{campaign}/cancel', 'FrontEnd\TicaWorkspaceController@cancelPromotion')->whereNumber('campaign')->middleware('throttle:10,1');
       Route::post('/tracking-pixels', 'FrontEnd\TicaWorkspaceController@storePixel')->middleware('throttle:10,10');
       Route::post('/team', 'FrontEnd\TicaWorkspaceController@invite')->middleware('throttle:10,1');
@@ -628,6 +631,11 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
     });
   });
 });
+
+Route::get('/promotion/{campaign}/click', 'FrontEnd\PromotionTrackingController@click')
+  ->whereNumber('campaign')->middleware('throttle:120,1')->name('tica.promotion.click');
+Route::get('/promotion/paystack/callback', 'FrontEnd\PromotionTrackingController@paystackCallback')
+  ->middleware('throttle:authentication')->name('tica.promotion.paystack.callback');
 
 /*
 |--------------------------------------------------------------------------

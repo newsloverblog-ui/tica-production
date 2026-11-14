@@ -806,7 +806,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('/bulk-delete-advertisement', 'BackEnd\AdvertisementController@bulkDestroy')->name('admin.advertise.bulk_delete_advertisement');
 
     Route::get('/tica-promotions', 'BackEnd\TicaPromotionController@index')->name('admin.advertise.tica_promotions');
+    Route::post('/tica-promotions/plans', 'BackEnd\TicaPromotionController@storePlan')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.plan.store');
     Route::post('/tica-promotions/plans/{plan}', 'BackEnd\TicaPromotionController@updatePlan')->whereNumber('plan')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.plan');
+    Route::post('/tica-promotions/plans/{plan}/duplicate', 'BackEnd\TicaPromotionController@duplicatePlan')->whereNumber('plan')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.plan.duplicate');
+    Route::post('/tica-promotions/plans/{plan}/archive', 'BackEnd\TicaPromotionController@archivePlan')->whereNumber('plan')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.plan.archive');
     Route::post('/tica-promotions/campaigns/{campaign}', 'BackEnd\TicaPromotionController@reviewCampaign')->whereNumber('campaign')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.campaign');
     Route::post('/tica-promotions/pixels/{pixel}', 'BackEnd\TicaPromotionController@reviewPixel')->whereNumber('pixel')->middleware('throttle:10,10')->name('admin.advertise.tica_promotions.pixel');
   });

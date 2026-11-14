@@ -12,6 +12,8 @@ use App\Models\TicaTrackingPixel;
 use App\Models\TicaPromotionCampaign;
 use App\Services\TicaUi\EventCatalog;
 use App\Services\TicaUi\TicaUiPayload;
+use App\Services\TicaPromotionAnalyticsService;
+use App\Services\TicaPromotionPlacementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -256,18 +258,16 @@ class TicaUiController extends Controller
         ->values()->all();
     }
     if (in_array($page, ['home', 'discover', 'how', 'pricing', 'about', 'contact'], true) && Schema::hasTable('tica_promotion_campaigns')) {
-      $popup = TicaPromotionCampaign::query()->with(['event.information', 'plan'])
-        ->where('status', 'active')->where('starts_at', '<=', now())->where('ends_at', '>', now())
-        ->whereHas('plan', fn ($query) => $query->where('placement', 'event_popup'))
-        ->whereHas('event', fn ($query) => $query->where('status', 1))->inRandomOrder()->first();
+      $popup = app(TicaPromotionPlacementService::class)->rotating('event_popup');
       if ($popup) {
+        app(TicaPromotionAnalyticsService::class)->recordVisit($popup, 'impression', $request);
         $content = optional($popup->event)->information;
         $extra['promotionPopup'] = [
           'id' => (int) $popup->id,
           'headline' => (string) ($popup->headline ?: optional($content)->title ?: __('Featured event')),
           'body' => (string) ($popup->body ?: __('Discover this event on TICA.')),
           'image' => $popup->creative_path ? asset('assets/admin/img/tica-promotions/' . basename($popup->creative_path)) : null,
-          'url' => (string) ($popup->destination_url ?: route('event.details', [optional($content)->slug, $popup->event_id])),
+          'url' => route('tica.promotion.click', $popup->id),
         ];
       }
     }
@@ -329,6 +329,7 @@ class TicaUiController extends Controller
     }
     $link = TicaTrackingLink::query()
       ->where('code', $code)
+      ->where('is_active', true)
       ->where(fn ($query) => $query->whereNull('event_id')->orWhere('event_id', $eventId))
       ->first();
     if (!$link || (int) Event::query()->whereKey($eventId)->value('organizer_id') !== (int) $link->organizer_id) {
@@ -337,6 +338,7 @@ class TicaUiController extends Controller
     $seen = (array) $request->session()->get('tica_tracking_clicks', []);
     if (!in_array($link->id, $seen, true)) {
       $link->increment('clicks');
+      $link->forceFill(['last_clicked_at' => now()])->save();
       $request->session()->put('tica_tracking_clicks', array_slice(array_merge($seen, [$link->id]), -50));
     }
     $request->session()->put('tica_tracking_link_id', $link->id);

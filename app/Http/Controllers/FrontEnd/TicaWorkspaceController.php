@@ -41,6 +41,8 @@ use App\Services\TicaUi\OrganizerTeam;
 use App\Services\TicaUi\OrganizerWorkspace;
 use App\Services\WithdrawalService;
 use App\Services\TicaPromotionService;
+use App\Services\TicaPromotionPaystackService;
+use App\Services\TicaPromotionNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -506,8 +508,14 @@ class TicaWorkspaceController extends Controller
       'type' => ['required', Rule::in(['percentage', 'fixed'])],
       'value' => ['required', 'numeric', 'min:1', $request->input('type') === 'percentage' ? 'max:100' : 'max:100000000'],
       'max_uses' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+      'event_id' => ['nullable', 'integer'],
+      'start_date' => ['nullable', 'date', 'after_or_equal:today'],
+      'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+      'minimum_purchase' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
     ], ['code.unique' => 'That code is already taken. Try another.']);
-    $events = Event::query()->where('organizer_id', $this->organizerId())->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+    $events = !empty($validated['event_id'])
+      ? [(int) $this->ownedEvent((int) $validated['event_id'])->id]
+      : Event::query()->where('organizer_id', $this->organizerId())->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
     if ($events === []) {
       throw ValidationException::withMessages(['code' => 'Create an event first, then add discount codes for it.']);
     }
@@ -518,31 +526,73 @@ class TicaWorkspaceController extends Controller
       'type' => $validated['type'],
       'value' => $validated['value'],
       'events' => json_encode($events),
-      'start_date' => now()->toDateString(),
-      'end_date' => now()->addYears(2)->toDateString(),
+      'start_date' => $validated['start_date'] ?? now()->toDateString(),
+      'end_date' => $validated['end_date'] ?? now()->addYears(2)->toDateString(),
       'organizer_id' => $this->organizerId(),
       'max_uses' => $validated['max_uses'] ?? null,
       'used_count' => 0,
+      'minimum_purchase' => $validated['minimum_purchase'] ?? 0,
+      'is_active' => true,
     ])->save();
     AuditLogger::record('coupon.created_by_organizer', $coupon, [], $coupon->only(['code', 'type', 'value', 'max_uses']));
 
     return response()->json(['message' => 'Code created.']);
   }
 
+  public function updateCode(Request $request, int $coupon): JsonResponse
+  {
+    $this->allow('promote.manage');
+    $record = Coupon::query()->whereKey($coupon)->where('organizer_id', $this->organizerId())->firstOrFail();
+    $validated = $request->validate([
+      'max_uses' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+      'end_date' => ['nullable', 'date', 'after_or_equal:today'],
+      'minimum_purchase' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
+      'is_active' => ['required', 'boolean'],
+    ]);
+    $before = $record->only(['max_uses', 'end_date', 'minimum_purchase', 'is_active', 'paused_at']);
+    $record->forceFill([
+      'max_uses' => $validated['max_uses'] ?? $record->max_uses,
+      'end_date' => $validated['end_date'] ?? $record->end_date,
+      'minimum_purchase' => $validated['minimum_purchase'] ?? $record->minimum_purchase,
+      'is_active' => (bool) $validated['is_active'],
+      'paused_at' => $validated['is_active'] ? null : now(),
+    ])->save();
+    AuditLogger::record('coupon.updated_by_organizer', $record, $before, $record->fresh()->only(array_keys($before)));
+    return response()->json(['message' => $record->is_active ? 'Discount code activated.' : 'Discount code paused.']);
+  }
+
   public function storeLink(Request $request): JsonResponse
   {
     $this->allow('promote.manage');
-    $validated = $request->validate(['name' => ['required', 'string', 'min:2', 'max:120'], 'event_id' => ['nullable', 'integer']]);
+    $validated = $request->validate([
+      'name' => ['required', 'string', 'min:2', 'max:120'], 'event_id' => ['nullable', 'integer'],
+      'channel' => ['nullable', 'string', 'max:80'], 'influencer' => ['nullable', 'string', 'max:120'],
+    ]);
     $eventId = !empty($validated['event_id']) ? $this->ownedEvent((int) $validated['event_id'])->id : null;
     do {
       $code = strtoupper(Str::random(8));
     } while (TicaTrackingLink::query()->where('code', $code)->exists());
-    TicaTrackingLink::create(['organizer_id' => $this->organizerId(), 'event_id' => $eventId, 'name' => $validated['name'], 'code' => $code, 'clicks' => 0]);
+    TicaTrackingLink::create([
+      'organizer_id' => $this->organizerId(), 'event_id' => $eventId, 'name' => $validated['name'],
+      'channel' => $validated['channel'] ?? null, 'influencer' => $validated['influencer'] ?? null,
+      'code' => $code, 'clicks' => 0, 'is_active' => true,
+    ]);
 
     return response()->json(['message' => 'Link created.']);
   }
 
-  public function storePromotion(Request $request): JsonResponse
+  public function updateLink(Request $request, int $link): JsonResponse
+  {
+    $this->allow('promote.manage');
+    $record = TicaTrackingLink::query()->whereKey($link)->where('organizer_id', $this->organizerId())->firstOrFail();
+    $validated = $request->validate(['is_active' => ['required', 'boolean']]);
+    $before = $record->only(['is_active']);
+    $record->forceFill(['is_active' => (bool) $validated['is_active']])->save();
+    AuditLogger::record('tracking_link.updated_by_organizer', $record, $before, $record->only(['is_active']));
+    return response()->json(['message' => $record->is_active ? 'Tracking link activated.' : 'Tracking link paused.']);
+  }
+
+  public function storePromotion(Request $request, TicaPromotionService $promotions): JsonResponse
   {
     $this->allow('promote.manage');
     $validated = $request->validate([
@@ -556,7 +606,6 @@ class TicaWorkspaceController extends Controller
     ]);
     $event = $this->ownedEvent((int) $validated['event_id']);
     abort_unless((int) $event->status === 1, 422, 'Publish the event before promoting it.');
-    $plan = TicaPromotionPlan::query()->whereKey($validated['plan_id'])->where('is_active', true)->firstOrFail();
 
     $creativePath = null;
     if ($request->hasFile('creative')) {
@@ -570,23 +619,15 @@ class TicaWorkspaceController extends Controller
     }
 
     $starts = Carbon::parse($validated['starts_at'])->startOfDay();
-    $campaign = TicaPromotionCampaign::create([
-      'organizer_id' => $this->organizerId(),
-      'event_id' => $event->id,
-      'plan_id' => $plan->id,
-      'status' => (float) $plan->price > 0 ? 'pending_payment' : 'pending_review',
-      'headline' => $validated['headline'] ?? null,
-      'body' => $validated['body'] ?? null,
-      'destination_url' => $validated['destination_url'] ?? null,
-      'creative_path' => $creativePath,
-      'price' => $plan->price,
-      'currency' => $plan->currency,
-      'starts_at' => $starts,
-      'ends_at' => $starts->copy()->addDays($plan->duration_days),
+    $campaign = $promotions->createCampaign($this->organizerId(), $event, (int) $validated['plan_id'], $starts, [
+      'headline' => $validated['headline'] ?? null, 'body' => $validated['body'] ?? null,
+      'destination_url' => $validated['destination_url'] ?? null, 'creative_path' => $creativePath,
     ]);
-    AuditLogger::record('promotion.requested', $campaign, [], ['status' => $campaign->status, 'price' => $campaign->price, 'currency' => $campaign->currency]);
+    if ((float) $campaign->price <= 0) {
+      app(TicaPromotionNotificationService::class)->send($campaign, 'submitted', 'Promotion submitted', 'Your promotion request has been received and its status is now available in the organizer dashboard.');
+    }
 
-    return response()->json(['message' => (float) $campaign->price > 0 ? 'Promotion created. Pay from your TICA balance to send it for review.' : 'Promotion sent for review.']);
+    return response()->json(['message' => (float) $campaign->price > 0 ? 'Promotion reserved. Complete payment to submit it for review.' : 'Promotion sent for review.', 'campaign' => $campaign->reference]);
   }
 
   public function payPromotion(Request $request, int $campaign, TicaPromotionService $promotions): JsonResponse
@@ -596,9 +637,20 @@ class TicaWorkspaceController extends Controller
     if (!Hash::check($validated['current_password'], (string) $this->organizer()->password)) {
       throw ValidationException::withMessages(['current_password' => 'Your password is incorrect.']);
     }
-    $promotions->payFromBalance($campaign, $this->organizerId());
+    $paid = $promotions->payFromBalance($campaign, $this->organizerId());
+    app(TicaPromotionNotificationService::class)->send($paid, 'payment_confirmed', 'Promotion payment confirmed', 'Your payment was verified on the server. The campaign will not appear publicly until its approval and start conditions are satisfied.');
 
     return response()->json(['message' => 'Paid. TICA will review the promotion before it goes live.']);
+  }
+
+  public function checkoutPromotion(int $campaign, TicaPromotionPaystackService $payments): JsonResponse
+  {
+    $this->allow('promote.pay');
+    $intent = $payments->initialize($campaign, $this->organizerId());
+    $url = trim((string) $intent->authorization_url);
+    abort_unless(strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https'
+      && strtolower((string) parse_url($url, PHP_URL_HOST)) === 'checkout.paystack.com', 502, 'The payment provider returned an unsafe checkout URL.');
+    return response()->json(['authorization_url' => $url, 'reference' => $intent->reference]);
   }
 
   public function cancelPromotion(int $campaign): JsonResponse

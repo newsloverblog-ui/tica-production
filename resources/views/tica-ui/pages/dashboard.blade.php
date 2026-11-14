@@ -105,22 +105,26 @@
 
       <!-- PROMOTE -->
       <div class="od-p" data-p="promote" hidden>
-        <div class="db-head"><div><h1>Promote</h1><p>Book TICA placements, create discount codes and track the channels selling your tickets.</p></div></div>
-        <section class="db-card od-promo-studio" aria-labelledby="od-campaign-h"><div class="db-ch"><div><h2 id="od-campaign-h">Paid promotion</h2><p class="od-fine">Choose an admin-priced placement. Every campaign is reviewed before it goes live.</p></div><div class="od-promo-balance"><span>Available TICA balance</span><b id="od-promo-balance">—</b></div></div>
+        <div class="db-head"><div><h1>Promote</h1><p>Grow your audience with TICA placements, discount codes and trackable sharing links.</p></div></div>
+        <div class="od-promo-kpis" id="od-promo-kpis" aria-label="Promotion performance"></div>
+        <section class="db-card od-packages" aria-labelledby="od-packages-h"><div class="db-ch"><div><h2 id="od-packages-h">Promotion packages</h2><p class="od-fine">Pricing, duration and availability are set by TICA. Choose a package to start.</p></div></div><div class="od-package-grid" id="od-package-grid"></div></section>
+        <section class="db-card od-promo-studio" aria-labelledby="od-campaign-h"><div class="db-ch"><div><h2 id="od-campaign-h">Create a campaign</h2><p class="od-fine">Select an eligible event and start date. TICA verifies payment before any placement can go live.</p></div><div class="od-promo-balance"><span>Available TICA balance</span><b id="od-promo-balance">—</b></div></div>
           <div class="od-empty-state" id="od-promo-empty" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/></svg></i><h3>Paid promotion is not available yet</h3><p>TICA will show placement options here when campaign plans are available. Your discount codes and tracking links still work.</p></div>
           <form class="od-form" id="od-promo-f" novalidate>
             <div class="od-row3"><div class="inp"><label for="od-promo-plan">Placement</label><select id="od-promo-plan" required></select></div><div class="inp"><label for="od-promo-event">Event</label><select id="od-promo-event" required></select></div><div class="inp"><label for="od-promo-start">Start date <small>(day / month / year)</small></label><input id="od-promo-start" type="date" required></div></div>
+            <div class="od-package-summary" id="od-package-summary" aria-live="polite"></div>
             <div class="od-row2"><div class="inp"><label for="od-promo-headline">Headline <small>(optional)</small></label><input id="od-promo-headline" maxlength="160"></div><div class="inp"><label for="od-promo-url">Destination URL <small>(optional)</small></label><input id="od-promo-url" type="url" placeholder="https://..."></div></div>
             <div class="inp"><label for="od-promo-body">Promotion copy <small>(optional)</small></label><textarea id="od-promo-body" maxlength="1000" rows="3"></textarea></div>
             <div class="inp od-upload"><label for="od-promo-creative">Campaign image <small>(optional)</small><span>Drop an event image here or choose a file</span><em>JPG, PNG, WebP or GIF, up to 3 MB</em></label><input id="od-promo-creative" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
             <button class="btn btn-hot" type="submit">Create promotion</button><p class="hint" id="od-promo-m" role="status"></p>
           </form>
-          <div class="od-campaigns" id="od-campaigns"></div>
+          <div class="db-ch od-campaign-heading"><div><h2>My campaigns</h2><p class="od-fine">Payment, review, schedule and measured placement performance.</p></div></div><div class="od-campaigns" id="od-campaigns"></div>
         </section>
         <div class="od-pr2">
           <section class="db-card"><div class="db-ch"><h2>Discount codes</h2></div>
             <form class="od-form" id="od-code-f" novalidate>
               <div class="od-row3"><div class="inp"><label for="od-cn">Code</label><input id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters"></div><div class="inp"><label for="od-cv">Discount</label><select id="od-cv"><option value="10">10% off</option><option value="20">20% off</option><option value="50">50% off</option><option value="1000">₦1,000 off</option></select></div><div class="inp"><label for="od-cl">Uses</label><input id="od-cl" type="number" min="1" value="50"></div></div>
+              <div class="od-row3"><div class="inp"><label for="od-code-event">Event</label><select id="od-code-event"><option value="">All events</option></select></div><div class="inp"><label for="od-code-min">Minimum purchase</label><input id="od-code-min" type="number" min="0" step="0.01" value="0"></div><div class="inp"><label for="od-code-end">Expires</label><input id="od-code-end" type="date"></div></div>
               <button class="btn btn-line" type="submit">Create code</button><p class="hint" id="od-code-m" role="status"></p>
             </form>
             <ul class="od-codes" id="od-codes"></ul>
@@ -128,7 +132,7 @@
           <section class="db-card"><div class="db-ch"><h2>Tracking links</h2></div>
             <p class="od-fine">Give each channel or promoter its own link, and see which one sells.</p>
             <ul class="od-links" id="od-links"></ul>
-            <form class="od-form od-inline" id="od-link-f" novalidate><div class="inp"><label for="od-ln">New link name</label><input id="od-ln" type="text" placeholder="e.g. Chioma's Instagram"></div><button class="btn btn-line" type="submit">Create link</button></form>
+            <form class="od-form" id="od-link-f" novalidate><div class="od-row3"><div class="inp"><label for="od-ln">Link name</label><input id="od-ln" type="text" placeholder="e.g. Chioma's Instagram"></div><div class="inp"><label for="od-link-channel">Channel</label><input id="od-link-channel" type="text" placeholder="Instagram"></div><div class="inp"><label for="od-link-event">Event</label><select id="od-link-event"><option value="">All events</option></select></div></div><div class="inp"><label for="od-link-influencer">Influencer <small>(optional)</small></label><input id="od-link-influencer" type="text" placeholder="Chioma"></div><button class="btn btn-line" type="submit">Create tracking link</button></form>
           </section>
         </div>
         <section class="db-card" aria-labelledby="od-pixel-h"><div class="db-ch"><div><h2 id="od-pixel-h">Conversion tracking</h2><p class="od-fine">Submit only the provider's ID. TICA loads an approved integration after consent; custom JavaScript is never accepted.</p></div></div>

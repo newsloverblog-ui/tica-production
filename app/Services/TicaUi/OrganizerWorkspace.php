@@ -93,6 +93,7 @@ class OrganizerWorkspace
       'links' => $this->links((int) $organizer->id),
       'promotionPlans' => $this->promotionPlans(),
       'promotions' => $this->promotions((int) $organizer->id),
+      'promotionStats' => $this->promotionStats((int) $organizer->id),
       'trackingPixels' => $this->trackingPixels((int) $organizer->id),
       'team' => $this->team($organizer, $name),
       'profile' => [
@@ -358,7 +359,11 @@ class OrganizerWorkspace
       return [];
     }
 
-    return Coupon::query()->where('organizer_id', $organizerId)->latest('id')->get()->map(function (Coupon $coupon) {
+    $sales = Schema::hasColumn('bookings', 'coupon_id')
+      ? Booking::query()->where('organizer_id', $organizerId)->whereNotNull('coupon_id')->whereIn('paymentStatus', ['completed', 'free'])
+        ->selectRaw('coupon_id, SUM(quantity) as tickets, SUM(price + tax) as revenue')->groupBy('coupon_id')->get()->keyBy('coupon_id')
+      : collect();
+    return Coupon::query()->where('organizer_id', $organizerId)->latest('id')->get()->map(function (Coupon $coupon) use ($sales) {
       $events = json_decode((string) $coupon->events, true) ?: [];
       $ended = $coupon->end_date && Carbon::parse($coupon->end_date)->endOfDay()->isPast();
       $usedUp = $coupon->max_uses !== null && (int) $coupon->used_count >= (int) $coupon->max_uses;
@@ -370,7 +375,11 @@ class OrganizerWorkspace
         'scope' => $events === [] ? 'All your events' : count($events) . (count($events) === 1 ? ' event' : ' events'),
         'used' => (int) $coupon->used_count,
         'max' => $coupon->max_uses !== null ? (int) $coupon->max_uses : null,
-        'active' => !$ended && !$usedUp,
+        'active' => (bool) $coupon->is_active && !$ended && !$usedUp,
+        'minimum' => (float) ($coupon->minimum_purchase ?? 0),
+        'ends' => $coupon->end_date ? Carbon::parse($coupon->end_date)->format('j M Y') : null,
+        'tickets' => (int) optional($sales->get($coupon->id))->tickets,
+        'revenue' => round((float) optional($sales->get($coupon->id))->revenue, 2),
       ];
     })->values()->all();
   }
@@ -379,7 +388,7 @@ class OrganizerWorkspace
   {
     $sales = Schema::hasColumn('bookings', 'tracking_link_id')
       ? Booking::query()->where('organizer_id', $organizerId)->whereNotNull('tracking_link_id')->whereIn('paymentStatus', ['completed', 'free'])
-        ->selectRaw('tracking_link_id, SUM(quantity) as total')->groupBy('tracking_link_id')->pluck('total', 'tracking_link_id')
+        ->selectRaw('tracking_link_id, SUM(quantity) as total, SUM(price + tax) as revenue, COUNT(*) as conversions')->groupBy('tracking_link_id')->get()->keyBy('tracking_link_id')
       : collect();
 
     return TicaTrackingLink::query()->where('organizer_id', $organizerId)->orderBy('id')->get()->map(fn (TicaTrackingLink $link) => [
@@ -388,7 +397,13 @@ class OrganizerWorkspace
       'code' => $link->code,
       'eventId' => $link->event_id ? (int) $link->event_id : null,
       'clicks' => (int) $link->clicks,
-      'sales' => (int) ($sales[$link->id] ?? 0),
+      'sales' => (int) optional($sales->get($link->id))->total,
+      'conversions' => (int) optional($sales->get($link->id))->conversions,
+      'revenue' => round((float) optional($sales->get($link->id))->revenue, 2),
+      'conversionRate' => $link->clicks > 0 ? round(((int) optional($sales->get($link->id))->conversions / $link->clicks) * 100, 1) : 0,
+      'channel' => (string) ($link->channel ?: ''),
+      'influencer' => (string) ($link->influencer ?: ''),
+      'active' => (bool) $link->is_active,
     ])->values()->all();
   }
 
@@ -398,7 +413,12 @@ class OrganizerWorkspace
       return [];
     }
 
-    return TicaPromotionPlan::query()->where('is_active', true)->orderBy('price')->get()->map(fn (TicaPromotionPlan $plan) => [
+    return TicaPromotionPlan::query()->published()->orderBy('price')->get()->map(function (TicaPromotionPlan $plan): array {
+      $limit = (int) ($plan->max_concurrent ?: $plan->capacity ?: 0);
+      $reserved = $limit > 0 ? TicaPromotionCampaign::query()->where('plan_id', $plan->id)
+        ->whereIn('status', ['pending_review', 'approved', 'scheduled', 'active', 'paused', 'cancellation_requested'])
+        ->where('starts_at', '<', now()->addDays((int) $plan->duration_days))->where('ends_at', '>', now())->count() : 0;
+      return [
       'id' => (int) $plan->id,
       'name' => (string) $plan->name,
       'placement' => (string) $plan->placement,
@@ -406,7 +426,16 @@ class OrganizerWorkspace
       'price' => (float) $plan->price,
       'currency' => (string) $plan->currency,
       'days' => (int) $plan->duration_days,
-    ])->values()->all();
+      'type' => (string) ($plan->type ?: $plan->placement),
+      'benefits' => array_values($plan->benefits ?: []),
+      'placements' => array_values($plan->placements ?: [$plan->placement]),
+      'eligibility' => $plan->eligibility ?: [],
+      'approvalRequired' => (bool) $plan->approval_required,
+      'capacity' => $plan->max_concurrent ?: $plan->capacity,
+      'availableUntil' => $plan->available_until?->format('j M Y'),
+      'availableSlots' => $limit > 0 ? max(0, $limit - $reserved) : null,
+    ];
+    })->values()->all();
   }
 
   private function promotions(int $organizerId): array
@@ -415,18 +444,44 @@ class OrganizerWorkspace
       return [];
     }
 
-    return TicaPromotionCampaign::query()->with(['plan:id,name,placement', 'event.information'])->where('organizer_id', $organizerId)->latest('id')->limit(50)->get()->map(fn (TicaPromotionCampaign $campaign) => [
+    return TicaPromotionCampaign::query()->with(['plan:id,name,placement,type', 'event.information'])->where('organizer_id', $organizerId)->latest('id')->limit(50)->get()->map(fn (TicaPromotionCampaign $campaign) => [
       'id' => (int) $campaign->id,
       'event' => (string) (optional(optional($campaign->event)->information)->title ?: 'Event'),
       'plan' => (string) optional($campaign->plan)->name,
       'placement' => (string) optional($campaign->plan)->placement,
       'status' => (string) $campaign->status,
+      'reference' => (string) $campaign->reference,
+      'paymentStatus' => (string) $campaign->payment_status,
+      'paymentReference' => (string) ($campaign->payment_reference ?: ''),
       'price' => (float) $campaign->price,
       'currency' => (string) $campaign->currency,
       'starts' => $campaign->starts_at?->format('j M Y'),
+      'ends' => $campaign->ends_at?->format('j M Y'),
+      'impressions' => (int) $campaign->impressions,
+      'clicks' => (int) $campaign->clicks,
+      'tickets' => (int) $campaign->attributed_tickets,
+      'revenue' => (float) $campaign->attributed_revenue,
+      'ctr' => $campaign->click_through_rate,
+      'conversionRate' => $campaign->conversion_rate,
+      'adminNote' => (string) ($campaign->change_request ?: $campaign->admin_notes ?: ''),
       'canPay' => $campaign->status === 'pending_payment',
       'canCancel' => in_array($campaign->status, ['pending_payment', 'pending_review', 'approved', 'scheduled', 'active', 'rejected'], true),
     ])->values()->all();
+  }
+
+  private function promotionStats(int $organizerId): array
+  {
+    if (!Schema::hasTable('tica_promotion_campaigns')) return [];
+    $base = TicaPromotionCampaign::query()->where('organizer_id', $organizerId);
+    return [
+      'active' => (clone $base)->where('status', 'active')->count(),
+      'pending' => (clone $base)->whereIn('status', ['pending_payment', 'pending_review', 'approved', 'scheduled'])->count(),
+      'completed' => (clone $base)->where('status', 'completed')->count(),
+      'spent' => round((float) (clone $base)->where('payment_status', 'paid')->sum('price'), 2),
+      'tickets' => (int) (clone $base)->sum('attributed_tickets'),
+      'impressions' => (int) (clone $base)->sum('impressions'),
+      'clicks' => (int) (clone $base)->sum('clicks'),
+    ];
   }
 
   private function trackingPixels(int $organizerId): array
