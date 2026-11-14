@@ -132,7 +132,7 @@
                   <br>
                   <div class="thumb-preview">
                     <img
-                      src="{{ $event->thumbnail ? asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) : asset('assets/admin/img/noimage.jpg') }}"
+                      src="{{ $event->thumbnail ? \App\Support\PublicImage::flyer($event->thumbnail) : asset('assets/admin/img/noimage.jpg') }}"
                       alt="..." class="uploaded-img">
                   </div>
                   <div class="mt-3">

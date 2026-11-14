@@ -176,6 +176,12 @@ class MonnifyController extends Controller
         if (!is_array($event) || !is_string($event['eventType'] ?? null)) {
             return response()->json(['status' => 'invalid payload'], 400);
         }
+        // Payout (disbursement) results update the matching organiser payout.
+        if (in_array($event['eventType'], ['SUCCESSFUL_DISBURSEMENT', 'FAILED_DISBURSEMENT', 'REVERSED_DISBURSEMENT'], true)) {
+            $transfer = app(\App\Services\PayoutTransferService::class)->handleMonnifyWebhook((array) ($event['eventData'] ?? []));
+
+            return response()->json(['status' => $transfer ? 'payout updated' : 'unknown payout - ignored'], 200);
+        }
         if ($event['eventType'] !== 'SUCCESSFUL_TRANSACTION') {
             return response()->json(['status' => 'ignored'], 200);
         }

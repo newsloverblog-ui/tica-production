@@ -39,3 +39,7 @@
 
 {{-- TICA design: blends these pages with the organiser workspace --}}
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/organizer-blend.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/ds.css')) }}">
+{{-- The organiser sidebar and top bar: always last, so nothing above can restyle them. --}}
+<link rel="preload" href="{{ asset('assets/tica-ui/fonts/inter-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/shell.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/shell.css')) }}">

@@ -87,7 +87,9 @@ Route::post(
 Route::get('login/facebook/callback', 'FrontEnd\CustomerController@handleFacebookCallback');
 
 #====google
-Route::get('login/google/callback', 'FrontEnd\CustomerController@handleGoogleCallback');
+// Attendees and organisers both come back here; SocialSignInController picks the account type.
+Route::get('login/google/callback', 'FrontEnd\SocialSignInController@callback');
+Route::get('auth/google/start', 'FrontEnd\SocialSignInController@redirect')->middleware('throttle:20,1')->name('tica.auth.google');
 /*---socialite end---*/
 
 Route::middleware('change.lang')->prefix('/customer')->group(function () {
@@ -608,8 +610,9 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/message', 'FrontEnd\TicaWorkspaceController@message')->middleware('throttle:5,1');
       Route::post('/guests', 'FrontEnd\TicaWorkspaceController@guest')->middleware('throttle:30,1');
       Route::get('/banks', 'FrontEnd\TicaWorkspaceController@banks')->middleware('throttle:30,1');
+      Route::get('/notifications', 'FrontEnd\TicaWorkspaceController@notifications')->middleware('throttle:60,1');
+      Route::post('/notifications/read', 'FrontEnd\TicaWorkspaceController@readNotifications')->middleware('throttle:60,1');
       Route::post('/bank/resolve', 'FrontEnd\TicaWorkspaceController@resolveBank')->middleware('throttle:10,1');
-      Route::post('/bank/code', 'FrontEnd\TicaWorkspaceController@bankCode')->middleware('throttle:5,10');
       Route::post('/bank', 'FrontEnd\TicaWorkspaceController@saveBank')->middleware('throttle:10,10');
       Route::post('/payout-schedule', 'FrontEnd\TicaWorkspaceController@payoutSchedule')->middleware('throttle:20,1');
       Route::post('/withdraw', 'FrontEnd\TicaWorkspaceController@withdraw')->middleware('throttle:5,1');
@@ -653,3 +656,9 @@ Route::get('/{slug}', 'FrontEnd\TicaUiController@customPage')->name('dynamic_pag
 
 // fallback route
 Route::fallback('FrontEnd\TicaUiController@missing')->middleware('change.lang');
+
+// Database updates without a terminal (cPanel). Off unless DB_UPDATE_TOKEN is set; no session or cache needed.
+Route::get('/system/update', 'SystemUpdateController@show')->name('system.database.show')->middleware('throttle:30,1')
+  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);
+Route::post('/system/update', 'SystemUpdateController@apply')->name('system.database.apply')->middleware('throttle:10,1')
+  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);

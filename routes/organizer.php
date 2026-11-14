@@ -137,6 +137,18 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
   Route::get('event/guest-list/import-template', 'BackEnd\Organizer\EventGuestListController@template')->name('organizer.event.guest-list.import-template');
   Route::post('event/guest-list/export', 'BackEnd\Organizer\EventGuestListController@export')->name('organizer.event.guest-list.export');
 
+  // Registration forms library: build a form once, use it on any events.
+  Route::get('forms', 'BackEnd\Organizer\RegistrationFormController@index')->name('organizer.forms.index');
+  Route::post('forms', 'BackEnd\Organizer\RegistrationFormController@store')->middleware('throttle:30,1')->name('organizer.forms.store');
+  Route::get('forms/{form}', 'BackEnd\Organizer\RegistrationFormController@show')->name('organizer.forms.show');
+  Route::post('forms/{form}/settings', 'BackEnd\Organizer\RegistrationFormController@settings')->name('organizer.forms.settings');
+  Route::post('forms/{form}/events', 'BackEnd\Organizer\RegistrationFormController@useOnEvents')->middleware('throttle:20,1')->name('organizer.forms.events');
+  Route::post('forms/{form}/push', 'BackEnd\Organizer\RegistrationFormController@pushChanges')->middleware('throttle:20,1')->name('organizer.forms.push');
+  Route::post('forms/{form}/duplicate', 'BackEnd\Organizer\RegistrationFormController@duplicate')->middleware('throttle:20,1')->name('organizer.forms.duplicate');
+  Route::post('forms/{form}/delete', 'BackEnd\Organizer\RegistrationFormController@destroy')->name('organizer.forms.delete');
+  Route::post('forms/{form}/keep', 'BackEnd\Organizer\RegistrationFormController@adopt')->name('organizer.forms.adopt');
+  Route::post('forms/{form}/stop', 'BackEnd\Organizer\RegistrationFormController@stop')->name('organizer.forms.stop');
+
   Route::get('event/registrations', 'BackEnd\Organizer\EventRegistrationController@index')->name('organizer.event.registrations.index');
   Route::post('event/registrations/form', 'BackEnd\Organizer\EventRegistrationController@saveForm')->name('organizer.event.registrations.form.save');
   Route::post('event/registrations/form/{form}/questions', 'BackEnd\Organizer\EventRegistrationController@addQuestion')->name('organizer.event.registrations.questions.store');

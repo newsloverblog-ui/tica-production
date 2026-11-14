@@ -48,8 +48,30 @@ class TicaOrganizerController extends Controller
     return $this->createEvent($request, (int) $organizer->id);
   }
 
+  /**
+   * A new event starts from the organiser's saved defaults (Settings > Event
+   * defaults) for anything the request leaves out, so the defaults apply to
+   * every way an event is created, not only the prefilled form.
+   */
+  private function applyOrganizerDefaults(Request $request, int $organizerId): void
+  {
+    $organizer = \App\Models\Organizer::find($organizerId);
+    if (!$organizer) {
+      return;
+    }
+    $platformBuyer = TicaPlatform::all()['default_fee_payer'] === 'buyer';
+    $defaults = [
+      'fee_payer' => $organizer->preferenceEnabled('buyers_pay_fee', $platformBuyer) || !TicaPlatform::on('organizer_pays') ? 'buyer' : 'organizer',
+      'show_remaining' => $organizer->preferenceEnabled('show_remaining', true),
+      'waitlist_enabled' => $organizer->preferenceEnabled('waitlist', true),
+      'allow_transfers' => $organizer->preferenceEnabled('transfers', true),
+    ];
+    $request->merge(array_diff_key($defaults, array_filter($request->all(), fn ($value) => $value !== null)));
+  }
+
   private function createEvent(Request $request, int $organizerId): JsonResponse
   {
+    $this->applyOrganizerDefaults($request, $organizerId);
     $draft = $request->boolean('draft');
     $validated = $this->validateEvent($request, $draft);
 
@@ -455,12 +477,8 @@ class TicaOrganizerController extends Controller
     if (!$request->hasFile('flyer')) {
       return '';
     }
-    $file = $request->file('flyer');
-    $filename = (string) Str::uuid() . '.' . ImageMimeTypeRule::extension($file);
-    $directory = public_path('assets/admin/img/event/thumbnail/');
-    UploadFile::storeAs($directory, $file, $filename);
-
-    return $filename;
+    // Saved as a WebP no larger than 1600px so pages load fast on mobile data.
+    return \App\Support\PublicImage::store($request->file('flyer'), 'assets/admin/img/event/thumbnail', 1600);
   }
 
   private function storeContent(Event $event, array $validated, bool $online): void

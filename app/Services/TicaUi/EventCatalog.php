@@ -398,7 +398,7 @@ class EventCatalog
   {
     $path = 'assets/admin/img/event/thumbnail/' . $thumbnail;
 
-    return !empty($thumbnail) ? asset($path) : null;
+    return !empty($thumbnail) ? \App\Support\PublicImage::flyer($thumbnail) : null;
   }
 
   /** Organiser descriptions are rich text; keep basic formatting only. */

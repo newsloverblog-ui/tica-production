@@ -1,73 +1,20 @@
 @extends('organizer.layout')
 @section('content')
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Conversations') }}</h4>
-    <ul class="breadcrumbs">
-      <li class="nav-home">
-        <a href="{{ route('organizer.dashboard') }}">
-          <i class="flaticon-home"></i>
-        </a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="{{ route('organizer.support_tickets') }}">{{ __('All Tickets') }}</a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Conversations') }}</a>
-      </li>
-    </ul>
-  </div>
+  <div class="t-page-head"><div><h1 class="page-title">{{ __('Request') }} #{{ $ticket->id }}</h1><p>{{ $ticket->subject }}</p></div><a class="t-btn t-btn--secondary" href="{{ route('organizer.support_tickets') }}">{{ __('All requests') }}</a></div>
   <div class="row">
     <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <div class="row">
-            <div class="col-lg-4">
-              <div class="card-title d-inline-block">{{ __('Ticket Details') }} - #{{ $ticket->id }}</div>
-            </div>
-            <div class="col-lg-3 offset-lg-5 mt-2 mt-lg-0 text-left text-lg-right">
-              <a href="{{ route('organizer.support_tickets') }}"
-                class="btn btn-primary btn-md">{{ __('Back to Lists') }}</a>
-            </div>
-          </div>
+      <section class="t-card lg-ticket" aria-label="{{ __('Your request') }}">
+        <div class="t-card__head">
+          <span class="t-help">{{ __('Sent') }} {{ $ticket->created_at->format('j M Y, g:i a') }}</span>
+          @if ((int) $ticket->status === 1)<span class="t-badge t-badge--orange">{{ __('Waiting for TICA') }}</span>
+          @elseif ((int) $ticket->status === 2)<span class="t-badge t-badge--blue">{{ __('Open') }}</span>
+          @else<span class="t-badge">{{ __('Closed') }}</span>@endif
         </div>
-        <div class="card-body">
-          <div class="row text-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <div class="col-lg-12">
-                  <h3 class="text-white">{{ $ticket->subject }}</h3>
-                </div>
-                <div class="col-lg-12 my-3">
-                  @if ($ticket->status == 1)
-                    <span class="badge badge-warning">{{ __('Pending') }}</span>
-                  @elseif($ticket->status == 2)
-                    <span class="badge badge-primary">{{ __('Open') }}</span>
-                  @else
-                    <span class="badge badge-danger">{{ __('Closed') }}</span>
-                  @endif
-                  <span class="badge badge-secondary">{{ $ticket->created_at->format('d-m-Y') }}
-                    {{ date('h.i A', strtotime($ticket->created_at)) }}</span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-lg-8 offset-lg-2">
-                  <p class="support_ticket_description">{{ $ticket->description }}</p>
-                  @if ($ticket->attachment)
-                    <a href="{{ asset('assets/admin/img/support-ticket/attachment/' . $ticket->attachment) }}"
-                      download="{{ __('support_file') }}" class="btn btn-primary"><i class="fas fa-download"></i>
-                      {{ __('Download Attachment') }}</a>
-                  @endif
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p class="lg-ticket__body">{{ $ticket->description }}</p>
+        @if ($ticket->attachment)
+          <a href="{{ asset('assets/admin/img/support-ticket/attachment/' . $ticket->attachment) }}" download="support_file" class="t-btn t-btn--secondary t-btn--sm">{{ __('Download attachment') }}</a>
+        @endif
+      </section>
       </div>
     </div>
 
@@ -90,8 +37,8 @@
                           alt="..." class="avatar-img rounded-circle">
                       </div>
                       <div class="info-user ml-3">
-                        <div class="username">{{ $admin->username }}</div>
-                        <div class="status">{{ $admin->id == 1 ? __('Super Admin') : $admin->role->name }}</div>
+                        <div class="username">{{ optional($admin)->username ?: __('TICA support') }}</div>
+                        <div class="status">{{ $admin && $admin->id != 1 ? optional($admin->role)->name : __('TICA') }}</div>
                         <p>{!! $reply->reply !!}</p>
                         @if ($reply->file)
                           <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"

@@ -65,6 +65,9 @@ class RuntimeConfigurationService
                 default => null,
             };
         }
+
+        // Admin > Integrations: SMS, push, storage, payout extras and SMTP.
+        \App\Support\Integrations\Integrations::hydrate();
     }
 
     private function hydrateFlutterwave(array $information): void

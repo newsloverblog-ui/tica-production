@@ -1,114 +1,106 @@
 @verbatim
 <section class="page" data-page="dashboard">
   <div class="db od">
-    <aside class="db-side od-side" aria-label="Organiser menu">
-      <a class="od-orgc od-orgc-top" href="/dashboard/settings" aria-label="Open organiser profile and settings"><i class="od-av" aria-hidden="true">VE</i><div><p class="db-org" id="db-org">Vibes Events</p><span class="od-ver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Verified organiser</span></div></a>
-      <a class="btn btn-hot od-new" href="/create">Create an event</a>
-      <nav>
-        <span class="od-nav-label">Main</span>
-        <button type="button" class="on" data-panel="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>Overview</button>
-        <button type="button" data-panel="events"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Events</button>
-        <button type="button" data-panel="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/></svg>Orders and attendees</button>
-        <a class="db-lnk" href="/checkin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg>Gate check-in</a>
-        <span class="od-nav-label">Grow</span>
-        <button type="button" data-panel="promote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/></svg>Promote</button>
-        <span class="od-nav-label">Money</span>
-        <button type="button" data-panel="payouts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg>Payouts<em class="od-dot" id="od-paydot" aria-label="Action needed"></em></button>
-        <span class="od-nav-label">Account</span>
-        <button type="button" data-panel="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>Team</button>
-        <button type="button" data-panel="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.3z"/></svg>Settings</button>
-        <details class="od-more" id="od-more"><summary class="db-lnk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><span>More tools</span><svg class="more-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="od-more-l">
-        <a class="db-lnk od-tool" data-area="all" href="/organizer/event-booking/report">Booking report</a><a class="db-lnk od-tool" data-area="events" href="/organizer/event/guest-list">Guest lists and RSVPs</a><a class="db-lnk od-tool" data-area="events" href="/organizer/event/registrations">Registration forms</a><a class="db-lnk od-tool" data-area="money" href="/organizer/transaction">Transactions</a><a class="db-lnk od-tool" data-area="money" href="/organizer/withdraw/exports">Payout exports</a><a class="db-lnk od-tool" data-area="money" href="/organizer/finance">Finance statement</a><a class="db-lnk od-tool" data-area="all" href="/organizer/event-booking/exports">Data exports</a><a class="db-lnk od-tool" data-area="all" href="/organizer/check-in-ledger/exports">Check-in ledger</a><a class="db-lnk od-tool" data-area="owner" href="/organizer/pwa">Gate staff and devices</a><a class="db-lnk od-tool" data-area="owner" href="/organizer/kyc">Identity and bank account</a><a class="db-lnk od-tool" data-area="all" href="/organizer/support-tikcet/tickets">Support</a>
-        </div></details>
-      </nav>
-      <div class="od-side-foot"><button class="db-lnk od-logout" type="button" data-logout="organizer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>Log out</button></div>
-    </aside>
-
     <div class="db-main od-main" id="db-top">
       <p class="db-flag" id="db-flag" hidden></p>
 
-      <!-- OVERVIEW -->
-      <div class="od-p" data-p="overview">
-        <div class="db-head">
+      <!-- OVERVIEW: key numbers, then sales and the next event, then recent orders. -->
+      <div class="od-p ov" data-p="overview">
+        <header class="t-page-head">
           <div><h1 id="db-hi">Welcome back</h1><p>Here's how your events are doing.</p></div>
-          <div class="btns"><label class="od-range"><span class="vh">Period</span><select id="od-range"><option>Last 14 days</option><option>Last 30 days</option><option>All time</option></select></label><a class="btn btn-hot" href="/create">Create an event</a></div>
+          <label class="ov-range"><span class="t-sr">Period</span><select class="t-select" id="od-range"></select></label>
+        </header>
+        <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
+        <div class="ov-stats" id="db-kpis">
+          <span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span>
         </div>
-        <section class="od-setup" id="od-setup" aria-labelledby="od-setup-h">
-          <div><h2 id="od-setup-h">Finish setting up to get paid</h2><p>2 of 3 done. Add the bank account your sales should go to.</p></div>
-          <ol><li class="done">Verify your identity</li><li class="done">Publish your first event</li><li>Add your payout account</li></ol>
-          <button class="btn btn-hot" type="button" data-panel="payouts">Add bank account</button>
+        <div class="ov-grid">
+          <section class="t-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><h2 class="t-card__title" id="ov-chart-h">Tickets sold per day</h2></div><div class="db-chart" id="db-chart"></div></section>
+          <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
+        </div>
+        <section class="t-card ov-orders" aria-labelledby="ov-ord-h">
+          <div class="t-card__head"><h2 class="t-card__title" id="ov-ord-h">Recent orders</h2><button class="t-btn t-btn--ghost t-btn--sm" type="button" data-panel="orders">View all</button></div>
+          <div id="db-ord"></div>
         </section>
-        <nav class="od-quick" aria-label="Quick actions"><a class="od-quick-create" href="/create">Create event</a><a href="/checkin">Scan tickets</a><button type="button" data-panel="promote">Share event link</button><button type="button" data-panel="payouts">Withdraw</button></nav>
-        <div class="db-kpis" id="db-kpis"></div>
-        <p class="od-currency-note">Dashboard totals use your TICA base currency. Event rows keep the currency used for each sale.</p>
-        <div class="od-grid">
-          <section class="db-card"><div class="db-ch"><h2>Ticket sales</h2><span id="db-sum"></span></div><div class="db-chart" id="db-chart"></div></section>
-          <section class="db-card od-next" id="od-next"></section>
-        </div>
-        <section class="od-sum" aria-labelledby="od-sum-h">
-          <div class="od-sum-h"><h2 id="od-sum-h">Your account</h2><span id="od-sum-year"></span></div>
-          <div class="od-tiles" id="od-tiles"></div>
-          <div class="db-two od-yr">
-            <section class="db-card"><div class="db-ch"><h2 id="od-inc-h">Monthly income</h2><span id="od-inc-sum"></span></div><div class="od-line" id="od-inc"></div></section>
-            <section class="db-card"><div class="db-ch"><h2 id="od-bk-h">Monthly event bookings</h2><span id="od-bk-sum"></span></div><div class="od-line" id="od-bk"></div></section>
-          </div>
-        </section>
-        <section class="db-card" id="db-events"><div class="db-ch"><h2>Your events</h2><button class="od-more" type="button" data-panel="events">Manage events</button></div><div class="db-table" id="db-ev"></div></section>
-        <div class="db-two">
-          <section class="db-card" id="db-orders"><div class="db-ch"><h2>Recent orders</h2><button class="od-more" type="button" data-panel="orders">See all</button></div><ul class="db-orders" id="db-ord"></ul></section>
-          <section class="db-card" id="db-pay"><div class="db-ch"><h2>Where sales come from</h2><button class="od-more" type="button" data-panel="promote">Tracking links</button></div><ul class="od-src" id="od-src"></ul></section>
-        </div>
       </div>
 
       <!-- EVENTS -->
       <div class="od-p" data-p="events" hidden>
-        <div class="db-head"><div><h1>Events</h1><p>Edit details, control sales and manage tickets for each event.</p></div><a class="btn btn-line od-events-create" href="/create">Create an event</a></div>
-        <div class="od-tabs" role="group" aria-label="Show events"><button type="button" aria-pressed="true" data-ef="up">Upcoming</button><button type="button" aria-pressed="false" data-ef="draft">Drafts</button><button type="button" aria-pressed="false" data-ef="past">Past</button></div>
-        <div class="od-evlist" id="od-evlist"></div>
+        <header class="t-page-head"><div><h1>Events</h1><p>Edit details, control sales and manage tickets for each event.</p></div><a class="t-btn t-btn--primary od-events-create" href="/create">Create an event</a></header>
+        <div class="t-tabs" role="tablist" aria-label="Show events"><button class="t-tab" type="button" role="tab" aria-selected="true" data-ef="up">Upcoming<span class="t-count" data-efc="up">0</span></button><button class="t-tab" type="button" role="tab" aria-selected="false" data-ef="draft">Drafts<span class="t-count" data-efc="draft">0</span></button><button class="t-tab" type="button" role="tab" aria-selected="false" data-ef="past">Past<span class="t-count" data-efc="past">0</span></button></div>
+        <div class="t-toolbar"><label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search events</span><input class="t-input" id="ev-q" type="search" placeholder="Search by name or city"></label></div>
+        <div id="od-evlist"></div>
       </div>
 
       <!-- ORDERS -->
       <div class="od-p" data-p="orders" hidden>
-        <div class="db-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
-          <div class="btns"><button class="btn btn-line" type="button" id="od-export">Export CSV</button><button class="btn btn-line" type="button" data-dlg="od-comp">Add guest</button><button class="btn btn-hot" type="button" data-dlg="od-msg">Message attendees</button></div></div>
-        <div class="od-tools"><label class="od-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="vh">Search attendees</span><input id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
-          <select id="od-fe" aria-label="Event"><option value="">All events</option></select>
-          <select id="od-fs" aria-label="Status"><option value="">Any status</option><option>Paid</option><option>Checked in</option><option>Refunded</option><option>Guest</option></select></div>
-        <div class="od-att" id="od-att" role="table" aria-label="Attendees"></div>
-        <div class="od-att-foot"><p class="hint" id="od-att-msg" role="status"></p><button class="btn btn-line" id="od-att-more" type="button" hidden>Load more</button></div>
+        <header class="t-page-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
+          <div class="or-actions"><button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button></div></header>
+        <div class="t-toolbar">
+          <label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search attendees</span><input class="t-input" id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
+          <select class="t-select" id="od-fe" aria-label="Event"><option value="">All events</option></select>
+          <select class="t-select" id="od-fs" aria-label="Status"><option value="">Any status</option></select>
+          <label class="or-date"><span class="t-sr">Ordered from</span><input class="t-input" id="od-from" type="date" aria-label="Ordered from"></label>
+          <label class="or-date"><span class="t-sr">Ordered to</span><input class="t-input" id="od-to" type="date" aria-label="Ordered to"></label>
+          <button class="t-btn t-btn--ghost t-btn--sm" type="button" id="od-clear" hidden>Clear filters</button>
+        </div>
+        <div id="od-att" aria-live="polite"></div>
+        <div class="t-pager"><span id="od-att-msg" role="status"></span><button class="t-btn t-btn--secondary t-btn--sm" id="od-att-more" type="button" hidden>Load more</button></div>
       </div>
 
       <!-- PAYOUTS -->
       <div class="od-p" data-p="payouts" hidden>
-        <div class="db-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><button class="btn btn-hot" type="button" id="od-wd-btn">Withdraw</button></div>
-        <div class="od-bal">
-          <div class="od-b main"><span>Available to withdraw</span><b id="od-avail">₦0</b><small>From events that have ended</small></div>
-          <div class="od-b"><span>Pending</span><b id="od-pend">₦0</b><small>Released 3 working days after each event ends</small></div>
-          <div class="od-b"><span>Paid out so far</span><b id="od-paid">₦418,600</b><small>Since you joined</small></div>
+        <header class="t-page-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><button class="t-btn t-btn--primary" type="button" id="od-wd-btn">Withdraw</button></header>
+        <div class="pay-bal" id="od-bal">
+          <div class="t-card t-stat"><span class="t-stat__label">Available</span><b class="t-stat__value" id="od-avail">₦0</b><span class="t-stat__note">Ready to withdraw now</span></div>
+          <div class="t-card t-stat"><span class="t-stat__label">Pending</span><b class="t-stat__value" id="od-pend">₦0</b><span class="t-stat__note">Requested and on its way to your bank</span></div>
+          <div class="t-card t-stat"><span class="t-stat__label">Paid out</span><b class="t-stat__value" id="od-paid">₦0</b><span class="t-stat__note">Since you joined</span></div>
         </div>
-        <div class="od-pay2">
-          <section class="db-card" id="od-bankcard" aria-labelledby="od-bank-h">
-            <div class="db-ch"><h2 id="od-bank-h">Payout account</h2></div>
+        <div class="pay-grid">
+          <section class="t-card" id="od-bankcard" aria-labelledby="od-bank-h">
+            <div class="t-card__head"><h2 class="t-card__title" id="od-bank-h">Payout account</h2></div>
             <div id="od-bank-view"></div>
           </section>
-          <section class="db-card" aria-labelledby="od-sched-h">
-            <div class="db-ch"><h2 id="od-sched-h">How you get paid</h2></div>
+          <section class="t-card" aria-labelledby="od-sched-h">
+            <div class="t-card__head"><h2 class="t-card__title" id="od-sched-h">How you get paid</h2></div>
             <div class="od-radio" role="radiogroup" aria-labelledby="od-sched-h">
-              <label><input type="radio" name="od-sched" value="auto" checked><span><b>Automatically</b><small>We send each event's sales to your bank as soon as they're released. No need to ask.</small></span></label>
-              <label><input type="radio" name="od-sched" value="manual"><span><b>When I ask</b><small>Money waits in your balance until you press Withdraw. It arrives within minutes.</small></span></label>
+              <label><input type="radio" name="od-sched" value="auto" checked><span><b>Automatically</b><small>We send each event's sales to your bank as soon as they're released.</small></span></label>
+              <label><input type="radio" name="od-sched" value="manual"><span><b>When I ask</b><small>Money waits in your balance until you press Withdraw.</small></span></label>
             </div>
-            <p class="od-fine">Transfers are free. We pause payouts for 24 hours after a bank account change, to protect you from fraud.</p>
+            <p class="t-help">Transfers are free. Payouts pause for 24 hours after a bank account change, to protect you from fraud.</p>
           </section>
         </div>
-        <section class="db-card"><div class="db-ch"><h2>Payout history</h2></div><div class="od-hist" id="od-hist"></div></section>
+        <section class="t-card pay-hist" aria-labelledby="od-hist-h"><div class="t-card__head"><h2 class="t-card__title" id="od-hist-h">Payout history</h2></div><div id="od-hist"></div></section>
       </div>
 
       <!-- PROMOTE -->
       <div class="od-p" data-p="promote" hidden>
-        <div class="db-head"><div><h1>Promote</h1><p>Grow your audience with TICA placements, discount codes and trackable sharing links.</p></div></div>
+        <header class="t-page-head"><div><h1>Promote</h1><p>Share your event, make discount codes and see which channels sell.</p></div></header>
+        <section class="t-card pr-share" aria-labelledby="pr-share-h">
+          <div class="t-card__head"><div><h2 class="t-card__title" id="pr-share-h">Share your event</h2><p class="t-help">Post this link anywhere. Use a tracking link below to see which channel sells.</p></div></div>
+          <div class="pr-share__row"><label class="t-field pr-share__ev"><span class="t-label">Event</span><select class="t-select" id="pr-ev"></select></label>
+            <label class="t-field pr-share__url"><span class="t-label">Event link</span><span class="pr-copy"><input class="t-input" id="pr-url" type="text" readonly><button class="t-btn t-btn--primary" type="button" id="pr-copy">Copy link</button></span></label></div>
+          <div class="pr-social" id="pr-social"></div>
+        </section>
+        <div class="od-pr2">
+          <section class="t-card"><div class="t-card__head"><h2 class="t-card__title">Discount codes</h2></div>
+            <form class="od-form" id="od-code-f" novalidate>
+              <div class="od-row3"><div class="inp"><label for="od-cn">Code</label><input id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters"></div><div class="inp"><label for="od-cv">Discount</label><select id="od-cv"><option value="10">10% off</option><option value="20">20% off</option><option value="50">50% off</option><option value="1000">₦1,000 off</option></select></div><div class="inp"><label for="od-cl">Uses</label><input id="od-cl" type="number" min="1" value="50"></div></div>
+              <div class="od-row3"><div class="inp"><label for="od-code-event">Event</label><select id="od-code-event"><option value="">All events</option></select></div><div class="inp"><label for="od-code-min">Minimum purchase</label><input id="od-code-min" type="number" min="0" step="0.01" value="0"></div><div class="inp"><label for="od-code-end">Expires</label><input id="od-code-end" type="date"></div></div>
+              <button class="t-btn t-btn--secondary" type="submit">Create code</button><p class="hint" id="od-code-m" role="status"></p>
+            </form>
+            <ul class="od-codes" id="od-codes"></ul>
+          </section>
+          <section class="t-card"><div class="t-card__head"><h2 class="t-card__title">Tracking links</h2></div>
+            <p class="t-help">Give each channel or promoter its own link, and see which one sells.</p>
+            <ul class="od-links" id="od-links"></ul>
+            <form class="od-form" id="od-link-f" novalidate><div class="od-row3"><div class="inp"><label for="od-ln">Link name</label><input id="od-ln" type="text" placeholder="e.g. Chioma's Instagram"></div><div class="inp"><label for="od-link-channel">Channel</label><input id="od-link-channel" type="text" placeholder="Instagram"></div><div class="inp"><label for="od-link-event">Event</label><select id="od-link-event"><option value="">All events</option></select></div></div><div class="inp"><label for="od-link-influencer">Influencer <small>(optional)</small></label><input id="od-link-influencer" type="text" placeholder="Chioma"></div><button class="t-btn t-btn--secondary" type="submit">Create tracking link</button></form>
+          </section>
+        </div>
+        <h2 class="t-card__title pr-paid-h">Paid promotion on TICA</h2>
         <div class="od-promo-kpis" id="od-promo-kpis" aria-label="Promotion performance"></div>
-        <section class="db-card od-packages" aria-labelledby="od-packages-h"><div class="db-ch"><div><h2 id="od-packages-h">Promotion packages</h2><p class="od-fine">Pricing, duration and availability are set by TICA. Choose a package to start.</p></div></div><div class="od-package-grid" id="od-package-grid"></div></section>
-        <section class="db-card od-promo-studio" aria-labelledby="od-campaign-h"><div class="db-ch"><div><h2 id="od-campaign-h">Create a campaign</h2><p class="od-fine">Select an eligible event and start date. TICA verifies payment before any placement can go live.</p></div><div class="od-promo-balance"><span>Available TICA balance</span><b id="od-promo-balance">—</b></div></div>
+        <section class="t-card od-packages" aria-labelledby="od-packages-h"><div class="t-card__head"><div><h2 class="t-card__title" id="od-packages-h">Promotion packages</h2><p class="t-help">Pricing, duration and availability are set by TICA. Choose a package to start.</p></div></div><div class="od-package-grid" id="od-package-grid"></div></section>
+        <section class="t-card od-promo-studio" aria-labelledby="od-campaign-h"><div class="t-card__head"><div><h2 class="t-card__title" id="od-campaign-h">Create a campaign</h2><p class="t-help">Choose a TICA placement and start date. TICA verifies payment before any placement can go live.</p></div><div class="od-promo-balance"><span>Available TICA balance</span><b id="od-promo-balance">—</b></div></div>
           <div class="od-empty-state" id="od-promo-empty" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/></svg></i><h3>Paid promotion is not available yet</h3><p>TICA will show placement options here when campaign plans are available. Your discount codes and tracking links still work.</p></div>
           <form class="od-form" id="od-promo-f" novalidate>
             <div class="od-row3"><div class="inp"><label for="od-promo-plan">Placement</label><select id="od-promo-plan" required></select></div><div class="inp"><label for="od-promo-event">Event</label><select id="od-promo-event" required></select></div><div class="inp"><label for="od-promo-start">Start date <small>(day / month / year)</small></label><input id="od-promo-start" type="date" required></div></div>
@@ -116,29 +108,16 @@
             <div class="od-row2"><div class="inp"><label for="od-promo-headline">Headline <small>(optional)</small></label><input id="od-promo-headline" maxlength="160"></div><div class="inp"><label for="od-promo-url">Destination URL <small>(optional)</small></label><input id="od-promo-url" type="url" placeholder="https://..."></div></div>
             <div class="inp"><label for="od-promo-body">Promotion copy <small>(optional)</small></label><textarea id="od-promo-body" maxlength="1000" rows="3"></textarea></div>
             <div class="inp od-upload"><label for="od-promo-creative">Campaign image <small>(optional)</small><span>Drop an event image here or choose a file</span><em>JPG, PNG, WebP or GIF, up to 3 MB</em></label><input id="od-promo-creative" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
-            <button class="btn btn-hot" type="submit">Create promotion</button><p class="hint" id="od-promo-m" role="status"></p>
+            <button class="t-btn t-btn--primary" type="submit">Create promotion</button><p class="hint" id="od-promo-m" role="status"></p>
           </form>
           <div class="db-ch od-campaign-heading"><div><h2>My campaigns</h2><p class="od-fine">Payment, review, schedule and measured placement performance.</p></div></div><div class="od-campaigns" id="od-campaigns"></div>
         </section>
-        <div class="od-pr2">
-          <section class="db-card"><div class="db-ch"><h2>Discount codes</h2></div>
-            <form class="od-form" id="od-code-f" novalidate>
-              <div class="od-row3"><div class="inp"><label for="od-cn">Code</label><input id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters"></div><div class="inp"><label for="od-cv">Discount</label><select id="od-cv"><option value="10">10% off</option><option value="20">20% off</option><option value="50">50% off</option><option value="1000">₦1,000 off</option></select></div><div class="inp"><label for="od-cl">Uses</label><input id="od-cl" type="number" min="1" value="50"></div></div>
-              <div class="od-row3"><div class="inp"><label for="od-code-event">Event</label><select id="od-code-event"><option value="">All events</option></select></div><div class="inp"><label for="od-code-min">Minimum purchase</label><input id="od-code-min" type="number" min="0" step="0.01" value="0"></div><div class="inp"><label for="od-code-end">Expires</label><input id="od-code-end" type="date"></div></div>
-              <button class="btn btn-line" type="submit">Create code</button><p class="hint" id="od-code-m" role="status"></p>
-            </form>
-            <ul class="od-codes" id="od-codes"></ul>
-          </section>
-          <section class="db-card"><div class="db-ch"><h2>Tracking links</h2></div>
-            <p class="od-fine">Give each channel or promoter its own link, and see which one sells.</p>
-            <ul class="od-links" id="od-links"></ul>
-            <form class="od-form" id="od-link-f" novalidate><div class="od-row3"><div class="inp"><label for="od-ln">Link name</label><input id="od-ln" type="text" placeholder="e.g. Chioma's Instagram"></div><div class="inp"><label for="od-link-channel">Channel</label><input id="od-link-channel" type="text" placeholder="Instagram"></div><div class="inp"><label for="od-link-event">Event</label><select id="od-link-event"><option value="">All events</option></select></div></div><div class="inp"><label for="od-link-influencer">Influencer <small>(optional)</small></label><input id="od-link-influencer" type="text" placeholder="Chioma"></div><button class="btn btn-line" type="submit">Create tracking link</button></form>
-          </section>
-        </div>
-        <section class="db-card" aria-labelledby="od-pixel-h"><div class="db-ch"><div><h2 id="od-pixel-h">Conversion tracking</h2><p class="od-fine">Submit only the provider's ID. TICA loads an approved integration after consent; custom JavaScript is never accepted.</p></div></div>
-          <form class="od-form od-row3" id="od-pixel-f" novalidate><div class="inp"><label for="od-pixel-provider">Provider</label><select id="od-pixel-provider"><option value="meta">Meta Pixel</option><option value="tiktok">TikTok Pixel</option><option value="google">Google tag</option></select></div><div class="inp"><label for="od-pixel-id">Pixel / tag ID</label><input id="od-pixel-id" maxlength="100" required></div><div class="inp"><label for="od-pixel-label">Label</label><input id="od-pixel-label" maxlength="100" placeholder="Main website" required></div><button class="btn btn-line" type="submit">Submit for review</button><p class="hint" id="od-pixel-m" role="status"></p></form>
+        <details class="pr-more"><summary>Conversion tracking <span class="t-help">Meta, TikTok and Google pixels</span></summary>
+        <section class="t-card" aria-labelledby="od-pixel-h"><div class="t-card__head"><div><h2 class="t-card__title" id="od-pixel-h">Conversion tracking</h2><p class="t-help">Submit only the provider's ID. TICA loads an approved integration after consent; custom JavaScript is never accepted.</p></div></div>
+          <form class="od-form od-row3" id="od-pixel-f" novalidate><div class="inp"><label for="od-pixel-provider">Provider</label><select id="od-pixel-provider"><option value="meta">Meta Pixel</option><option value="tiktok">TikTok Pixel</option><option value="google">Google tag</option></select></div><div class="inp"><label for="od-pixel-id">Pixel / tag ID</label><input id="od-pixel-id" maxlength="100" required></div><div class="inp"><label for="od-pixel-label">Label</label><input id="od-pixel-label" maxlength="100" placeholder="Main website" required></div><button class="t-btn t-btn--secondary" type="submit">Submit for review</button><p class="hint" id="od-pixel-m" role="status"></p></form>
           <ul class="od-links" id="od-pixels"></ul>
         </section>
+        </details>
       </div>
 
       <!-- TEAM -->
@@ -193,16 +172,17 @@
           <div class="od-settings-stack">
           <section class="db-card"><div class="db-ch"><h2>Defaults for new events</h2></div>
             <ul class="od-sw">
-              <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee"></li>
-              <li><span><b>Show tickets left on event pages</b></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left"></li>
-              <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out"></li>
-              <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets"></li>
+              <li><span><b>Buyers pay the booking fee</b><small>Turn off to include the <span data-fee-pct>6%</span> in your ticket prices instead.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Buyers pay the booking fee" data-pref="buyers_pay_fee"></li>
+              <li><span><b>Show tickets left on event pages</b></span><input class="ck-sw" type="checkbox" checked aria-label="Show tickets left" data-pref="show_remaining"></li>
+              <li><span><b>Waitlist when sold out</b><small>Collect emails and tell people if tickets come back.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Waitlist when sold out" data-pref="waitlist"></li>
+              <li><span><b>Let buyers transfer tickets</b><small>Buyers can pass a ticket to someone else before the event.</small></span><input class="ck-sw" type="checkbox" checked aria-label="Let buyers transfer tickets" data-pref="transfers"></li>
             </ul>
           </section>
           <section class="db-card"><div class="db-ch"><h2>Notifications</h2></div>
             <ul class="od-sw">
-              <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale"></li>
-              <li><span><b>Daily and weekly sales summaries</b></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries"></li>
+              <li><span><b>Email me for every sale</b></span><input class="ck-sw" type="checkbox" aria-label="Email me for every sale" data-pref="notify_sale"></li>
+              <li><span><b>Daily and weekly sales summaries</b></span><input class="ck-sw" type="checkbox" checked aria-label="Daily and weekly sales summaries" data-pref="daily_summary"></li>
+              <li><span><b>Text me about payouts</b><small>An SMS to your phone number when a payout is sent or doesn't go through.</small></span><input class="ck-sw" type="checkbox" aria-label="Text me about payouts" data-pref="payout_sms"></li>
               <li><span><b>Payout status emails</b></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
@@ -210,7 +190,7 @@
             <form class="od-form" id="od-pass" novalidate>
               <div class="inp"><label for="od-pass-current">Current password</label><input id="od-pass-current" type="password" autocomplete="current-password" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pass-new">New password</label><input id="od-pass-new" type="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters with upper and lowercase letters and a number.</small></div><div class="inp"><label for="od-pass-confirm">Confirm new password</label><input id="od-pass-confirm" type="password" autocomplete="new-password" minlength="8" required></div></div>
-              <button class="btn btn-line" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
+              <button class="t-btn t-btn--secondary" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
             </form>
             <div class="db-ch od-sub"><h2>Two-step verification</h2></div>
             <a class="btn btn-line" id="od-security-link" href="/account-security/organizer">Manage two-step verification</a>
@@ -222,6 +202,10 @@
   </div>
 </section>
 
+<dialog class="od-dlg" id="od-inv-dlg" aria-labelledby="od-inv-h">
+  <div class="sh-head"><div><h2 id="od-inv-h">Invite a team member</h2><p>They get an email with a link to join. You can change their role or remove them any time.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="od-form" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"></select><small id="od-ir-help"></small></div><button class="t-btn t-btn--primary t-btn--block" type="submit">Send invite</button><p class="hint" id="od-inv-m" role="alert"></p></form>
+</dialog>
 <dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
 <dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>
 <dialog class="od-dlg" id="od-msg" aria-labelledby="od-msg-h">

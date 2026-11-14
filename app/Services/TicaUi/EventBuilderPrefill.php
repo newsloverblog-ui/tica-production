@@ -111,7 +111,7 @@ class EventBuilderPrefill
       'attendee_question' => (string) ($event->attendee_question ?? ''),
       'meta_description' => (string) (optional($content)->meta_description ?? ''),
       'meta_keywords' => (string) (optional($content)->meta_keywords ?? ''),
-      'flyer' => $event->thumbnail ? asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) : null,
+      'flyer' => $event->thumbnail ? \App\Support\PublicImage::flyer($event->thumbnail) : null,
       'organizer_id' => $event->organizer_id ? (int) $event->organizer_id : null,
       'is_featured' => $event->is_featured === 'yes',
       'locks' => [

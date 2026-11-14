@@ -3,7 +3,8 @@
 @section('content')
   @php
     $kycStatus = $organizer->kyc_status ?: 'unverified';
-    $canSubmit = !($submission && in_array($submission->status, ['pending', 'verified'], true));
+    // A verified organiser never sees the identity form again, even if they were verified by an admin without a submission.
+    $canSubmit = $kycStatus !== 'verified' && !($submission && in_array($submission->status, ['pending', 'verified'], true));
     $statusText = [
       'verified' => [__('Verified'), 'ok', __('You can be paid. Payouts go to the bank account below.')],
       'pending' => [__('In review'), 'wait', __('We are checking your details. This usually takes 1 working day.')],
@@ -87,6 +88,13 @@
               <button class="btn btn-primary" type="submit" id="kv-submit">{{ __('Send for review') }}</button>
             </div>
           </form>
+        @elseif (!$submission)
+          <section class="kv-card">
+            <div class="kv-ch"><div><h2>{{ __('Your details') }}</h2><p>{{ __('TICA verified your account. To change your legal name, contact TICA support.') }}</p></div></div>
+            <dl class="kv-dl">
+              <div><dt>{{ __('Verified name') }}</dt><dd>{{ $organizer->verified_legal_name ?: optional($organizer->organizer_info)->name ?: $organizer->username }}</dd></div>
+            </dl>
+          </section>
         @else
           <section class="kv-card">
             <div class="kv-ch"><div><h2>{{ __('Your details') }}</h2><p>{{ $submission->status === 'verified' ? __('To change your legal name, contact TICA support.') : __('You can’t change these while we review them.') }}</p></div></div>
@@ -94,7 +102,7 @@
               <div><dt>{{ __('Legal name') }}</dt><dd>{{ $submission->legal_name }}</dd></div>
               <div><dt>{{ __('Selling as') }}</dt><dd>{{ $submission->entity_type === 'business' ? __('A registered business') : __('An individual') }}</dd></div>
               @if ($submission->business_name)<div><dt>{{ __('Business name') }}</dt><dd>{{ $submission->business_name }}</dd></div>@endif
-              <div><dt>{{ __('Sent') }}</dt><dd>{{ $submission->submitted_at->format('j M Y, g:i A') }}</dd></div>
+              <div><dt>{{ __('Sent') }}</dt><dd>{{ optional($submission->submitted_at)->format('j M Y, g:i A') ?: '—' }}</dd></div>
             </dl>
             @if ($submission->documents->isNotEmpty())
               <div class="kv-docs">

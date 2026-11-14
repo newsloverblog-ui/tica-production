@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class EventRegistrationForm extends Model
 {
     protected $fillable = [
-        'public_id', 'event_id', 'organizer_id', 'name', 'status', 'approval_mode',
+        'public_id', 'event_id', 'source_form_id', 'organizer_id', 'name', 'status', 'approval_mode',
         'version', 'intro', 'privacy_notice', 'consent_version', 'published_at', 'archived_at',
     ];
 
@@ -25,6 +25,24 @@ class EventRegistrationForm extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** A library form: it belongs to no event and is copied onto events. */
+    public function isLibrary(): bool
+    {
+        return $this->event_id === null;
+    }
+
+    /** The library form this event form was copied from. */
+    public function source()
+    {
+        return $this->belongsTo(self::class, 'source_form_id');
+    }
+
+    /** Event forms copied from this library form. */
+    public function copies()
+    {
+        return $this->hasMany(self::class, 'source_form_id');
     }
 
     public function questions()

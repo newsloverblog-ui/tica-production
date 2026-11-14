@@ -340,6 +340,16 @@ class AccountMfaService
             && hash_equals((string) $challenge->code_hash, $this->hmac($challenge->public_id . '|' . $code));
     }
 
+    /** Re-check an authenticator (or recovery) code for a signed-in account, e.g. before a money change. */
+    public function verifyCode(Authenticatable $actor, string $code): bool
+    {
+        if ($this->method($actor) !== 'authenticator') {
+            return false;
+        }
+
+        return $this->verifyActorFactor($actor, trim($code), true);
+    }
+
     private function verifyActorFactor(Authenticatable $actor, string $code, bool $consumeRecovery): bool
     {
         $secret = trim((string) $actor->getAttribute('two_factor_secret'));

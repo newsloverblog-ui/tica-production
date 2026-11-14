@@ -203,7 +203,7 @@
               'remaining' => $limitedOnly && $remaining > 0 ? $remaining : null,
               'description' => \Illuminate\Support\Str::limit($description, 92),
               'thumbnail' => !empty($event->thumbnail)
-                  ? asset($thumbnailPath)
+                  ? \App\Support\PublicImage::flyer($event->thumbnail)
                   : asset('assets/front/images/home/city-pulse-hero.png'),
           ];
       };
@@ -322,7 +322,7 @@
                 @php
                   $eventThumbnailPath = 'assets/admin/img/event/thumbnail/' . $event->thumbnail;
                   $eventThumbnail = !empty($event->thumbnail)
-                      ? asset($eventThumbnailPath)
+                      ? \App\Support\PublicImage::flyer($event->thumbnail)
                       : asset('assets/front/images/home/city-pulse-hero.png');
                 @endphp
                 <div class="col-lg-4 col-md-6 item {{ $item->id }} motivational">
@@ -693,7 +693,7 @@
           ['name' => 'Owerri', 'image' => '1792574250.jpg']
         ] as $city)
           <a class="pulse-city-card" href="{{ route('events', ['location' => $city['name']]) }}" data-reveal style="--reveal-delay: {{ $loop->index * 75 }}ms">
-            <img src="{{ asset('assets/admin/img/event/thumbnail/' . $city['image']) }}" alt="{{ $city['name'] }} events">
+            <img src="{{ \App\Support\PublicImage::flyer($city['image']) }}" alt="{{ $city['name'] }} events">
             <div><h3>{{ $city['name'] }}</h3><span>{{ __('Explore events') }} <i class="fas fa-arrow-right"></i></span></div>
           </a>
         @endforeach

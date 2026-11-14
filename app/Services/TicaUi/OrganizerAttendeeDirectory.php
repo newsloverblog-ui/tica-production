@@ -78,6 +78,9 @@ class OrganizerAttendeeDirectory
             ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
             ->where('bookings.organizer_id', $organizerId)
             ->when($eventId > 0, fn (Builder $builder) => $builder->where('booking_tickets.event_id', $eventId))
+            // Order date range (inclusive, by the day the order was placed).
+            ->when(!empty($filters['from']), fn (Builder $builder) => $builder->where('bookings.created_at', '>=', $filters['from'] . ' 00:00:00'))
+            ->when(!empty($filters['to']), fn (Builder $builder) => $builder->where('bookings.created_at', '<=', $filters['to'] . ' 23:59:59'))
             ->when($q !== '', function (Builder $builder) use ($q, $ticketReference): void {
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
                 $id = preg_match('/^#?\d+$/', $q) === 1

@@ -18,7 +18,7 @@
   };
   $eventImage = function ($event) {
     $path='assets/admin/img/event/thumbnail/'.$event->thumbnail;
-    return !empty($event->thumbnail)?asset($path):asset('assets/front/images/home/organizer-live-event-unsplash.jpg');
+    return !empty($event->thumbnail)?\App\Support\PublicImage::flyer($event->thumbnail):asset('assets/front/images/home/organizer-live-event-unsplash.jpg');
   };
   $homeEvents=$frontEvents->take(8)->map(function($event) use($eventPricing,$eventImage){
     try{$start=\Carbon\Carbon::parse($event->start_date_time ?: trim($event->start_date.' '.$event->start_time));}catch(\Throwable $e){$start=now();}

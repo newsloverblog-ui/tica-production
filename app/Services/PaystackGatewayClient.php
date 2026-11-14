@@ -14,6 +14,7 @@ class PaystackGatewayClient
 
     public function __construct(?string $secret = null)
     {
+        $secret = $secret ?: (string) config('services.paystack.secret');
         if ($secret) {
             $this->secret = $secret;
             return;

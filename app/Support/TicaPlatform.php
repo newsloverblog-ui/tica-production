@@ -60,8 +60,36 @@ final class TicaPlatform
       'currencies' => array_values(array_unique(array_merge([TicaCurrency::base()], array_intersect(array_keys(TicaCurrency::CURRENCIES), $currencies)))),
       'default_fee_payer' => $defaultFeePayer === 'organizer' ? 'organizer' : 'buyer',
     ];
+    // Keep other keys stored alongside (such as the payout provider).
+    $value = array_merge(self::stored(), $value);
     Basic::query()->update(['tica_platform' => json_encode($value)]);
     self::$cache = null;
+  }
+
+  /** Which provider sends organiser payouts: "paystack" (default) or "monnify". */
+  public static function payoutProvider(): string
+  {
+    $provider = (string) (self::stored()['payout_provider'] ?? 'paystack');
+
+    return in_array($provider, ['paystack', 'monnify'], true) ? $provider : 'paystack';
+  }
+
+  public static function savePayoutProvider(string $provider): void
+  {
+    if (!in_array($provider, ['paystack', 'monnify'], true)) {
+      throw new \InvalidArgumentException('Unknown payout provider.');
+    }
+    Basic::query()->update(['tica_platform' => json_encode(array_merge(self::stored(), ['payout_provider' => $provider]))]);
+    self::$cache = null;
+  }
+
+  private static function stored(): array
+  {
+    if (!Schema::hasColumn('basic_settings', 'tica_platform')) {
+      return [];
+    }
+
+    return json_decode((string) Basic::query()->value('tica_platform'), true) ?: [];
   }
 
   public static function on(string $feature): bool

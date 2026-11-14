@@ -14,6 +14,22 @@ Route::get('admin/get-state-city/{id}', 'BackEnd\Event\EventController@city_stat
 Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang', 'audit.configuration', 'tica.retired'])->group(function () {
   // admin redirect to dashboard route
   Route::get('/dashboard', 'BackEnd\AdminController@redirectToDashboard')->name('admin.dashboard');
+
+  // Database updates (migrations) applied from the admin: cPanel has no deploy step.
+  Route::prefix('/database-updates')->middleware('permission:Basic Settings')->group(function () {
+    Route::get('/', 'BackEnd\DatabaseHealthController@index')->name('admin.database.index');
+    Route::post('/apply', 'BackEnd\DatabaseHealthController@apply')->middleware('throttle:5,1')->name('admin.database.apply');
+  });
+
+  // Integrations: payment, payout, email, SMS, push, sign-in and storage keys.
+  // The permission middleware is the route boundary; the controller also requires a super admin.
+  Route::prefix('/integrations')->middleware('permission:Basic Settings')->group(function () {
+    Route::get('/', 'BackEnd\IntegrationController@index')->name('admin.integrations.index');
+    Route::get('/{key}', 'BackEnd\IntegrationController@show')->where('key', '[a-z_]+')->name('admin.integrations.show');
+    Route::post('/{key}', 'BackEnd\IntegrationController@update')->where('key', '[a-z_]+')->middleware('throttle:20,1')->name('admin.integrations.update');
+    Route::post('/{key}/test', 'BackEnd\IntegrationController@test')->where('key', '[a-z_]+')->middleware('throttle:10,1')->name('admin.integrations.test');
+    Route::post('/{key}/generate', 'BackEnd\IntegrationController@generate')->where('key', '[a-z_]+')->middleware('throttle:5,1')->name('admin.integrations.generate');
+  });
   Route::middleware('permission:Basic Settings')->group(function () {
     Route::get('/platform-settings', 'BackEnd\TicaPlatformController@show')->name('admin.tica.platform');
     Route::post('/platform-settings', 'BackEnd\TicaPlatformController@update')->name('admin.tica.platform.update');
@@ -250,6 +266,12 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('withdraw/payment-method/input-option/{id}', 'BackEnd\WithdrawPaymentMethodInputController@get_options')->name('admin.withdraw_payment_method.options');
     Route::post('withdraw/payment-method/input-delete', 'BackEnd\WithdrawPaymentMethodInputController@delete')->name('admin.withdraw_payment_method.options_delete');
 
+    Route::get('payout-accounts', 'BackEnd\PayoutAccountController@index')->name('admin.payout_accounts.index');
+    Route::post('payout-accounts/{account}/review', 'BackEnd\PayoutAccountController@review')->whereUuid('account')->name('admin.payout_accounts.review');
+    Route::post('payout-accounts/{account}/reverify', 'BackEnd\PayoutAccountController@reverify')->whereUuid('account')->middleware('throttle:20,1')->name('admin.payout_accounts.reverify');
+    Route::post('payout-accounts/{account}/lock', 'BackEnd\PayoutAccountController@lock')->whereUuid('account')->name('admin.payout_accounts.lock');
+    Route::post('payout-provider', 'BackEnd\PayoutAccountController@provider')->name('admin.payout_provider.update');
+    Route::post('payout-provider/test', 'BackEnd\PayoutAccountController@test')->middleware('throttle:10,1')->name('admin.payout_provider.test');
     Route::get('withdraw/withdraw-request', 'BackEnd\WithdrawController@index')->name('admin.withdraw.withdraw_request');
     Route::post('withdraw/withdraw-request/export', 'BackEnd\WithdrawController@export')
       ->middleware('permission:Transaction')->name('admin.withdraw_exports.store');

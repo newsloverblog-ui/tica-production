@@ -876,7 +876,7 @@ function route(){
     else renderTicket(e);
   }else if(window.TICA_DATA&&TICA_DATA.content&&cur===TICA_DATA.path&&document.querySelector('.page[data-page=content]')){p='content'}else if(!TITLES[p])p='missing';
   [].forEach.call(document.querySelectorAll('.page'),function(s){s.hidden=s.dataset.page!==p});
-  document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
+  document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('orgshell',!!document.getElementById('os-side')&&['dashboard','create','checkin'].indexOf(p)>-1);document.body.classList.toggle('t-app',document.body.classList.contains('orgshell'));document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
   var workspaceTitle=document.getElementById('workspace-title'),workspaceRole=document.getElementById('workspace-role'),workspaceAccount=document.getElementById('workspace-account');
   if(workspaceTitle)workspaceTitle.textContent=p==='dashboard'?'Organiser dashboard':p==='account'?'Your account':p==='checkin'?'Gate check-in':p==='create'?'Create an event':'TICA workspace';
   if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':p==='account'?'Customer account':'TICA workspace';
@@ -997,10 +997,11 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
       });
     });
   });
-  all('[data-demo]').forEach(function(b){b.addEventListener('click',function(){
-    if(b.closest('.au').dataset.role==='org'){done(b.closest('form'),'Google sign-in is for attendees. Organisers log in with email and password.');return}
-    location.href='/customer/auth/google';
-  })});
+  /* "Continue with Google" for attendees and organisers; shown only when Admin > Integrations has it on. */
+  all('[data-demo]').forEach(function(b){
+    if(!TICA_DATA.googleSignIn){b.hidden=true;b.style.display='none';var or=b.parentNode&&b.parentNode.querySelector('.au-or');if(or){or.hidden=true;or.style.display='none'}return}
+    b.addEventListener('click',function(){location.href='/auth/google/start?as='+(b.closest('.au').dataset.role==='org'?'org':'att')});
+  });
   /* Tica: a team invite turns the sign-up page into "join this organiser's team". */
   var inv=window.TICA_DATA&&TICA_DATA.teamInvite,sf=document.querySelector('[data-auth=signup]');
   if(inv&&sf){
@@ -1263,8 +1264,7 @@ try{var pend=sessionStorage.getItem('tica_od_toast');if(pend){sessionStorage.rem
 
 /* organiser card and role-limited menu */
 function drawAvatar(){[].forEach.call(document.querySelectorAll('.od-av'),function(el){el.textContent=D.org.initials;if(D.org.avatar){var im=new Image();im.alt='';im.onerror=function(){im.remove()};im.src=D.org.avatar;el.appendChild(im)}})}drawAvatar();
-document.querySelector('.od-ver').textContent=D.org.verified?'Verified organiser':'Not verified yet';document.querySelector('.od-ver').classList.toggle('no',!D.org.verified);
-[].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var p=b.dataset.panel;if(p==='events'&&!PERM('events.view')||p==='promote'&&!CAN.promote||p==='orders'&&!CAN.orders||p==='payouts'&&!CAN.payouts||p==='team'&&!CAN.team||p==='settings'&&!CAN.settings)b.hidden=true});
+
 if(!CAN.events)[].forEach.call(document.querySelectorAll('.page[data-page=dashboard] a[href="/create"]'),function(a){a.hidden=true});
 [].forEach.call(document.querySelectorAll('.od-tool'),function(a){var ar=a.dataset.area;if(ar==='events'&&!CAN.events||ar==='money'&&!CAN.payouts||ar==='owner'&&!PERM('team.manage'))a.hidden=true});
 if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
@@ -1281,19 +1281,11 @@ if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
   list.addEventListener('click',function(e){if(e.target.closest('a')&&narrow())d.open=false});
 })();
 
-/* One organiser menu: it lives on the dashboard and moves into the create-event page while that page is open. */
-(function(){var side=document.querySelector('.page[data-page=dashboard] .od-side'),home=side&&side.parentNode,slot=$('ce-side'),shell=$('ce-shell');
-  if(!side||!slot)return;
-  function place(){var onCreate=!!document.querySelector('.page[data-page=create]:not([hidden])');
-    if(onCreate&&side.parentNode!==slot){slot.appendChild(side);$('db-org').textContent=D.org.name}
-    else if(!onCreate&&side.parentNode!==home){home.insertBefore(side,home.firstChild)}
-    shell.classList.toggle('has-side',onCreate);
-    [].forEach.call(side.querySelectorAll('[data-panel]'),function(b){b.classList.toggle('on',!onCreate&&b.classList.contains('on'))});
-    var nb=side.querySelector('.od-new');if(nb)nb.classList.toggle('on',onCreate);
-  }
-  slot.addEventListener('click',function(ev){var b=ev.target.closest('[data-panel]');if(!b)return;ev.preventDefault();ev.stopPropagation();var p=b.dataset.panel;window.TICA_go(p==='overview'?'dashboard':'dashboard/'+p)},true);
-  window.addEventListener('tica:navigate',place);place();
-})();
+/* One organiser menu: rendered once by the server (components/shell/organizer). */
+function osActive(key,title){[].forEach.call(document.querySelectorAll('#os-side .os-link[href]'),function(l){var on=l.dataset.panel===key||(!l.dataset.panel&&key==='checkin'&&l.getAttribute('href')==='/checkin');l.classList.toggle('is-active',on);if(on)l.setAttribute('aria-current','page');else l.removeAttribute('aria-current')});var t=document.getElementById('os-title');if(t&&title)t.textContent=title}
+document.addEventListener('click',function(ev){var l=ev.target.closest('#os-side [data-panel]');if(!l||ev.metaKey||ev.ctrlKey||ev.shiftKey)return;ev.preventDefault();var p=l.dataset.panel;
+  if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))show(p,true);else window.TICA_go(p==='overview'?'dashboard':'dashboard/'+p)});
+window.addEventListener('tica:navigate',function(){var pg=document.querySelector('.page:not([hidden])'),k=pg&&pg.dataset.page;if(k==='create')osActive('events',document.querySelector('[data-page=create] h1')?document.querySelector('[data-page=create] h1').textContent:'Create an event');else if(k==='checkin')osActive('checkin','Gate check-in')});
 
 /* panels */
 var PANELS=['overview','events','orders','payouts','promote','team','settings'];
@@ -1301,7 +1293,7 @@ function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='promote
 function show(p,push){
   if(PANELS.indexOf(p)<0||!allowed(p))p='overview';
   [].forEach.call(document.querySelectorAll('.od-p'),function(x){x.hidden=x.dataset.p!==p});
-  [].forEach.call(document.querySelectorAll('.od-side [data-panel]'),function(b){var on=b.dataset.panel===p;b.classList.toggle('on',on);if(on){b.setAttribute('aria-current','page');var n=b.parentElement;if(n.scrollWidth>n.clientWidth)n.scrollTo({left:b.offsetLeft-16,behavior:'smooth'})}else b.removeAttribute('aria-current')});
+  osActive(p,{overview:'Overview',events:'Events',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]);
   if(push){try{history.replaceState(null,'','/dashboard'+(p==='overview'?'':'/'+p))}catch(e){}window.scrollTo({top:0,behavior:'instant'})}
   var DRAW={events:drawEvents,orders:drawAtt,payouts:drawPay,promote:drawPromote,team:drawTeam,overview:drawOverview,settings:drawSettings};
   DRAW[p]&&DRAW[p]();
@@ -1314,7 +1306,6 @@ window.OD_after=function(){setTimeout(fromHash,0)};
 /* overview */
 function drawChart(range){
   var rows=D.chart[range]||[],vals=rows.map(function(r){return r[1]}),max=Math.max.apply(null,vals.concat([1])),total=vals.reduce(function(a,b){return a+b},0);
-  $('db-sum').textContent=total.toLocaleString('en-NG')+(total===1?' ticket':' tickets');
   $('db-chart').innerHTML=total?'<div class="bars" role="img" aria-label="Tickets sold, '+esc($('od-range').selectedOptions[0].text.toLowerCase())+': '+total+' in total">'+rows.map(function(r,i){return '<div class="b"><i style="height:'+Math.round(r[1]/max*100)+'%"><em>'+r[1]+'</em></i><span>'+(rows.length>16&&i%3||rows.length<=16&&i%2?'':esc(r[0]))+'</span></div>'}).join('')+'</div>':'<div class="od-empty-state compact"><i aria-hidden="true">'+ICO.warn+'</i><h3>No ticket sales in this period</h3><p>Share an event link to bring people to your ticket page.</p><button class="btn btn-line" type="button" data-panel="promote">Share an event</button></div>';
 }
 $('od-range').innerHTML='<option value="14">Last 14 days</option><option value="30">Last 30 days</option><option value="all">All time</option>';
@@ -1324,84 +1315,71 @@ function drawOverview(){
   setup.hidden=doneN===3||!CAN.payouts;
   if(!setup.hidden){
     var next=!s.identity?['Verify your identity so you can be paid.','Verify identity',D.setup.kycUrl]:!s.payout?['Add the bank account your sales should go to.','Add bank account',null]:['Publish your first event.','Create an event','/create'];
-    setup.innerHTML='<div><h2 id="od-setup-h">Finish setting up to get paid</h2><p>'+doneN+' of 3 done. '+next[0]+'</p></div><ol><li'+(s.identity?' class="done"':'')+'>Verify your identity</li><li'+(s.published?' class="done"':'')+'>Publish your first event</li><li'+(s.payout?' class="done"':'')+'>Add your payout account</li></ol>'+
-      (next[2]?'<a class="btn btn-hot" href="'+esc(next[2])+'">'+next[1]+'</a>':'<button class="btn btn-hot" type="button" data-panel="payouts">'+next[1]+'</button>');
+    var step=function(done,label){return '<li class="'+(done?'is-done':'')+'"><span class="ov-tick" aria-hidden="true">'+(done?ICO.ok:'')+'</span>'+label+(done?'<span class="t-sr"> (done)</span>':'')+'</li>'};
+    setup.innerHTML='<div class="ov-setup__text"><h2 id="od-setup-h">Finish setting up to get paid</h2><p>'+doneN+' of 3 done. '+next[0]+'</p></div><ol class="ov-steps">'+step(s.identity,'Verify your identity')+step(s.published,'Publish your first event')+step(s.payout,'Add your payout account')+'</ol>'+
+      (next[2]?'<a class="t-btn t-btn--primary" href="'+esc(next[2])+'">'+next[1]+'</a>':'<button class="t-btn t-btn--primary" type="button" data-panel="payouts">'+next[1]+'</button>');
   }
-  $('od-paydot').hidden=s.payout||!CAN.payouts;
+  if($('od-paydot'))$('od-paydot').hidden=s.payout||!CAN.payouts;
   var e=D.next;
   if(e){
-    var days=Math.max(0,Math.round((e.ts-Date.now())/864e5));
-    $('od-next').innerHTML='<div class="db-ch"><h2>Next up</h2><span>'+(days===0?'Today':days===1?'Tomorrow':'In '+days+' days')+'</span></div><div class="od-nx"><div class="od-th flyer" aria-hidden="true">'+e.art+'</div><div><b>'+esc(e.name)+'</b><small>'+ds(e)+', '+esc(e.time)+'</small><small>'+esc(sameCity(e)?e.venue:e.venue+', '+e.city)+'</small></div></div>'+
-    (e.cap?'<p class="od-cap"><b>'+e.sold+'</b> of '+e.cap+' sold</p><i class="bar od-bar"><i style="width:'+Math.round(e.sold/e.cap*100)+'%"></i></i>':'<p class="od-cap"><b>'+e.sold+'</b> sold</p>')+
-    '<ul class="od-tiers">'+e.tiers.map(function(t){return '<li><span>'+esc(t.name)+'</span><span>'+t.sold+(t.total!=null?' / '+t.total:'')+'</span></li>'}).join('')+'</ul>'+
-    '<div class="od-nxb">'+(CAN.events?'<button class="btn btn-line" type="button" data-manage="'+e.id+'">Manage event</button>':'')+'<a class="btn btn-line" href="/checkin">Check-in</a></div>';
-  }else $('od-next').innerHTML='<div class="db-ch"><h2>Next up</h2></div><p class="od-empty">No upcoming events. '+(CAN.events?'<a href="/create">Create an event</a>':'')+'</p>';
-  var L=D.links.slice().sort(function(a,b){return b.sales-a.sales}),tot=L.reduce(function(a,l){return a+l.sales},0);
-  $('od-src').innerHTML=L.length?L.map(function(l){return '<li><span>'+esc(l.name)+'</span><b>'+l.sales+(l.sales===1?' sale':' sales')+'</b><i class="bar"><i style="width:'+(tot?Math.round(l.sales/tot*100):0)+'%"></i></i></li>'}).join(''):'<li class="od-empty">Create tracking links to see where your sales come from.</li>';
+    var days=Math.max(0,Math.round((e.ts-Date.now())/864e5)),pct=e.cap?Math.min(100,Math.round(e.sold/e.cap*100)):0;
+    $('od-next').innerHTML='<div class="t-card__head"><h2 class="t-card__title">Next event</h2><span class="t-badge t-badge--blue">'+(days===0?'Today':days===1?'Tomorrow':'In '+days+' days')+'</span></div>'+
+      '<div class="ov-next__flyer flyer" aria-hidden="true">'+e.art+'</div>'+
+      '<h3 class="ov-next__name">'+esc(e.name)+'</h3><p class="t-muted">'+ds(e)+', '+esc(e.time)+'</p>'+
+      '<div class="ov-cap"><span><b>'+e.sold.toLocaleString('en-NG')+'</b>'+(e.cap?' of '+e.cap.toLocaleString('en-NG'):'')+' sold</span>'+(e.cap?'<span class="t-muted">'+pct+'%</span>':'')+'</div>'+(e.cap?'<div class="ov-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="Tickets sold"><i style="width:'+pct+'%"></i></div>':'')+
+      (e.tiers.length>1?'<details class="ov-tiers"><summary>By ticket type</summary><ul>'+e.tiers.map(function(t){return '<li><span>'+esc(t.name)+'</span><span>'+t.sold+(t.total!=null?' / '+t.total:'')+'</span></li>'}).join('')+'</ul></details>':'')+
+      '<div class="ov-next__act">'+(CAN.events?'<button class="t-btn t-btn--secondary" type="button" data-manage="'+e.id+'">Manage</button>':'')+(CAN.checkin?'<a class="t-btn t-btn--ghost" href="/checkin">Check in guests</a>':'')+'</div>';
+  }else $('od-next').innerHTML='<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>No upcoming events</h3><p>Your next event will show here with its ticket sales.</p>'+(CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div>';
 }
-/* Your account: the earlier dashboard's tiles and yearly charts */
-var MON12=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function lineChart(el,vals,color,fmt,label,whole){
-  var W=560,H=220,L=44,R=12,T=14,B=30,max=Math.max.apply(null,vals.concat([0])),top=whole?Math.max(4,Math.ceil(max*1.15/4)*4):(max>0?max*1.15:1),iw=W-L-R,ih=H-T-B;
-  var x=function(i){return L+iw*i/11},y=function(v){return T+ih-(v/top)*ih};
-  var grid='',k;for(k=0;k<=4;k++){var gv=top*k/4,gy=y(gv);grid+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy+'" y2="'+gy+'"/><text class="ax" x="'+(L-8)+'" y="'+(gy+4)+'" text-anchor="end">'+esc(fmt(Math.round(gv*100)/100,true))+'</text>'}
-  var pts=vals.map(function(v,i){return x(i)+','+y(v)}).join(' ');
-  var dots=vals.map(function(v,i){return '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4"><title>'+MON12[i]+': '+esc(fmt(v))+'</title></circle>'}).join('');
-  var labels=MON12.map(function(m,i){return '<text class="ax" x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle">'+m+'</text>'}).join('');
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(label)+'" style="--c:'+color+'"><g class="gr">'+grid+'</g><polygon class="ar" points="'+L+','+(T+ih)+' '+pts+' '+(W-R)+','+(T+ih)+'"/><polyline class="ln" points="'+pts+'"/><g class="dt">'+dots+'</g>'+labels+'</svg>';
-}
-function drawAccount(){
-  var A=D.account;if(!A)return;
-  $('od-sum-year').textContent=A.year;
-  var tiles=[
-    ['blue','My balance',N(A.balance),CAN.payouts?'payouts':null,'<path d="M9 3h6l-1.5 3h-3z"/><path d="M8.5 6h7c2.5 2.5 4 5.5 4 8.5a5.5 5.5 0 0 1-5.5 5.5h-4A5.5 5.5 0 0 1 4.5 14.5C4.5 11.5 6 8.5 8.5 6z"/><path d="M14 10.5c-.5-.6-1.2-.9-2-.9-1.1 0-2 .6-2 1.4 0 2 4 1 4 3 0 .8-.9 1.4-2 1.4-.8 0-1.6-.3-2.1-.9M12 8.5v1M12 15.4v1"/>'],
-    ['green','Events',A.events.toLocaleString('en-NG'),CAN.events?'events':null,'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M8 14h2M14 14h2M8 17h2M14 17h2"/>'],
-    ['red','Total event bookings',A.bookings.toLocaleString('en-NG'),'orders','<rect x="3" y="4" width="18" height="11" rx="1.5"/><path d="M12 15v3M8 21l4-3 4 3M8 9.5h8"/>'],
-    ['purple','Total transactions',A.transactions.toLocaleString('en-NG'),CAN.payouts?'/organizer/transaction':null,'<path d="M4 8h14l-3-3M20 16H6l3 3"/>']];
-  $('od-tiles').innerHTML=tiles.map(function(t){var inner='<i class="od-ti '+t[0]+'" aria-hidden="true"><svg viewBox="0 0 24 24">'+t[4]+'</svg></i><span><small>'+t[1]+'</small><b>'+esc(t[2])+'</b></span>';
-    return t[3]?(t[3].charAt(0)==='/'?'<a class="od-tile" href="'+t[3]+'">'+inner+'</a>':'<button class="od-tile" type="button" data-panel="'+t[3]+'">'+inner+'</button>'):'<div class="od-tile">'+inner+'</div>'}).join('');
-  var inc=A.income.reduce(function(a,b){return a+b},0),bk=A.monthlyBookings.reduce(function(a,b){return a+b},0);
-  $('od-inc-h').textContent='Monthly income ('+A.year+')';$('od-bk-h').textContent='Monthly event bookings ('+A.year+')';
-  $('od-inc-sum').textContent=N(inc)+' this year';$('od-bk-sum').textContent=bk.toLocaleString('en-NG')+(bk===1?' booking':' bookings');
-  lineChart($('od-inc'),A.income,'var(--dash-primary)',function(v,ax){return ax&&v>=1000?window.TICA_MONEY(v).replace(/,000$/,'k'):window.TICA_MONEY(v)},'Monthly ticket income in '+A.year);
-  lineChart($('od-bk'),A.monthlyBookings,'var(--dash-accent)',function(v){return Math.round(v).toLocaleString('en-NG')},'Monthly event bookings in '+A.year,true);
-}
-var OVERVIEW_KPI_ICONS={sales:'<path d="M4 7h16v12H4z"/><path d="M4 11h16M8 15h3"/>',tix:'<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/>',views:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',bank:'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'};
 function drawOverviewKpis(range){
-  var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis;
-  $('db-kpis').innerHTML=[['Gross sales',N(k.gross),'sales','orders'],['Tickets sold',k.sold.toLocaleString('en-NG'),'tix','events'],['Page views',k.views.toLocaleString('en-NG'),'views','promote'],['Available to withdraw',N(k.available),'bank','payouts']].map(function(x){return '<button type="button" data-panel="'+x[3]+'"><i class="db-ki" aria-hidden="true"><svg viewBox="0 0 24 24">'+OVERVIEW_KPI_ICONS[x[2]]+'</svg></i><span>'+x[0]+'</span><b>'+x[1]+'</b><small>View details</small></button>'}).join('');
+  var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis,per=$('od-range').selectedOptions[0]?$('od-range').selectedOptions[0].text.toLowerCase():'';
+  $('db-kpis').innerHTML=[['Revenue',N(k.gross),'orders','Gross ticket sales, '+per],['Tickets sold',k.sold.toLocaleString('en-NG'),'events','Across all your events, '+per],['Page views',k.views.toLocaleString('en-NG'),'promote','Visits to your event pages, '+per]].map(function(x){
+    return '<button class="t-stat ov-stat" type="button" data-panel="'+x[2]+'" title="'+esc(x[3])+'"><span class="t-stat__label">'+x[0]+'</span><span class="t-stat__value">'+esc(x[1])+'</span><span class="t-stat__note">'+esc(x[3])+'</span></button>'}).join('');
 }
 function renderDash(){
-  drawAccount();
-  $('db-org').textContent=D.org.name;
+  if($('db-org'))$('db-org').textContent=D.org.name;
   $('db-hi').textContent='Welcome back, '+D.org.name.split(' ')[0];
   var nw=window.TICA_NEW;$('db-flag').hidden=!nw;if(nw)$('db-flag').textContent=nw.name+(nw.status==='draft'?' is saved as a draft.':' is now live.');
   drawOverviewKpis($('od-range').value);
   drawChart($('od-range').value);
-  var rows=D.events.filter(function(r){return r.state==='up'}).sort(function(a,b){return a.ts-b.ts}).slice(0,6);
-  $('db-ev').innerHTML='<div class="tr th"><span>Event</span><span>Sold</span><span>Revenue</span><span>Status</span></div>'+(rows.length?rows.map(function(r){
-    var pct=r.cap?Math.round(r.sold/r.cap*100):0;
-    return '<div class="tr"><span class="ev-n"><b>'+esc(r.name)+'</b><small>'+esc(ds(r))+'</small></span><span class="ev-s"><small>'+r.sold+(r.cap?' of '+r.cap:'')+'</small><i class="bar"><i style="width:'+pct+'%"></i></i></span><span>'+Nc(r.revenue,r.cur)+'</span><span><em class="st'+(r.status==='On sale'?' new':'')+'">'+esc(r.status)+'</em></span></div>';
-  }).join(''):'<div class="tr"><span class="ev-n"><b>No upcoming events</b><small>'+(CAN.events?'<a href="/create">Create an event</a>':'')+'</small></span></div>');
-  $('db-ord').innerHTML=D.orders.length?D.orders.map(function(o){return '<li><i>'+esc((o.name||'?')[0])+'</i><div><b>'+esc(o.name)+'</b><span>'+esc(o.tickets)+'</span></div><div class="r"><b>'+(o.amount?Nc(o.amount,o.cur):'Free')+'</b><span>'+esc(o.ago)+'</span></div></li>'}).join(''):'<li class="od-empty">No orders yet.</li>';
+  var ord=D.orders.slice(0,5);
+  $('db-ord').innerHTML=ord.length?'<table class="t-table t-table--cards ov-ord"><thead><tr><th scope="col">Buyer</th><th scope="col">Tickets</th><th scope="col" class="t-num">Amount</th><th scope="col">When</th></tr></thead><tbody>'+ord.map(function(o){return '<tr><td data-label="Buyer"><span class="ov-buyer"><span class="t-avatar" style="--av:28px" aria-hidden="true">'+esc((o.name||'?')[0].toUpperCase())+'</span>'+esc(o.name)+'</span></td><td data-label="Tickets">'+esc(o.tickets)+'</td><td data-label="Amount" class="t-num">'+(o.amount?Nc(o.amount,o.cur):'Free')+'</td><td data-label="When" class="t-muted">'+esc(o.ago)+'</td></tr>'}).join('')+'</tbody></table>'
+    :'<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/></svg></span><h3>No orders yet</h3><p>Orders appear here as soon as someone buys a ticket.</p>'+(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':'')+'</div>';
   drawOverview();fromHash();
 }
 window.TICA_renderDash=renderDash;
 
 /* events */
-function evRows(){return D.events.filter(function(r){return r.state===OD.ef}).sort(function(a,b){return OD.ef==='past'?b.ts-a.ts:a.ts-b.ts})}
+function evRows(){var q=($('ev-q')&&$('ev-q').value||'').trim().toLowerCase();return D.events.filter(function(r){return r.state===OD.ef&&(!q||(r.name+' '+(r.city||'')+' '+(r.venue||'')).toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return OD.ef==='past'?b.ts-a.ts:a.ts-b.ts})}
+OD.evPage=0;var EV_PER=10;
+function evStatus(r){var cls=r.status==='On sale'?'green':r.status==='Sales paused'||r.status==='Cancelling'?'orange':r.status==='Cancelled'?'red':r.state==='draft'?'':'blue';return '<span class="t-badge'+(cls?' t-badge--'+cls:'')+'">'+esc(r.status)+'</span>'}
 function drawEvents(){
-  [].forEach.call(document.querySelectorAll('[data-ef]'),function(b){b.setAttribute('aria-pressed',b.dataset.ef===OD.ef?'true':'false')});
-  var rows=evRows();
-  $('od-evlist').innerHTML=rows.length?rows.map(function(r){
-    var pct=r.cap?Math.round(r.sold/r.cap*100):0,live=r.status==='On sale';
-    var note=r.state==='draft'?'Add a flyer and ticket prices to publish':r.status==='Ended'&&r.revenue?Nc(r.revenue,r.cur)+' from this event':'';
-    return '<article class="od-ev"><div class="od-th flyer" aria-hidden="true">'+r.art+'</div>'+
-    '<div class="od-evi"><div class="od-tags"><em class="st'+(live?' new':r.status==='Sales paused'||r.status==='Cancelling'?' warn':'')+'">'+esc(r.status)+'</em><em class="od-mode'+(r.mode!=='In person'?' on':'')+'">'+esc(r.mode)+'</em>'+(r.payer==='me'?'<em class="od-mode">Fees included</em>':'')+(r.regMode==='corporate'?'<em class="od-mode">Registration</em>':'')+'</div><h3>'+esc(r.name)+'</h3><p>'+esc(ds(r)+', '+r.time)+'</p>'+(note?'<p class="od-evn">'+esc(note)+'</p>':'')+'</div>'+
-    (r.state!=='draft'?'<div class="od-evs"><small>'+r.sold+(r.cap?' of '+r.cap:'')+' sold</small><i class="bar"><i style="width:'+pct+'%"></i></i><b>'+Nc(r.revenue,r.cur)+'</b></div>':'<div class="od-evs"></div>')+
-    '<div class="od-eva">'+(r.state==='draft'?'<a class="btn btn-hot" href="'+esc(r.editUrl)+'">Continue editing</a>':r.state==='past'?'<button class="btn btn-line" type="button" data-panel="payouts">Get paid</button><a class="btn btn-line" href="/event/'+r.slug+'">View page</a>':'<button class="btn btn-hot" type="button" data-manage="'+r.id+'">Manage</button><a class="btn btn-line" href="/event/'+r.slug+'">View page</a>')+(r.registrationUrl?'<a class="btn btn-line" href="'+esc(r.registrationUrl)+'">Registrations</a>':'')+'</div></article>';
-  }).join(''):'<p class="od-empty">'+({up:'No upcoming events yet.',draft:'No drafts.',past:'No past events yet.'})[OD.ef]+'</p>';
+  [].forEach.call(document.querySelectorAll('[data-ef]'),function(b){b.setAttribute('aria-selected',b.dataset.ef===OD.ef?'true':'false')});
+  ['up','draft','past'].forEach(function(k){var c=document.querySelector('[data-efc='+k+']');if(c)c.textContent=D.events.filter(function(r){return r.state===k}).length});
+  var create=document.querySelector('.od-events-create');if(create)create.hidden=!CAN.events;
+  var all=evRows(),pages=Math.max(1,Math.ceil(all.length/EV_PER));OD.evPage=Math.min(OD.evPage,pages-1);
+  var rows=all.slice(OD.evPage*EV_PER,OD.evPage*EV_PER+EV_PER),q=$('ev-q')&&$('ev-q').value.trim();
+  if(!rows.length){
+    var empty={up:['No upcoming events','Create your next event and it shows here with its sales.'],draft:['No drafts','Events you save without publishing wait here.'],past:['No past events yet','Finished events move here, with their final sales.']}[OD.ef];
+    $('od-evlist').innerHTML='<div class="t-card"><div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>'+(q?'No events match "'+esc(q)+'"':empty[0])+'</h3><p>'+(q?'Try another name or city.':empty[1])+'</p>'+(!q&&CAN.events&&OD.ef!=='past'?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div></div>';return}
+  $('od-evlist').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards ev-table"><thead><tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col">Sold</th><th scope="col" class="t-num">Revenue</th><th scope="col">Status</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+rows.map(function(r){
+    var pct=r.cap?Math.min(100,Math.round(r.sold/r.cap*100)):0,menu=[];
+    if(r.state==='draft'){if(CAN.events)menu.push('<a href="'+esc(r.editUrl)+'">Continue editing</a>')}
+    else{if(CAN.events&&r.state!=='past')menu.push('<button type="button" data-manage="'+r.id+'">Manage sales and settings</button>');if(CAN.events&&r.editUrl)menu.push('<a href="'+esc(r.editUrl)+'">Edit details</a>');menu.push('<a href="/event/'+esc(r.slug)+'" target="_blank" rel="noopener">View event page</a>');if(CAN.orders)menu.push('<button type="button" data-ev-orders="'+r.id+'">See attendees</button>');if(r.registrationUrl)menu.push('<a href="'+esc(r.registrationUrl)+'">Registrations</a>');if(r.state==='past'&&CAN.payouts)menu.push('<button type="button" data-panel="payouts">Get paid</button>')}
+    var tags=[r.mode!=='In person'?r.mode:'',r.payer==='me'?'Fees included':'',r.regMode==='corporate'?'Registration':''].filter(Boolean);
+    return '<tr><td data-label=""><div class="ev-cell"><span class="ev-thumb flyer" aria-hidden="true">'+r.art+'</span><span><span class="ev-name">'+esc(r.name)+'</span>'+(tags.length?'<span class="ev-tags">'+tags.map(function(t){return '<span class="t-badge">'+esc(t)+'</span>'}).join('')+'</span>':'')+'</span></div></td>'+
+      '<td data-label="Date">'+esc(ds(r))+'<div class="t-muted">'+esc(r.time)+'</div></td>'+
+      '<td data-label="Sold" class="ev-sold">'+(r.state==='draft'?'<span class="t-muted">Not on sale</span>':'<span><b>'+r.sold.toLocaleString('en-NG')+'</b>'+(r.cap?' of '+r.cap.toLocaleString('en-NG'):'')+'</span>'+(r.cap?'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>':''))+'</td>'+
+      '<td data-label="Revenue" class="t-num">'+(r.state==='draft'?'<span class="t-muted">—</span>':Nc(r.revenue,r.cur))+'</td>'+
+      '<td data-label="Status">'+evStatus(r)+'</td>'+
+      '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(r.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+    (pages>1?'<div class="t-pager"><span>'+(OD.evPage*EV_PER+1)+'–'+(OD.evPage*EV_PER+rows.length)+' of '+all.length+'</span><span class="t-pager__btns"><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="-1"'+(OD.evPage===0?' disabled':'')+'>Previous</button><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="1"'+(OD.evPage>=pages-1?' disabled':'')+'>Next</button></span></div>':'');
 }
+document.addEventListener('input',function(e){if(e.target.id==='ev-q'){OD.evPage=0;drawEvents()}});
+document.addEventListener('click',function(e){var p=e.target.closest('[data-evpage]');if(p){OD.evPage+=+p.dataset.evpage;drawEvents();return}
+  var o=e.target.closest('[data-ev-orders]');if(o){var f=$('od-fe');show('orders',true);if(f){f.value=o.dataset.evOrders;f.dispatchEvent(new Event('change',{bubbles:true}))}return}
+  var m=document.querySelector('.t-menu[open]');if(m&&!m.contains(e.target))m.removeAttribute('open')});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.querySelector('.t-menu[open]');if(m){m.removeAttribute('open');m.querySelector('summary').focus()}}});
 
 /* event control dialog */
 var curEv=null;
@@ -1452,17 +1430,29 @@ function drawAtt(){
 }
 function loadAtt(append){
   if(attLoading||append&&!attCursor)return;
-  var q=encodeURIComponent($('od-q').value.trim()),ev=$('od-fe').value,st=$('od-fs').value;
-  var seq=++attRequest,url='/tica-api/organizer/attendees?q='+q+'&event='+ev+'&status='+st+(append?'&cursor='+encodeURIComponent(attCursor):'');
-  attLoading=true;$('od-att').setAttribute('aria-busy','true');$('od-att-more').disabled=true;$('od-att-msg').textContent=append?'Loading more attendees…':'Loading attendees…';
+  var seq=++attRequest,url='/tica-api/organizer/attendees?'+attQuery()+(append?'&cursor='+encodeURIComponent(attCursor):'');
+  attLoading=true;$('od-att').setAttribute('aria-busy','true');$('od-att-more').disabled=true;$('od-att-msg').textContent=append?'Loading more attendees…':'';
+  if(!append)$('od-att').innerHTML='<div class="t-table-wrap or-skel">'+[1,2,3,4,5].map(function(){return '<span class="t-skel" style="height:44px;margin:12px 16px"></span>'}).join('')+'</div>';
   get(url).then(function(r){if(seq!==attRequest)return;ATT=append?ATT.concat(r.rows):r.rows;attCursor=r.nextCursor||null;paintAtt(r)},function(er){if(seq===attRequest){$('od-att-msg').textContent=er.message;$('od-att-more').hidden=true}}).then(function(){if(seq===attRequest){attLoading=false;$('od-att').removeAttribute('aria-busy');$('od-att-more').disabled=false}});
 }
+function attQuery(){return 'q='+encodeURIComponent($('od-q').value.trim())+'&event='+$('od-fe').value+'&status='+$('od-fs').value+'&from='+($('od-from').value||'')+'&to='+($('od-to').value||'')}
+function attStatus(s){var c=s==='Paid'?'green':s==='Checked in'?'blue':s==='Refunded'||s==='Refund requested'?'orange':'';return '<span class="t-badge'+(c?' t-badge--'+c:'')+'">'+esc(s)+'</span>'}
 function paintAtt(r){
-  var rows=ATT;
-  $('od-att').innerHTML='<div class="od-ar th" role="row"><span role="columnheader">Attendee</span><span role="columnheader">Ticket</span><span role="columnheader">Order</span><span role="columnheader">Status</span><span role="columnheader"><span class="vh">Actions</span></span></div>'+
-  (rows.length?rows.map(function(a,i){return '<div class="od-ar" role="row"><span role="cell" class="od-who"><i aria-hidden="true">'+esc((a.name||'?')[0])+'</i><span><b>'+esc(a.name)+'</b><small>'+esc(a.email)+'</small></span></span><span role="cell"><b>'+esc(a.tier)+'</b><small>'+esc(a.event)+'</small></span><span role="cell"><b>'+(a.amount?Nc(a.amount,a.cur):'Free')+'</b><small>#'+esc(a.ref)+'</small></span><span role="cell"><em class="st'+(a.status==='Paid'?' new':a.status==='Refunded'||a.status==='Refund requested'?' warn':'')+'">'+esc(a.status)+'</em></span><span role="cell" class="od-aa">'+(a.bookingId?'<a class="od-lk" href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Details</a><button type="button" class="od-lk" data-resend="'+i+'">Resend</button>':'')+(a.refundable&&CAN.refund?'<button type="button" class="od-lk red" data-refund="'+i+'">Refund</button>':'')+'</span></div>'}).join(''):'<p class="od-empty">'+($('od-q').value||$('od-fe').value||$('od-fs').value?'No one matches that search.':'No attendees yet.')+'</p>');
-  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=rows.length?(r&&r.more?'Showing '+rows.length+' attendees. Load more or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s')+' shown.'):'';
+  var rows=ATT,filtered=!!($('od-q').value.trim()||$('od-fe').value||$('od-fs').value||$('od-from').value||$('od-to').value);
+  $('od-clear').hidden=!filtered;
+  if(!rows.length){$('od-att').innerHTML='<div class="t-card"><div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></span><h3>'+(filtered?'No one matches these filters':'No attendees yet')+'</h3><p>'+(filtered?'Try a different name, event or date.':'People who buy tickets or get added as guests appear here.')+'</p>'+(filtered?'<button class="t-btn t-btn--secondary" type="button" id="od-clear2">Clear filters</button>':(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':''))+'</div></div>';$('od-att-more').hidden=true;$('od-att-msg').textContent='';return}
+  $('od-att').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards or-table"><thead><tr><th scope="col">Attendee</th><th scope="col">Ticket</th><th scope="col">Order</th><th scope="col" class="t-num">Amount</th><th scope="col">Status</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+rows.map(function(a,i){
+    var menu=[];if(a.bookingId){menu.push('<a href="/organizer/event-booking/details/'+encodeURIComponent(a.bookingId)+'">Order details</a>');if(CAN.events||PERM('orders.manage'))menu.push('<button type="button" data-resend="'+i+'">Resend tickets</button>')}if(a.refundable&&CAN.refund)menu.push('<button type="button" class="is-danger" data-refund="'+i+'">Refund order</button>');
+    return '<tr><td data-label=""><span class="ov-buyer"><span class="t-avatar" style="--av:32px" aria-hidden="true">'+esc((a.name||'?')[0].toUpperCase())+'</span><span><span class="or-name">'+esc(a.name)+'</span><span class="t-muted or-sub">'+esc(a.email)+'</span></span></span></td>'+
+      '<td data-label="Ticket">'+esc(a.tier)+'<div class="t-muted or-sub">'+esc(a.event)+'</div></td>'+
+      '<td data-label="Order">#'+esc(a.ref)+'</td>'+
+      '<td data-label="Amount" class="t-num">'+(a.amount?Nc(a.amount,a.cur):'Free')+'</td>'+
+      '<td data-label="Status">'+attStatus(a.status==='Paid'&&!a.orderTotal?'Free':a.status)+'</td>'+
+      '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(a.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>';
+  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=r&&r.more?'Showing '+rows.length+'. Load more, or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s');
 }
+document.addEventListener('click',function(e){if(e.target.id==='od-clear'||e.target.id==='od-clear2'){['od-q','od-from','od-to'].forEach(function(id){$(id).value=''});$('od-fe').value='';$('od-fs').value='';drawAtt()}});
+['od-from','od-to'].forEach(function(id){$(id).addEventListener('change',drawAtt)});
 ['od-q','od-fe','od-fs'].forEach(function(id){$(id).addEventListener('input',drawAtt)});
 var refundI=null;
 document.addEventListener('click',function(ev){
@@ -1474,11 +1464,11 @@ document.addEventListener('click',function(ev){
   if(t.id==='rf-go'){var a3=ATT[refundI];t.disabled=true;api('/tica-api/organizer/orders/'+a3.bookingId+'/refund',{amount:document.querySelector('[name=rf-amt]:checked').value,reason:$('rf-why').value}).then(function(){$('od-wd').close();loadAtt();toast('Refund requested. '+a3.name+' will get an email once it\'s sent.')},function(er){t.disabled=false;$('rf-m').textContent=errText(er)});return}
   var m=t.closest('[data-manage]');if(m){openEv(m.dataset.manage);return}
   var p=t.closest('.page[data-page=dashboard] [data-panel], .od-dlg [data-panel]');if(p){var dl0=p.closest('dialog');if(dl0)dl0.close();show(p.dataset.panel,true);return}
-  var ef=t.closest('[data-ef]');if(ef){OD.ef=ef.dataset.ef;drawEvents();return}
+  var ef=t.closest('[data-ef]');if(ef){OD.ef=ef.dataset.ef;OD.evPage=0;drawEvents();return}
   var d=t.closest('[data-dlg]');if(d){if(d.dataset.dlg==='od-msg'||d.dataset.dlg==='od-comp')fillDlg(d.dataset.dlg);$(d.dataset.dlg).showModal();return}
   if(t.closest('[data-close]')){var dl=t.closest('dialog');if(dl)dl.close();return}
   if(t.tagName==='DIALOG'&&t.classList.contains('od-dlg')){t.close();return}
-  if(t.id==='od-export'){location.href='/tica-api/organizer/attendees.csv?q='+encodeURIComponent($('od-q').value.trim())+'&event='+$('od-fe').value+'&status='+$('od-fs').value;toast('Attendee list downloading.');return}
+  if(t.id==='od-export'){location.href='/tica-api/organizer/attendees.csv?'+attQuery();toast('Attendee list downloading.');return}
   if(t.id==='od-att-more'){loadAtt(true);return}
   if(t.id==='ev-addt'){var nt=$('ev-newt');nt.hidden=false;t.hidden=true;$('ev-nt-n').focus();return}
   if(t.id==='ev-post'){var pf=$('ev-postf');if(pf.hidden){pf.hidden=false;t.textContent='Save new date';$('ev-dz').textContent='Tickets stay valid. Buyers are emailed the new date and can ask for a refund.';return}
@@ -1510,29 +1500,30 @@ var P=D.payouts;
 function drawPay(){
   $('od-avail').textContent=N(P.available);$('od-pend').textContent=N(P.pending);$('od-paid').textContent=N(P.paid);
   /* balances in other currencies are kept apart and paid out by TICA */
-  var bal=document.querySelector('.od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
-  (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="od-b cur"><span>'+esc(c.code)+' balance</span><b>'+esc(Nc(c.amount,c.cur))+'</b><small>Paid out by TICA support. Email hello@tica.ng to withdraw.</small></div>')});
-  var subs=document.querySelectorAll('.od-bal small');if(subs.length===3){subs[0].textContent='Ready to withdraw now';subs[1].textContent='Requested and on its way to your bank';}
+  var bal=$('od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
+  (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="t-card t-stat od-b cur"><span class="t-stat__label">'+esc(c.code)+' balance</span><b class="t-stat__value">'+esc(Nc(c.amount,c.cur))+'</b><span class="t-stat__note">Paid out by TICA support. Email hello@tica.ng to withdraw.</span></div>')});
   [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.checked=r.value===P.schedule});
   var v=$('od-bank-view'),a=P.account;
   if(P.kyc!=='verified'){
     var st=P.staged;
     v.innerHTML=st?'<div class="od-acct"><i aria-hidden="true">'+esc(st.bank.replace(/[^A-Z]/g,'').slice(0,3)||st.bank.slice(0,2))+'</i><div><b>'+esc(st.name)+'</b><span>'+esc(st.bank)+', •••• '+esc(st.last4)+'</span></div>'+(st.status==='name_mismatch'?'<em class="od-badb">Name mismatch</em>':'<em class="od-waitb">Waiting</em>')+'</div><p class="od-fine">'+(st.status==='name_mismatch'?'This account\'s name doesn\'t match your approved name. Add an account in your name.':P.kyc==='pending'?'We\'re checking your identity. This account switches on as soon as you\'re approved.':'Finish your identity check and this account switches on when you\'re approved.')+'</p><a class="btn btn-line" href="'+esc(D.setup.kycUrl)+'">Open identity and bank</a>'
       :'<p class="od-fine">'+(P.kyc==='pending'?'We\'re checking your identity. Add your bank account now and it switches on when you\'re approved.':'Verify your identity and add your bank account in one step. Payouts only go to an account in your name.')+'</p><a class="btn btn-hot" href="'+esc(D.setup.kycUrl)+'">'+(P.kyc==='pending'?'Add bank account':'Verify identity and add bank')+'</a>';
+  }else if(P.review&&!OD.changing&&!(a&&a.verified)){
+    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(P.review.bank.slice(0,2))+'</i><div><b>'+esc(P.review.name)+'</b><span>'+esc(P.review.bank)+', •••• '+esc(P.review.last4)+'</span></div>'+(P.review.status==='rejected'?'<em class="od-badb">Not approved</em>':'<em class="od-waitb">In review</em>')+'</div><p class="od-fine">'+(P.review.status==='rejected'?esc(P.review.reason||'TICA couldn\'t approve this account.')+' Add an account in your verified name.':'The name at the bank doesn\'t match your verified name, so TICA is checking it. This usually takes one working day.')+'</p><button class="od-lk" type="button" id="bk-change">Use a different account</button>';
   }else if(a&&a.verified&&!OD.changing){
-    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(a.bank.replace(/[^A-Z]/g,'').slice(0,3)||a.bank.slice(0,2))+'</i><div><b>'+esc(a.name)+'</b><span>'+esc(a.bank)+', •••• '+esc(a.last4)+'</span></div><em class="od-okb">'+ICO.ok+'Verified</em></div>'+(a.held?'<p class="od-note">'+ICO.warn+'New account. Payouts start 24 hours after it was added.</p>':'')+'<button class="od-lk" type="button" id="bk-change">Change account</button>';
+    v.innerHTML='<div class="od-acct"><i aria-hidden="true">'+esc(a.bank.replace(/[^A-Z]/g,'').slice(0,3)||a.bank.slice(0,2))+'</i><div><b>'+esc(a.name)+'</b><span>'+esc(a.bank)+', •••• '+esc(a.last4)+'</span></div><em class="od-okb">'+ICO.ok+'Verified</em></div>'+(a.held?'<p class="od-note">'+ICO.warn+'New account. Payouts start 24 hours after it was added.</p>':'')+(P.review&&P.review.status==='needs_review'?'<p class="od-note">'+ICO.warn+'Your new account ('+esc(P.review.bank)+' •••• '+esc(P.review.last4)+') is with TICA for review. Payouts keep going here until it\'s approved.</p>':P.review&&P.review.status==='rejected'?'<p class="od-note">'+ICO.warn+'TICA didn\'t approve '+esc(P.review.bank)+' •••• '+esc(P.review.last4)+'. '+esc(P.review.reason)+'</p>':'')+'<button class="od-lk" type="button" id="bk-change">Change account</button>';
   }else{
     v.innerHTML='<form class="od-form" id="bk-f" novalidate><p class="od-fine">Payouts can only go to an account in your name, '+esc(D.org.owner)+', or your registered business name.</p>'+
     '<div class="inp"><label for="bk-b">Bank</label><select id="bk-b"><option value="">Loading banks...</option></select></div>'+
     '<div class="inp"><label for="bk-n">Account number</label><input id="bk-n" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="10 digits"></div>'+
     '<div class="od-res" id="bk-r" aria-live="polite"></div>'+
-    '<div id="bk-otp" hidden><div class="inp"><label for="bk-o">Enter the 6-digit code we sent to your email</label><input id="bk-o" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><p class="od-fine">This keeps anyone else from changing where your money goes.</p></div>'+
+    '<div id="bk-otp" hidden><div class="inp"><label for="bk-pw">Your TICA password</label><input id="bk-pw" type="password" autocomplete="current-password"></div>'+(D.profile&&D.profile.totp?'<div class="inp"><label for="bk-o">Code from your authenticator app</label><input id="bk-o" type="text" inputmode="numeric" maxlength="11" autocomplete="one-time-code"></div>':'')+'<p class="od-fine">This keeps anyone else from changing where your money goes.</p></div>'+
     '<button class="btn btn-hot" type="submit" id="bk-save" disabled>Save account</button><p class="hint" id="bk-m" role="status"></p></form>';
-    get('/tica-api/organizer/banks').then(function(r){$('bk-b').innerHTML='<option value="">Choose your bank</option>'+r.banks.map(function(b){return '<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>'}).join('')},function(er){$('bk-b').innerHTML='<option value="">Banks unavailable</option>';$('bk-m').textContent=er.message});
+    (OD.banks=OD.banks||get('/tica-api/organizer/banks').catch(function(er){OD.banks=null;throw er})).then(function(r){$('bk-b').innerHTML='<option value="">Choose your bank</option>'+r.banks.map(function(b){return '<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>'}).join('');if(r.stale)$('bk-m').textContent='The bank list is a saved copy because the bank service is slow. Your bank should still be here.'},function(er){$('bk-b').innerHTML='<option value="">Banks unavailable</option>';$('bk-m').textContent=er.message});
     $('bk-n').addEventListener('input',resolve);$('bk-b').addEventListener('change',resolve);
     $('bk-f').addEventListener('submit',saveBank);
   }
-  $('od-hist').innerHTML=P.history.length?'<div class="od-hr th"><span>Date</span><span>Reference</span><span>Amount</span><span>To</span><span>Status</span></div>'+P.history.map(function(h){return '<div class="od-hr"><span>'+esc(h.date)+'</span><span>'+esc(String(h.ref).slice(0,13))+'</span><b>'+N(h.amount)+'</b><span>'+esc(h.to)+'</span><span><em class="st'+(h.status==='Paid'?' new':' warn')+'">'+esc(h.status)+'</em></span></div>'}).join(''):'<p class="od-empty">No payouts yet.'+(P.available>0?' <b>'+N(P.available)+'</b> is ready to withdraw once your bank account is added.':'')+'</p>';
+  $('od-hist').innerHTML=P.history.length?'<div class="t-table-wrap"><table class="t-table t-table--cards"><thead><tr><th scope="col">Date</th><th scope="col">Reference</th><th scope="col" class="t-num">Amount</th><th scope="col">To</th><th scope="col">Status</th></tr></thead><tbody>'+P.history.map(function(h){var c=h.status==='Paid'?'green':/fail|reject|revers/i.test(h.status)?'red':'orange';return '<tr><td data-label="Date">'+esc(h.date)+'</td><td data-label="Reference">'+esc(String(h.ref).slice(0,13))+'</td><td data-label="Amount" class="t-num">'+N(h.amount)+'</td><td data-label="To">'+esc(h.to)+'</td><td data-label="Status"><span class="t-badge t-badge--'+c+'">'+esc(h.status)+'</span></td></tr>'}).join('')+'</tbody></table></div>':'<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5"/></svg></span><h3>No payouts yet</h3><p>'+(P.available>0?N(P.available)+' is ready to withdraw'+(P.account&&P.account.verified?'.':' once your bank account is added.'):'Money from ticket sales appears here once it is sent to your bank.')+'</p></div>';
   drawOverview();
 }
 var resT=null,resolved=null;
@@ -1542,16 +1533,19 @@ function resolve(){
   r.innerHTML='<p class="od-chk2"><i class="od-spin" aria-hidden="true"></i>Checking with '+esc(b.selectedOptions[0].text)+'…</p>';
   resT=setTimeout(function(){
     api('/tica-api/organizer/bank/resolve',{bank_code:b.value,account_number:n.value}).then(function(x){
-      if(!x.matches){r.innerHTML='<div class="od-name bad"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.warn+'This doesn\'t match your verified name. Use an account in your name or your business\'s name.</p></div>';return}
-      resolved={bank_code:b.value,account_number:n.value};
-      r.innerHTML='<div class="od-name"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.ok+'Matches your verified name</p></div>';
-      $('bk-otp').hidden=false;$('bk-save').disabled=false;$('bk-o').focus();
-    },function(er){r.innerHTML='<p class="od-bad">'+ICO.warn+esc(errText(er))+'</p>'});
+      resolved={bank_code:b.value,account_number:n.value,review:!x.matches};
+      r.innerHTML=x.matches?'<div class="od-name"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.ok+'Matches your verified name</p></div>'
+        :'<div class="od-name bad"><span>Account name</span><b>'+esc(x.name)+'</b><p>'+ICO.warn+'This doesn\'t match your verified name. If it\'s your business account, send it to TICA to review. We\'ll keep paying your current account until it\'s approved.</p></div>';
+      $('bk-save').textContent=x.matches?'Save account':'Send for review';
+      $('bk-otp').hidden=false;$('bk-save').disabled=false;$('bk-pw').focus();
+    },function(er){r.innerHTML='<p class="od-bad">'+ICO.warn+esc(errText(er))+(er.data&&er.data.retry?' <button type="button" class="od-lk" id="bk-retry">Try again</button>':'')+'</p>'});
   },500);
 }
-function saveBank(e){e.preventDefault();if(!resolved)return;var c=$('bk-o').value.trim();if(!/^\d{6}$/.test(c)){$('bk-m').textContent='Enter the 6-digit code to confirm.';$('bk-o').focus();return}
-  $('bk-save').disabled=true;api('/tica-api/organizer/bank',Object.assign({code:c},resolved)).then(function(){reload('Bank account saved and verified.')},function(er){$('bk-save').disabled=false;$('bk-m').textContent=errText(er)})}
-document.addEventListener('focusin',function(e){if(e.target.id==='bk-o'&&!e.target.dataset.sent&&resolved){e.target.dataset.sent='1';api('/tica-api/organizer/bank/code',resolved).then(function(){$('bk-m').textContent='We emailed you a 6-digit code.'},function(er){$('bk-m').textContent=errText(er)})}});
+function saveBank(e){e.preventDefault();if(!resolved)return;var pw=$('bk-pw').value,o=$('bk-o');$('bk-m').textContent='';
+  if(!pw){$('bk-m').textContent='Enter your password to confirm.';$('bk-pw').focus();return}
+  if(o&&!o.value.trim()){$('bk-m').textContent='Enter the code from your authenticator app.';o.focus();return}
+  $('bk-save').disabled=true;api('/tica-api/organizer/bank',{bank_code:resolved.bank_code,account_number:resolved.account_number,password:pw,otp:o?o.value.trim():null}).then(function(x){reload(x.status==='needs_review'?'Sent to TICA for review. We\'ll email you within one working day.':'Bank account saved and verified.')},function(er){$('bk-save').disabled=false;$('bk-m').textContent=errText(er)})}
+document.addEventListener('click',function(e){if(e.target.id==='bk-retry')resolve()});
 [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.addEventListener('change',function(){api('/tica-api/organizer/payout-schedule',{schedule:r.value}).then(function(){P.schedule=r.value;toast(r.value==='auto'?'We\'ll send your sales to your bank automatically.':'Your money waits until you press Withdraw.')},function(er){toast(errText(er));drawPay()})})});
 function openWd(){
   var a=P.account,m=P.method,min=m?Math.max(m.min,1):1,max=m&&m.max?Math.min(m.max,P.available):P.available;
@@ -1576,7 +1570,15 @@ function sendWd(){
 }
 
 /* promote */
+function prUrl(){var id=+$('pr-ev').value,e=evById(id);return location.origin+(e?'/event/'+e.slug:'/discover')}
+function drawShare(){var sel=$('pr-ev');if(!sel)return;var evs=D.events.filter(function(r){return r.state==='up'||r.state==='live'});if(!evs.length)evs=D.events;var keep=sel.value;
+  sel.innerHTML=evs.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('')||'<option value="">No events yet</option>';if(keep)sel.value=keep;
+  var u=prUrl(),e=evById(+sel.value),txt=encodeURIComponent((e?e.name+' — get your tickets on TICA: ':'Find events on TICA: ')+u);$('pr-url').value=u;$('pr-copy').disabled=!evs.length;
+  $('pr-social').innerHTML=[['WhatsApp','https://wa.me/?text='+txt],['X','https://x.com/intent/tweet?text='+txt],['Facebook','https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u)],['LinkedIn','https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(u)],['Email','mailto:?subject='+encodeURIComponent(e?e.name:'TICA')+'&body='+txt]].map(function(x){return '<a class="t-btn t-btn--secondary t-btn--sm" href="'+esc(x[1])+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>'}).join('')}
+document.addEventListener('change',function(e){if(e.target.id==='pr-ev')drawShare()});
+document.addEventListener('click',function(e){if(e.target.id!=='pr-copy')return;var u=$('pr-url').value;try{navigator.clipboard.writeText(u).then(function(){toast('Link copied.')},function(){$('pr-url').select();toast('Press Ctrl+C to copy.')})}catch(er){$('pr-url').select()}});
 function drawPromote(){
+  drawShare();
   $('od-cv').innerHTML='<option value="p:10">10% off</option><option value="p:20">20% off</option><option value="p:50">50% off</option><option value="f:1000">'+esc(N(1000))+' off</option>';
   var evOpts='<option value="">All events</option>'+D.events.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('');$('od-code-event').innerHTML=evOpts;$('od-link-event').innerHTML=evOpts;
   $('od-codes').innerHTML=D.codes.length?D.codes.map(function(c){var lab=c.label.indexOf('fixed:')===0?N(+c.label.slice(6))+' off':c.label;return '<li><code>'+esc(c.code)+'</code><span><b>'+esc(lab)+'</b><small>'+esc(c.scope)+(c.minimum?' · min '+esc(N(c.minimum)):'')+(c.ends?' · ends '+esc(c.ends):'')+'</small><small>'+c.tickets+' tickets · '+esc(N(c.revenue))+' revenue</small></span><span class="od-use"><small>'+c.used+(c.max?' of '+c.max:'')+' used</small><i class="bar"><i style="width:'+(c.max?Math.min(100,Math.round(c.used/c.max*100)):0)+'%"></i></i></span><button class="od-lk" type="button" data-togglecode="'+c.id+'" data-active="'+(c.active?'1':'0')+'">'+(c.active?'Pause':'Activate')+'</button></li>'}).join(''):'<li class="od-empty">No discount codes yet.</li>';
@@ -1618,9 +1620,10 @@ function drawSettings(){
   $('od-pi').value=p.instagram||'';$('od-pw').value=p.phone;
   $('od-pt').value=p.tiktok||'';$('od-pweb').value=p.website||'';$('od-pfb').value=p.facebook||'';$('od-px').value=p.twitter||'';$('od-pli').value=p.linkedin||'';$('od-pyt').value=p.youtube||'';
   $('od-photo-ini').textContent=D.org.initials;$('od-pcp-row').hidden=true;var img=$('od-photo-preview');img.onerror=function(){img.hidden=true};if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
-  var state=$('od-mfa-state'),sec=$('od-security-link');if(state){state.textContent=p.mfa?'On':'Off';state.classList.toggle('on',!!p.mfa)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
-  var sws=document.querySelectorAll('[data-p=settings] .ck-sw'),keys=['buyers_pay_fee','show_remaining','waitlist','transfers','notify_sale','daily_summary'];
-  [].forEach.call(sws,function(s,i){s.dataset.pref=keys[i];s.checked=!!D.prefs[keys[i]]});
+  var state=$('od-mfa-state'),sec=$('od-security-link'),on=p.totp||p.mfa;if(state){state.textContent=p.totp?'App code on':p.mfa?'Email code on':'Off';state.classList.toggle('on',!!on)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
+
+  // Each switch names its own setting in data-pref, so adding one can't shift the others.
+  [].forEach.call(document.querySelectorAll('[data-p=settings] [data-pref]'),function(s){s.checked=!!D.prefs[s.dataset.pref]});
 }
 document.addEventListener('change',function(e){var s=e.target.closest('[data-pref]');if(!s)return;var body={};body[s.dataset.pref]=s.checked;api('/tica-api/organizer/prefs',body).then(function(){D.prefs[s.dataset.pref]=s.checked;toast('Saved.')},function(er){s.checked=!s.checked;toast(errText(er))})});
 $('od-photo').addEventListener('change',function(){var f=this.files&&this.files[0],img=$('od-photo-preview');fieldErr('photo','');if(!f)return;
@@ -1643,7 +1646,9 @@ $('od-pass').addEventListener('submit',function(e){e.preventDefault();var b=e.ta
   api('/tica-api/organizer/password',{current_password:$('od-pass-current').value,new_password:n,new_password_confirmation:c}).then(function(){b.disabled=false;e.target.reset();toast('Password updated.')},function(er){b.disabled=false;$('od-pass-m').textContent=errText(er)})});
 
 /* create page uses the organiser's saved defaults */
-(function(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers})();
+function ceDefaults(){var pr=D.prefs,f=document.getElementById('create-form');if(!f)return;var me=f.querySelector('[name=c-payer][value=me]'),bu=f.querySelector('[name=c-payer][value=buyer]');if(me&&bu){me.checked=!pr.buyers_pay_fee;bu.checked=!!pr.buyers_pay_fee}var l=$('c-left');if(l)l.checked=!!pr.show_remaining;var w=$('c-wait');if(w)w.checked=!!pr.waitlist;var t=$('c-trans');if(t)t.checked=!!pr.transfers}ceDefaults();
+/* Defaults changed in Settings apply to the next new event without a reload, as long as nothing has been typed yet. */
+window.addEventListener('tica:navigate',function(){var n=$('c-name');if(location.pathname==='/create'&&n&&!n.value.trim())ceDefaults()});
 /* platform rules from the admin: hide features that are switched off */
 (function(){var P=(TICA_DATA.currency||{}).platform,f=document.getElementById('create-form');if(!P||!f)return;
   function drop(el){if(!el)return;var l=el.closest('label,li')||el;l.hidden=true;l.style.display='none';if(el.checked){el.checked=false}}
@@ -1786,6 +1791,7 @@ function stage(i,focus){
   STAGES.forEach(function(id,k){$(id).hidden=k!==at});
   [].forEach.call(f.querySelectorAll('.ce-steps a'),function(a,k){if(k===at)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');a.classList.toggle('done',k<at||k<=reached&&k!==at)});
   $('ce-progress').textContent='Step '+(at+1)+' of '+STAGES.length+': '+STEPNAME[at];
+  var cur=f.querySelector('.ce-steps a[aria-current=step]'),bar=f.querySelector('.ce-steps');if(cur&&bar&&bar.scrollWidth>bar.clientWidth)bar.scrollLeft=Math.max(0,cur.offsetLeft-bar.offsetLeft-16);
   var last=at===STAGES.length-1;$('ce-back').hidden=at===0;$('ce-next').hidden=last;$('ce-draft').hidden=!last;$('ce-publish').hidden=!last;
   if(last)summary();
   $('c-msg').textContent='';

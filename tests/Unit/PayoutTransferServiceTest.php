@@ -505,6 +505,47 @@ class PayoutTransferServiceTest extends TestCase
         $this->assertNotNull($transfer->fresh()->finance_notified_at);
     }
 
+    public function test_monnify_account_is_paid_through_monnify_and_confirmed_by_its_webhook(): void
+    {
+        Queue::fake();
+        [, , $withdrawal] = $this->payoutFixture(null, 'monnify');
+        $transfer = (new PayoutTransferService())->queue($withdrawal->id, 7);
+        $this->assertSame('monnify', $transfer->gateway);
+
+        $sent = [];
+        $provider = new class($sent) implements \App\Contracts\PayoutProvider {
+          public function __construct(public array &$sent) {}
+          public function name(): string { return 'monnify'; }
+          public function banks(): array { return []; }
+          public function resolveAccount(string $a, string $b): array { return []; }
+          public function createRecipient(string $n, string $a, string $b, string $c): string { return 'monnify:' . $b . ':' . $a; }
+          public function initiateTransfer(string $r, float $amount, string $ref, string $reason, string $cur): array {
+            $this->sent[] = compact('r', 'amount', 'ref');
+            return ['data' => \App\Services\Payouts\MonnifyPayoutProvider::normalise(['status' => 'PENDING', 'amount' => $amount, 'reference' => $ref, 'currency' => 'NGN'], $ref), 'raw' => []];
+          }
+          public function verifyTransfer(string $ref): array { return ['data' => ['status' => 'pending', 'reference' => $ref], 'raw' => []]; }
+          public function testConnection(): void {}
+        };
+
+        $result = (new PayoutTransferService())->submit($transfer->id, $provider);
+
+        $this->assertSame('pending', $result->status);
+        $this->assertSame('monnify:058:0123456789', $sent[0]['r']);
+        $this->assertSame(9800.0, $sent[0]['amount']);
+
+        $done = (new PayoutTransferService())->handleMonnifyWebhook([
+          'reference' => $transfer->reference, 'status' => 'SUCCESS', 'amount' => 9800, 'currency' => 'NGN',
+        ]);
+
+        $this->assertSame('success', $done->status);
+        $this->assertSame(Withdraw::STATUS_PAID, (int) $withdrawal->fresh()->status);
+    }
+
+    public function test_monnify_webhook_for_an_unknown_reference_changes_nothing(): void
+    {
+        $this->assertNull((new PayoutTransferService())->handleMonnifyWebhook(['reference' => 'not-ours', 'status' => 'SUCCESS']));
+    }
+
     private function submittedTransfer(): array
     {
         Queue::fake();
@@ -526,7 +567,7 @@ class PayoutTransferServiceTest extends TestCase
         return [$transfer->fresh(), $withdrawal->fresh(), $organizer->fresh()];
     }
 
-    private function payoutFixture(?string $recipientCode = null): array
+    private function payoutFixture(?string $recipientCode = null, string $provider = 'paystack'): array
     {
         $organizer = Organizer::create([
             'email' => uniqid('payout-', true) . '@example.com',
@@ -541,7 +582,7 @@ class PayoutTransferServiceTest extends TestCase
         $account = OrganizerPayoutAccount::create([
             'public_id' => uniqid('account-', true),
             'organizer_id' => $organizer->id,
-            'provider' => 'paystack',
+            'provider' => $provider,
             'provider_recipient_code' => $recipientCode,
             'recipient_created_at' => $recipientCode ? now() : null,
             'country_code' => 'NG',

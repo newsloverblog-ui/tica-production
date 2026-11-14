@@ -37,3 +37,7 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+tests/screenshots/*.png
+storage/playwright-report/
+test-results/
+storage/qa-auth/

@@ -53,13 +53,13 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
 
     public function test_shared_organizer_shell_and_report_keep_the_dashboard_contract(): void
     {
-        $sidebar = file_get_contents(resource_path('views/organizer/partials/side-navbar.blade.php'));
+        $sidebar = file_get_contents(resource_path('views/components/shell/organizer.blade.php'));
         $report = file_get_contents(resource_path('views/organizer/event/booking/report.blade.php'));
         $organizerCss = file_get_contents(public_path('assets/tica-ui/css/organizer-blend.css'));
         $dashboardCss = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
         $adminCss = file_get_contents(public_path('assets/tica-ui/css/admin-blend.css'));
 
-        $positions = array_map(fn (string $section) => strpos($sidebar, "'{$section}']"), [
+        $positions = array_map(fn (string $section) => strpos($sidebar, "'{$section}' => ["), [
             'Main', 'Grow', 'Money', 'Account',
         ]);
         $this->assertNotContains(false, $positions);
@@ -67,7 +67,7 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $sortedPositions = $positions;
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
-        $this->assertStringContainsString("href=\"{{ url('/dashboard/settings') }}\"", $sidebar);
+        $this->assertStringContainsString("'/dashboard/settings'", $sidebar);
 
         $this->assertStringContainsString('class="tica-report-filters"', $report);
         $this->assertStringContainsString('class="table tica-report-table"', $report);
@@ -90,15 +90,13 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
-        $this->assertStringContainsString('id="ce-side"', $create);
-        $this->assertStringContainsString('class="db-side od-side"', $dashboard);
-        $this->assertStringContainsString("slot.appendChild(side)", $script);
-        $this->assertStringContainsString('.ce-shell.has-side{grid-template-columns:248px minmax(0,1fr)', $css);
-        $this->assertStringContainsString('body.dashnav-open .ce-side .db-side{transform:none;visibility:visible}', $css);
-        $this->assertStringContainsString('.od-side .od-orgc.od-orgc-top{margin:0 4px 10px!important', $css);
-        $this->assertStringContainsString('.od-side .od-new{width:calc(100% - 8px);min-height:42px;margin:0 4px 2px', $css);
-        $this->assertStringContainsString('.ce-side .db-side a.od-new.on{background:var(--dash-primary)!important', $css);
-        $this->assertStringNotContainsString('.page[data-page=dashboard] .od-orgc.od-orgc-top{margin:', $css);
+        // The one organiser shell (x-shell.organizer) wraps every app page,
+        // Create event included, so no page carries a second sidebar.
+        $app = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
+        $this->assertStringContainsString('<x-shell.organizer', $app);
+        $this->assertStringNotContainsString('od-side', $dashboard);
+        $this->assertStringNotContainsString('od-side', $create);
+        $this->assertStringNotContainsString('slot.appendChild(side)', $script);
         $this->assertStringContainsString('body.isorg.appmode footer{display:none}', $css);
         $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
     }

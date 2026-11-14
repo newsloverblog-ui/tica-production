@@ -46,6 +46,13 @@ class OrganizerKycReviewController extends Controller
             return redirect()->back()->with('warning', $exception->getMessage());
         }
 
+        \App\Support\AdminQueues::forget();
+        $verified = $validated['decision'] === 'verified';
+        \App\Support\OrganizerInbox::send((int) $submission->organizer_id, 'kyc.' . $validated['decision'],
+            $verified ? __('You are verified') : __('Your identity check needs changes'),
+            $verified ? __('You can now be paid. Add or confirm your bank account.') : (string) ($validated['rejection_reason'] ?? ''),
+            url('/organizer/kyc'));
+
         return redirect()->route('admin.organizer_kyc.show', $submission)->with('success', 'KYC review saved.');
     }
 

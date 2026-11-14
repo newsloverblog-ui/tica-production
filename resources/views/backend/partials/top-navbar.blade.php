@@ -34,90 +34,55 @@
   </div>
   <!-- Logo Header End -->
 
-  <!-- Navbar Header Start -->
-  <nav class="navbar navbar-header navbar-expand-lg"
-    data-background-color="white2">
+  <!-- Navbar Header Start: page title, work waiting for an admin, account menu -->
+  @php
+    $topbarPerms = is_null($roleInfo ?? null) ? null : (array) json_decode($roleInfo->permissions ?? '[]', true);
+    $topbarCan = fn (string $perm) => is_null($topbarPerms) || in_array($perm, $topbarPerms, true);
+    $queuePerm = ['kyc' => 'Organizer Mangement', 'approvals' => 'Organizer Mangement', 'payout_accounts' => 'Withdraw Method', 'withdrawals' => 'Withdraw Method', 'refunds' => 'Event Bookings', 'promotions' => 'Advertise', 'pixels' => 'Advertise', 'support' => 'Support Ticket'];
+    $topbarQueues = array_values(array_filter(\App\Support\AdminQueues::all(), fn ($q) => $q['count'] > 0 && $q['url'] && $topbarCan($queuePerm[$q['key']] ?? 'Dashboard')));
+    $topbarWaiting = array_sum(array_column($topbarQueues, 'count'));
+  @endphp
+  <nav class="navbar navbar-header navbar-expand-lg ad-top" data-background-color="white2" aria-label="{{ __('Admin top bar') }}">
     <div class="container-fluid">
-      <div class="tica-topbar-context d-none d-md-flex">
-        <span class="tica-topbar-kicker">{{ __('Tica') }}</span>
-        <strong>{{ __('Admin control center') }}</strong>
-        <a href="{{ route('index') }}" target="_blank" rel="noopener">{{ __('View website') }} <i class="fal fa-external-link ml-1" aria-hidden="true"></i></a>
-      </div>
-      <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
-        <form action="{{ route('admin.change_theme') }}" class="form-inline mr-3" method="POST">
-
-          @csrf
-          <div class="form-group">
-            <div class="selectgroup selectgroup-secondary selectgroup-pills" role="group" aria-label="{{ __('Color theme') }}">
-              <label class="selectgroup-item">
-                <input type="radio" name="admin_theme_version" value="light" class="selectgroup-input"
-                  {{ $settings->admin_theme_version == 'light' ? 'checked' : '' }} onchange="this.form.submit()">
-                <span class="selectgroup-button selectgroup-button-icon"><i class="fa fa-sun"></i></span>
-              </label>
-
-              <label class="selectgroup-item">
-                <input type="radio" name="admin_theme_version" value="dark" class="selectgroup-input"
-                  {{ $settings->admin_theme_version == 'dark' ? 'checked' : '' }} onchange="this.form.submit()">
-                <span class="selectgroup-button selectgroup-button-icon"><i class="fa fa-moon"></i></span>
-              </label>
-            </div>
+      <h1 class="os-top__title" id="os-title">{{ __('Admin') }}</h1>
+      <div class="ad-top__right">
+        <details class="t-menu ad-bell">
+          <summary class="t-icon-btn" aria-label="{{ $topbarWaiting ? trans_choice(':count item waiting for you|:count items waiting for you', $topbarWaiting) : __('Nothing waiting for you') }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+            @if ($topbarWaiting)<span class="ad-bell__n" aria-hidden="true">{{ $topbarWaiting > 99 ? '99+' : $topbarWaiting }}</span>@endif
+          </summary>
+          <div class="t-menu__list ad-bell__list">
+            <p class="ad-bell__head">{{ __('Waiting for you') }}</p>
+            @forelse ($topbarQueues as $queue)
+              <a href="{{ $queue['url'] }}"><span>{{ $queue['label'] }}</span><b class="t-badge t-badge--orange">{{ $queue['count'] }}</b></a>
+            @empty
+              <p class="ad-bell__empty">{{ __('All caught up. Nothing is waiting for an admin.') }}</p>
+            @endforelse
           </div>
-        </form>
-
-        <li class="nav-item dropdown hidden-caret">
-          <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false" aria-label="{{ __('Open admin account menu') }}">
-            <div class="avatar-sm">
-              <span class="tica-admin-initial-avatar" aria-hidden="true">{{ $topbarAdminInitials ?: 'TA' }}</span>
-              @if ($topbarAdminHasImage)
-                <img src="{{ asset($topbarAdminImage) }}"
-                  alt="" class="avatar-img rounded-circle" onerror="this.remove()">
-              @endif
-            </div>
-          </a>
-
-          <ul class="dropdown-menu dropdown-user animated fadeIn">
-            <div class="dropdown-user-scroll scrollbar-outer">
-              <li>
-                <div class="user-box">
-                  <div class="avatar-lg">
-                    <span class="tica-admin-initial-avatar" aria-hidden="true">{{ $topbarAdminInitials ?: 'TA' }}</span>
-                    @if ($topbarAdminHasImage)
-                      <img src="{{ asset($topbarAdminImage) }}"
-                        alt="" class="avatar-img rounded-circle" onerror="this.remove()">
-                    @endif
-                  </div>
-
-                  <div class="u-text">
-                    <h4>
-                      {{ $topbarAdminName }}
-                    </h4>
-                    <p class="text-muted">{{ Auth::guard('admin')->user()->email }}</p>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{{ route('admin.edit_profile') }}">
-                  {{ __('Edit Profile') }}
-                </a>
-
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{{ route('admin.change_password') }}">
-                  {{ __('Change Password') }}
-                </a>
-
-                <div class="dropdown-divider"></div>
-                <form method="POST" action="{{ route('admin.logout') }}">
-                  @csrf
-                  <button type="submit" class="dropdown-item">{{ __('Logout') }}</button>
-                </form>
-              </li>
-            </div>
-          </ul>
-        </li>
-      </ul>
+        </details>
+        <details class="t-menu ad-me">
+          <summary class="ad-me__btn" aria-label="{{ __('Open admin account menu') }}">
+            <span class="t-avatar" style="--av:36px" aria-hidden="true">{{ $topbarAdminInitials ?: 'TA' }}@if ($topbarAdminHasImage)<img src="{{ asset($topbarAdminImage) }}" alt="" onerror="this.remove()">@endif</span>
+          </summary>
+          <div class="t-menu__list">
+            <p class="ad-me__who"><b>{{ $topbarAdminName }}</b><span>{{ Auth::guard('admin')->user()->email }}</span></p>
+            <a href="{{ route('admin.edit_profile') }}">{{ __('Profile') }}</a>
+            <a href="{{ route('admin.change_password') }}">{{ __('Change password') }}</a>
+            <a href="{{ route('index') }}" target="_blank" rel="noopener">{{ __('View website') }}</a>
+            <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">{{ __('Log out') }}</button></form>
+          </div>
+        </details>
+      </div>
     </div>
   </nav>
+  <script>
+    (function () {
+      // The page's own heading becomes the top-bar title, so it isn't shown twice.
+      var t = document.getElementById('os-title'), pt = document.querySelector('.page-header .page-title, .page-inner h1:not(#os-title)');
+      if (t && pt && pt.textContent.trim()) { t.textContent = pt.textContent.trim(); document.body.classList.add('ad-titled'); }
+      document.addEventListener('click', function (e) { document.querySelectorAll('.ad-top details[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); }); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.ad-top details[open]').forEach(function (d) { d.removeAttribute('open'); }); });
+    })();
+  </script>
   <!-- Navbar Header End -->
 </div>

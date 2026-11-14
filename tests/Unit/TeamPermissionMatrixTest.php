@@ -52,7 +52,6 @@ class TeamPermissionMatrixTest extends TestCase
     // Money
     ['TicaWorkspaceController@withdraw', null, false, true],
     ['TicaWorkspaceController@saveBank', null, false, false],
-    ['TicaWorkspaceController@bankCode', null, false, false],
     ['TicaWorkspaceController@payoutSchedule', null, false, false],
     // Team and settings: owner only
     ['TicaWorkspaceController@invite', null, false, false],

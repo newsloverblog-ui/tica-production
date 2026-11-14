@@ -133,6 +133,28 @@ class MonnifyGatewayClient
         return $this->sandbox ? self::SANDBOX : self::LIVE;
     }
 
+    /**
+     * Authenticated call for disbursements (banks, account check, transfers).
+     * Returns responseBody; throws with Monnify's message when it refuses.
+     */
+    public function call(string $method, string $path, array $data = [], int $timeout = 15): array
+    {
+        $request = Http::withToken($this->token())->acceptJson()->timeout($timeout);
+        $response = strtoupper($method) === 'GET'
+            ? $request->get($this->base() . $path, $data)
+            : $request->post($this->base() . $path, $data);
+
+        if (!$response->successful() || $response->json('requestSuccessful') === false) {
+            $exception = new RuntimeException((string) ($response->json('responseMessage') ?? 'Monnify could not complete the request.'));
+            if ($response->serverError()) {
+                throw new \App\Exceptions\GatewayOutcomeUnknownException($exception->getMessage(), 0, $exception);
+            }
+            throw $exception;
+        }
+
+        return (array) ($response->json('responseBody') ?? []);
+    }
+
     /** Log in once without the cache, to check keys an admin just entered. */
     public function verifyCredentials(): void
     {

@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\PayoutProvider;
 use App\Exceptions\GatewayOutcomeUnknownException;
+use App\Services\Payouts\PayoutProviders;
+use App\Services\Payouts\PaystackPayoutProvider;
 use App\Jobs\SendPayoutStatusNotification;
 use App\Jobs\SubmitPaystackPayout;
 use App\Models\OrganizerPayoutAccount;
@@ -93,12 +96,12 @@ class PayoutTransferService
 
             $account = OrganizerPayoutAccount::whereKey($withdrawal->payout_account_id)
                 ->where('organizer_id', $withdrawal->organizer_id)
-                ->where('provider', 'paystack')
+                ->whereIn('provider', ['paystack', 'monnify'])
                 ->where('status', 'verified')
                 ->lockForUpdate()
                 ->first();
             if (!$account) {
-                throw new RuntimeException('A verified Paystack payout account is required.');
+                throw new RuntimeException('A verified payout account is required.');
             }
             if ($account->hold_until && now()->lt($account->hold_until)) {
                 throw new RuntimeException('This payout account is still within its 24-hour security hold.');
@@ -108,7 +111,7 @@ class PayoutTransferService
                 'public_id' => (string) Str::uuid(),
                 'withdrawal_id' => $withdrawal->id,
                 'payout_account_id' => $account->id,
-                'gateway' => 'paystack',
+                'gateway' => (string) ($account->provider ?: 'paystack'),
                 'reference' => 'tica-payout-' . Str::uuid(),
                 'status' => 'queued',
                 'amount' => $withdrawal->payable_amount,
@@ -222,7 +225,7 @@ class PayoutTransferService
         SendPayoutStatusNotification::dispatch($transferId, $expectedStatus);
     }
 
-    public function submit(int $transferId, ?PaystackGatewayClient $client = null): PayoutTransfer
+    public function submit(int $transferId, mixed $client = null): PayoutTransfer
     {
         $claimed = DB::transaction(function () use ($transferId) {
             $transfer = PayoutTransfer::whereKey($transferId)->lockForUpdate()->firstOrFail();
@@ -241,11 +244,11 @@ class PayoutTransferService
             return PayoutTransfer::findOrFail($transferId);
         }
 
-        $client = $client ?: new PaystackGatewayClient();
         $transfer = PayoutTransfer::with('payoutAccount')->findOrFail($transferId);
 
         try {
-            $account = $this->recipient($transfer->payoutAccount, $client);
+            $provider = $this->providerFor((string) $transfer->gateway, $client);
+            $account = $this->recipient($transfer->payoutAccount, $provider);
             $transfer->forceFill(['recipient_code' => $account->provider_recipient_code])->save();
         } catch (Throwable $exception) {
             $this->markFailed($transfer->id, $exception);
@@ -253,16 +256,16 @@ class PayoutTransferService
         }
 
         try {
-            $payload = $client->initiateTransfer(
+            $result = $provider->initiateTransfer(
                 $account->provider_recipient_code,
                 (float) $transfer->amount,
                 $transfer->reference,
                 'Tica organizer payout ' . $transfer->withdrawal_id,
                 $transfer->currency
             );
-            $data = (array) ($payload['data'] ?? []);
+            $data = (array) $result['data'];
             $data['status'] = $data['status'] ?? 'pending';
-            $this->applyGatewayUpdate($transfer->id, $data, 'submission', $payload);
+            $this->applyGatewayUpdate($transfer->id, $data, 'submission', (array) $result['raw']);
         } catch (ConnectionException|GatewayOutcomeUnknownException $exception) {
             $this->markVerificationRequired($transfer->id, $exception);
         } catch (Throwable $exception) {
@@ -302,9 +305,25 @@ class PayoutTransferService
         return PayoutTransfer::findOrFail($transfer->id);
     }
 
-    public function reconcileDue(?PaystackGatewayClient $client = null, ?int $limit = null): array
+    /** Monnify disbursement webhook (signature already checked by the controller). */
+    public function handleMonnifyWebhook(array $data): ?PayoutTransfer
     {
-        $client = $client ?: new PaystackGatewayClient();
+        $reference = trim((string) ($data['reference'] ?? ''));
+        if ($reference === '') {
+            return null;
+        }
+        $transfer = PayoutTransfer::query()->where('gateway', 'monnify')->where('reference', $reference)->first();
+        if (!$transfer) {
+            return null;
+        }
+        $normalised = \App\Services\Payouts\MonnifyPayoutProvider::normalise($data, $reference);
+        $this->applyGatewayUpdate($transfer->id, $normalised, 'webhook', $data);
+
+        return PayoutTransfer::findOrFail($transfer->id);
+    }
+
+    public function reconcileDue(mixed $client = null, ?int $limit = null): array
+    {
         $limit = max(1, min(500, $limit ?? (int) config('payouts.reconcile_batch_limit', 100)));
         $threshold = now()->subMinutes(max(1, (int) config('payouts.reconcile_after_minutes', 5)));
         $summary = ['checked' => 0, 'updated' => 0, 'errors' => 0];
@@ -320,12 +339,12 @@ class PayoutTransferService
         foreach ($transfers as $transfer) {
             $summary['checked']++;
             try {
-                $payload = $client->verifyTransfer($transfer->reference);
+                $result = $this->providerFor((string) $transfer->gateway, $client)->verifyTransfer($transfer->reference);
                 $this->applyGatewayUpdate(
                     $transfer->id,
-                    (array) $payload['data'],
+                    (array) $result['data'],
                     'reconciliation',
-                    $payload
+                    (array) $result['raw']
                 );
                 $summary['updated']++;
             } catch (Throwable $exception) {
@@ -337,33 +356,42 @@ class PayoutTransferService
         return $summary;
     }
 
-    private function recipient(OrganizerPayoutAccount $account, PaystackGatewayClient $client): OrganizerPayoutAccount
+    private function recipient(OrganizerPayoutAccount $account, PayoutProvider $provider): OrganizerPayoutAccount
     {
         if ($account->provider_recipient_code) {
             return $account;
         }
 
-        return Cache::lock('payout-recipient-account:' . $account->id, 30)->block(5, function () use ($account, $client) {
+        return Cache::lock('payout-recipient-account:' . $account->id, 30)->block(5, function () use ($account, $provider) {
             $account = OrganizerPayoutAccount::findOrFail($account->id);
             if ($account->provider_recipient_code) {
                 return $account;
             }
-            $payload = $client->createTransferRecipient(
+            $recipientCode = $provider->createRecipient(
                 $account->resolved_account_name,
                 $account->account_number,
                 $account->bank_code,
                 $account->currency
             );
-            $recipientCode = trim((string) ($payload['data']['recipient_code'] ?? ''));
-            if ($recipientCode === '') {
-                throw new RuntimeException('Paystack did not return a transfer recipient code.');
-            }
             $account->forceFill([
                 'provider_recipient_code' => $recipientCode,
                 'recipient_created_at' => now(),
             ])->save();
             return $account;
         });
+    }
+
+    /** The provider a transfer was created with. Tests may pass a Paystack client or provider. */
+    private function providerFor(string $gateway, mixed $client = null): PayoutProvider
+    {
+        if ($client instanceof PayoutProvider) {
+            return $client;
+        }
+        if ($client instanceof PaystackGatewayClient) {
+            return new PaystackPayoutProvider($client);
+        }
+
+        return app(PayoutProviders::class)->for($gateway ?: 'paystack');
     }
 
     private function applyGatewayUpdate(int $transferId, array $data, string $source, array $response): void

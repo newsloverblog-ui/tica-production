@@ -1,65 +1,58 @@
-# Tica on cPanel
+# Putting TICA on cPanel
 
-This profile targets a single cPanel server without Redis or Supervisor. It
-uses MySQL for queues, cache locks and sessions. Redis remains preferable when
-the host provides a managed, persistent Redis service.
+The **tica-cpanel.zip** package (GitHub → Actions → "cPanel package" → latest run → Artifacts)
+has everything the site needs, ready to upload: no Composer or npm on the server.
 
-## Layout
+## 1. Back up first
+cPanel → **phpMyAdmin** → your database → **Export** → Go. Keep the file.
 
-Keep application code outside the public web root:
+## 2. Check PHP
+cPanel → **MultiPHP Manager** → set the domain to **PHP 8.4** (8.5 also works).
+Extensions needed (cPanel → Select PHP Version → Extensions): bcmath, ctype, curl, dom,
+fileinfo, gd, intl, mbstring, openssl, pdo_mysql, tokenizer, xml, zip.
 
-```text
-/home/CPANEL_USER/tica/current       application release
-/home/CPANEL_USER/tica/shared/.env   production secrets
-/home/CPANEL_USER/tica/shared/storage persistent private files and logs
+## 3. Upload the files
+1. cPanel → **File Manager** → make a folder next to `public_html`, e.g. `tica`.
+2. Upload **tica-cpanel.zip** into it and **Extract**.
+3. Point the domain at the `public` folder: cPanel → **Domains** → your domain →
+   Document Root → `tica/public`.
+   (If you can't change it, extract into `public_html` instead: the `.htaccess` in the
+   package sends visitors to `public/` for you.)
+
+## 4. Settings file
+Copy `deploy/cpanel/env.cpanel.example` to `.env` in the `tica` folder and fill in the
+lines marked **FILL IN**. Keep the old `APP_KEY`: saved secrets in the database need it.
+
+## 5. Update the database (one time, keeps all your data)
+Your current database is the original Evento one: TICA's 114 newer updates still
+need to go in. They add tables and columns and convert some data; nothing is deleted.
+
+**With cPanel Terminal** (cPanel → Terminal):
 ```
-
-Set the domain document root to `/home/CPANEL_USER/tica/current/public`. Never
-copy the entire Laravel project into `public_html`.
-
-## First release
-
-1. Upload/extract the release into `tica/current`.
-2. Link `current/.env` to `shared/.env` and `current/storage` to
-   `shared/storage`.
-3. Merge `tica-production.env.example` into the private `.env`; replace every
-   `CHANGE_ME` value using cPanel-managed secrets.
-4. Run with the cPanel PHP binary:
-
-```bash
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+cd ~/tica
 php artisan migrate --force
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan storage:link
-php artisan ops:release-readiness --configuration-only --json
 ```
 
-Do not continue a production release while the readiness command reports a
-critical result.
+**Without a terminal:**
+1. In `.env` add a line `DB_UPDATE_TOKEN=` followed by 32+ random characters.
+2. Open `https://your-domain/system/update`, paste that key, press **Apply updates**.
+3. When it says the database is up to date, **delete the DB_UPDATE_TOKEN line**.
 
-## Scheduler and workers
+Later versions: upload the new files, then Admin → **Database updates** → Apply.
 
-Install the three entries from `cron.example`. Confirm the PHP path using
-cPanel's **Terminal** (`which php`) or the PHP selector. If `flock` is not
-available, ask the host to enable it; overlapping queue workers are unsafe.
+## 6. Folders that must be writable
+`storage/` and `bootstrap/cache/` (755 is usually enough on cPanel).
 
-After deployment, run `php artisan queue:restart`. Check **Cron Jobs** and both
-queue logs after one minute. The readiness gate also expects current worker
-heartbeats.
+## 7. Scheduled jobs
+cPanel → **Cron Jobs** → Once Per Minute:
+```
+cd ~/tica && php artisan schedule:run >> /dev/null 2>&1
+```
 
-## cPanel operations still requiring real evidence
+## 8. Turn on email, payments and sign-in
+Log in as admin → **Integrations**: fill in Email (press "Send me a test email"),
+Paystack, SMS, Google sign-in. Each has a Test button.
 
-- Configure encrypted off-site database and private-file backups and perform a
-  restore drill.
-- Configure external uptime checks for `/health/live` and `/health/ready`, plus
-  error tracking and a synthetic checkout exercise.
-- Complete the WCAG, privacy/DPA, penetration-test, incident-response, key
-  rotation, SMS and payment-provider drills before recording their evidence
-  variables.
-- Enable CSP only after staging report-only violations have been reviewed.
-
-These attestations must describe real completed work; placeholder values should
-never be used to make the readiness command pass.
+## The SQL file in database/supabase is not for cPanel
+`database/supabase/tica_database_update.sql` is written for Supabase (Postgres) and won't
+run in phpMyAdmin. On cPanel, step 5 does the same job, written for MySQL/MariaDB.

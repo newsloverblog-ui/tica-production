@@ -160,8 +160,9 @@
                                                                 <i class="fas fa-eye"></i>
                                                             </span> {{ __('View') }}</a>
                                                         @if (in_array((int) $item->status, [0, 3], true))
-                                                            @if (config('payouts.paystack_transfers_enabled') && optional($item->payoutAccount)->provider === 'paystack' && optional($item->payoutAccount)->status === 'verified')
-                                                                <button type="button" data-toggle="modal" data-target="#paystackModal{{ $item->id }}" class="btn btn-primary mt-1 btn-xs"><span class="btn-label"><i class="fas fa-paper-plane"></i></span> {{ __('Send via Paystack') }}</button>
+                                                            @if (config('payouts.paystack_transfers_enabled') && in_array(optional($item->payoutAccount)->provider, ['paystack', 'monnify'], true) && optional($item->payoutAccount)->status === 'verified')
+                                                                @php($lastTransfer = \App\Models\PayoutTransfer::where('withdrawal_id', $item->id)->latest('id')->first())
+                                                                <button type="button" data-toggle="modal" data-target="#paystackModal{{ $item->id }}" class="btn btn-primary mt-1 btn-xs"><span class="btn-label"><i class="fas fa-paper-plane"></i></span> {{ $lastTransfer && in_array($lastTransfer->status, ['failed', 'reversed'], true) ? __('Retry transfer') : __('Send via') . ' ' . ucfirst($item->payoutAccount->provider) }}</button>
                                                             @endif
                                                             <button type="button" data-toggle="modal" data-target="#paidModal{{ $item->id }}" class="btn btn-success mt-1 btn-xs"><span class="btn-label"><i class="fas fa-check-circle"></i></span> {{ __('Mark paid') }}</button>
                                                             @if ((int) $item->status === 0)

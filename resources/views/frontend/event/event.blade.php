@@ -23,7 +23,7 @@
   };
   $eventImage = function ($event) {
     $path = 'assets/admin/img/event/thumbnail/' . $event->thumbnail;
-    return !empty($event->thumbnail) ? asset($path) : asset('assets/front/images/home/organizer-live-event-unsplash.jpg');
+    return !empty($event->thumbnail) ? \App\Support\PublicImage::flyer($event->thumbnail) : asset('assets/front/images/home/organizer-live-event-unsplash.jpg');
   };
   $discoverEvents = collect($eventsPage->items())->map(function ($event) use ($eventStart, $eventPrice, $eventImage) {
     $start = \Carbon\Carbon::parse($eventStart($event));

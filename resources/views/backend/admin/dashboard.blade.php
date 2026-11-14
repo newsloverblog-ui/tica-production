@@ -28,8 +28,12 @@
     $can('Withdraw Method') ? [__('Payouts issued'), $money($mo['payouts']), $delta($mo['this']['payouts'], $mo['last']['payouts']), __('Money paid out to organisers.'), 'fa-wallet', route('admin.withdraw.withdraw_request', ['language' => $defaultLang->code])] : null,
   ]));
   // [label, count, link, icon]
+  $q = collect(\App\Support\AdminQueues::all())->keyBy('key');
   $waiting = array_values(array_filter([
     $can('Withdraw Method') ? [__('Payout requests'), $a['payouts']['count'], route('admin.withdraw.withdraw_request', ['language' => $defaultLang->code]), 'fa-wallet'] : null,
+    $can('Withdraw Method') ? [__('Bank accounts to review'), $q['payout_accounts']['count'], route('admin.payout_accounts.index', ['status' => 'needs_review']), 'fa-university'] : null,
+    $can('Event Bookings') ? [__('Refunds to approve'), $q['refunds']['count'], route('admin.event.booking'), 'fa-undo'] : null,
+    $can('Advertise') ? [__('Promotions to review'), $q['promotions']['count'] + $q['pixels']['count'], route('admin.advertise.tica_promotions'), 'fa-bullhorn'] : null,
     $can('Organizer Mangement') ? [__('Identity checks'), $a['kyc'], route('admin.organizer_kyc.index', ['status' => 'pending']), 'fa-id-card'] : null,
     $can('Organizer Mangement') && $a['approvals'] ? [__('New organisers'), $a['approvals'], route('admin.organizer_management.registered_organizer'), 'fa-user-check'] : null,
     $can('Event Bookings') ? [__('Bank transfers'), $a['transfers'], route('admin.event.booking', ['status' => 'pending']), 'fa-university'] : null,

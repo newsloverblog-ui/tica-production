@@ -39,3 +39,4 @@
 
 {{-- TICA design for the admin panel --}}
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-blend.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/admin-blend.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/ds.css')) }}">

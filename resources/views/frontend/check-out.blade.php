@@ -88,7 +88,7 @@
 
           <article class="checkout-event-card">
             <a href="{{ $eventUrl }}" class="checkout-event-image">
-              <img src="{{ asset('assets/admin/img/event/thumbnail/' . $event->thumbnail) }}" alt="{{ $event->title }}">
+              <img src="{{ \App\Support\PublicImage::flyer($event->thumbnail) }}" alt="{{ $event->title }}">
             </a>
             <div class="checkout-event-copy">
               <p class="checkout-eyebrow">{{ __('Your event') }}</p>

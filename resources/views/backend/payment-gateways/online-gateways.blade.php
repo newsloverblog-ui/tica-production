@@ -5,6 +5,7 @@
 @endphp
 
 @section('content')
+  @include('backend.integrations._moved')
   <div class="page-header">
     <h4 class="page-title">{{ __('Online Gateways') }}</h4>
     <ul class="breadcrumbs">

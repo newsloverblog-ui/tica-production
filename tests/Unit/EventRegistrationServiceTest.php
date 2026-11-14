@@ -972,6 +972,68 @@ class EventRegistrationServiceTest extends TestCase
         ]);
     }
 
+    public function test_library_form_is_built_once_used_on_many_events_and_updated_everywhere(): void
+    {
+        $library = app(\App\Services\RegistrationFormLibrary::class);
+        $service = app(EventRegistrationService::class);
+        $first = $this->event(41);
+        $second = $this->event(41);
+        $foreign = $this->event(99);
+
+        $form = $library->create(41, 'Delegate form');
+        $this->assertTrue($form->isLibrary());
+        $service->addQuestion($form, 41, ['label' => 'Company name', 'type' => 'company', 'scope' => 'registrant', 'is_required' => true]);
+        $service->addQuestion($form, 41, ['label' => 'Track', 'type' => 'radio', 'scope' => 'attendee', 'options' => "Tech\nBusiness"]);
+
+        $results = $library->useOnEvents($form, 41, [$first->id, $second->id, $foreign->id], true);
+        $this->assertCount(2, $results, 'Another organiser’s event is ignored.');
+        $this->assertTrue(collect($results)->every(fn ($r) => $r['ok']));
+        foreach ([$first, $second] as $event) {
+            $copy = EventRegistrationForm::where('event_id', $event->id)->firstOrFail();
+            $this->assertSame($form->id, (int) $copy->source_form_id);
+            $this->assertSame('published', $copy->status);
+            $this->assertSame(['Company name', 'Track'], $copy->questions()->pluck('label')->all());
+            $this->assertSame('corporate', $event->fresh()->registration_mode);
+        }
+        $this->assertNull(EventRegistrationForm::where('event_id', $foreign->id)->first());
+
+        // Edit once in the library, then push to every event using it.
+        $service->addQuestion($form, 41, ['label' => 'Dietary needs', 'type' => 'text', 'scope' => 'attendee']);
+        $library->useOnEvents($form, 41, [$first->id, $second->id], true);
+        $this->assertSame(3, EventRegistrationForm::where('event_id', $second->id)->firstOrFail()->questions()->count());
+        $this->assertSame(1, EventRegistrationForm::where('event_id', $first->id)->count(), 'Re-using updates the event form in place.');
+
+        // Stopping returns the event to ticket sales; deleting the library form keeps event copies.
+        $library->stopOnEvent(EventRegistrationForm::where('event_id', $first->id)->firstOrFail(), 41);
+        $this->assertSame('ticketing', $first->fresh()->registration_mode);
+        $library->delete($form, 41);
+        $this->assertNull(EventRegistrationForm::find($form->id));
+        $this->assertNull(EventRegistrationForm::where('event_id', $second->id)->firstOrFail()->source_form_id);
+        $this->assertSame(3, EventRegistrationForm::where('event_id', $second->id)->firstOrFail()->questions()->count());
+
+        $other = $library->create(99, 'Someone else');
+        $this->expectException(AuthorizationException::class);
+        $library->updateSettings($other, 41, ['name' => 'Taken', 'approval_mode' => 'manual', 'privacy_notice' => 'x']);
+    }
+
+    public function test_event_form_can_be_saved_to_the_library(): void
+    {
+        $library = app(\App\Services\RegistrationFormLibrary::class);
+        $service = app(EventRegistrationService::class);
+        $event = $this->event(41);
+        $eventForm = $service->saveForm($event, 41, ['name' => 'Summit form', 'approval_mode' => 'automatic', 'privacy_notice' => 'Used only for the summit.']);
+        $service->addQuestion($eventForm, 41, ['label' => 'Job title', 'type' => 'job_title', 'scope' => 'registrant']);
+
+        $kept = $library->adopt($eventForm, 41);
+        $this->assertTrue($kept->isLibrary());
+        $this->assertSame('Summit form', $kept->name);
+        $this->assertSame('automatic', $kept->approval_mode);
+        $this->assertSame(['Job title'], $kept->questions()->pluck('label')->all());
+        $this->assertSame($kept->id, (int) $eventForm->fresh()->source_form_id);
+        $this->assertCount(1, $library->forms(41));
+        $this->assertCount(0, $library->standalone(41));
+    }
+
     private function publishedForm(EventRegistrationService $service, int $organizerId, string $approvalMode): array
     {
         $event = $this->event($organizerId);
@@ -1030,8 +1092,8 @@ class EventRegistrationServiceTest extends TestCase
             $table->timestamps();
         });
         Schema::create('event_registration_forms', function (Blueprint $table): void {
-            $table->id(); $table->string('public_id', 26)->unique(); $table->unsignedBigInteger('event_id')->unique();
-            $table->unsignedBigInteger('organizer_id'); $table->string('name', 150); $table->string('status', 24)->default('draft');
+            $table->id(); $table->string('public_id', 26)->unique(); $table->unsignedBigInteger('event_id')->nullable()->unique();
+            $table->unsignedBigInteger('source_form_id')->nullable(); $table->unsignedBigInteger('organizer_id'); $table->string('name', 150); $table->string('status', 24)->default('draft');
             $table->string('approval_mode', 24)->default('manual'); $table->unsignedInteger('version')->default(1);
             $table->text('intro')->nullable(); $table->text('privacy_notice'); $table->string('consent_version', 32);
             $table->timestamp('published_at')->nullable(); $table->timestamp('archived_at')->nullable(); $table->timestamps();

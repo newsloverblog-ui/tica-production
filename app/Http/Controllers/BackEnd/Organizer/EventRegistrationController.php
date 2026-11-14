@@ -161,6 +161,11 @@ class EventRegistrationController extends Controller
             $validated
         );
 
+        if ($updated->form->event_id === null) {
+            return redirect()->route('organizer.forms.show', $updated->form)
+                ->with('success', 'Field saved. Use “Update events” to send the change to events using this form.');
+        }
+
         return redirect()->route('organizer.event.registrations.index', ['event_id' => $updated->form->event_id])
             ->with('success', 'Question updated. Republish the form after reviewing the change.');
     }
