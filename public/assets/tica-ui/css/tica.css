@@ -4843,6 +4843,9 @@ body.isorg.appmode .workspace-context{gap:0}
 .od-team-count{display:inline-flex;min-height:28px;align-items:center;padding:0 10px;border-radius:999px;background:var(--dash-primary-soft);color:var(--dash-primary);font-size:11px;font-weight:800;white-space:nowrap}
 .od-team li{grid-template-columns:40px minmax(150px,1fr) minmax(150px,.75fr) auto;gap:12px;padding:14px 0}
 .od-team li>i{background:var(--dash-primary-soft);color:var(--dash-primary);box-shadow:inset 0 0 0 1px var(--dash-primary-line)}
+.od-team-avatar{position:relative;overflow:hidden}
+.od-team-avatar>span{position:relative;z-index:0}
+.od-team-avatar>img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .od-team .od-member,.od-team .od-role{min-width:0}
 .od-team .od-member b,.od-team .od-member small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .od-team .od-role{text-align:left}

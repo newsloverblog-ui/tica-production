@@ -453,6 +453,7 @@ class OrganizerWorkspace
       'id' => null,
       'name' => (string) ($organizer->verified_legal_name ?: $name),
       'email' => (string) $organizer->email,
+      'avatar' => $organizer->avatar_url,
       'role' => 'Owner',
       'scope' => 'You',
     ]], $members->map(fn (OrganizerTeamMember $member) => [
