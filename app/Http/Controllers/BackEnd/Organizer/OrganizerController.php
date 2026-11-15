@@ -17,6 +17,7 @@ use App\Models\BasicSettings\MailTemplate;
 use App\Models\Event;
 use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
+use App\Models\Event\Ticket;
 use App\Models\Language;
 use App\Models\OrganizerInfo;
 use App\Models\Transaction;
@@ -746,9 +747,27 @@ class OrganizerController extends Controller
 
         return response()->json([
           'alert_type' => 'success',
-          'message' => 'Ticket ' . $unit->sequence . ' of ' . $booking->quantity . ' verified',
+          'message' => ($unit->ticket_number ?: 'Ticket ' . $unit->sequence . ' of ' . $booking->quantity) . ' verified',
           'booking_id' => $booking->booking_id,
           'ticket_unit_id' => $unit->public_id,
+          'attendee' => $unit->holder_name ?: trim($booking->fname . ' ' . $booking->lname),
+          'event' => (string) (\Illuminate\Support\Facades\Schema::hasTable('event_contents')
+            ? (\App\Models\Event\EventContent::query()
+              ->where('event_id', $unit->event_id)
+              ->orderBy('language_id')
+              ->value('title') ?: 'Event')
+            : 'Event'),
+          'event_id' => $unit->event_id,
+          'category' => $unit->variation_name
+            ?: ($unit->ticket_id && \Illuminate\Support\Facades\Schema::hasTable('tickets')
+              ? Ticket::query()->whereKey($unit->ticket_id)->value('title')
+              : 'Ticket'),
+          'ticket_number' => $unit->ticket_number,
+          'seat' => $unit->seat_label,
+          'row' => $unit->row_label,
+          'section' => $unit->section_label,
+          'status' => $unit->status,
+          'checked_in_at' => optional($unit->checked_in_at)->toIso8601String(),
           'remaining' => $remaining,
         ]);
       }
@@ -781,6 +800,7 @@ class OrganizerController extends Controller
       ->when($validated['event_id'] ?? null, fn ($query, $eventId) => $query->where('event_id', $eventId))
       ->where(function ($query) use ($term, $like) {
         $query->where('public_id', $term)
+          ->orWhere('ticket_number', $term)
           ->orWhere('holder_email', $term)
           ->orWhere('holder_name', 'like', $like)
           ->orWhereHas('booking', function ($booking) use ($term, $like) {
@@ -808,6 +828,10 @@ class OrganizerController extends Controller
           'status' => $ticket->status,
           'checked_in_at' => optional($ticket->checked_in_at)->toIso8601String(),
           'variation_name' => $ticket->variation_name,
+          'ticket_number' => $ticket->ticket_number,
+          'seat' => $ticket->seat_label,
+          'row' => $ticket->row_label,
+          'section' => $ticket->section_label,
         ];
       })->values(),
     ]);

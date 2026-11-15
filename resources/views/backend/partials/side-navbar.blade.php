@@ -211,6 +211,12 @@
                             </ul>
                         </div>
                     </li>
+                    <li class="nav-item {{ request()->routeIs('admin.advanced_tickets.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.advanced_tickets.index') }}">
+                            <i class="fal fa-ticket-alt"></i>
+                            <p>{{ __('Ticket Management') }}</p>
+                        </a>
+                    </li>
                 @endif
 
                 {{-- event booking --}}

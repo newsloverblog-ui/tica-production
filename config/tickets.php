@@ -23,6 +23,12 @@ return [
     /* Time held while the buyer completes checkout/payment. */
     'reservation_minutes' => (int) env('TICKET_RESERVATION_MINUTES', 15),
 
+    /* Event builders may add custom categories up to this platform limit. */
+    'max_types_per_event' => max(1, min(100, (int) env('TICKET_MAX_TYPES_PER_EVENT', 50))),
+
+    /* Suggestions only: organisers may type any other category name. */
+    'type_presets' => ['Regular', 'VIP', 'VVIP', 'Early Bird', 'Student', 'Complimentary'],
+
     /* A waitlist invitation is an opportunity to buy, never a stock hold. */
     'waitlist_notification_minutes' => max(5, (int) env('TICKET_WAITLIST_NOTIFICATION_MINUTES', 30)),
     'waitlist_dispatch_limit' => max(1, min(500, (int) env('TICKET_WAITLIST_DISPATCH_LIMIT', 200))),

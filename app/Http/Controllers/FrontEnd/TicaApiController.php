@@ -20,18 +20,24 @@ use App\Models\Event;
 use App\Models\Event\Booking;
 use App\Models\Event\Coupon;
 use App\Models\Event\Wishlist;
+use App\Models\Event\Ticket;
+use App\Models\EventSeat;
+use App\Models\SeatReservation;
 use App\Services\BookingCompletionUrlService;
 use App\Models\PaymentGateway\OnlineGateway;
 use App\Services\CustomerLoginCodeService;
 use App\Services\EventCouponService;
 use App\Services\EventPublicVisibility;
 use App\Services\EventWaitlistService;
+use App\Services\SeatReservationService;
+use App\Services\TicketReservationService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -85,6 +91,8 @@ class TicaApiController extends Controller
       'attendees.*.answer' => ['nullable', 'string', 'max:500'],
       'gateway' => ['nullable', 'string', 'in:' . implode(',', array_keys(\App\Support\TicaPayments::GATEWAYS))],
       'submission_id' => ['required', 'uuid'],
+      'seat_ids' => ['nullable', 'array', 'max:500'],
+      'seat_ids.*' => ['required', 'integer', 'distinct', 'min:1'],
     ]);
     $event = Event::query()->findOrFail((int) $validated['event_id']);
     if (($event->visibility ?? 'public') === 'private') {
@@ -137,6 +145,21 @@ class TicaApiController extends Controller
       return $this->failed('We could not hold those tickets. Review your selection and try again.');
     }
 
+    $reservationToken = (string) Session::get('ticket_reservation_token', '');
+    try {
+      $this->reserveSelectedSeats(
+        $event,
+        Session::get('selTickets', []),
+        $validated['seat_ids'] ?? [],
+        $reservationToken,
+        $request,
+        app(EventTicketPurchaseLimitService::class)->buyerIdentityHash($validated['buyer']['email']),
+      );
+    } catch (RuntimeException $exception) {
+      if ($reservationToken !== '') app(TicketReservationService::class)->release($reservationToken, 'seat_selection_failed');
+      return response()->json(['message' => $exception->getMessage()], 409);
+    }
+
     if (!empty($validated['coupon'])) {
       $coupon = $this->dispatchTo('apply-coupon', ['coupon_code' => $validated['coupon']], fn (Request $sub) => app(EventController::class)->applyCoupon($sub));
       if (!$coupon instanceof JsonResponse || ($coupon->getData(true)['status'] ?? null) !== 'success') {
@@ -185,6 +208,73 @@ class TicaApiController extends Controller
     }
 
     return $this->failed('We could not complete this booking. No payment was taken; please try again.');
+  }
+
+  public function seats(int $event): JsonResponse
+  {
+    $eventModel = Event::query()->findOrFail($event);
+    abort_unless($eventModel->isBookable(), 404);
+    if (!Schema::hasTable('event_seats') || !Schema::hasTable('seat_reservations')) {
+      return response()->json(['seats' => []]);
+    }
+    app(SeatReservationService::class)->releaseExpired();
+
+    $holds = SeatReservation::query()
+      ->where('event_id', $event)
+      ->where(fn ($query) => $query
+        ->where('status', 'pending_payment')
+        ->orWhere(fn ($active) => $active->where('status', 'active')->where('expires_at', '>', now())))
+      ->pluck('seat_id');
+    $seats = EventSeat::query()->with(['section:id,name,kind,ticket_id,price_override', 'row:id,label', 'ticket:id,price'])
+      ->where('event_id', $event)->orderBy('section_id')->orderBy('row_id')->orderBy('sort_order')->get();
+
+    return response()->json(['seats' => $seats->map(fn (EventSeat $seat) => [
+      'id' => $seat->id,
+      'public_id' => $seat->public_id,
+      'ticket_id' => $seat->ticket_id ?: $seat->section?->ticket_id,
+      'section' => $seat->section?->name,
+      'section_kind' => $seat->section?->kind,
+      'row' => $seat->row?->label,
+      'label' => $seat->label,
+      'accessible' => (bool) $seat->is_accessible,
+      'price' => (float) ($seat->price_override ?? $seat->section?->price_override ?? $seat->ticket?->price ?? 0),
+      'status' => $seat->status === 'available' && $holds->contains($seat->id) ? 'reserved' : $seat->status,
+    ])->values()]);
+  }
+
+  private function reserveSelectedSeats(
+    Event $event,
+    array $selections,
+    array $seatIds,
+    string $token,
+    Request $request,
+    ?string $buyerEmailHash,
+  ): void
+  {
+    $selected = collect($selections)->mapWithKeys(fn ($line) => [(int) ($line['ticket_id'] ?? 0) => (int) ($line['qty'] ?? 0)]);
+    $reservedTickets = Ticket::query()->where('event_id', $event->id)->whereIn('id', $selected->keys())
+      ->where('seating_mode', 'reserved')->pluck('id');
+    $required = $reservedTickets->sum(fn ($ticketId) => (int) $selected->get((int) $ticketId, 0));
+    if ($required === 0 && $seatIds !== []) throw new RuntimeException('Seats were selected for a general-admission ticket.');
+    if ($required > 0 && count($seatIds) !== $required) throw new RuntimeException("Choose exactly {$required} seats for the reserved tickets in this order.");
+    if ($required === 0) return;
+    if ($token === '') throw new RuntimeException('The ticket hold expired before the seats could be reserved.');
+
+    $seatTicketCounts = EventSeat::query()->with('section:id,ticket_id')->where('event_id', $event->id)->whereIn('id', $seatIds)->get()
+      ->groupBy(fn (EventSeat $seat) => (int) ($seat->ticket_id ?: $seat->section?->ticket_id))->map->count();
+    foreach ($reservedTickets as $ticketId) {
+      if ((int) $seatTicketCounts->get((int) $ticketId, 0) !== (int) $selected->get((int) $ticketId, 0)) {
+        throw new RuntimeException('Every selected seat must match its ticket category.');
+      }
+    }
+    app(SeatReservationService::class)->reserve(
+      $token,
+      (int) $event->id,
+      $seatIds,
+      $request->session()->getId(),
+      Auth::guard('customer')->id(),
+      $buyerEmailHash,
+    );
   }
 
   /** Email and password log in for attendees (customers) and organisers. */
@@ -289,7 +379,7 @@ class TicaApiController extends Controller
    */
   public function checkinCode(Request $request): JsonResponse
   {
-    $validated = $request->validate(['event_id' => ['required', 'integer'], 'code' => ['required', 'string', 'max:40']]);
+    $validated = $request->validate(['event_id' => ['required', 'integer'], 'code' => ['required', 'string', 'max:80']]);
     $organizerId = Auth::guard('organizer')->id();
     if (!$organizerId) {
       $staff = Auth::guard('scanner')->user();
@@ -298,17 +388,18 @@ class TicaApiController extends Controller
       }
     }
     abort_unless($organizerId, 401, 'Sign in with an organiser or gate staff account.');
-    if (!preg_match('/^TICA-0*(\d+)-(\d+)$/i', trim($validated['code']), $match)) {
-      return response()->json(['message' => 'Codes look like TICA-123456-1.'], 422);
-    }
+    $code = trim($validated['code']);
     $ticket = \App\Models\Event\BookingTicket::query()
-      ->where('booking_id', (int) $match[1])
-      ->where('sequence', (int) $match[2])
       ->where('event_id', (int) $validated['event_id'])
       ->where('organizer_id', (int) $organizerId)
+      ->when(
+        preg_match('/^TICA-0*(\d+)-(\d+)$/i', $code, $match) === 1,
+        fn ($query) => $query->where('booking_id', (int) $match[1])->where('sequence', (int) $match[2]),
+        fn ($query) => $query->where('ticket_number', $code),
+      )
       ->first();
     if (!$ticket) {
-      return response()->json(['message' => 'No ticket with code ' . strtoupper($validated['code']) . ' for this event.'], 404);
+      return response()->json(['message' => 'No ticket with number ' . strtoupper($code) . ' for this event.'], 404);
     }
     $tier = $ticket->variation_name ?: (\App\Models\Event\TicketContent::query()->where('ticket_id', $ticket->ticket_id)->orderBy('language_id')->value('title') ?: 'Ticket');
 
@@ -316,6 +407,8 @@ class TicaApiController extends Controller
       'payload' => signedTicketUnitPayload($ticket->public_id, $ticket->event_id),
       'name' => (string) ($ticket->holder_name ?: 'Guest'),
       'tier' => (string) $tier,
+      'number' => (string) ($ticket->ticket_number ?: 'TICA-' . str_pad((string) $ticket->booking_id, 6, '0', STR_PAD_LEFT) . '-' . $ticket->sequence),
+      'seat' => collect([$ticket->section_label, $ticket->row_label ? 'Row ' . $ticket->row_label : null, $ticket->seat_label ? 'Seat ' . $ticket->seat_label : null])->filter()->join(' · '),
     ]);
   }
 

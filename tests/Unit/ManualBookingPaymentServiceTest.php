@@ -64,6 +64,14 @@ class ManualBookingPaymentServiceTest extends TestCase
             'status' => 'pending',
         ]);
         $this->assertDatabaseCount('booking_deliveries', 1);
+        $this->assertDatabaseHas('booking_tickets', [
+            'booking_id' => $booking->id,
+            'event_id' => $event->id,
+            'organizer_id' => $organizer->id,
+            'sequence' => 1,
+            'status' => 'issued',
+        ]);
+        $this->assertDatabaseCount('booking_tickets', 1);
         $this->assertSame(1, DB::table('audit_logs')->where('action', 'booking.payment_status_changed')->count());
     }
 
@@ -516,6 +524,15 @@ class ManualBookingPaymentServiceTest extends TestCase
             $table->id(); $table->unsignedBigInteger('event_id'); $table->string('pricing_type')->nullable();
             $table->string('ticket_available_type')->nullable(); $table->integer('ticket_available')->default(0);
             $table->longText('variations')->nullable(); $table->softDeletes(); $table->timestamps();
+        });
+        Schema::create('booking_tickets', function (Blueprint $table): void {
+            $table->id(); $table->uuid('public_id')->unique(); $table->unsignedBigInteger('booking_id');
+            $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('organizer_id')->nullable();
+            $table->unsignedBigInteger('ticket_id')->nullable(); $table->unsignedInteger('sequence');
+            $table->string('variation_name')->nullable(); $table->string('holder_name')->nullable();
+            $table->string('holder_email')->nullable(); $table->string('status')->default('issued');
+            $table->timestamp('checked_in_at')->nullable(); $table->timestamps();
+            $table->unique(['booking_id', 'sequence']);
         });
         Schema::create('earnings', function (Blueprint $table): void {
             $table->id(); $table->decimal('total_revenue', 18, 2)->default(0);

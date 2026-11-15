@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -95,6 +96,74 @@ class EventCheckoutQuoteServiceTest extends TestCase
         $this->assertSame(0.0, $quote['discount']);
         $this->assertFalse(session()->has('event_coupon_id'));
         $this->assertSame(5300.0, $quote['grand_total']);
+    }
+
+    public function test_reserved_seat_section_price_is_rebuilt_from_active_server_holds(): void
+    {
+        $ticketId = DB::table('tickets')->insertGetId($this->ticket([
+            'pricing_type' => 'normal',
+            'price' => 5000,
+            'seating_mode' => 'reserved',
+        ]));
+        $sectionId = DB::table('seating_sections')->insertGetId([
+            'event_id' => 42,
+            'name' => 'Front row',
+            'kind' => 'seated',
+            'ticket_id' => $ticketId,
+            'price_override' => 8000,
+            'sort_order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $rowId = DB::table('seating_rows')->insertGetId([
+            'event_id' => 42,
+            'section_id' => $sectionId,
+            'label' => 'A',
+            'sort_order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $token = (string) Str::uuid();
+        foreach (['01', '02'] as $sort => $label) {
+            $seatId = DB::table('event_seats')->insertGetId([
+                'public_id' => (string) Str::uuid(),
+                'event_id' => 42,
+                'section_id' => $sectionId,
+                'row_id' => $rowId,
+                'ticket_id' => $ticketId,
+                'label' => $label,
+                'status' => 'available',
+                'is_accessible' => false,
+                'sort_order' => $sort + 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('seat_reservations')->insert([
+                'token' => $token,
+                'event_id' => 42,
+                'ticket_id' => $ticketId,
+                'seat_id' => $seatId,
+                'status' => 'active',
+                'expires_at' => now()->addMinutes(15),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        session()->put('ticket_reservation_token', $token);
+        session()->put('selTickets', [[
+            'ticket_id' => $ticketId,
+            'name' => 'Reserved',
+            'qty' => 2,
+            'price' => 1,
+        ]]);
+
+        $quote = app(EventCheckoutQuoteService::class)->refreshSession(42);
+
+        $this->assertSame([8000.0, 8000.0], $quote['selTickets'][0]['unit_prices']);
+        $this->assertSame(8000.0, $quote['selTickets'][0]['price']);
+        $this->assertSame(16000.0, $quote['sub_total']);
+        $this->assertSame(960.0, $quote['tax']);
+        $this->assertSame(16960.0, $quote['grand_total']);
     }
 
     public function test_variation_name_and_duplicate_identity_fail_closed(): void
@@ -238,6 +307,58 @@ class EventCheckoutQuoteServiceTest extends TestCase
             $table->date('early_bird_discount_date')->nullable();
             $table->time('early_bird_discount_time')->nullable();
             $table->text('variations')->nullable();
+            $table->string('seating_mode')->default('general_admission');
+            $table->timestamps();
+        });
+        Schema::create('seating_sections', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('event_id');
+            $table->string('name');
+            $table->string('kind')->default('seated');
+            $table->unsignedBigInteger('ticket_id')->nullable();
+            $table->decimal('price_override', 18, 2)->nullable();
+            $table->unsignedInteger('capacity')->nullable();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->json('layout')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('seating_rows', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('section_id');
+            $table->string('label');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->timestamps();
+        });
+        Schema::create('event_seats', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('public_id')->unique();
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('section_id');
+            $table->unsignedBigInteger('row_id')->nullable();
+            $table->unsignedBigInteger('ticket_id')->nullable();
+            $table->string('label');
+            $table->string('status')->default('available');
+            $table->boolean('is_accessible')->default(false);
+            $table->decimal('price_override', 18, 2)->nullable();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->timestamps();
+        });
+        Schema::create('seat_reservations', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('token');
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('ticket_id');
+            $table->unsignedBigInteger('seat_id');
+            $table->string('status')->default('active');
+            $table->string('session_hash', 64)->nullable();
+            $table->unsignedBigInteger('customer_id')->nullable();
+            $table->char('buyer_email_hash', 64)->nullable();
+            $table->unsignedBigInteger('booking_id')->nullable();
+            $table->unsignedBigInteger('booking_ticket_id')->nullable();
+            $table->timestamp('expires_at');
+            $table->timestamp('consumed_at')->nullable();
+            $table->timestamp('released_at')->nullable();
             $table->timestamps();
         });
         Schema::create('customers', function (Blueprint $table): void {

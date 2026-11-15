@@ -9,6 +9,7 @@ use App\Models\Event\EventContent;
 use App\Models\Event\EventDates;
 use App\Models\Event\Ticket;
 use App\Models\Event\TicketContent;
+use App\Models\SeatingSection;
 use Carbon\Carbon;
 
 /**
@@ -65,12 +66,25 @@ class EventBuilderPrefill
         'price' => $price,
         'quantity' => $ticket->ticket_available_type === 'limited' ? (int) $ticket->ticket_available + $sold : null,
         'max_per_order' => $ticket->max_ticket_buy_type === 'limited' ? (int) $ticket->max_buy_ticket : null,
+        'min_per_order' => (int) ($ticket->min_buy_ticket ?: 1),
         'description' => (string) ($description ?? ''),
         'early_price' => $early,
         'early_ends' => $early !== null && $ticket->early_bird_discount_date
           ? $ticket->early_bird_discount_date . 'T' . substr((string) ($ticket->early_bird_discount_time ?: '23:59'), 0, 5)
           : null,
         'sold' => $sold,
+        'sales_start' => optional($ticket->sales_start_at)?->format('Y-m-d\TH:i'),
+        'sales_end' => optional($ticket->sales_end_at)?->format('Y-m-d\TH:i'),
+        'ticket_visibility' => (string) ($ticket->visibility ?: 'public'),
+        'sales_status' => (string) ($ticket->sales_status ?: 'on_sale'),
+        'numbering_enabled' => (bool) $ticket->numbering_enabled,
+        'numbering_scope' => (string) ($ticket->numbering_scope ?: 'category'),
+        'number_prefix' => (string) ($ticket->number_prefix ?? ''),
+        'number_start' => (int) ($ticket->number_start ?: 1),
+        'number_padding' => (int) ($ticket->number_padding ?: 3),
+        'number_format' => (string) ($ticket->number_format ?: '{PREFIX}-{NUMBER}'),
+        'seating_mode' => (string) ($ticket->seating_mode ?: 'general_admission'),
+        'design_settings' => $ticket->design_settings ?: [],
         // Tickets with options (variations) were made in the old editor; the builder leaves them as they are.
         'locked' => $ticket->pricing_type === 'variation',
       ];
@@ -101,6 +115,7 @@ class EventBuilderPrefill
       'join_reveal_minutes' => (string) ((int) ($event->join_reveal_minutes ?? 15)),
       'entry' => $event->registration_mode === 'corporate' ? 'corporate' : 'ticketing',
       'tiers' => $tiers,
+      'seat_map' => $this->seatMap($event, $tiers),
       'fee_payer' => $event->fee_payer === 'organizer' ? 'organizer' : 'buyer',
       'visibility' => (string) ($event->visibility ?: 'public'),
       'refund_policy' => $refund === false ? '' : $refund,
@@ -121,6 +136,27 @@ class EventBuilderPrefill
         'entry' => true,
       ],
     ];
+  }
+
+  private function seatMap(Event $event, array $tiers): array
+  {
+    $ticketIndex = collect($tiers)->pluck('id')->flip();
+
+    return SeatingSection::query()->with(['rows.seats'])->where('event_id', $event->id)->orderBy('sort_order')->get()
+      ->map(fn ($section) => [
+        'name' => $section->name,
+        'kind' => $section->kind,
+        'price_override' => $section->price_override === null ? null : (float) $section->price_override,
+        'ticket_index' => (int) ($ticketIndex->get($section->ticket_id, 0)),
+        'rows' => $section->rows->map(fn ($row) => [
+          'label' => $row->label,
+          'seats' => $row->seats->map(fn ($seat) => [
+            'label' => $seat->label,
+            'status' => $seat->status === 'unavailable' ? 'unavailable' : 'available',
+            'accessible' => (bool) $seat->is_accessible,
+          ])->values()->all(),
+        ])->values()->all(),
+      ])->values()->all();
   }
 
   /** The builder stores paragraphs as simple HTML; the form edits plain text. */

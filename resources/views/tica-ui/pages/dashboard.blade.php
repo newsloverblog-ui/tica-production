@@ -32,6 +32,23 @@
         <div id="od-evlist"></div>
       </div>
 
+      <!-- TICKET MANAGEMENT -->
+      <div class="od-p tk" data-p="tickets" hidden>
+        <header class="t-page-head"><div><h1>Ticket management</h1><p>Monitor inventory, ticket numbers, reserved seats and attendee assignments.</p></div>
+          <div class="or-actions"><button class="t-btn t-btn--secondary" type="button" id="tk-export">Export tickets</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-comp">Issue complimentary ticket</button></div></header>
+        <div class="tk-stats" id="tk-stats"></div>
+        <section class="t-card tk-categories" aria-labelledby="tk-cat-h">
+          <div class="t-card__head"><div><h2 class="t-card__title" id="tk-cat-h">Inventory by ticket type</h2><p class="t-help">Unlimited categories show an em dash for inventory and availability.</p></div></div>
+          <div class="t-toolbar"><label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search ticket types</span><input class="t-input" id="tk-cat-q" type="search" placeholder="Event or ticket type"></label><select class="t-select" id="tk-cat-event" aria-label="Event"><option value="">All events</option></select></div>
+          <div id="tk-cat-table"></div>
+        </section>
+        <section class="t-card tk-allocations" aria-labelledby="tk-unit-h">
+          <div class="t-card__head"><div><h2 class="t-card__title" id="tk-unit-h">Assigned tickets and seats</h2><p class="t-help">Search by ticket number, attendee, email, section, row or seat.</p></div></div>
+          <div class="t-toolbar"><label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search assigned tickets</span><input class="t-input" id="tk-q" type="search" placeholder="REG-001, Ada, VIP, Row A or Seat 12"></label><select class="t-select" id="tk-event" aria-label="Event"><option value="">All events</option></select><select class="t-select" id="tk-category" aria-label="Ticket type"><option value="">All ticket types</option></select><select class="t-select" id="tk-status" aria-label="Ticket status"><option value="">Any status</option><option value="paid">Paid</option><option value="checked_in">Checked in</option><option value="refunded">Refunded or cancelled</option><option value="guest">Complimentary</option></select></div>
+          <div id="tk-units" aria-live="polite"></div><div class="t-pager"><span id="tk-msg" role="status"></span><button class="t-btn t-btn--secondary t-btn--sm" id="tk-more" type="button" hidden>Load more</button></div>
+        </section>
+      </div>
+
       <!-- ORDERS -->
       <div class="od-p" data-p="orders" hidden>
         <header class="t-page-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
@@ -222,6 +239,7 @@
   <form class="od-form" id="od-comp-f" novalidate>
     <div class="od-row2"><div class="inp"><label for="od-gn">Guest name</label><input id="od-gn" type="text"></div><div class="inp"><label for="od-ge">Email</label><input id="od-ge" type="email"></div></div>
     <div class="od-row2"><div class="inp"><label for="od-gv">Event</label><select id="od-gv"><option>Afterdark Owerri</option><option>Kulture Market</option><option>Freelance Money Masterclass</option></select></div><div class="inp"><label for="od-gt">Ticket</label><select id="od-gt"><option>Regular</option><option>VIP</option></select></div></div>
+    <div class="inp" id="od-gs-wrap" hidden><label for="od-gs">Reserved seat</label><select id="od-gs"><option value="">Choose an available seat</option></select><small>The seat is held and assigned when the complimentary ticket is issued.</small></div>
     <button class="btn btn-hot" type="submit">Send free ticket</button><p class="hint" id="od-comp-m" role="status"></p>
   </form>
 </dialog>

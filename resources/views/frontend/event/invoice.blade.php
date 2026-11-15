@@ -41,6 +41,25 @@
       font-size: {{ $_12px }};
       margin-bottom: {{ $_10px }};
     }
+
+    .tica-ticket {
+      border: 1px solid #dfe5ef;
+      border-top: 5px solid var(--ticket-accent, #245fd3);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      background: linear-gradient(145deg, #fff 0%, #f7f9fd 100%);
+      page-break-inside: avoid;
+    }
+    .tica-ticket__event { color: #12213b; font-size: 19px; margin-bottom: 4px; }
+    .tica-ticket__logo { width: 52px; height: 52px; object-fit: cover; border-radius: 11px; margin: 0 auto 10px; border: 1px solid #dfe5ef; }
+    .tica-ticket__number { color: var(--ticket-accent, #245fd3); font-size: 22px; letter-spacing: .03em; }
+    .tica-ticket__meta { color: #526079; }
+    .tica-ticket__id { color: #77849b; font-size: 9px; overflow-wrap: anywhere; }
+    @media (max-width: 767px) {
+      .float-left, .float-right { float: none !important; width: 100% !important; }
+      .tica-ticket { padding: 16px; }
+    }
   </style>
 </head>
 
@@ -176,11 +195,42 @@
             <div class="p-3 border mt-5 mb-2">
               @php $ticketUnits = $bookingInfo->relationLoaded('ticketUnits') ? $bookingInfo->ticketUnits : $bookingInfo->ticketUnits()->get(); @endphp
               @forelse ($ticketUnits as $ticketUnit)
-                <div class="logo text-center" style="margin-bottom: {{ $mb }}; page-break-inside: avoid;">
-                  <p><strong>{{ __('Ticket') }} {{ $ticketUnit->sequence }} {{ __('of') }} {{ $ticketUnits->count() }}</strong></p>
-                  @if ($ticketUnit->variation_name)
-                    <p class="text-muted">{{ $ticketUnit->variation_name }}</p>
+                @php
+                  $design = (array) optional($ticketUnit->ticket)->design_settings;
+                  $show = static fn ($field) => !array_key_exists('show_'.$field, $design) || filter_var($design['show_'.$field], FILTER_VALIDATE_BOOLEAN);
+                  $accent = preg_match('/\A#[0-9A-Fa-f]{6}\z/', (string) ($design['accent'] ?? '')) ? $design['accent'] : '#245fd3';
+                  $category = $ticketUnit->variation_name ?: optional($ticketUnit->ticket)->title;
+                  $venue = collect([optional($eventInfo)->address, optional($eventInfo)->city])->filter()->join(', ');
+                  $eventLogo = \App\Support\PublicImage::flyer(optional($eventInfo)->thumbnail);
+                @endphp
+                <div class="tica-ticket text-center" style="--ticket-accent: {{ $accent }};">
+                  @if ($show('logo') && $eventLogo)
+                    <img class="tica-ticket__logo" src="{{ $eventLogo }}" alt="{{ __('Event logo') }}">
                   @endif
+                  <p class="tica-ticket__event"><strong>{{ @$eventInfo->title }}</strong></p>
+                  @if ($show('number'))
+                    <p class="tica-ticket__number"><strong>{{ $ticketUnit->ticket_number ?: __('Ticket').' '.$ticketUnit->sequence.' '.__('of').' '.$ticketUnits->count() }}</strong></p>
+                  @endif
+                  @if ($show('attendee') && $ticketUnit->holder_name)
+                    <p class="tica-ticket__meta">{{ $ticketUnit->holder_name }}</p>
+                  @endif
+                  @if ($show('category') && $category)
+                    <p class="tica-ticket__meta">{{ $category }}</p>
+                  @endif
+                  @if ($show('date'))
+                    <p class="tica-ticket__meta">{{ FullDateTimeInvoice($bookingInfo->event_date) }}</p>
+                  @endif
+                  @if ($show('venue') && $venue)
+                    <p class="tica-ticket__meta">{{ $venue }}</p>
+                  @endif
+                  @php
+                    $seatParts = collect([
+                      $show('section') ? $ticketUnit->section_label : null,
+                      $show('row') && $ticketUnit->row_label ? __('Row').' '.$ticketUnit->row_label : null,
+                      $show('seat') && $ticketUnit->seat_label ? __('Seat').' '.$ticketUnit->seat_label : null,
+                    ])->filter();
+                  @endphp
+                  @if ($seatParts->isNotEmpty())<p class="tica-ticket__meta">{{ $seatParts->join(' · ') }}</p>@endif
                   @if ($ticketUnit->status === 'issued' && $ticketUnit->qr_data_uri)
                     <img style="width: 180px; height: 180px;"
                       src="{{ $ticketUnit->qr_data_uri }}"
@@ -189,7 +239,8 @@
                     <p><strong>{{ __(ucfirst(str_replace('_', ' ', $ticketUnit->status))) }}</strong></p>
                     <p class="text-muted" style="font-size: 10px;">{{ __('This admission credential is no longer active and its QR code is intentionally omitted.') }}</p>
                   @endif
-                  <p class="text-muted" style="font-size: 10px;">{{ $ticketUnit->public_id }}</p>
+                  @if ($show('status'))<p class="tica-ticket__meta">{{ __('Status') }}: {{ __(ucfirst(str_replace('_', ' ', $ticketUnit->status))) }}</p>@endif
+                  <p class="tica-ticket__id">{{ __('Secure ticket ID') }}: {{ $ticketUnit->public_id }}</p>
                 </div>
               @empty
                 <p class="text-muted text-center">{{ __('Ticket QR code is being prepared.') }}</p>

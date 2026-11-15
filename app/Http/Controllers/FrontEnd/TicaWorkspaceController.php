@@ -4,7 +4,6 @@ namespace App\Http\Controllers\FrontEnd;
 
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\UploadFile;
-use App\Http\Controllers\FrontEnd\Event\BookingController;
 use App\Models\Event;
 use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
@@ -28,12 +27,12 @@ use App\Rules\ImageMimeTypeRule;
 use App\Services\ApplicationMailService;
 use App\Services\AuditLogger;
 use App\Services\BookingTicketDeliveryService;
+use App\Services\ComplimentaryTicketService;
 use App\Services\EventCancellationService;
 use App\Services\EventLifecycleNotificationService;
 use App\Services\OrganizerPayoutAccountService;
 use App\Services\OrganizerEmailVerificationService;
 use App\Services\PasswordPolicy;
-use App\Services\PaidBookingFulfillmentService;
 use App\Services\PaymentRefundService;
 use App\Services\PaystackGatewayClient;
 use App\Services\TicaUi\OrganizerAttendeeDirectory;
@@ -244,11 +243,12 @@ class TicaWorkspaceController extends Controller
 
     return response()->streamDownload(function () use ($directory, $filters, $organizerId) {
       $out = fopen('php://output', 'w');
-      fputcsv($out, ['Name', 'Email', 'Ticket', 'Event', 'Order', 'Amount', 'Status', 'Answer']);
+      fputcsv($out, ['Name', 'Email', 'Ticket category', 'Ticket number', 'Section', 'Row', 'Seat', 'Event', 'Order', 'Amount', 'Status', 'Answer']);
       foreach ($directory->batches($organizerId, $filters) as $rows) {
         foreach ($rows as $row) {
           fputcsv($out, array_map(fn ($value) => preg_match('/^[=+\-@]/', (string) $value) ? "'" . $value : $value, [
-            $row['name'], $row['email'], $row['tier'], $row['event'], $row['ref'], $row['amount'], $row['status'], $row['answer'],
+            $row['name'], $row['email'], $row['tier'], $row['ticketNumber'], $row['section'], $row['row'], $row['seat'],
+            $row['event'], $row['ref'], $row['amount'], $row['status'], $row['answer'],
           ]));
         }
       }
@@ -261,6 +261,7 @@ class TicaWorkspaceController extends Controller
     return $request->validate([
       'q' => ['nullable', 'string', 'max:255'],
       'event' => ['nullable', 'integer', 'min:1'],
+      'ticket' => ['nullable', 'integer', 'min:1'],
       'status' => ['nullable', Rule::in(['paid', 'checked_in', 'refunded', 'guest'])],
       'from' => ['nullable', 'date_format:Y-m-d'],
       'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
@@ -346,30 +347,22 @@ class TicaWorkspaceController extends Controller
       'variation' => ['nullable', 'string', 'max:255'],
       'name' => ['required', 'string', 'min:2', 'max:200'],
       'email' => ['required', 'email:rfc', 'max:191'],
+      'seat_id' => ['nullable', 'integer', Rule::exists('event_seats', 'id')],
     ]);
     $event = $this->ownedEvent((int) $validated['event_id']);
     $ticket = Ticket::query()->where('event_id', $event->id)->whereKey((int) $validated['ticket_id'])->firstOrFail();
-    $title = $validated['variation'] ?: (TicketContent::query()->where('ticket_id', $ticket->id)->orderBy('language_id')->value('title') ?: ($ticket->title ?: 'Guest'));
-    $parts = preg_split('/\s+/u', trim($validated['name'])) ?: [];
-    $first = array_shift($parts) ?: $validated['name'];
-
     try {
-      $booking = app(BookingController::class)->storeData([
-        'event_id' => $event->id,
-        'price' => 0, 'tax' => 0, 'commission' => 0, 'quantity' => 1, 'discount' => 0, 'total_early_bird_dicount' => 0,
-        'currencyText' => null, 'currencyTextPosition' => null, 'currencySymbol' => null, 'currencySymbolPosition' => null,
-        'fname' => $first, 'lname' => $parts ? implode(' ', $parts) : $first,
-        'email' => mb_strtolower($validated['email']), 'phone' => '',
-        'paymentMethod' => 'Guest', 'gatewayType' => null, 'paymentStatus' => 'free',
-        'event_date' => $event->date_type === 'multiple' ? null : FullDateTime(trim($event->start_date . ' ' . $event->start_time)),
-        'selected_tickets' => [['ticket_id' => $ticket->id, 'early_bird_dicount' => 0, 'name' => $title, 'qty' => 1, 'price' => 0]],
-        'reservation_token' => null,
-        'customer_id' => null,
-      ]);
+      $booking = app(ComplimentaryTicketService::class)->issue(
+        $event,
+        $ticket,
+        $validated['name'],
+        $validated['email'],
+        'Organizer complimentary',
+        isset($validated['seat_id']) ? (int) $validated['seat_id'] : null,
+      );
     } catch (RuntimeException $exception) {
       throw ValidationException::withMessages(['ticket_id' => $exception->getMessage()]);
     }
-    app(PaidBookingFulfillmentService::class)->dispatch($booking->id);
     AuditLogger::record('event.guest_ticket_issued', $booking, [], ['event_id' => $event->id, 'ticket_id' => $ticket->id]);
 
     return response()->json(['message' => 'Free ticket sent.']);

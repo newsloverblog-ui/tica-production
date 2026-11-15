@@ -17,6 +17,7 @@
   $icons = [
     'overview' => '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/>',
     'events' => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    'tickets' => '<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/><path d="M9 8v9M15 8v9"/>',
     'orders' => '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>',
     'checkin' => '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/>',
     'promote' => '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/>',
@@ -31,6 +32,7 @@
     'Main' => [
       ['overview', 'Overview', '/dashboard', 'overview.view'],
       ['events', 'Events', '/dashboard/events', 'events.view'],
+      ['tickets', 'Ticket management', '/dashboard/tickets', 'orders.view'],
       ['forms', 'Registration forms', '/organizer/forms', 'events.manage'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
@@ -70,7 +72,7 @@
   }
   $toolsActive = $active === 'tools';
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
-  $titles = ['overview' => 'Overview', 'events' => 'Events', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
+  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
 
 <div id="tica-shell" class="tsh">

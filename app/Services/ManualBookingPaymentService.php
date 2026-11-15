@@ -102,6 +102,10 @@ class ManualBookingPaymentService
         }
 
         $booking->update(['paymentStatus' => 'completed']);
+        app(TicketIssuanceService::class)->issueForBooking(
+            $booking->fresh(),
+            $booking->ticket_reservation_token ?: null,
+        );
 
         $ledger = [
             'transcation_id' => 'offline-booking-'.$booking->id,
@@ -138,6 +142,12 @@ class ManualBookingPaymentService
     private function reject(Booking $booking, Event $event): void
     {
         $this->restoreInventory($booking, $event);
+        if ($booking->ticket_reservation_token) {
+            app(SeatReservationService::class)->release(
+                (string) $booking->ticket_reservation_token,
+                'payment_rejected',
+            );
+        }
         $booking->update(['paymentStatus' => 'rejected']);
         $this->ensureRejectionNotificationPending($booking);
     }

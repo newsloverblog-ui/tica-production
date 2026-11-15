@@ -90,6 +90,7 @@ return [
   'sections' => [
     'overview' => 'overview.view',
     'events' => 'events.view',
+    'tickets' => 'orders.view',
     'orders' => 'orders.view',
     'promote' => 'promote.manage',
     'payouts' => 'payouts.view',

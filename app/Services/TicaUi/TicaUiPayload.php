@@ -44,6 +44,8 @@ class TicaUiPayload
       'currency' => $catalog->currency(),
       'user' => $this->customer(),
       'organizer' => $this->organizer($language),
+      'ticketTypeLimit' => (int) config('tickets.max_types_per_event', 50),
+      'ticketTypePresets' => array_values((array) config('tickets.type_presets', [])),
       'csrf' => csrf_token(),
       'googleSignIn' => \App\Http\Controllers\FrontEnd\SocialSignInController::googleReady(),
       'routes' => $this->routes(),
@@ -150,6 +152,7 @@ class TicaUiPayload
     $free = $booking->paymentStatus === 'free' || $total <= 0;
 
     $tickets = BookingTicket::query()
+      ->with('ticket:id,design_settings')
       ->where('booking_id', $booking->id)
       ->orderBy('sequence')
       ->get()
@@ -157,8 +160,13 @@ class TicaUiPayload
         'name' => $ticket->holder_name ?: $buyer,
         'email' => $ticket->holder_email ?: $booking->email,
         'tier' => $ticket->variation_name ?: ($titles[$ticket->ticket_id] ?? __('General admission')),
-        'code' => $reference . '-' . $ticket->sequence,
+        'code' => $ticket->ticket_number ?: ($reference . '-' . $ticket->sequence),
+        'ticketNumber' => $ticket->ticket_number,
+        'seat' => $ticket->seat_label,
+        'row' => $ticket->row_label,
+        'section' => $ticket->section_label,
         'status' => $ticket->status,
+        'design' => (array) ($ticket->ticket?->design_settings ?? []),
         'qr' => $ticket->status === 'issued' ? signedTicketUnitPayload($ticket->public_id, $ticket->event_id) : null,
       ])
       ->values()
