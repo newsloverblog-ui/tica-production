@@ -44,7 +44,11 @@
           <div class="card-body">
             <div class="alert alert-light border">
               <strong>{{ $event->information?->title ?: 'Event #' . $event->id }}</strong><br>
-              <small>{{ __('Saving this form changes the event from ticket sales to corporate registration. Existing ticket checkout will be disabled for this event.') }}</small>
+              @if (($event->registration_mode ?: 'ticketing') === 'ticketing' && $form?->source_form_id)
+                <small>{{ __('This form is attached to the event as an attendee-details add-on. Saving it keeps ticket checkout active.') }}</small>
+              @else
+                <small>{{ __('Saving this form changes the event from ticket sales to corporate registration. Existing ticket checkout will be disabled for this event.') }}</small>
+              @endif
             </div>
             <form method="POST" action="{{ route('organizer.event.registrations.form.save') }}">
               @csrf

@@ -1177,3 +1177,46 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
 }
 @media (prefers-reduced-motion:reduce){.ov-summary__item{transition:none}}
 .t-pager:has(>[role=status]:empty):has(>button[hidden]){display:none}
+
+/* =====================================================================
+   Page frame: one width, one gutter and one header for every organiser
+   page, old and new. Loaded last on purpose so it settles older rules.
+   ===================================================================== */
+:root{--t-page-max:1280px;--t-page-pad:32px;--t-page-pad-b:64px}
+@media (max-width:1180px){:root{--t-page-pad:24px}}
+@media (max-width:767px){:root{--t-page-pad:16px;--t-page-pad-b:48px}}
+
+body.orgshell .page[data-page=dashboard] .od-main,body.orgshell .db-main,body.orgshell .od-main,
+body.orgshell-legacy .page-inner,body.tica-organizer.orgshell-legacy .page-inner{
+  width:100%!important;max-width:var(--t-page-max)!important;margin:0 auto!important;
+  padding:var(--t-page-pad) var(--t-page-pad) var(--t-page-pad-b)!important;box-sizing:border-box}
+/* Pages no longer set their own widths. */
+body.orgshell .pr,body.orgshell .ov-wrap,.gl,.rf-page,body.tica-organizer .tsc{max-width:none!important}
+
+/* The page title lives in the page, not twice: the top bar keeps it only on phones. */
+@media (min-width:1024px){body.orgshell .tsh-title,body.orgshell-legacy .tsh-title{display:none}}
+
+/* One header: navy title, calm sentence under it, actions on the right. */
+body.orgshell .t-page-head,body.orgshell .db-head,body.orgshell .pr-head,.gl-head,
+body.orgshell-legacy .page-header,body.orgshell-legacy .tica-workspace-hero,body.orgshell-legacy .tsc-head{
+  display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:12px 16px!important;flex-wrap:wrap!important;
+  margin:0 0 24px!important;padding:0!important;min-height:0!important;
+  background:none!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;text-align:left!important}
+body.orgshell-legacy .tica-workspace-hero::before,body.orgshell-legacy .tica-workspace-hero::after{display:none!important}
+body.orgshell .t-page-head h1,body.orgshell .db-head h1,body.orgshell .pr-head h1,body.orgshell .ov-head h1,.gl-head h1,
+body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-inner>h1,body.orgshell-legacy .tica-workspace-hero h1,body.orgshell-legacy .tica-workspace-hero h2,body.orgshell-legacy .tsc-head h1{
+  margin:0!important;color:#0B2447!important;font-size:28px!important;line-height:36px!important;font-weight:600!important;letter-spacing:-.015em!important;text-align:left!important}
+body.orgshell .t-page-head p,body.orgshell .db-head p,body.orgshell .pr-head p,.gl-head p,
+body.orgshell-legacy .tica-workspace-hero p,body.orgshell-legacy .tica-workspace-hero .tica-lede,body.orgshell-legacy .tsc-head p{
+  margin:4px 0 0!important;max-width:640px;color:#526079!important;font-size:14px!important;line-height:20px!important}
+/* Small labels above titles and breadcrumb trails are noise once the menu shows where you are. */
+body.orgshell-legacy .page-header .breadcrumbs,body.orgshell-legacy .tica-eyebrow,body.orgshell-legacy .tica-page-kicker,body.orgshell-legacy .tsc-kicker{display:none!important}
+@media (max-width:767px){
+  body.orgshell .t-page-head h1,body.orgshell .db-head h1,body.orgshell .pr-head h1,body.orgshell .ov-head h1,.gl-head h1,
+  body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-inner>h1,body.orgshell-legacy .tica-workspace-hero h1,body.orgshell-legacy .tica-workspace-hero h2,body.orgshell-legacy .tsc-head h1{font-size:22px!important;line-height:30px!important}
+  body.orgshell .t-page-head,body.orgshell .db-head,body.orgshell .pr-head,.gl-head,body.orgshell-legacy .page-header,body.orgshell-legacy .tica-workspace-hero,body.orgshell-legacy .tsc-head{margin-bottom:16px!important}
+}
+/* Check-in and Create event use the same frame as the rest. */
+body.orgshell .page[data-page=checkin] .ck-wrap,body.orgshell .page[data-page=create] .wrap.pagehead{
+  width:100%!important;max-width:var(--t-page-max)!important;margin:0 auto!important;padding:var(--t-page-pad) var(--t-page-pad) var(--t-page-pad-b)!important;box-sizing:border-box}
+body:not(.orgshell) .ck-head{display:none}

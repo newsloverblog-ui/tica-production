@@ -4828,6 +4828,8 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .page[data-page=create] .ce-success-card>p:not(.ce-success-kicker){margin:12px auto 0;max-width:390px;color:#667085;font-size:14px;line-height:1.55}
 .page[data-page=create] .ce-success-actions{display:flex;justify-content:center;gap:10px;margin-top:24px}
 .page[data-page=create] .ce-entry-choice{margin-bottom:14px;padding:4px 16px;border:1px solid #dbe4f1;border-radius:14px;background:#fff}
+.page[data-page=create] .ce-registration-addon{margin-top:22px;padding-top:20px;border-top:1px solid #e4eaf3}
+.page[data-page=create] .ce-registration-addon .ce-entry-choice:has(input:checked){border-color:#b8cdf4;background:#f8faff;box-shadow:0 0 0 1px rgba(36,95,211,.04)}
 .page[data-page=create] .ce-choice-row{display:flex;align-items:flex-start;gap:13px;padding:14px 0;color:#14213a;cursor:pointer}
 .page[data-page=create] .ce-choice-row>input[type=checkbox]{flex:0 0 auto;width:19px;height:19px;margin:1px 0 0;accent-color:#245fd3}
 .page[data-page=create] .ce-choice-row span,.page[data-page=create] .ce-choice-row b,.page[data-page=create] .ce-choice-row small{display:block}
@@ -4836,8 +4838,12 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .page[data-page=create] .ce-choice-row:has(input:focus-visible){outline:2px solid #245fd3;outline-offset:4px;border-radius:8px}
 .page[data-page=create] .ce-disclosure{margin:-2px 0 18px;padding:17px;border:1px solid #dbe4f1;border-radius:14px;background:#f8faff}
 .page[data-page=create] .ce-disclosure[hidden]{display:none}
-.page[data-page=create] .ce-reg-empty{margin:0 0 14px;padding:12px 14px;border:1px solid #f2d4b4;border-radius:11px;background:#fff9f2;color:#5d3a1d}
+.page[data-page=create] .ce-reg-empty{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0;padding:12px 14px;border:1px solid #f2d4b4;border-radius:11px;background:#fff9f2;color:#5d3a1d}
+.page[data-page=create] .ce-reg-empty[hidden]{display:none}
 .page[data-page=create] .ce-reg-empty b{display:block;font-size:13px}.page[data-page=create] .ce-reg-empty p{margin:3px 0 0;color:#795536;font-size:12px;line-height:1.45}
+.page[data-page=create] .ce-reg-pick{margin:0}
+.page[data-page=create] .ce-reg-pick-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:7px}
+.page[data-page=create] .ce-reg-pick-foot small{color:#667085;font-size:12px}.page[data-page=create] .ce-reg-pick-foot a{color:#245fd3;font-size:12px;font-weight:750;white-space:nowrap}
 .page[data-page=create] .ce-tier>.ce-x{margin-top:9px}
 .page[data-page=create] .ce-ticket-option,.page[data-page=create] .ce-more-ticket{margin:0;border-top:1px solid #e7ecf3}
 .page[data-page=create] .ce-ticket-option:first-child{border-top:0}
@@ -4869,6 +4875,8 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .page[data-page=create] .ce-seat-head .inp,.page[data-page=create] .ce-row-tools .inp{margin-bottom:10px}
 .page[data-page=create] .ce-seat-row{padding:12px 0;border-top:1px solid #edf1f6}
 .page[data-page=create] .ce-seat-row:first-child{border-top:0}
+.page[data-page=create] .ce-seat-empty{margin:4px 0 12px;padding:16px;border:1px dashed #c5d3e7;border-radius:10px;background:#f8faff;color:#334155;text-align:center}
+.page[data-page=create] .ce-seat-empty[hidden]{display:none}.page[data-page=create] .ce-seat-empty b,.page[data-page=create] .ce-seat-empty small{display:block}.page[data-page=create] .ce-seat-empty small{margin-top:3px;color:#667085;font-size:12px}
 .page[data-page=create] .ce-seat-grid{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-radius:10px;background:#eef3fa}
 .page[data-page=create] .ce-seat{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #afbdd1;border-radius:8px;background:#fff;color:#27436f;font:700 11px/1 var(--body);cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease}
 .page[data-page=create] .ce-seat:hover{transform:translateY(-1px);border-color:#245fd3}
@@ -4881,6 +4889,8 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
   .page[data-page=create] .ce-success-actions{display:grid}.page[data-page=create] .ce-success-actions .btn{width:100%;justify-content:center}
   .page[data-page=create] .ce-entry-choice{padding-inline:13px}
   .page[data-page=create] .ce-disclosure{padding:14px}
+  .page[data-page=create] .ce-reg-empty{align-items:stretch;flex-direction:column}.page[data-page=create] .ce-reg-empty .btn{justify-content:center;width:100%}
+  .page[data-page=create] .ce-reg-pick-foot{align-items:flex-start;flex-direction:column;gap:6px}
   .page[data-page=create] .ce-choice-row{min-height:48px}
   .page[data-page=create] .ce-xo{padding:13px}
   .page[data-page=create] .ce-seat-head,.page[data-page=create] .ce-row-tools{align-items:stretch;flex-wrap:wrap}

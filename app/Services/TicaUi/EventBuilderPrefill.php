@@ -9,6 +9,7 @@ use App\Models\Event\EventContent;
 use App\Models\Event\EventDates;
 use App\Models\Event\Ticket;
 use App\Models\Event\TicketContent;
+use App\Models\EventRegistrationForm;
 use App\Models\SeatingSection;
 use Carbon\Carbon;
 
@@ -41,6 +42,9 @@ class EventBuilderPrefill
       ?? EventContent::query()->where('event_id', $event->id)->first();
     $mode = $event->event_type === 'online' ? 'Online' : ($event->is_hybrid ? 'Hybrid' : 'In person');
     $sales = self::hasSales($event);
+    $attachedFormId = EventRegistrationForm::query()
+      ->where('event_id', $event->id)->whereNotNull('source_form_id')->whereNull('archived_at')
+      ->with('source:id,public_id')->first()?->source?->public_id;
 
     $dates = EventDates::query()->where('event_id', $event->id)->orderBy('start_date_time')->get()
       ->map(fn ($date) => [
@@ -114,6 +118,7 @@ class EventBuilderPrefill
       'online_join_url' => (string) ($event->online_join_url ?? ''),
       'join_reveal_minutes' => (string) ((int) ($event->join_reveal_minutes ?? 15)),
       'entry' => $event->registration_mode === 'corporate' ? 'corporate' : 'ticketing',
+      'registration_form_id' => $attachedFormId,
       'tiers' => $tiers,
       'seat_map' => $this->seatMap($event, $tiers),
       'fee_payer' => $event->fee_payer === 'organizer' ? 'organizer' : 'buyer',

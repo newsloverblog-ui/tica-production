@@ -167,6 +167,7 @@ body .pulse-event-page .pulse-event-poster-stage > a > img { display: block; wid
 .pulse-waitlist-submit { display: inline-flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 46px; border: 0; border-radius: 12px; }
 
 .pulse-registration-panel { overflow: hidden; color: var(--event-text); background: #fff; border: 1px solid var(--event-border); border-radius: 16px; box-shadow: 0 14px 38px rgba(16,24,40,.08); }
+.pulse-registration-addon { margin-bottom: 18px; }
 .pulse-registration-body { padding: 24px; }
 .pulse-registration-body > p { margin: 0 0 18px; color: var(--event-muted); font-size: 14px; line-height: 1.65; }
 .pulse-registration-body ul { display: grid; gap: 12px; margin: 0 0 22px; padding: 0; color: var(--event-text); font-size: 13px; list-style: none; }

@@ -264,12 +264,10 @@ class EventController extends Controller
 
       $information['related_events'] = $related_events;
       $event = Event::findOrFail($content->id);
-      $information['registration_form'] = ($event->registration_mode ?: 'ticketing') === 'corporate'
-        ? EventRegistrationForm::query()
-          ->where('event_id', $event->id)
-          ->where('status', 'published')
-          ->first()
-        : null;
+      $information['registration_form'] = EventRegistrationForm::query()
+        ->where('event_id', $event->id)
+        ->where('status', 'published')
+        ->first();
       $information['waitlist_options'] = ($event->registration_mode ?: 'ticketing') === 'ticketing'
         ? app(EventWaitlistService::class)->soldOutSelections($event)
         : collect();

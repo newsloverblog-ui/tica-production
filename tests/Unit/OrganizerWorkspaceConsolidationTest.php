@@ -127,15 +127,20 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
-        $this->assertStringContainsString('id="c-use-registration" type="checkbox"', $create);
+        $this->assertStringContainsString('id="c-use-registration" name="use_registration" type="checkbox"', $create);
         $this->assertStringContainsString('id="ce-registration-fields" hidden', $create);
         $this->assertStringContainsString('id="ce-reg-empty" hidden', $create);
+        $this->assertStringContainsString('href="/organizer/forms">Create a form</a>', $create);
+        $this->assertGreaterThan(strpos($create, 'class="ce-sell"'), strpos($create, 'class="ce-registration-addon"'));
         $this->assertStringContainsString('id="ce-success" role="dialog"', $create);
         $this->assertStringNotContainsString('role="radiogroup" aria-label="How people get in"', $create);
         $this->assertStringContainsString('class="ce-early-on" type="checkbox"', $script);
         $this->assertStringContainsString('class="ce-seat-on" type="checkbox"', $script);
         $this->assertStringContainsString("modeInput.value=seats.checked?'reserved':'general_admission'", $script);
         $this->assertStringContainsString("fd.append('tiers['+i+'][seating_mode]',reserved?'reserved':'general_admission')", $script);
+        $this->assertStringContainsString("fd.append('use_registration',$('c-use-registration').checked?'1':'0')", $script);
+        $this->assertStringContainsString("r&&r.parentElement&&r.parentElement.classList.contains('ce-tier')", $script);
+        $this->assertStringContainsString("e.target.closest('.ce-seat-row').remove();refreshSeatSection(s)", $script);
         $this->assertStringContainsString("if(!r||!r.event_id||!r.name)", $script);
         $this->assertStringContainsString("setCreateMessage(text||'We couldn\\'t save your event. Try again.','error')", $script);
         $this->assertStringNotContainsString("setTimeout(function(){location.href=r.redirect_url", $script);

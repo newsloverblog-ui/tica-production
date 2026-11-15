@@ -95,7 +95,7 @@ class EventRegistrationController extends Controller
 
     private function publishedForm(Event $event): EventRegistrationForm
     {
-        abort_unless(($event->registration_mode ?: 'ticketing') === 'corporate'
+        abort_unless(in_array(($event->registration_mode ?: 'ticketing'), ['corporate', 'ticketing'], true)
             && (int) $event->status === 1
             && ($event->lifecycle_status ?: 'scheduled') === 'scheduled'
             && !$event->cancelled_at, 404);
