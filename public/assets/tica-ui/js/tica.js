@@ -1347,8 +1347,8 @@ function drawOverviewKpis(range){
   if(range)OV.range=range;
   var k=D.kpisByRange&&D.kpisByRange[OV.range]||D.kpis||{},pv=k.prev||null,rows=chartRows(),rate=k.views?Math.min(999,Math.round(k.sold/k.views*1000)/10):0,prevRate=pv&&pv.views?Math.round(pv.sold/pv.views*1000)/10:null,aov=k.orders?k.gross/k.orders:0;
   var cards=[
-    ['Revenue',money(k.gross),delta(k.gross,pv&&pv.gross),spark(rows.map(function(r){return r[2]||0})),'Gross paid ticket sales in '+perLabel(),CAN.orders?'orders':'','money'],
-    ['Tickets sold',nf(k.sold),delta(k.sold,pv&&pv.sold),spark(rows.map(function(r){return r[1]})),'Paid and free tickets issued','tickets','tickets'],
+    ['Revenue',money(k.gross),delta(k.gross,pv&&pv.gross),'','Gross paid ticket sales in '+perLabel(),CAN.orders?'orders':'','money'],
+    ['Tickets sold',nf(k.sold),delta(k.sold,pv&&pv.sold),'','Paid and free tickets issued','tickets','tickets'],
     ['Orders',nf(k.orders),delta(k.orders,pv&&pv.orders),'',k.orders?'Average order '+money(aov):'Completed and free orders',CAN.orders?'orders':'','orders'],
     ['Event page views',nf(k.views),delta(k.views,pv&&pv.views),'','Visits to your event pages',CAN.promote?'promote':'','views'],
     ['Conversion',rate+'%',prevRate==null||OV.range==='all'?'':'<span class="ov-delta '+(rate>prevRate?'is-up':rate<prevRate?'is-down':'is-flat')+'">'+(rate===prevRate?'No change':(rate>prevRate?'▲ ':'▼ ')+Math.abs(Math.round((rate-prevRate)*10)/10)+' pts')+'</span>','','Tickets per event page view',CAN.promote?'promote':'','conversion']
@@ -1359,8 +1359,7 @@ function drawOverviewKpis(range){
 function drawChart(range){
   if(range)OV.range=range;
   var rows=chartRows(),rev=OV.metric==='revenue',vals=rows.map(function(r){return rev?(r[2]||0):r[1]}),total=vals.reduce(function(a,b){return a+b},0),el=$('db-chart');
-  $('od-chart-total').textContent=rev?money(total):nf(total)+' '+(total===1?'ticket':'tickets');
-  $('od-chart-sub').textContent=(rev?'in revenue':'sold')+', '+perLabel();
+  $('od-chart-sub').textContent=(OV.range==='all'?'Monthly ':'Daily ')+(rev?'revenue':'tickets sold')+', '+perLabel()+'. Hover for each '+(OV.range==='all'?'month':'day')+'.';
   [].forEach.call(document.querySelectorAll('.ov-toggle [data-metric]'),function(b){b.setAttribute('aria-checked',String(b.dataset.metric===OV.metric))});
   $('od-chart-table').innerHTML='<table class="t-table"><thead><tr><th scope="col">'+(OV.range==='all'?'Month':'Day')+'</th><th scope="col" class="t-num">Tickets</th><th scope="col" class="t-num">Revenue</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="t-num">'+nf(r[1])+'</td><td class="t-num">'+money(r[2]||0)+'</td></tr>'}).join('')+'</tbody></table>';
   if(!total){el.innerHTML='<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.warn+'</span><h3>No '+(rev?'revenue':'ticket sales')+' in '+perLabel()+'</h3><p>Share an event link to bring people to your ticket page.</p>'+(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share an event</button>':'')+'</div>';return}
@@ -1370,7 +1369,7 @@ function drawChart(range){
   var grid='',ticks='';for(var g=0;g<=4;g++){var gv=nice*g,gy=y(gv);grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+gy+'" y2="'+gy+'"/>';ticks+='<text x="'+(pl-8)+'" y="'+(gy+4)+'" text-anchor="end">'+(rev?moneyShort(gv):compact(gv))+'</text>'}
   var every=Math.ceil(rows.length/(W<520?4:7)),xl=rows.map(function(r,i){var last=rows.length-1;return (i!==last&&(i%every||last-i<every*.7))?'':'<text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="'+(i===0?'start':i===rows.length-1?'end':'middle')+'">'+esc(r[0])+'</text>'}).join('');
   var line=vals.map(function(v,i){return (i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)}).join(' '),area=line+' L'+x(vals.length-1).toFixed(1)+' '+y(0)+' L'+x(0).toFixed(1)+' '+y(0)+' Z';
-  el.innerHTML='<div class="ov-plot"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc((rev?'Revenue':'Tickets sold')+' over '+perLabel()+': '+$('od-chart-total').textContent+' in total')+'"><defs><linearGradient id="ovfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2E4FD8" stop-opacity=".18"/><stop offset="1" stop-color="#2E4FD8" stop-opacity="0"/></linearGradient></defs><g class="ov-plot__grid">'+grid+'</g><g class="ov-plot__y">'+ticks+'</g><g class="ov-plot__x">'+xl+'</g><path class="ov-plot__area" d="'+area+'"/><path class="ov-plot__line" d="'+line+'"/><line class="ov-plot__cross" y1="'+pt+'" y2="'+(pt+ih)+'" x1="0" x2="0" hidden/><circle class="ov-plot__dot" r="5" hidden/></svg><div class="ov-tip" hidden></div></div>';
+  el.innerHTML='<div class="ov-plot"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc((rev?'Revenue':'Tickets sold')+' over '+perLabel()+': '+(rev?money(total):nf(total))+' in total')+'"><defs><linearGradient id="ovfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2E4FD8" stop-opacity=".18"/><stop offset="1" stop-color="#2E4FD8" stop-opacity="0"/></linearGradient></defs><g class="ov-plot__grid">'+grid+'</g><g class="ov-plot__y">'+ticks+'</g><g class="ov-plot__x">'+xl+'</g><path class="ov-plot__area" d="'+area+'"/><path class="ov-plot__line" d="'+line+'"/><line class="ov-plot__cross" y1="'+pt+'" y2="'+(pt+ih)+'" x1="0" x2="0" hidden/><circle class="ov-plot__dot" r="5" hidden/></svg><div class="ov-tip" hidden></div></div>';
   var svg=el.querySelector('svg'),tip=el.querySelector('.ov-tip'),cross=svg.querySelector('.ov-plot__cross'),dot=svg.querySelector('.ov-plot__dot');
   function at(clientX){var r=svg.getBoundingClientRect(),px=(clientX-r.left)/r.width*W,i=Math.round((px-pl)/(rows.length>1?iw/(rows.length-1):1));return Math.max(0,Math.min(rows.length-1,i))}
   function hover(i){var cx=x(i),cy=y(vals[i]);cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.hidden=false;dot.setAttribute('cx',cx);dot.setAttribute('cy',cy);dot.hidden=false;
@@ -1388,17 +1387,17 @@ $('od-range').addEventListener('change',function(){setRange(this.value)});
 document.addEventListener('click',function(e){var b=e.target.closest('#od-range-seg [data-range]');if(b){setRange(b.dataset.range);return}var m=e.target.closest('.ov-toggle [data-metric]');if(m){OV.metric=m.dataset.metric;drawChart()}});
 function drawOverviewMoney(){
   var p=D.payouts||{},acc=p.account,box=$('od-money');if(!CAN.payouts){box.hidden=true;return}
-  var status=!acc?['warn','No payout account yet','Add the bank account your sales should go to.']:acc.held?['warn','Payouts paused','Your new bank account is in its 24-hour safety hold.']:!acc.verified?['warn','Account not verified','Finish verifying your bank account to get paid.']:['ok',esc(acc.bank)+' ••'+esc(acc.last4),p.schedule==='auto'?'Paid out automatically when sales are released.':'Withdraw whenever you like.'];
+  var status=!acc?null:acc.held?['warn','Payouts paused','Your new bank account is in its 24-hour safety hold.']:!acc.verified?['warn','Account not verified','Finish verifying your bank account to get paid.']:['ok',esc(acc.bank)+' ••'+esc(acc.last4),p.schedule==='auto'?'Paid out automatically when sales are released.':'Withdraw whenever you like.'];
   box.innerHTML='<div class="ov-card__head"><h2 class="ov-card__title" id="od-money-h">Payouts</h2><button class="ov-link" type="button" data-panel="payouts">Open</button></div>'+
     '<p class="ov-money__label">Available to withdraw</p><p class="ov-money__value">'+money(p.available||0)+'</p>'+
     '<dl class="ov-money__list"><div><dt>On its way</dt><dd>'+money(p.pending||0)+'</dd></div><div><dt>Paid out so far</dt><dd>'+money(p.paid||0)+'</dd></div>'+((p.currencies||[]).filter(function(c){return c.code!==((window.TICA_DATA.currency||{}).code)}).map(function(c){return '<div><dt>'+esc(c.code)+' balance</dt><dd>'+Nc(c.amount,c.cur)+'</dd></div>'}).join(''))+'</dl>'+
-    '<p class="ov-status ov-status--'+status[0]+'"><span class="ov-status__icon" aria-hidden="true">'+(status[0]==='ok'?ICO.ok:ICO.warn)+'</span><span><b>'+status[1]+'</b>'+status[2]+'</span></p>'+
-    '<button class="t-btn t-btn--primary t-btn--block" type="button" data-panel="payouts">'+(acc&&acc.verified?'Withdraw':'Set up payouts')+'</button>';
+    (status?'<p class="ov-status ov-status--'+status[0]+'"><span class="ov-status__icon" aria-hidden="true">'+(status[0]==='ok'?ICO.ok:ICO.warn)+'</span><span><b>'+status[1]+'</b>'+status[2]+'</span></p>':'')+
+    '<button class="t-btn t-btn--secondary t-btn--block" type="button" data-panel="payouts">'+(acc&&acc.verified?'Withdraw':'Set up payouts')+'</button>';
 }
 function drawOverviewEvents(){
   var ev=(D.events||[]).filter(function(e){return e.state!=='draft'}),up=ev.filter(function(e){return e.state==='up'}).sort(function(a,b){return a.ts-b.ts}),past=ev.filter(function(e){return e.state==='past'}).sort(function(a,b){return b.ts-a.ts});
-  var list=up.concat(past).slice(0,6),box=$('od-top');
-  if(!list.length){box.innerHTML='<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.cal+'</span><h3>No published events yet</h3><p>Publish an event to see its ticket sales here.</p>'+(CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div>';return}
+  var nextId=D.next&&D.next.id,list=up.concat(past).filter(function(e){return e.id!==nextId}).slice(0,6),box=$('od-top');
+  if(!list.length){box.innerHTML='<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.cal+'</span><h3>'+(nextId?'No other events yet':'No published events yet')+'</h3><p>'+(nextId?'Your next event is shown beside this. Other events appear here.':'Publish an event to see its ticket sales here.')+'</p>'+(CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div>';return}
   var tone={'On sale':'green','Sales paused':'orange','Ended':'','Cancelled':'red','Cancelling':'red'};
   box.innerHTML='<table class="ov-table"><thead><tr><th scope="col">Event</th><th scope="col">Status</th><th scope="col">Sold</th><th scope="col" class="t-num">Revenue</th><th scope="col"><span class="t-sr">Actions</span></th></tr></thead><tbody>'+list.map(function(e){
     var pct=e.cap?Math.min(100,Math.round(e.sold/e.cap*100)):null;
@@ -1428,8 +1427,6 @@ function drawOverviewOrders(){
 }
 function drawOverviewAttention(){
   var items=[],ev=D.events||[],s=D.setup||{},p=D.payouts||{},soon=Date.now()+7*864e5;
-  if(CAN.payouts&&!s.identity)items.push(['warn','Verify your identity','You need this before your first payout.','<a class="ov-link" href="'+esc(s.kycUrl||'#')+'">Verify</a>']);
-  if(CAN.payouts&&!s.payout)items.push(['warn','Add a payout account','So your ticket sales can reach you.','<button class="ov-link" type="button" data-panel="payouts">Add</button>']);
   if(CAN.payouts&&p.account&&p.account.held)items.push(['info','Payouts on a 24-hour hold','Your bank account was just changed.','']);
   ev.filter(function(e){return e.state==='draft'}).slice(0,2).forEach(function(e){items.push(['info','Finish “'+e.name+'”','Saved as a draft and not on sale yet.',CAN.events?'<a class="ov-link" href="'+esc(e.editUrl)+'">Continue</a>':''])});
   ev.filter(function(e){return e.state==='up'&&e.status==='Sales paused'}).forEach(function(e){items.push(['warn','Sales paused for “'+e.name+'”','Buyers can\'t get tickets right now.',CAN.events?'<button class="ov-link" type="button" data-manage="'+e.id+'">Review</button>':''])});
@@ -1443,14 +1440,14 @@ function drawOverviewAttention(){
 function drawOverviewTypes(){
   var cats=((D.ticketing&&D.ticketing.categories)||[]).filter(function(c){return c.sold>0}).sort(function(a,b){return b.sold-a.sold}),top=cats.slice(0,6),max=top.length?top[0].sold:1,total=cats.reduce(function(a,c){return a+c.sold},0);
   $('od-types').innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-types-h">Top ticket types</h2><p class="ov-card__sub">All events, by tickets sold.</p></div>'+(CAN.orders?'<button class="ov-link" type="button" data-panel="tickets">Details</button>':'')+'</div>'+
-    (top.length?'<ul class="ov-bars">'+top.map(function(c){var share=total?Math.round(c.sold/total*100):0;return '<li><span class="ov-bars__label"><b>'+esc(c.name)+'</b><span>'+esc(c.event)+'</span></span><span class="ov-bars__val">'+nf(c.sold)+' <span>'+share+'%</span></span><span class="ov-bars__track" aria-hidden="true"><i style="width:'+Math.max(2,Math.round(c.sold/max*100))+'%"></i></span></li>'}).join('')+'</ul>'+(top.length<4?'<div class="ov-card__foot"><p class="ov-foot-note"><span><b>'+nf(total)+'</b> '+(total===1?'ticket':'tickets')+' sold across <b>'+cats.length+'</b> ticket '+(cats.length===1?'type':'types')+'. Add early bird or VIP tickets to give buyers more choice.</span></p></div>':'')
+    (top.length?'<ul class="ov-bars">'+top.map(function(c){var share=total?Math.round(c.sold/total*100):0;return '<li><span class="ov-bars__label"><b>'+esc(c.name)+'</b><span>'+esc(c.event)+'</span></span><span class="ov-bars__val">'+nf(c.sold)+' <span>'+share+'%</span></span><span class="ov-bars__track" aria-hidden="true"><i style="width:'+Math.max(2,Math.round(c.sold/max*100))+'%"></i></span></li>'}).join('')+'</ul>'+(top.length<4?'<div class="ov-card__foot"><p class="ov-foot-note"><span>Add early bird, VIP or group tickets to give buyers more choice.</span></p></div>':'')
       :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No tickets sold yet</h3><p>Your best-selling ticket types will show here.</p></div>');
 }
 function drawOverviewAudience(){
   var a=D.audience||{},t=(D.ticketing&&D.ticketing.summary)||{},repeat=a.customers?Math.round((a.repeat||0)/a.customers*100):0,att=t.sold?Math.round((t.checkedIn||0)/t.sold*100):0;
   $('od-audience').innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-audience-h">Audience and entry</h2><p class="ov-card__sub">Everyone who has booked with you.</p></div></div>'+
     '<div class="ov-mini"><div><b>'+nf(a.customers)+'</b><span>Customers</span></div><div><b>'+nf(a.active30)+'</b><span>Booked in 30 days</span></div><div><b>'+repeat+'%</b><span>Come back</span></div><div><b>'+att+'%</b><span>Checked in</span></div></div>'+
-    '<div class="ov-ring-row"><span class="ov-ring" style="--p:'+att+'" role="img" aria-label="'+att+'% of tickets checked in"><span>'+att+'%</span></span><p><b>'+nf(t.checkedIn)+'</b> of '+nf(t.sold)+' tickets scanned at the gate.'+(t.available?' '+nf(t.available)+' limited tickets still available.':'')+'</p></div>';
+    '';
 }
 function drawOverviewChannels(){
   var links=(D.links||[]).slice().sort(function(a,b){return (b.sales||0)-(a.sales||0)||(b.clicks||0)-(a.clicks||0)}).slice(0,4),ps=D.promotionStats||{},ctr=ps.impressions?Math.round((ps.clicks||0)/ps.impressions*1000)/10:0,box=$('od-channels');
@@ -1458,7 +1455,7 @@ function drawOverviewChannels(){
   box.innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-channels-h">Where sales come from</h2><p class="ov-card__sub">Tracking links and paid promotion.</p></div><button class="ov-link" type="button" data-panel="promote">Promote</button></div>'+
     (links.length?'<div class="ov-chan__head" aria-hidden="true"><span>Link</span><span>Tickets</span><span>Clicks</span></div><ul class="ov-chan">'+links.map(function(l){return '<li><span class="ov-chan__name"><b>'+esc(l.name)+'</b><span>'+esc(l.channel||l.influencer||l.code)+'</span></span><span class="ov-chan__num"><b>'+nf(l.sales)+'</b><span>tickets</span></span><span class="ov-chan__num"><b>'+nf(l.clicks)+'</b><span>clicks</span></span></li>'}).join('')+'</ul>'
       :'<p class="ov-card__sub ov-chan__empty">Make a tracking link for each channel or promoter to see which one sells.</p>')+
-    '<div class="ov-mini ov-mini--3"><div><b>'+compact(ps.impressions||0)+'</b><span>Promo views</span></div><div><b>'+ctr+'%</b><span>Click rate</span></div><div><b>'+nf(ps.tickets)+'</b><span>Tickets from promos</span></div></div>';
+    ((ps.impressions||ps.tickets)?'<div class="ov-mini ov-mini--3"><div><b>'+compact(ps.impressions||0)+'</b><span>Promo views</span></div><div><b>'+ctr+'%</b><span>Click rate</span></div><div><b>'+nf(ps.tickets)+'</b><span>Tickets from promos</span></div></div>':'');
 }
 function drawOverviewSetup(){
   var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');

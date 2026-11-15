@@ -796,7 +796,7 @@ body.tica-admin .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-s
 .db-list ol{margin:0;padding-left:var(--t-5);font-size:13px;max-height:320px;overflow:auto}
 
 /* Overview: calm palette. One soft blue for data, neutral surfaces, colour only where it means something. */
-body.orgshell .ov{--ov-ink:#1F2937;--ov-text:#4B5563;--ov-muted:#8A94A6;--ov-line:#EEF0F4;--ov-soft:#F6F7F9;--ov-accent:#4F6BED;--ov-accent-soft:#E9EDFD;--ov-track:#EEF1F6}
+body.orgshell .ov{--ov-ink:#1E293B;--ov-text:#475569;--ov-muted:#64748B;--ov-line:#E6EBF2;--ov-soft:#F3F6FA;--ov-accent:#4C6FD8;--ov-accent-soft:#E8EEFB;--ov-track:#E8EDF4}
 .ov-card,.ov-kpi{border-color:var(--ov-line);box-shadow:none}
 .ov-card{padding:22px 24px}
 .ov-card__title{font-size:15px;color:var(--ov-ink)}
@@ -910,3 +910,22 @@ body.orgshell .ov{--ov-ink:#1F2937;--ov-text:#4B5563;--ov-muted:#8A94A6;--ov-lin
 .ov-ev__name{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ov-table .ov-sold{min-width:96px}
 .ov-sales .ov-chart{min-height:0}
+
+/* Cool, calm finish: slate neutrals, one cool blue, quiet status colours. */
+body.orgshell .ov-wrap{background:transparent}
+.ov-pill--green,.ov-delta.is-up{background:#E9F5EF;color:#2B7254}
+.ov-pill--orange{background:#F9F2EA;color:#8A5A2B}
+.ov-pill--red,.ov-delta.is-down{background:#FAEEEE;color:#9A3D3D}
+.ov-delta.is-flat{background:var(--ov-soft);color:var(--ov-muted)}
+.ov-kpi__label::before,.ov-kpi--money .ov-kpi__label::before{display:none}
+.ov-kpi__label{font-weight:500;letter-spacing:.01em}
+.ov-kpi__value{font-weight:650}
+.ov-money__value{font-weight:650;color:var(--ov-ink)}
+.ov-setup{border-color:var(--ov-line);background:linear-gradient(135deg,#F2F6FD,#fff 70%)}
+.ov-status--ok{background:#F1F8F4}
+.ov-status--warn{background:#FAF5EE}
+.ov-attn__list li.is-warn .ov-attn__icon{background:#F9F2EA}
+.ov-attn__list li.is-ok .ov-attn__icon{background:#E9F5EF}
+.ov-count{background:var(--ov-soft);color:var(--ov-text)}
+.ov-plot__area{opacity:.75}
+.ov-card__sub{line-height:18px}
