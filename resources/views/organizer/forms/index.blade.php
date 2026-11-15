@@ -10,7 +10,8 @@
     $statusBadge = fn ($status) => ['published' => ['green', __('Live')], 'draft' => ['orange', __('Draft')], 'archived' => ['', __('Stopped')]][$status] ?? ['', ucfirst((string) $status)];
   @endphp
 
-  <div class="t-page-head">
+  <div class="rf-page">
+  <div class="t-page-head rf-head">
     <div>
       <h1 class="page-title">{{ __('Registration forms') }}</h1>
       <p>{{ __('Build a form once, add the fields you need, then use it on any of your events.') }}</p>
@@ -86,7 +87,7 @@
   </section>
 
   @if ($standalone->isNotEmpty())
-    <section class="t-card" aria-labelledby="rf-ev-h" style="margin-top:20px">
+    <section class="t-card" aria-labelledby="rf-ev-h">
       <div class="t-card__head"><h2 class="t-card__title" id="rf-ev-h">{{ __('Forms made on an event') }}</h2></div>
       <p class="t-help">{{ __('These were built directly on an event. Save one to your forms to reuse it on other events.') }}</p>
       <div class="rf-list">
@@ -107,4 +108,6 @@
       </div>
     </section>
   @endif
+  </div>
+  @include('organizer.forms._motion')
 @endsection
