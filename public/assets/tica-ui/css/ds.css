@@ -1194,7 +1194,8 @@ body.orgshell-legacy .page-inner,body.tica-organizer.orgshell-legacy .page-inner
 body.orgshell .pr,body.orgshell .ov-wrap,.gl,.rf-page,body.tica-organizer .tsc{max-width:none!important}
 
 /* The page title lives in the page, not twice: the top bar keeps it only on phones. */
-@media (min-width:1024px){body.orgshell .tsh-title,body.orgshell-legacy .tsh-title{display:none}}
+@media (min-width:1024px){body.orgshell .tsh-title,body.orgshell-legacy .tsh-title{visibility:hidden}}
+body.orgshell .db-head>div,body.orgshell .t-page-head>div,body.orgshell-legacy .page-header>div{display:block!important}
 
 /* One header: navy title, calm sentence under it, actions on the right. */
 body.orgshell .t-page-head,body.orgshell .db-head,body.orgshell .pr-head,.gl-head,
@@ -1220,3 +1221,5 @@ body.orgshell-legacy .page-header .breadcrumbs,body.orgshell-legacy .tica-eyebro
 body.orgshell .page[data-page=checkin] .ck-wrap,body.orgshell .page[data-page=create] .wrap.pagehead{
   width:100%!important;max-width:var(--t-page-max)!important;margin:0 auto!important;padding:var(--t-page-pad) var(--t-page-pad) var(--t-page-pad-b)!important;box-sizing:border-box}
 body:not(.orgshell) .ck-head{display:none}
+body.orgshell-legacy .page-header{justify-content:flex-start!important}
+body.orgshell-legacy .page-header .page-title{order:-1;margin-left:0!important;margin-right:auto!important;flex:1 1 auto}
