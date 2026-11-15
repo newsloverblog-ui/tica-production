@@ -6,22 +6,33 @@
 
       <!-- OVERVIEW: key numbers, then sales and the next event, then recent orders. -->
       <div class="od-p ov" data-p="overview">
-        <header class="t-page-head">
-          <div><h1 id="db-hi">Welcome back</h1><p>Here's how your events are doing.</p></div>
-          <label class="ov-range"><span class="t-sr">Period</span><select class="t-select" id="od-range"></select></label>
+        <header class="t-page-head ov-head">
+          <div class="ov-head__copy">
+            <h1 id="db-hi">Welcome back</h1>
+            <p>Track sales, guests and the work that needs your attention.</p>
+            <span class="ov-refreshed" id="od-refreshed">Your latest event data</span>
+          </div>
+          <div class="ov-head__actions">
+            <label class="ov-range"><span class="t-sr">Performance period</span><select class="t-select" id="od-range" aria-label="Performance period"></select></label>
+            <a class="t-btn t-btn--primary" id="od-overview-create" href="/create">Create an event</a>
+          </div>
         </header>
         <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
         <div class="ov-stats" id="db-kpis">
-          <span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span><span class="t-skel" style="height:104px"></span>
+          <span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span>
         </div>
+        <section class="ov-snapshot" id="od-snapshot" aria-label="Event operations snapshot"></section>
         <div class="ov-grid">
-          <section class="t-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><h2 class="t-card__title" id="ov-chart-h">Tickets sold per day</h2></div><div class="db-chart" id="db-chart"></div></section>
+          <section class="t-card ov-chart-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><div><h2 class="t-card__title" id="ov-chart-h">Ticket sales trend</h2><p class="t-help">Paid and free tickets issued during the selected period.</p></div><span class="t-badge t-badge--blue" id="od-chart-total">0 tickets</span></div><div class="db-chart" id="db-chart"></div></section>
           <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
         </div>
-        <section class="t-card ov-orders" aria-labelledby="ov-ord-h">
-          <div class="t-card__head"><h2 class="t-card__title" id="ov-ord-h">Recent orders</h2><button class="t-btn t-btn--ghost t-btn--sm" type="button" data-panel="orders">View all</button></div>
-          <div id="db-ord"></div>
-        </section>
+        <div class="ov-lower">
+          <section class="t-card ov-orders" aria-labelledby="ov-ord-h">
+            <div class="t-card__head"><div><h2 class="t-card__title" id="ov-ord-h">Recent orders</h2><p class="t-help" id="od-order-count">Your five latest completed orders.</p></div><button class="t-btn t-btn--ghost t-btn--sm" type="button" data-panel="orders">View all</button></div>
+            <div id="db-ord"></div>
+          </section>
+          <aside class="t-card ov-business" id="od-business" aria-labelledby="od-business-h"></aside>
+        </div>
       </div>
 
       <!-- EVENTS -->

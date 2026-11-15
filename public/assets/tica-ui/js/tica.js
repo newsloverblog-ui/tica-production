@@ -1323,12 +1323,33 @@ window.OD_after=function(){setTimeout(fromHash,0)};
 /* overview */
 function drawChart(range){
   var rows=D.chart[range]||[],vals=rows.map(function(r){return r[1]}),max=Math.max.apply(null,vals.concat([1])),total=vals.reduce(function(a,b){return a+b},0);
+  if($('od-chart-total'))$('od-chart-total').textContent=total.toLocaleString('en-NG')+' '+(total===1?'ticket':'tickets');
   $('db-chart').innerHTML=total?'<div class="bars" role="img" aria-label="Tickets sold, '+esc($('od-range').selectedOptions[0].text.toLowerCase())+': '+total+' in total">'+rows.map(function(r,i){return '<div class="b"><i style="height:'+Math.round(r[1]/max*100)+'%"><em>'+r[1]+'</em></i><span>'+(rows.length>16&&i%3||rows.length<=16&&i%2?'':esc(r[0]))+'</span></div>'}).join('')+'</div>':'<div class="od-empty-state compact"><i aria-hidden="true">'+ICO.warn+'</i><h3>No ticket sales in this period</h3><p>Share an event link to bring people to your ticket page.</p><button class="btn btn-line" type="button" data-panel="promote">Share an event</button></div>';
 }
 $('od-range').innerHTML='<option value="14">Last 14 days</option><option value="30">Last 30 days</option><option value="all">All time</option>';
 $('od-range').addEventListener('change',function(){drawOverviewKpis(this.value);drawChart(this.value)});
+function drawOverviewSnapshot(){
+  var events=D.events||[],up=events.filter(function(e){return e.state==='up'}),drafts=events.filter(function(e){return e.state==='draft'}),live=up.filter(function(e){return e.status==='On sale'}),t=D.ticketing&&D.ticketing.summary||{},known=Number(t.inventory||0),sold=Number(t.sold||0),sell=known?Math.min(100,Math.round(sold/known*100)):null;
+  $('od-snapshot').innerHTML=[
+    ['Events on sale',live.length,'Ready for buyers','events'],
+    ['Upcoming',up.length,up.length===1?'One event ahead':'Published events ahead','events'],
+    ['Drafts',drafts.length,drafts.length?'Waiting to be finished':'Nothing waiting','events'],
+    ['Sell-through',sell===null?'—':sell+'%',known?'Across limited tickets':'No limited inventory','tickets']
+  ].map(function(x){return '<button type="button" data-panel="'+x[3]+'"><span>'+x[0]+'</span><b>'+x[1]+'</b><small>'+x[2]+'</small></button>'}).join('');
+}
+function drawOverviewBusiness(){
+  var a=D.account||{},p=D.payouts||{},links=[];
+  if(CAN.events)links.push('<a href="/create">Create event</a>');
+  if(CAN.promote)links.push('<button type="button" data-panel="promote">Promote</button>');
+  if(CAN.events)links.push('<a href="/organizer/forms">Registration forms</a>');
+  $('od-business').innerHTML='<div class="t-card__head"><div><h2 class="t-card__title" id="od-business-h">Your business</h2><p class="t-help">All-time activity across this organiser account.</p></div></div><dl class="ov-business__list">'+
+    '<div><dt>Events</dt><dd>'+Number(a.events||0).toLocaleString('en-NG')+'</dd></div><div><dt>Bookings</dt><dd>'+Number(a.bookings||0).toLocaleString('en-NG')+'</dd></div><div><dt>Transactions</dt><dd>'+Number(a.transactions||0).toLocaleString('en-NG')+'</dd></div><div><dt>Available payout</dt><dd>'+esc(N(p.available||0))+'</dd></div></dl>'+
+    (links.length?'<div class="ov-business__actions" aria-label="Quick actions">'+links.join('')+'</div>':'');
+}
 function drawOverview(){
   var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');
+  if($('od-overview-create'))$('od-overview-create').hidden=!CAN.events;
+  drawOverviewSnapshot();drawOverviewBusiness();
   setup.hidden=doneN===3||!CAN.payouts;
   if(!setup.hidden){
     var next=!s.identity?['Verify your identity so you can be paid.','Verify identity',D.setup.kycUrl]:!s.payout?['Add the bank account your sales should go to.','Add bank account',null]:['Publish your first event.','Create an event','/create'];
@@ -1349,17 +1370,19 @@ function drawOverview(){
   }else $('od-next').innerHTML='<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>No upcoming events</h3><p>Your next event will show here with its ticket sales.</p>'+(CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div>';
 }
 function drawOverviewKpis(range){
-  var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis,per=$('od-range').selectedOptions[0]?$('od-range').selectedOptions[0].text.toLowerCase():'';
-  $('db-kpis').innerHTML=[['Revenue',N(k.gross),'orders','Gross ticket sales, '+per],['Tickets sold',k.sold.toLocaleString('en-NG'),'events','Across all your events, '+per],['Page views',k.views.toLocaleString('en-NG'),'promote','Visits to your event pages, '+per]].map(function(x){
-    return '<button class="t-stat ov-stat" type="button" data-panel="'+x[2]+'" title="'+esc(x[3])+'"><span class="t-stat__label">'+x[0]+'</span><span class="t-stat__value">'+esc(x[1])+'</span><span class="t-stat__note">'+esc(x[3])+'</span></button>'}).join('');
+  var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis,per=$('od-range').selectedOptions[0]?$('od-range').selectedOptions[0].text.toLowerCase():'',rate=k.views?Math.min(999,Math.round(k.sold/k.views*1000)/10):0;
+  $('db-kpis').innerHTML=[['Revenue',N(k.gross),'orders','Gross ticket sales, '+per,'money'],['Tickets sold',k.sold.toLocaleString('en-NG'),'tickets','Issued across your events, '+per,'tickets'],['Event views',k.views.toLocaleString('en-NG'),'promote','Visits to event pages, '+per,'views'],['Ticket conversion',rate+'%','promote','Tickets issued per event-page view, '+per,'conversion']].map(function(x){
+    return '<button class="t-stat ov-stat ov-stat--'+x[4]+'" type="button" data-panel="'+x[2]+'" title="'+esc(x[3])+'"><span class="ov-stat__top"><span class="t-stat__label">'+x[0]+'</span><i aria-hidden="true"></i></span><span class="t-stat__value">'+esc(x[1])+'</span><span class="t-stat__note">'+esc(x[3])+'</span></button>'}).join('');
 }
 function renderDash(){
   if($('db-org'))$('db-org').textContent=D.org.name;
   $('db-hi').textContent='Welcome back, '+D.org.name.split(' ')[0];
+  if($('od-refreshed')&&D.generatedAt){var fresh=new Date(D.generatedAt),mins=Math.max(0,Math.floor((Date.now()-fresh.getTime())/60000));$('od-refreshed').textContent=mins<1?'Updated just now':mins===1?'Updated one minute ago':'Updated '+mins+' minutes ago'}
   var nw=window.TICA_NEW;$('db-flag').hidden=!nw;if(nw)$('db-flag').textContent=nw.name+(nw.status==='draft'?' is saved as a draft.':' is now live.');
   drawOverviewKpis($('od-range').value);
   drawChart($('od-range').value);
   var ord=D.orders.slice(0,5);
+  if($('od-order-count'))$('od-order-count').textContent=ord.length?(ord.length===1?'Your latest completed order.':'Your '+ord.length+' latest completed orders.'):'Completed orders will appear here.';
   $('db-ord').innerHTML=ord.length?'<table class="t-table t-table--cards ov-ord"><thead><tr><th scope="col">Buyer</th><th scope="col">Tickets</th><th scope="col" class="t-num">Amount</th><th scope="col">When</th></tr></thead><tbody>'+ord.map(function(o){return '<tr><td data-label="Buyer"><span class="ov-buyer"><span class="t-avatar" style="--av:28px" aria-hidden="true">'+esc((o.name||'?')[0].toUpperCase())+'</span>'+esc(o.name)+'</span></td><td data-label="Tickets">'+esc(o.tickets)+'</td><td data-label="Amount" class="t-num">'+(o.amount?Nc(o.amount,o.cur):'Free')+'</td><td data-label="When" class="t-muted">'+esc(o.ago)+'</td></tr>'}).join('')+'</tbody></table>'
     :'<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/></svg></span><h3>No orders yet</h3><p>Orders appear here as soon as someone buys a ticket.</p>'+(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':'')+'</div>';
   drawOverview();fromHash();

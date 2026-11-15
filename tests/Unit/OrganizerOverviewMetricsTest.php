@@ -96,6 +96,22 @@ class OrganizerOverviewMetricsTest extends TestCase
         $this->assertStringContainsString('D.kpisByRange&&D.kpisByRange[range]||D.kpis', $script);
     }
 
+    public function test_overview_presents_performance_operations_and_lifetime_context(): void
+    {
+        $view = (string) file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $styles = (string) file_get_contents(public_path('assets/tica-ui/css/ds.css'));
+
+        foreach (['od-refreshed', 'od-snapshot', 'od-chart-total', 'od-business', 'od-order-count'] as $hook) {
+            $this->assertStringContainsString('id="'.$hook.'"', $view, $hook);
+        }
+        foreach (['Ticket conversion', 'Events on sale', 'Available payout', 'Registration forms'] as $label) {
+            $this->assertStringContainsString($label, $script, $label);
+        }
+        $this->assertStringContainsString('@media (max-width:520px)', $styles);
+        $this->assertStringContainsString('.ov-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}', $styles);
+    }
+
     private function booking(int $organizerId, string $status, float $price, float $tax, string $currency, Carbon $createdAt): void
     {
         DB::table('bookings')->insert([
