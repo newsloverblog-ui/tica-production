@@ -51,23 +51,13 @@
           <!-- Money -->
           <section class="ov-card ov-money" id="od-money" aria-labelledby="od-money-h"></section>
         </div>
-        <div class="ov-row">
-          <!-- Recent orders -->
+        <!-- Recent orders -->
           <section class="ov-card ov-orders" aria-labelledby="ov-ord-h">
             <div class="ov-card__head"><div><h2 class="ov-card__title" id="ov-ord-h">Recent orders</h2><p class="ov-card__sub" id="od-order-count"></p></div><button class="ov-link" type="button" data-panel="orders">All orders</button></div>
             <div id="db-ord"></div>
           </section>
-          <!-- Needs attention -->
-          <section class="ov-card ov-attn" id="od-attn" aria-labelledby="od-attn-h"></section>
-        </div>
-        <div class="ov-row3">
-          <!-- Ticket types -->
-        <section class="ov-card ov-types" id="od-types" aria-labelledby="od-types-h"></section>
-          <!-- Audience and entry -->
-        <section class="ov-card ov-audience" id="od-audience" aria-labelledby="od-audience-h"></section>
-          <!-- Channels and promotion -->
+        <!-- Channels and promotion -->
         <section class="ov-card ov-channels" id="od-channels" aria-labelledby="od-channels-h"></section>
-        </div>
       </div></div>
 
       <!-- EVENTS -->

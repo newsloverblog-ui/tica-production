@@ -1425,37 +1425,14 @@ function drawOverviewOrders(){
   $('db-ord').innerHTML=ord.length?'<ul class="ov-orders__list">'+ord.map(function(o){return '<li><span class="ov-av" aria-hidden="true">'+esc((o.name||'?').trim().charAt(0).toUpperCase()||'?')+'</span><span class="ov-orders__who"><b>'+esc(o.name||'Guest')+'</b><span>'+esc(o.tickets)+'</span></span><span class="ov-orders__amt"><b>'+(o.amount?Nc(o.amount,o.cur):'Free')+'</b><span>'+esc(o.ago)+'</span></span></li>'}).join('')+'</ul>'+(ord.length<4&&CAN.promote?'<div class="ov-card__foot"><p class="ov-foot-note"><span>Share your event link on WhatsApp and Instagram, or make a tracking link to see which channel sells. <button class="ov-link" type="button" data-panel="promote">Promote</button></span></p></div>':'')
     :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No orders yet</h3><p>Orders appear here as soon as someone gets a ticket.</p>'+(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':'')+'</div>';
 }
-function drawOverviewAttention(){
-  var items=[],ev=D.events||[],s=D.setup||{},p=D.payouts||{},soon=Date.now()+7*864e5;
-  if(CAN.payouts&&p.account&&p.account.held)items.push(['info','Payouts on a 24-hour hold','Your bank account was just changed.','']);
-  ev.filter(function(e){return e.state==='draft'}).slice(0,2).forEach(function(e){items.push(['info','Finish “'+e.name+'”','Saved as a draft and not on sale yet.',CAN.events?'<a class="ov-link" href="'+esc(e.editUrl)+'">Continue</a>':''])});
-  ev.filter(function(e){return e.state==='up'&&e.status==='Sales paused'}).forEach(function(e){items.push(['warn','Sales paused for “'+e.name+'”','Buyers can\'t get tickets right now.',CAN.events?'<button class="ov-link" type="button" data-manage="'+e.id+'">Review</button>':''])});
-  ev.filter(function(e){return e.state==='up'&&e.ts<soon&&e.cap&&e.sold/e.cap<.25}).forEach(function(e){items.push(['info','“'+e.name+'” is under 25% sold','It starts within a week. A push could help.',CAN.promote?'<button class="ov-link" type="button" data-panel="promote">Promote</button>':''])});
-  ev.filter(function(e){return e.state==='up'&&e.cap&&e.sold>=e.cap}).forEach(function(e){items.push(['ok','“'+e.name+'” is sold out','Consider adding tickets or a waitlist.',CAN.events?'<button class="ov-link" type="button" data-manage="'+e.id+'">Manage</button>':''])});
-  var shown=items.slice(0,5);
-  $('od-attn').innerHTML='<div class="ov-card__head"><h2 class="ov-card__title" id="od-attn-h">Needs attention</h2>'+(items.length?'<span class="ov-count">'+items.length+'</span>':'')+'</div>'+
-    (shown.length?'<ul class="ov-attn__list">'+shown.map(function(i){return '<li class="is-'+i[0]+'"><span class="ov-attn__icon" aria-hidden="true">'+(i[0]==='ok'?ICO.ok:ICO.warn)+'</span><span class="ov-attn__text"><b>'+esc(i[1])+'</b><span>'+esc(i[2])+'</span></span>'+i[3]+'</li>'}).join('')+'</ul>'
-      :'<div class="ov-empty ov-empty--ok"><span class="ov-empty__icon" aria-hidden="true">'+ICO.ok+'</span><h3>All clear</h3><p>Nothing needs your attention right now.</p></div>');
-}
-function drawOverviewTypes(){
-  var cats=((D.ticketing&&D.ticketing.categories)||[]).filter(function(c){return c.sold>0}).sort(function(a,b){return b.sold-a.sold}),top=cats.slice(0,6),max=top.length?top[0].sold:1,total=cats.reduce(function(a,c){return a+c.sold},0);
-  $('od-types').innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-types-h">Top ticket types</h2><p class="ov-card__sub">All events, by tickets sold.</p></div>'+(CAN.orders?'<button class="ov-link" type="button" data-panel="tickets">Details</button>':'')+'</div>'+
-    (top.length?'<ul class="ov-bars">'+top.map(function(c){var share=total?Math.round(c.sold/total*100):0;return '<li><span class="ov-bars__label"><b>'+esc(c.name)+'</b><span>'+esc(c.event)+'</span></span><span class="ov-bars__val">'+nf(c.sold)+' <span>'+share+'%</span></span><span class="ov-bars__track" aria-hidden="true"><i style="width:'+Math.max(2,Math.round(c.sold/max*100))+'%"></i></span></li>'}).join('')+'</ul>'+(top.length<4?'<div class="ov-card__foot"><p class="ov-foot-note"><span>Add early bird, VIP or group tickets to give buyers more choice.</span></p></div>':'')
-      :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No tickets sold yet</h3><p>Your best-selling ticket types will show here.</p></div>');
-}
-function drawOverviewAudience(){
-  var a=D.audience||{},t=(D.ticketing&&D.ticketing.summary)||{},repeat=a.customers?Math.round((a.repeat||0)/a.customers*100):0,att=t.sold?Math.round((t.checkedIn||0)/t.sold*100):0;
-  $('od-audience').innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-audience-h">Audience and entry</h2><p class="ov-card__sub">Everyone who has booked with you.</p></div></div>'+
-    '<div class="ov-mini"><div><b>'+nf(a.customers)+'</b><span>Customers</span></div><div><b>'+nf(a.active30)+'</b><span>Booked in 30 days</span></div><div><b>'+repeat+'%</b><span>Come back</span></div><div><b>'+att+'%</b><span>Checked in</span></div></div>'+
-    '';
-}
 function drawOverviewChannels(){
-  var links=(D.links||[]).slice().sort(function(a,b){return (b.sales||0)-(a.sales||0)||(b.clicks||0)-(a.clicks||0)}).slice(0,4),ps=D.promotionStats||{},ctr=ps.impressions?Math.round((ps.clicks||0)/ps.impressions*1000)/10:0,box=$('od-channels');
+  var links=(D.links||[]).slice().sort(function(a,b){return (b.sales||0)-(a.sales||0)||(b.clicks||0)-(a.clicks||0)}),ps=D.promotionStats||{},box=$('od-channels');
   if(!CAN.promote){box.hidden=true;return}
-  box.innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-channels-h">Where sales come from</h2><p class="ov-card__sub">Tracking links and paid promotion.</p></div><button class="ov-link" type="button" data-panel="promote">Promote</button></div>'+
-    (links.length?'<div class="ov-chan__head" aria-hidden="true"><span>Link</span><span>Tickets</span><span>Clicks</span></div><ul class="ov-chan">'+links.map(function(l){return '<li><span class="ov-chan__name"><b>'+esc(l.name)+'</b><span>'+esc(l.channel||l.influencer||l.code)+'</span></span><span class="ov-chan__num"><b>'+nf(l.sales)+'</b><span>tickets</span></span><span class="ov-chan__num"><b>'+nf(l.clicks)+'</b><span>clicks</span></span></li>'}).join('')+'</ul>'
-      :'<p class="ov-card__sub ov-chan__empty">Make a tracking link for each channel or promoter to see which one sells.</p>')+
-    ((ps.impressions||ps.tickets)?'<div class="ov-mini ov-mini--3"><div><b>'+compact(ps.impressions||0)+'</b><span>Promo views</span></div><div><b>'+ctr+'%</b><span>Click rate</span></div><div><b>'+nf(ps.tickets)+'</b><span>Tickets from promos</span></div></div>':'');
+  var top=links.slice(0,8),hasRev=links.some(function(l){return l.revenue}),promo=(ps.impressions||ps.tickets)?'<div class="ov-chan__promo"><span>Paid promotion on TICA</span><b>'+compact(ps.impressions||0)+'</b> views · <b>'+(ps.impressions?Math.round((ps.clicks||0)/ps.impressions*1000)/10:0)+'%</b> click rate · <b>'+nf(ps.tickets)+'</b> tickets</div>':'';
+  box.innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-channels-h">Where sales come from</h2><p class="ov-card__sub">Each tracking link you share, and what it brought in.</p></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-panel="promote">New tracking link</button></div>'+
+    (top.length?'<div class="ov-chan-wrap"><table class="ov-chan-table"><thead><tr><th scope="col">Link</th><th scope="col">Channel</th><th scope="col" class="t-num">Clicks</th><th scope="col" class="t-num">Tickets</th><th scope="col" class="t-num">Conversion</th>'+(hasRev?'<th scope="col" class="t-num">Revenue</th>':'')+'</tr></thead><tbody>'+top.map(function(l){var conv=l.clicks?Math.round((l.conversions||l.sales||0)/l.clicks*1000)/10:0;
+      return '<tr><td data-label="Link"><b>'+esc(l.name)+'</b><span>'+esc(l.code)+'</span></td><td data-label="Channel">'+esc(l.channel||l.influencer||'—')+'</td><td data-label="Clicks" class="t-num">'+nf(l.clicks)+'</td><td data-label="Tickets" class="t-num">'+nf(l.sales)+'</td><td data-label="Conversion" class="t-num">'+conv+'%</td>'+(hasRev?'<td data-label="Revenue" class="t-num">'+(l.revenue?money(l.revenue):'—')+'</td>':'')+'</tr>'}).join('')+'</tbody></table></div>'+(links.length>top.length?'<p class="ov-chan__more"><button class="ov-link" type="button" data-panel="promote">See all '+links.length+' links</button></p>':'')
+      :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No tracking links yet</h3><p>Make a link for each channel or promoter to see which one sells.</p><button class="t-btn t-btn--secondary" type="button" data-panel="promote">Create a tracking link</button></div>')+promo;
 }
 function drawOverviewSetup(){
   var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');
@@ -1468,7 +1445,7 @@ function drawOverviewSetup(){
 }
 function drawOverview(){
   if($('od-overview-create'))$('od-overview-create').hidden=!CAN.events;
-  drawOverviewSetup();drawOverviewMoney();drawOverviewEvents();drawOverviewNext();drawOverviewOrders();drawOverviewAttention();drawOverviewTypes();drawOverviewAudience();drawOverviewChannels();
+  drawOverviewSetup();drawOverviewMoney();drawOverviewEvents();drawOverviewNext();drawOverviewOrders();drawOverviewChannels();
   if($('od-paydot'))$('od-paydot').hidden=D.setup.payout||!CAN.payouts;
 }
 function renderDash(){

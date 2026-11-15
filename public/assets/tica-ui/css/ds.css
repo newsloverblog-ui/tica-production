@@ -929,3 +929,35 @@ body.orgshell .ov-wrap{background:transparent}
 .ov-count{background:var(--ov-soft);color:var(--ov-text)}
 .ov-plot__area{opacity:.75}
 .ov-card__sub{line-height:18px}
+
+/* Full-width cards at the bottom of the overview. */
+.ov>.ov-card{width:100%}
+.ov-chan-wrap{overflow-x:auto}
+.ov-chan-table{width:100%;border-collapse:collapse;font-size:14px}
+.ov-chan-table th{padding:0 12px 10px;color:var(--ov-muted,#64748B);font-size:12px;font-weight:500;text-align:left;border-bottom:1px solid var(--ov-line,#E6EBF2);white-space:nowrap}
+.ov-chan-table td{padding:14px 12px;border-bottom:1px solid var(--ov-line,#E6EBF2);color:var(--ov-text,#475569);vertical-align:middle}
+.ov-chan-table tr:last-child td{border-bottom:0}
+.ov-chan-table th:first-child,.ov-chan-table td:first-child{padding-left:4px}
+.ov-chan-table th:last-child,.ov-chan-table td:last-child{padding-right:4px}
+.ov-chan-table td:first-child b{display:block;color:var(--ov-ink,#1E293B);font-weight:600}
+.ov-chan-table td:first-child span{display:block;color:var(--ov-muted,#64748B);font-size:12px;letter-spacing:.02em}
+.ov-chan-table .t-num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ov-ink,#1E293B);font-weight:600}
+.ov-chan-table th.t-num{color:var(--ov-muted,#64748B);font-weight:500}
+.ov-chan__more{margin:12px 0 0}
+.ov-chan__promo{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--ov-soft,#F3F6FA);color:var(--ov-text,#475569);font-size:13px}
+.ov-chan__promo span{margin-right:10px;color:var(--ov-muted,#64748B)}
+.ov-chan__promo b{color:var(--ov-ink,#1E293B)}
+.ov-orders .ov-orders__list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));column-gap:32px}
+.ov-orders .ov-orders__list li:nth-child(2){border-top:0;padding-top:0}
+@container (max-width:560px){
+  .ov-chan-table thead{display:none}
+  .ov-chan-table,.ov-chan-table tbody,.ov-chan-table tr{display:block}
+  .ov-chan-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px;padding:14px 0;border-bottom:1px solid var(--ov-line,#E6EBF2)}
+  .ov-chan-table tr:last-child{border-bottom:0}
+  .ov-chan-table td,.ov-chan-table td:first-child,.ov-chan-table td:last-child{display:grid;padding:0;border:0;text-align:left!important}
+  .ov-chan-table td:first-child{grid-column:1/-1}
+  .ov-chan-table td[data-label=Channel]{display:none}
+  .ov-chan-table td[data-label]:not(:first-child)::before{content:attr(data-label);color:var(--ov-muted,#64748B);font-size:12px;font-weight:500}
+}
+.ov-channels{container-type:inline-size}
+@container ov (max-width:719px){.ov-orders .ov-orders__list li:nth-child(2){border-top:1px solid var(--ov-line,#E6EBF2);padding-top:11px}}

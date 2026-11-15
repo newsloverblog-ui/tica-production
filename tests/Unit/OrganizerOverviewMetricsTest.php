@@ -107,10 +107,13 @@ class OrganizerOverviewMetricsTest extends TestCase
         $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = (string) file_get_contents(public_path('assets/tica-ui/css/ds.css'));
 
-        foreach (['db-kpis', 'db-chart', 'od-chart-table', 'od-money', 'od-top', 'od-next', 'db-ord', 'od-attn', 'od-types', 'od-audience', 'od-channels', 'od-range-seg', 'od-range'] as $hook) {
+        foreach (['db-kpis', 'db-chart', 'od-chart-table', 'od-money', 'od-top', 'od-next', 'db-ord', 'od-channels', 'od-range-seg', 'od-range'] as $hook) {
             $this->assertStringContainsString('id="'.$hook.'"', $view, $hook);
         }
-        foreach (['Event page views', 'Conversion', 'Available to withdraw', 'Needs attention', 'Top ticket types', 'Where sales come from', 'Checked in', 'Show as a table'] as $label) {
+        foreach (['od-attn', 'od-types', 'od-audience'] as $removed) {
+            $this->assertStringNotContainsString('id="'.$removed.'"', $view, $removed);
+        }
+        foreach (['Event page views', 'Conversion', 'Available to withdraw', 'Where sales come from', 'New tracking link', 'Show as a table'] as $label) {
             $this->assertStringContainsString($label, $script.$view, $label);
         }
         // Change against the previous period, and a chart you can hover.
@@ -123,7 +126,7 @@ class OrganizerOverviewMetricsTest extends TestCase
         $this->assertStringContainsString('@container ov (max-width:899px)', $styles);
         $this->assertStringContainsString('@container (max-width:620px)', $styles);
         $this->assertStringContainsString('.ov-table thead{display:none}', $styles);
-        $this->assertSame(3, substr_count($view, 'class="ov-row"'));
+        $this->assertSame(2, substr_count($view, 'class="ov-row"'));
         $this->assertStringContainsString("'checkedIn' => (int) \$categories->sum('checkedIn')", (string) file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php')));
     }
 
