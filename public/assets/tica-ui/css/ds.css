@@ -1176,3 +1176,4 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
   .ov-money__list{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){.ov-summary__item{transition:none}}
+.t-pager:has(>[role=status]:empty):has(>button[hidden]){display:none}

@@ -1635,7 +1635,7 @@ function paintAtt(r){
       '<td data-label="Amount" class="t-num">'+(a.amount?Nc(a.amount,a.cur):'Free')+'</td>'+
       '<td data-label="Status">'+attStatus(a.status==='Paid'&&!a.orderTotal?'Free':a.status)+'</td>'+
       '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(a.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>';
-  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=r&&r.more?'Showing '+rows.length+'. Load more, or export the full list.':rows.length+' attendee'+(rows.length===1?'':'s');
+  $('od-att-more').hidden=!(r&&r.more);$('od-att-msg').textContent=r&&r.more?'Showing '+rows.length+'. Load more, or export the full list.':'';
 }
 document.addEventListener('click',function(e){if(e.target.id==='od-clear'||e.target.id==='od-clear2'){['od-q','od-from','od-to'].forEach(function(id){$(id).value=''});$('od-fe').value='';$('od-fs').value='';drawAtt()}});
 ['od-from','od-to'].forEach(function(id){$(id).addEventListener('change',drawAtt)});
