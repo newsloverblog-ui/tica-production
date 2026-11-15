@@ -27,10 +27,18 @@ class OrganizerOperationsController extends Controller
         $organizerId = (int) Auth::guard('organizer')->id();
         $events = Event::with(['information', 'tickets'])
             ->where('organizer_id', $organizerId)->orderByDesc('id')->get();
+        $doorSales = Booking::where('organizer_id', $organizerId)->where('gatewayType', 'door_sale');
+        $todaySales = (clone $doorSales)->where('created_at', '>=', now()->startOfDay());
+        $summary = [
+            'sales' => (clone $todaySales)->count(),
+            'tickets' => (int) (clone $todaySales)->sum('quantity'),
+            'checked_in' => (int) (clone $todaySales)->where('scan_status', 1)->sum('quantity'),
+            'complimentary' => (int) (clone $todaySales)->where('paymentMethod', 'Door complimentary')->sum('quantity'),
+        ];
         $sales = Booking::with('event')->where('organizer_id', $organizerId)
             ->where('gatewayType', 'door_sale')->latest('id')->paginate(15)->withQueryString();
 
-        return view('organizer.operations.door-sales', compact('events', 'sales'));
+        return view('organizer.operations.door-sales', compact('events', 'sales', 'summary'));
     }
 
     public function recordDoorSale(Request $request, OrganizerDoorSaleService $sales)

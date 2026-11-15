@@ -17,7 +17,7 @@ class OrganizerShellTest extends TestCase
   {
     $html = $this->render('overview');
 
-    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
+    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Door sales', 'Gate check-in', 'Promote', 'Sponsorships', 'Payouts', 'Team', 'Plans and usage', 'Settings', 'More tools', 'Log out'] as $label) {
       $this->assertStringContainsString($label, $html, $label);
     }
     $this->assertSame(1, substr_count($html, 'Create an event'));
@@ -54,6 +54,20 @@ class OrganizerShellTest extends TestCase
     $html = $this->render('events', 'Edit event');
     $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/dashboard\/events"/', $html);
     $this->assertStringContainsString('Edit event', $html);
+  }
+
+  public function test_primary_operations_are_direct_and_secondary_tools_are_grouped(): void
+  {
+    $html = $this->render('door_sales');
+
+    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/organizer\/operations\/door-sales"/', $html);
+    $this->assertStringContainsString('Workspace', $html);
+    $this->assertStringContainsString('Growth', $html);
+    $this->assertStringContainsString('Finance', $html);
+    foreach (['Event setup', 'Reports', 'Exports and access', 'Account help'] as $group) {
+      $this->assertStringContainsString('class="tsh-subgroup">'.$group, $html);
+    }
+    $this->assertStringNotContainsString('tsh-sublink os-link" href="/organizer/operations/door-sales"', $html);
   }
 
   public function test_drawer_controls_are_labelled(): void

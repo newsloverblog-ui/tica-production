@@ -60,7 +60,7 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $adminCss = file_get_contents(public_path('assets/tica-ui/css/admin-blend.css'));
 
         $positions = array_map(fn (string $section) => strpos($sidebar, "'{$section}' => ["), [
-            'Main', 'Grow', 'Money', 'Account',
+            'Workspace', 'Growth', 'Finance', 'Account',
         ]);
         $this->assertNotContains(false, $positions);
         $this->assertSame($positions, array_values(array_unique($positions)));

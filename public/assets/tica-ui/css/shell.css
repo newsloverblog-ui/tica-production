@@ -61,6 +61,8 @@
 #tica-shell .tsh-chev{width:16px!important;height:16px!important;margin-left:auto;transition:transform 150ms ease}
 #tica-shell .tsh-more[open] .tsh-chev{transform:rotate(180deg)}
 #tica-shell .tsh-sub{display:flex;flex-direction:column;gap:2px;padding:2px 0 8px 30px}
+#tica-shell .tsh-subgroup{margin:9px 0 3px;padding:0 12px;color:#98A2B3;font-size:11px;line-height:16px;font-weight:600}
+#tica-shell .tsh-subgroup:first-child{margin-top:5px}
 #tica-shell .tsh-sublink{display:flex;align-items:center;height:34px;padding:0 12px;border-radius:8px;color:#3F4A5A!important;font-size:14px;line-height:20px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color 150ms ease}
 #tica-shell .tsh-sublink:hover{background:#F1F3F6;color:#111827!important}
 #tica-shell .tsh-sublink.is-active{background:#EEF2FD;color:#2E4FD8!important;font-weight:500}

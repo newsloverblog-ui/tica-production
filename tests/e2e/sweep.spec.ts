@@ -8,6 +8,7 @@ import { noSidewaysScroll, Role, shot, signIn, watch } from './helpers';
 const ORGANISER = [
   '/dashboard', '/dashboard/events', '/dashboard/orders', '/dashboard/payouts', '/dashboard/promote',
   '/dashboard/team', '/dashboard/settings', '/create', '/checkin',
+  '/organizer/operations/door-sales', '/organizer/operations/sponsorships', '/organizer/operations/plans',
   '/organizer/transaction', '/organizer/finance', '/organizer/kyc',
   '/organizer/support-tikcet/tickets', '/organizer/support-tikcet/create',
   // The rest of "More tools"
