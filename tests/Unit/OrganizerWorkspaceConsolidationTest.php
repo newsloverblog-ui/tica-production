@@ -130,12 +130,17 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString('id="c-use-registration" type="checkbox"', $create);
         $this->assertStringContainsString('id="ce-registration-fields" hidden', $create);
         $this->assertStringContainsString('id="ce-reg-empty" hidden', $create);
+        $this->assertStringContainsString('id="ce-success" role="dialog"', $create);
         $this->assertStringNotContainsString('role="radiogroup" aria-label="How people get in"', $create);
         $this->assertStringContainsString('class="ce-early-on" type="checkbox"', $script);
         $this->assertStringContainsString('class="ce-seat-on" type="checkbox"', $script);
         $this->assertStringContainsString("modeInput.value=seats.checked?'reserved':'general_admission'", $script);
         $this->assertStringContainsString("fd.append('tiers['+i+'][seating_mode]',reserved?'reserved':'general_admission')", $script);
+        $this->assertStringContainsString("if(!r||!r.event_id||!r.name)", $script);
+        $this->assertStringContainsString("setCreateMessage(text||'We couldn\\'t save your event. Try again.','error')", $script);
+        $this->assertStringNotContainsString("setTimeout(function(){location.href=r.redirect_url", $script);
         $this->assertStringContainsString('.page[data-page=create] .ce-choice-row', $css);
+        $this->assertStringContainsString('.page[data-page=create] .ce-success[hidden]{display:none}', $css);
         $this->assertStringContainsString('.page[data-page=create] .ce-option-fields[hidden]{display:none}', $css);
     }
 

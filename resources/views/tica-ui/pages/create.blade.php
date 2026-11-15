@@ -133,8 +133,8 @@
         <dl class="ce-sum" id="ce-sum"></dl>
         <p class="hint">Publish to put it on sale now, or save a draft and finish later.</p>
       </fieldset>
+      <p class="ce-feedback" id="c-msg" role="status" aria-live="polite"></p>
       <div class="ce-go ce-nav"><button class="btn btn-line" type="button" id="ce-back">Back</button><button class="btn btn-hot" type="button" id="ce-next">Continue</button><button class="btn btn-line" type="button" id="ce-draft" hidden>Save draft</button><button class="btn btn-hot" type="submit" id="ce-publish" hidden>Publish event</button></div>
-      <p class="hint" id="c-msg" role="status"></p>
     </form>
     <aside class="preview" aria-label="Preview of your event card">
       <p class="previewlabel">Live preview</p>
@@ -152,6 +152,18 @@
       </article>
     </aside>
   </div></div>
+  <section class="ce-success" id="ce-success" role="dialog" aria-modal="true" aria-labelledby="ce-success-title" tabindex="-1" hidden>
+    <div class="ce-success-card">
+      <span class="ce-success-mark" aria-hidden="true">✓</span>
+      <p class="ce-success-kicker">Event created</p>
+      <h2 id="ce-success-title">Your event is ready</h2>
+      <p id="ce-success-copy">The event was saved successfully.</p>
+      <div class="ce-success-actions">
+        <a class="btn btn-hot" id="ce-success-manage" href="/dashboard/events">Manage event</a>
+        <a class="btn btn-line" id="ce-success-view" href="#" target="_blank" rel="noopener">View event page</a>
+      </div>
+    </div>
+  </section>
   </div></div>
 </section>
 
