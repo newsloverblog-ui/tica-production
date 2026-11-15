@@ -156,7 +156,7 @@ test.describe('edge cases (owner)', () => {
     await expect(page.getByRole('heading', { name: 'Sell at the door' })).toBeVisible();
     await expect(page.locator('.door-step')).toHaveCount(3);
     await expect(page.locator('.door-receipt')).toBeVisible();
-    await expect(page.locator('.tsh-link[aria-current="page"]')).toContainText('Door sales');
+    await expect(page.locator('.tsh-link[href="/organizer/operations/door-sales"]')).toHaveCount(0);
     await expect(page.locator('.tsh-more')).not.toHaveAttribute('open', '');
     await noSidewaysScroll(page);
     expect(problems).toEqual([]);

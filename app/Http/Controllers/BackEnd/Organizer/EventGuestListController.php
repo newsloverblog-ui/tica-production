@@ -26,20 +26,37 @@ class EventGuestListController extends Controller
         $event = $eventId
             ? Event::with('information')->where('organizer_id', $organizerId)->findOrFail($eventId)
             : null;
+        $filter = in_array($request->query('status'), ['accepted', 'pending', 'declined', 'checked_in'], true) ? $request->query('status') : null;
         $invitations = $event
             ? EventGuestInvitation::where('organizer_id', $organizerId)
                 ->where('event_id', $event->id)
+                ->when($filter === 'checked_in', fn ($query) => $query->whereNotNull('checked_in_at'))
+                ->when($filter && $filter !== 'checked_in', fn ($query) => $query->where('status', $filter))
                 ->orderByDesc('id')
                 ->paginate(25)
                 ->withQueryString()
             : null;
+        $stats = ['invited' => 0, 'people' => 0, 'accepted' => 0, 'pending' => 0, 'declined' => 0, 'checked_in' => 0];
+        if ($event) {
+            $base = EventGuestInvitation::where('organizer_id', $organizerId)->where('event_id', $event->id);
+            foreach ((clone $base)->selectRaw('status, count(*) as total, coalesce(sum(party_size), 0) as people')->groupBy('status')->get() as $row) {
+                $stats['invited'] += (int) $row->total;
+                if ($row->status !== 'cancelled') {
+                    $stats['people'] += (int) $row->people;
+                }
+                if (array_key_exists($row->status, $stats)) {
+                    $stats[$row->status] = (int) $row->total;
+                }
+            }
+            $stats['checked_in'] = (clone $base)->whereNotNull('checked_in_at')->count();
+        }
         $imports = $event
             ? EventGuestImport::where('organizer_id', $organizerId)->where('event_id', $event->id)
                 ->with(['rows' => fn ($query) => $query->where('status', 'rejected')->orderBy('row_number')])
                 ->orderByDesc('id')->limit(10)->get()
             : collect();
 
-        return view('organizer.event.guest-list.index', compact('events', 'event', 'invitations', 'imports'));
+        return view('organizer.event.guest-list.index', compact('events', 'event', 'invitations', 'imports', 'stats', 'filter'));
     }
 
     public function store(Request $request, EventGuestListService $guestList)

@@ -37,17 +37,14 @@
       ['events', 'Events', '/dashboard/events', 'events.view'],
       ['tickets', 'Ticket management', '/dashboard/tickets', 'orders.view'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
-      ['door_sales', 'Door sales', '/organizer/operations/door-sales', 'events.manage'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
     ],
     'Growth' => [
       ['promote', 'Promote', '/dashboard/promote', 'promote.manage'],
-      ['sponsorships', 'Sponsorships', '/organizer/operations/sponsorships', 'events.manage'],
     ],
     'Finance' => [['payouts', 'Payouts', '/dashboard/payouts', 'payouts.view']],
     'Account' => [
       ['team', 'Team', '/dashboard/team', 'team.manage'],
-      ['plans', 'Plans and usage', '/organizer/operations/plans', 'settings.manage'],
       ['settings', 'Settings', '/dashboard/settings', 'settings.manage'],
     ],
   ];

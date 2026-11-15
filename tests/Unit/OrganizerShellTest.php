@@ -17,11 +17,15 @@ class OrganizerShellTest extends TestCase
   {
     $html = $this->render('overview');
 
-    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Door sales', 'Gate check-in', 'Promote', 'Sponsorships', 'Payouts', 'Team', 'Plans and usage', 'Settings', 'More tools', 'Log out'] as $label) {
+    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
       $this->assertStringContainsString($label, $html, $label);
     }
     $this->assertSame(1, substr_count($html, 'Create an event'));
     $this->assertSame(1, substr_count($html, 'aria-current="page"'), 'Exactly one active item.');
+    // Door sales, Sponsorships and Plans and usage were taken out of the menu.
+    foreach (['/organizer/operations/door-sales', '/organizer/operations/sponsorships', '/organizer/operations/plans'] as $href) {
+      $this->assertStringNotContainsString('href="'.$href.'"', $html, $href);
+    }
   }
 
   public function test_finance_member_only_sees_what_finance_can_open(): void
@@ -58,9 +62,9 @@ class OrganizerShellTest extends TestCase
 
   public function test_primary_operations_are_direct_and_secondary_tools_are_grouped(): void
   {
-    $html = $this->render('door_sales');
+    $html = $this->render('orders');
 
-    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/organizer\/operations\/door-sales"/', $html);
+    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/dashboard\/orders"/', $html);
     $this->assertStringContainsString('Workspace', $html);
     $this->assertStringContainsString('Growth', $html);
     $this->assertStringContainsString('Finance', $html);
