@@ -311,7 +311,7 @@ body.orgshell .ov-head h1{margin:0;font-size:28px;line-height:36px;font-weight:7
 .ov-setup>.t-btn{grid-column:2;grid-row:1/3}
 
 /* KPI cards */
-.ov-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.ov-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:12px}
 .ov-kpis .t-skel{height:122px;border-radius:14px}
 .ov-kpi{position:relative;display:flex;flex-direction:column;gap:8px;min-width:0;padding:16px 18px;border:1px solid var(--t-line);border-radius:14px;background:#fff;text-align:left;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:border-color .15s,box-shadow .15s,transform .15s}
 button.ov-kpi{cursor:pointer}
@@ -334,9 +334,12 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
 .ov-delta span[aria-hidden]{font-size:9px}
 
 /* grid + cards */
-.ov-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:16px;align-items:start}
-.ov-col{display:grid;gap:16px;min-width:0}
-.ov-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+/* Rows of cards that share a height, so nothing leaves a gap beside it. */
+.ov-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:16px;align-items:stretch}
+.ov-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.ov-row>.ov-card,.ov-row3>.ov-card{display:flex;flex-direction:column}
+.ov-next__act,.ov-money>.t-btn{margin-top:auto!important}
+.ov-next__act{padding-top:16px}
 .ov-card{min-width:0;padding:20px;border:1px solid var(--t-line);border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .ov-card[hidden]{display:none}
 .ov-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
@@ -491,10 +494,6 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
 
 /* responsive */
 @media (max-width:1279px){
-  .ov-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .ov-grid{grid-template-columns:1fr}
-  .ov-col--side{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
-  .ov-row3{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:767px){
   body.orgshell .ov{gap:16px}
@@ -503,31 +502,19 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
   .ov-head__actions{width:100%}
   .ov-seg{display:none}
   .ov-range-select{display:block;flex:1;min-width:0}
-  .ov-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ov-kpis{gap:10px}
   .ov-kpi{padding:14px}
   .ov-kpi__value{font-size:21px;line-height:28px}
   .ov-spark{display:none}
   .ov-kpi:has(.ov-spark) .ov-kpi__label{padding-right:0}
-  .ov-col--side,.ov-row3{grid-template-columns:1fr}
-  .ov-grid,.ov-col,.ov-row3{gap:12px}
+  .ov-row,.ov-row3{gap:12px}
   .ov-card{padding:16px}
   .ov-setup{grid-template-columns:1fr}
   .ov-setup>.t-btn{grid-column:1;grid-row:auto}
-  /* events table becomes stacked cards */
-  .ov-table thead{display:none}
-  .ov-table,.ov-table tbody,.ov-table tr,.ov-table td{display:block;width:100%}
-  .ov-table tr{padding:12px 0;border-bottom:1px solid var(--t-line)}
-  .ov-table tr:last-child{border-bottom:0}
-  .ov-table td{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0;border:0}
-  .ov-table td:first-child{padding-bottom:8px}
-  .ov-table td[data-label]:not(:first-child)::before{content:attr(data-label);color:var(--t-muted);font-size:12px;font-weight:500}
-  .ov-table .ov-sold{min-width:0;width:55%;text-align:right}
-  .ov-table__act{justify-content:flex-end}
 }
 @media (max-width:420px){
   .ov-head__actions .t-btn{width:100%;justify-content:center}
-  .ov-kpis{grid-template-columns:1fr 1fr}
-  .ov-kpi:first-child{grid-column:1/-1}
+
   .ov-next__stats b{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){.ov-kpi{transition:none}button.ov-kpi:hover{transform:none}}
@@ -807,3 +794,119 @@ body.tica-admin .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-s
 .db-out{white-space:pre-wrap;overflow:auto;max-height:420px;background:var(--t-subtle);border:1px solid var(--t-line);border-radius:8px;padding:var(--t-3);font-size:12px;color:var(--t-ink)}
 .db-list summary{cursor:pointer;color:var(--t-blue);font-size:14px;margin-bottom:var(--t-2)}
 .db-list ol{margin:0;padding-left:var(--t-5);font-size:13px;max-height:320px;overflow:auto}
+
+/* Overview: calm palette. One soft blue for data, neutral surfaces, colour only where it means something. */
+body.orgshell .ov{--ov-ink:#1F2937;--ov-text:#4B5563;--ov-muted:#8A94A6;--ov-line:#EEF0F4;--ov-soft:#F6F7F9;--ov-accent:#4F6BED;--ov-accent-soft:#E9EDFD;--ov-track:#EEF1F6}
+.ov-card,.ov-kpi{border-color:var(--ov-line);box-shadow:none}
+.ov-card{padding:22px 24px}
+.ov-card__title{font-size:15px;color:var(--ov-ink)}
+.ov-card__sub,.ov-kpi__note,.ov-kpi__label{color:var(--ov-muted)}
+.ov-kpi__label::before{background:var(--ov-accent-soft)}
+.ov-kpi--money .ov-kpi__label::before{background:var(--ov-accent)}
+.ov-spark polyline,.ov-plot__line{stroke:var(--ov-accent)}
+.ov-plot__dot{fill:var(--ov-accent)}
+.ov-plot__grid line{stroke:var(--ov-line)}
+.ov-bar,.ov-bars__track{background:var(--ov-track);height:6px}
+.ov-bar i,.ov-bars__track i{background:var(--ov-accent)}
+.ov-bar--lg{height:8px}
+.ov-ring{background:conic-gradient(var(--ov-accent) calc(var(--p)*1%),var(--ov-track) 0)}
+.ov-ring span{color:var(--ov-ink)}
+.ov-mini,.ov-next__stats{border-color:var(--ov-line);background:var(--ov-line)}
+.ov-next__stats{background:#fff}
+.ov-next__stats>div{border-color:var(--ov-line)}
+.ov-mini>div{background:#fff;padding:14px}
+.ov-mini b,.ov-next__stats b,.ov-money__value,.ov-kpi__value{color:var(--ov-ink)}
+.ov-money__list>div,.ov-orders__list li,.ov-chan li,.ov-next__tiers,.ov-table td,.ov-table th,.ov-table tr{border-color:var(--ov-line)}
+.ov-av{background:var(--ov-soft);color:var(--ov-text)}
+.ov-ev__date{background:var(--ov-soft)}
+.ov-pill{background:var(--ov-soft);color:var(--ov-text)}
+.ov-pill--green{background:#EEF8F1;color:#2F7D4F}
+.ov-pill--orange{background:#FDF5EC;color:#9A5B1E}
+.ov-pill--red{background:#FCF0EF;color:#A63A32}
+.ov-pill--blue{background:var(--ov-accent-soft);color:#3A52C4}
+.ov-delta.is-up{background:#EEF8F1;color:#2F7D4F}
+.ov-delta.is-down{background:#FCF0EF;color:#A63A32}
+/* attention items: neutral rows with a coloured icon, not coloured blocks */
+.ov-attn__list{gap:0}
+.ov-attn__list li,.ov-attn__list li.is-warn,.ov-attn__list li.is-ok{background:transparent;border-radius:0;padding:12px 0;border-top:1px solid var(--ov-line)}
+.ov-attn__list li:first-child{border-top:0;padding-top:0}
+.ov-attn__icon{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:var(--ov-soft)}
+.ov-attn__list li.is-warn .ov-attn__icon{background:#FDF5EC}
+.ov-attn__list li.is-ok .ov-attn__icon{background:#EEF8F1}
+.ov-attn__icon svg{margin:0;width:16px;height:16px}
+.ov-count{background:#FDF5EC;color:#9A5B1E}
+.ov-status--ok{background:#F3FAF5}
+.ov-status--warn{background:#FDF8F1}
+.ov-setup{border-color:#DDE3FB;background:#F7F8FE}
+.ov-empty__icon{background:var(--ov-soft)}
+.ov-empty__icon svg{stroke:var(--ov-accent)}
+.ov-seg button[aria-checked=true],.ov-toggle button[aria-checked=true]{background:var(--ov-accent-soft);color:#3A52C4}
+.ov-seg,.ov-toggle{border-color:var(--ov-line)}
+/* channels: name and figures line up as a small table */
+.ov-chan li{grid-template-columns:minmax(0,1fr) 64px 64px}
+.ov-chan__head{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:14px;padding:0 0 8px;color:var(--ov-muted);font-size:12px}
+.ov-chan__head span:not(:first-child){text-align:right}
+.ov-chan__num span{display:none}
+.ov-channels .ov-mini--3{margin-top:auto}
+.ov-channels .ov-chan{margin-bottom:16px}
+.ov-audience .ov-ring-row{margin-top:auto;padding-top:16px}
+@media (max-width:767px){.ov-card{padding:16px}}
+
+/* The events table reflows by the width of its own card, not the screen. */
+.ov-events{container-type:inline-size}
+.ov-table td:first-child{min-width:180px}
+@container (max-width:620px){
+  .ov-table thead{display:none}
+  .ov-table,.ov-table tbody,.ov-table tr,.ov-table td{display:block;width:100%}
+  .ov-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;padding:14px 0;border-bottom:1px solid var(--ov-line,#EEF0F4)}
+  .ov-table tr:first-child{padding-top:4px}
+  .ov-table tr:last-child{border-bottom:0}
+  .ov-table td{padding:0;border:0;min-width:0}
+  .ov-table td:first-child{grid-column:1/-1;min-width:0}
+  .ov-table td[data-label=Status]{grid-column:1}
+  .ov-table td[data-label=Revenue]{grid-column:2;grid-row:2;text-align:right}
+  .ov-table td[data-label=Sold]{grid-column:1/-1}
+  .ov-table .ov-sold{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+  .ov-table__act{grid-column:1/-1;text-align:left!important}
+  .ov-table__act:empty{display:none}
+}
+
+/* Layout follows the dashboard's own width (the sidebar takes part of the screen). */
+.ov-wrap{container-type:inline-size;container-name:ov}
+.ov-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+@container ov (max-width:899px){
+  .ov-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .ov-kpi{grid-column:span 2}
+  .ov-kpi:nth-child(-n+2){grid-column:span 3}
+  .ov-row{grid-template-columns:1fr}
+}
+@container ov (max-width:1149px){
+  .ov-row3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ov-row3>.ov-card:last-child{grid-column:1/-1}
+}
+@container ov (max-width:599px){
+  .ov-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ov-kpi,.ov-kpi:nth-child(-n+2){grid-column:auto}
+  .ov-kpi:first-child{grid-column:1/-1}
+  .ov-row3{grid-template-columns:1fr}
+  .ov-row3>.ov-card:last-child{grid-column:auto}
+}
+/* Footers keep short cards useful instead of empty. */
+.ov-card__foot{margin-top:auto;padding-top:16px}
+.ov-foot-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:12px;border:1.5px dashed #D8DEE9;border-radius:12px;background:transparent;color:var(--ov-text,#4B5563);font-family:inherit;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer}
+.ov-foot-cta:hover{border-color:var(--ov-accent,#4F6BED);color:var(--ov-accent,#4F6BED);background:#FAFBFF}
+.ov-foot-cta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ov-foot-note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ov-soft,#F6F7F9);color:var(--ov-text,#4B5563);font-size:13px;line-height:18px}
+.ov-foot-note b{color:var(--ov-ink,#1F2937);font-weight:600}
+.ov-audience .ov-ring-row{margin-top:16px;padding-top:0}
+.ov-next__flyer{max-height:200px;aspect-ratio:auto;height:clamp(140px,22vw,200px)}
+/* Short content sits in the middle of a tall card instead of leaving a hole at the bottom. */
+.ov-sales .ov-chart{flex:1;display:flex;flex-direction:column;justify-content:center}
+.ov-sales .ov-table-view{margin-top:auto;padding-top:10px}
+.ov-events #od-top{flex:1;display:flex;flex-direction:column}
+.ov-orders #db-ord{flex:1;display:flex;flex-direction:column}
+.ov-types #od-types-body,.ov-types>.ov-bars{flex:none}
+.ov-sales .ov-chart:not(:has(.ov-empty)){justify-content:flex-start}
+.ov-ev__name{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ov-table .ov-sold{min-width:96px}
+.ov-sales .ov-chart{min-height:0}

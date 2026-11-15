@@ -116,10 +116,14 @@ class OrganizerOverviewMetricsTest extends TestCase
         // Change against the previous period, and a chart you can hover.
         $this->assertStringContainsString('function delta(now,prev)', $script);
         $this->assertStringContainsString("svg.addEventListener('pointermove'", $script);
-        // Layout collapses: two columns, then one; the events table turns into cards on phones.
-        $this->assertStringContainsString('@media (max-width:1279px)', $styles);
-        $this->assertStringContainsString('.ov-grid{grid-template-columns:1fr}', $styles);
+        // Paired rows share a height; the layout follows the dashboard's own width, not the screen's,
+        // and the events table turns into cards when its card gets narrow.
+        $this->assertStringContainsString('.ov-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:16px;align-items:stretch}', $styles);
+        $this->assertStringContainsString('.ov-wrap{container-type:inline-size;container-name:ov}', $styles);
+        $this->assertStringContainsString('@container ov (max-width:899px)', $styles);
+        $this->assertStringContainsString('@container (max-width:620px)', $styles);
         $this->assertStringContainsString('.ov-table thead{display:none}', $styles);
+        $this->assertSame(3, substr_count($view, 'class="ov-row"'));
         $this->assertStringContainsString("'checkedIn' => (int) \$categories->sum('checkedIn')", (string) file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php')));
     }
 
