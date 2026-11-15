@@ -36,7 +36,28 @@ class Ticket extends Model
     'early_bird_discount_date',
     'early_bird_discount_time',
     'variations',
-    'trans_vars'
+    'trans_vars',
+    'currency',
+    'min_buy_ticket',
+    'sales_start_at',
+    'sales_end_at',
+    'visibility',
+    'sales_status',
+    'numbering_enabled',
+    'numbering_scope',
+    'number_prefix',
+    'number_start',
+    'number_padding',
+    'number_format',
+    'seating_mode',
+    'design_settings',
+  ];
+
+  protected $casts = [
+    'sales_start_at' => 'datetime',
+    'sales_end_at' => 'datetime',
+    'numbering_enabled' => 'boolean',
+    'design_settings' => 'array',
   ];
 
   public function waitlistEntries()

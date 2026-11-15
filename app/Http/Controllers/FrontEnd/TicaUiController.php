@@ -45,10 +45,12 @@ class TicaUiController extends Controller
     return $this->render($request, $payload, $page, $path);
   }
 
-  /** Keep old admin-builder links working while the admin uses its full workspace flow. */
-  public function adminCreate(Request $request)
+  /** Admins create in the same ticketing and seating builder as organisers. */
+  public function adminCreate(Request $request, TicaUiPayload $payload)
   {
-    return redirect()->route('admin.choose-event-type', $request->only('language'));
+    return $this->render($request, $payload, 'create', 'create', 200, null, [
+      'adminBuilder' => $this->adminBuilder(),
+    ]);
   }
 
   /** Admins edit an event in the same builder, filled in with the saved event. */
@@ -100,7 +102,7 @@ class TicaUiController extends Controller
       ])->values()->all();
 
     return [
-      'endpoint' => null,
+      'endpoint' => route('admin.event_builder.store'),
       'backUrl' => route('admin.event_management.event', ['language' => $language->code]),
       'settingsUrl' => route('admin.event_management.event', ['language' => $language->code]),
       'organizers' => $organizers,

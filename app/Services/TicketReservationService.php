@@ -98,6 +98,15 @@ class TicketReservationService
                 $expiresAt,
                 $buyerEmailHash,
             );
+            app(SeatReservationService::class)->replaceToken(
+                $existingToken,
+                $token,
+                $eventId,
+                $sessionId,
+                $customerId,
+                $buyerEmailHash,
+                $expiresAt,
+            );
         }, 3);
 
         return $token;
@@ -246,6 +255,8 @@ class TicketReservationService
             }
         }
 
+        app(SeatReservationService::class)->release($token, $reason);
+
         return $released;
     }
 
@@ -261,6 +272,8 @@ class TicketReservationService
         foreach ($tokens as $token) {
             $released += $this->release($token, 'expired');
         }
+
+        app(SeatReservationService::class)->releaseExpired($limit * 5);
 
         return $released;
     }

@@ -48,6 +48,12 @@ class OrganizerAttendeeDirectoryTest extends TestCase
             $table->string('holder_name')->nullable();
             $table->string('holder_email')->nullable();
             $table->string('status')->default('issued');
+            $table->string('ticket_number', 80)->nullable();
+            $table->unsignedBigInteger('ticket_number_value')->nullable();
+            $table->unsignedBigInteger('seat_id')->nullable();
+            $table->string('seat_label', 40)->nullable();
+            $table->string('row_label', 40)->nullable();
+            $table->string('section_label', 120)->nullable();
             $table->timestamp('checked_in_at')->nullable();
             $table->timestamp('revoked_at')->nullable();
             $table->text('attendee_answer')->nullable();
@@ -215,6 +221,12 @@ class OrganizerAttendeeDirectoryTest extends TestCase
             'holder_name' => $holder,
             'holder_email' => strtolower(str_replace(' ', '.', $holder)) . '@example.test',
             'status' => 'issued',
+            'ticket_number' => null,
+            'ticket_number_value' => null,
+            'seat_id' => null,
+            'seat_label' => null,
+            'row_label' => null,
+            'section_label' => null,
             'checked_in_at' => null,
             'revoked_at' => null,
             'attendee_answer' => null,

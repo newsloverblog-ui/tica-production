@@ -147,7 +147,14 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('event-cancellation-exports/{export}/download', 'BackEnd\EventCancellationExportController@download')
       ->middleware(['permission:Transaction', 'signed'])->name('admin.event_cancellation_exports.download');
     Route::get('event-management/events/', 'BackEnd\Event\EventController@index')->name('admin.event_management.event');
+    Route::get('ticket-management', 'BackEnd\AdvancedTicketController@index')->name('admin.advanced_tickets.index');
+    Route::get('ticket-management/export', 'BackEnd\AdvancedTicketController@export')->middleware('throttle:10,1')->name('admin.advanced_tickets.export');
+    Route::post('ticket-management/issue', 'BackEnd\AdvancedTicketController@issue')->middleware('throttle:20,1')->name('admin.advanced_tickets.issue');
+    Route::post('ticket-management/{ticket}/revoke', 'BackEnd\AdvancedTicketController@revoke')->whereNumber('ticket')->middleware('throttle:20,1')->name('admin.advanced_tickets.revoke');
+    Route::post('ticket-management/{ticket}/reissue', 'BackEnd\AdvancedTicketController@reissue')->whereNumber('ticket')->middleware('throttle:20,1')->name('admin.advanced_tickets.reissue');
     Route::get('event-builder/', 'FrontEnd\TicaUiController@adminCreate')->name('admin.event_builder');
+    Route::post('event-builder/', 'FrontEnd\TicaOrganizerController@storeAdminEvent')
+      ->middleware('throttle:20,1')->name('admin.event_builder.store');
     Route::get('event-builder/{id}/edit', 'FrontEnd\TicaUiController@adminEdit')->whereNumber('id')->name('admin.event_builder.edit');
     Route::post('event-builder/{id}', 'FrontEnd\TicaOrganizerController@updateAdminEvent')->whereNumber('id')
       ->middleware('throttle:20,1')->name('admin.event_builder.update');
