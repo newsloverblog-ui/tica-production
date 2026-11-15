@@ -358,4 +358,5 @@
       sync();
     })();
   </script>
+  @include('organizer.forms._motion')
 @endsection

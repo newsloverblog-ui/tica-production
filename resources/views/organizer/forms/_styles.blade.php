@@ -71,7 +71,8 @@
   .rf-drop-empty{list-style:none;padding:20px;border:1.5px dashed var(--t-line-strong,#CBD2DC);border-radius:10px;text-align:center;color:var(--t-muted,#667085);font-size:14px}
 
   /* Field editor */
-  .rf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+  .rf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;align-items:start}
+  .rf-page .t-field .t-help{font-weight:400;margin:2px 0 0!important}
   .rf-grid .t-field{margin:0}
   .rf-grid .rf-wide{grid-column:1/-1}
   .rf-more{margin:16px 0;border-top:1px solid var(--t-line,#E3E7ED);padding-top:12px}
@@ -100,6 +101,58 @@
   .rf-linked form{margin:0}
   .rf-push{margin-top:16px;padding-top:16px;border-top:1px solid var(--t-line,#E3E7ED)}
   .rf-push .t-help{margin:8px 0 0!important}
+
+  /* ---------------- Motion: calm, short, and only where it helps ---------------- */
+  .rf-page{--rf-ease:cubic-bezier(.2,.7,.2,1)}
+  .rf-page.rf-intro .t-card,.rf-page.rf-intro .rf-row{animation:rfRise .42s var(--rf-ease) both}
+  .rf-page.rf-intro .rf-side>.t-card:nth-child(2),.rf-page.rf-intro .rf-start>.t-card:nth-child(2){animation-delay:.06s}
+  .rf-page.rf-intro .rf-side>.t-card:nth-child(3){animation-delay:.12s}
+  .rf-page.rf-intro .rf-side>.t-card:nth-child(4){animation-delay:.18s}
+  .rf-page.rf-intro .rf-row:nth-child(2){animation-delay:.05s}.rf-page.rf-intro .rf-row:nth-child(3){animation-delay:.1s}.rf-page.rf-intro .rf-row:nth-child(n+4){animation-delay:.15s}
+  @keyframes rfRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .rf-chip{transition:border-color .18s,background-color .18s,transform .18s var(--rf-ease,ease),box-shadow .18s}
+  .rf-chip:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(11,36,71,.06)}
+  .rf-chip:active{transform:translateY(0) scale(.97)}
+  .rf-chip span{display:inline-block;transition:transform .25s var(--rf-ease,ease)}
+  .rf-chip:hover span{transform:rotate(90deg)}
+  .rf-chip.is-adding{border-color:var(--t-blue,#2E4FD8);background:var(--t-blue-50,#EEF2FF);pointer-events:none}
+  .rf-chip.is-adding span{animation:rfSpin .8s linear infinite}
+  @keyframes rfSpin{to{transform:rotate(360deg)}}
+  .rf-field{transition:border-color .18s,box-shadow .18s,transform .18s var(--rf-ease,ease),opacity .18s}
+  [data-rf-item]:hover{border-color:var(--t-line-strong,#CBD2DC)}
+  [data-rf-item]:hover .rf-handle{color:#526079}
+  [data-rf-item].is-dragging{opacity:.5;transform:scale(.99)}
+  .rf-field.is-editing{animation:rfArrive 1.2s var(--rf-ease) both}
+  @keyframes rfArrive{0%{background:var(--t-blue-50,#EEF2FF);transform:translateY(-4px);opacity:.4}35%{opacity:1;transform:none}100%{background:#fff}}
+  .rf-marker{animation:rfGrow .16s var(--rf-ease) both;transform-origin:left}
+  @keyframes rfGrow{from{transform:scaleX(.3);opacity:0}to{transform:none;opacity:1}}
+  .rf-more[open]>.rf-grid{animation:rfRise .28s var(--rf-ease) both}
+  .rf-more summary{list-style:none;display:inline-flex;align-items:center;gap:6px}
+  .rf-more summary::-webkit-details-marker{display:none}
+  .rf-more summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .2s var(--rf-ease,ease);margin-right:2px}
+  .rf-more[open] summary::before{transform:rotate(45deg)}
+  .rf-page .t-btn{transition:background-color .18s,border-color .18s,color .18s,transform .12s}
+  .rf-page .t-btn:active:not([disabled]){transform:scale(.98)}
+  .rf-page .t-btn[aria-busy=true]{opacity:.7;cursor:progress}
+  .rf-page .t-input,.rf-page .t-select,.rf-page .t-textarea{transition:border-color .18s,box-shadow .18s}
+  .rf-icon{transition:background-color .18s,color .18s,transform .12s}
+  .rf-icon:active:not([disabled]){transform:scale(.94)}
+  .rf-page .rf-events label{transition:border-color .18s,background-color .18s,transform .18s var(--rf-ease,ease)}
+  .rf-page .rf-events label:active{transform:scale(.99)}
+  .rf-row{transition:background-color .18s}
+  @media (prefers-reduced-motion:reduce){.rf-page *,.rf-page *::before{animation:none!important;transition:none!important}}
+
+  /* Forms list */
+  .rf-page .rf-list{gap:0}
+  .rf-page .rf-row{padding:16px 12px;margin:0 -12px;border-radius:10px;border-top:1px solid var(--t-line,#E3E7ED)}
+  .rf-page .rf-row:first-child{border-top-color:transparent}
+  .rf-page .rf-row:hover{background:var(--t-subtle,#F1F3F6)}
+  .rf-page .rf-row h3 a:hover{color:var(--t-blue,#2E4FD8)}
+  .rf-page .rf-start{margin-bottom:16px}
+  .rf-page .rf-start .t-field{margin:0}
+  .rf-page .t-empty{padding:28px 16px;border:1.5px dashed var(--t-line-strong,#CBD2DC);border-radius:12px;text-align:center;color:var(--t-muted,#667085)}
+  .rf-page .t-empty p{margin:0}
+  .rf-page>.t-card+.t-card{margin-top:16px}
 
   @media (max-width:1023px){.rf-start,.rf-builder{grid-template-columns:1fr}}
   @media (max-width:560px){
