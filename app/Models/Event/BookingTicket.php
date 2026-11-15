@@ -11,6 +11,7 @@ class BookingTicket extends Model
 
     protected $fillable = [
         'public_id', 'booking_id', 'event_id', 'organizer_id', 'ticket_id', 'sequence',
+        'ticket_number', 'ticket_number_value', 'seat_id', 'seat_label', 'row_label', 'section_label',
         'variation_name', 'holder_name', 'holder_email', 'holder_customer_id', 'status', 'checked_in_at',
         'checked_in_by_organizer_id', 'checked_in_scanner_device_id',
         'checked_in_scanner_staff_id', 'checked_in_source', 'revoked_at', 'revoked_reason',
@@ -52,5 +53,15 @@ class BookingTicket extends Model
     public function checkedInScannerStaff()
     {
         return $this->belongsTo(\App\Models\ScannerStaff::class, 'checked_in_scanner_staff_id');
+    }
+
+    public function seat()
+    {
+        return $this->belongsTo(\App\Models\EventSeat::class, 'seat_id');
+    }
+
+    public function ticket()
+    {
+        return $this->belongsTo(Ticket::class, 'ticket_id');
     }
 }

@@ -34,7 +34,7 @@ function persistSaved(slug,on){
   try{localStorage.setItem('tica_saved',JSON.stringify(Object.keys(saved).filter(function(k){return saved[k]})))}catch(e){}
 }
 function dstr(e){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(e.y||2026,M[e.mon],+e.day).getDay()]+', '+e.day+' '+e.mon}
-var TD={'Regular':'General admission','VIP':'Fast-track entry and the VIP area','Table for six':'A reserved table for six guests','Day pass':'Entry for the whole day','Maker table':'Stall space for one maker','Runner':'Race entry, bib and finisher medal','Free entry':'Free, but you still need a ticket'};
+var TD={'Regular':'General admission','VIP':'Fast-track entry and the VIP area','VVIP':'Premium access and the best available section','Early Bird':'Limited early-release admission','Student':'Discounted admission with valid student ID','Complimentary':'Free invited admission','Table for six':'A reserved table for six guests','Day pass':'Entry for the whole day','Maker table':'Stall space for one maker','Runner':'Race entry, bib and finisher medal','Free entry':'Free, but you still need a ticket'};
 function stockLeft(e){return e.tiers.reduce(function(s,t){return s+t[2]},0)}
 function stockTotal(e){return e.tiers.reduce(function(s,t){return s+t[3]},0)}
 function stockHtml(e){
@@ -291,7 +291,7 @@ function renderEvent(e){
   e.sold?'<div class="tp"><h2>Tickets</h2><p class="tp-sold">This event is sold out.</p><form class="wl" id="wl" novalidate><label for="wl-e">Join the waitlist and we\'ll email you if tickets come back.</label><div><input id="wl-e" type="email" autocomplete="off" placeholder="Your email" value="'+esc(window.TICA_USER&&TICA_USER.email||'')+'"><button class="btn btn-hot" type="submit">Join</button></div><p class="hint" id="wl-m" role="status"></p></form><a class="btn btn-line tp-go" href="/discover">Find another event</a></div>':
   '<div class="tp" id="tp">'+(e.countdown?'<div class="tp-cd">'+cdFull(e)+(e.time.indexOf('confirmed')>-1?'<small>Counting to the date. The start time is still to be confirmed.</small>':'')+'</div>':'')+'<div class="tp-stock">'+stockBlock(e)+'</div>'+
   (e.dates&&e.dates.length>1?'<div class="inp tp-when"><label for="tp-date">Choose a date</label><select id="tp-date">'+e.dates.map(function(d){return '<option value="'+esc(d.value)+'"'+(d.value===when?' selected':'')+'>'+esc(d.label)+'</option>'}).join('')+'</select></div>':'')+
-  '<h2>Choose your tickets</h2>'+e.tiers.map(function(t,i){var inf=tierInfo(e,i),p=tierPrice(e,i),low=!inf.unlimited&&t[2]>0&&t[2]<=Math.max(10,t[3]*.15),desc=inf.description||TD[t[0]];
+  '<h2>Choose your tickets</h2>'+e.tiers.map(function(t,i){var inf=tierInfo(e,i),p=tierPrice(e,i),low=!inf.unlimited&&t[2]>0&&t[2]<=Math.max(10,t[3]*.15),desc=inf.description||(inf.seatingMode==='reserved'?'Choose your seat from the live seating map.':TD[t[0]]);
     return '<div class="tp-row"><div><span>'+esc(t[0])+'</span>'+(desc?'<em class="tdesc">'+esc(desc)+'</em>':'')+'<b>'+naira(p)+(inf.earlyBird?'<small class="tfee">Early bird, was '+naira(t[1])+'</small>':'')+(p?(e.absorb?'<small class="tfee">Fees included</small>':'<small class="tfee">+ '+naira(feeFor(p,1))+' fee</small>'):'')+'</b>'+((inf.unlimited||e.hideStock)&&t[2]>0?'':'<small class="tleft'+(low?' low':'')+(t[2]===0?' out':'')+'">'+(t[2]===0?'Sold out':(low?'Only ':'')+t[2].toLocaleString('en-NG')+' left')+'</small>')+'</div>'+(t[2]===0?'':'<div class="stepper"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Remove one '+esc(t[0])+' ticket">−</button><output id="tq'+i+'">'+qty[i]+'</output><button type="button" class="plus" data-d="1" data-i="'+i+'" aria-label="Add one '+esc(t[0])+' ticket">+</button></div>')+'</div>'}).join('')+
   '<div class="tp-lines" id="tp-lines"></div>'+
   (e.tiers.some(function(t){return t[1]>0})?'<form class="tp-code" id="tp-code"><label for="code">Discount code</label><div><input id="code" type="text" placeholder="Enter code" autocomplete="off" value="'+esc(disc?disc.code:'')+'"><button class="btn btn-line" type="submit">Apply</button></div><p class="hint" id="code-msg" role="status">'+(disc?esc(disc.code)+' applied.':'Enter a discount code if you have one.')+'</p></form>':'')+
@@ -372,20 +372,28 @@ function renderCheckout(e){
   var pend=PENDING&&PENDING.slug===e.slug?PENDING:null;
   if(pend&&(!HOLD||HOLD.slug!==e.slug||HOLD.end<Date.now()))HOLD={slug:e.slug,end:Date.now()+600000};
   var guestOk=!!(TICA_DATA.currency&&TICA_DATA.currency.guestCheckout);
-  var S={login:(!guestOk&&!(window.TICA_USER&&TICA_USER.email))?'id':null,loginId:'',stage:pend?'details':'choose',qty:pend?pend.qty.slice():e.tiers.map(function(){return 0}),people:pend?pend.people.slice():[],open:0,err:{},disc:pend?pend.disc:null,date:pend&&pend.date||(e.dates&&e.dates[0]?e.dates[0].value:''),submission:checkoutSubmissionId(e.slug,pend&&pend.submission)};
+  var S={login:(!guestOk&&!(window.TICA_USER&&TICA_USER.email))?'id':null,loginId:'',stage:pend?'details':'choose',qty:pend?pend.qty.slice():e.tiers.map(function(){return 0}),people:pend?pend.people.slice():[],open:0,err:{},disc:pend?pend.disc:null,date:pend&&pend.date||(e.dates&&e.dates[0]?e.dates[0].value:''),submission:checkoutSubmissionId(e.slug,pend&&pend.submission),seats:[],seatData:null,seatLoading:false,seatError:''};
   if(pend){S.people=S.people.slice(0,pend.qty.reduce(function(a,b){return a+b},0));S.open=S.people.filter(function(p){return p.done}).length;var _n=pend.qty.reduce(function(a,b){return a+b},0);if(S.open>=_n)S.open=_n-1}
   var view=$('checkout-view');
   /* Tica: free means the chosen tickets cost nothing, not that every ticket type is free. */
-  function isFree(){var paidPick=S.qty.some(function(q,i){return q>0&&tierPrice(e,i)>0});return count()>0?!paidPick:e.tiers.every(function(t,i){return tierPrice(e,i)===0})}
+  function seatById(id){return (S.seatData||[]).filter(function(s){return +s.id===+id})[0]}
+  function selectedSeatsFor(i){var tid=String(tierInfo(i).ticketId);return S.seats.map(seatById).filter(function(s){return s&&String(s.ticket_id)===tid})}
+  function lineTotal(i){var q=S.qty[i]||0;if(tierInfo(i).seatingMode!=='reserved')return q*tierPrice(e,i);var picked=selectedSeatsFor(i);return picked.length===q?picked.reduce(function(sum,s){return sum+Math.max(0,+s.price||0)},0):q*tierPrice(e,i)}
+  function isFree(){return count()>0?total()<=0:e.tiers.every(function(t,i){return tierPrice(e,i)===0})}
   function slots(){var a=[];S.qty.forEach(function(q,i){for(var k=0;k<q;k++)a.push(e.tiers[i][0])});return a}
-  function total(){return S.qty.reduce(function(s,q,i){return s+q*tierPrice(e,i)},0)}
+  function total(){return S.qty.reduce(function(s,q,i){return s+lineTotal(i)},0)}
   function count(){return S.qty.reduce(function(s,q){return s+q},0)}
+  function tierInfo(i){return (e.tierInfo&&e.tierInfo[i])||{}}
+  function reservedCount(){return S.qty.reduce(function(s,q,i){return s+(tierInfo(i).seatingMode==='reserved'?q:0)},0)}
+  /* A quantity carried from the event page must still pass through authoritative seat selection. */
+  if(S.stage==='details'&&reservedCount()>0)S.stage='choose';
+  function reservedTicketIds(){var ids={};S.qty.forEach(function(q,i){if(q>0&&tierInfo(i).seatingMode==='reserved')ids[String(tierInfo(i).ticketId)]=q});return ids}
   function net(){var t=total();return t-discountOf(S.disc,t)}
-  function paid(){return S.qty.reduce(function(s,q,i){return s+(tierPrice(e,i)>0?q:0)},0)}
+  function paid(){return S.qty.reduce(function(sum,q,i){if(tierInfo(i).seatingMode!=='reserved')return sum+(tierPrice(e,i)>0?q:0);var picked=selectedSeatsFor(i);return sum+(picked.length===q?picked.filter(function(s){return +s.price>0}).length:(tierPrice(e,i)>0?q:0))},0)}
   function fee(){return e.absorb?0:feeFor(net(),paid())}
   function money(){var t=net()+fee();return naira(Math.round(t*100)/100)}
   function summary(){
-    var lines=S.qty.map(function(q,i){return q?'<div class="sumline"><span>'+q+' x '+esc(e.tiers[i][0])+'</span><span>'+naira(q*tierPrice(e,i))+'</span></div>':''}).join('');
+    var lines=S.qty.map(function(q,i){return q?'<div class="sumline"><span>'+q+' x '+esc(e.tiers[i][0])+'</span><span>'+naira(lineTotal(i))+'</span></div>':''}).join('');
     var action='';
     if(S.stage==='choose')action='<button class="btn btn-hot" type="button" id="to-details"'+(count()?'':' disabled')+'>Continue</button>';
     if(S.stage==='pay')action='<button class="btn btn-hot" type="button" id="pay-now">'+(isFree()?(count()===1?'Get my free ticket':'Get my free tickets'):(count()===1?'Buy ticket':'Buy '+count()+' tickets'))+'</button><p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p>'+(isFree()?'':'<p class="secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="gw-secure">Payments are processed securely by '+esc(gwLabel())+'</span></p>');
@@ -395,8 +403,13 @@ function renderCheckout(e){
   }
   function chooseHtml(){
     return '<h1 class="display">'+esc(e.name)+'</h1><p class="sub2">'+dstr(e)+', '+esc(meta(e))+'</p><h2>Choose your tickets</h2>'+
-    e.tiers.map(function(t,i){if(t[2]===0)return '';return '<div class="tkt"><div><b>'+esc(t[0])+'</b><span>'+naira(tierPrice(e,i))+'</span></div><div class="stepper"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Remove one '+esc(t[0])+' ticket">−</button><output>'+S.qty[i]+'</output><button type="button" data-d="1" data-i="'+i+'" aria-label="Add one '+esc(t[0])+' ticket">+</button></div></div>'}).join('');
+    e.tiers.map(function(t,i){if(t[2]===0)return '';return '<div class="tkt"><div><b>'+esc(t[0])+'</b><span>'+naira(tierPrice(e,i))+(tierInfo(i).seatingMode==='reserved'?' · Choose seats':'')+'</span></div><div class="stepper"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Remove one '+esc(t[0])+' ticket">−</button><output>'+S.qty[i]+'</output><button type="button" data-d="1" data-i="'+i+'" aria-label="Add one '+esc(t[0])+' ticket">+</button></div></div>'}).join('')+seatHtml();
   }
+  function seatHtml(){var needed=reservedCount();if(!needed)return '';if(S.seatLoading)return '<section class="buyer-seats"><h3>Choose your seats</h3><p class="hint">Loading the live seating map…</p></section>';if(S.seatError)return '<section class="buyer-seats"><h3>Choose your seats</h3><p class="payerr">'+esc(S.seatError)+'</p><button class="btn btn-line" type="button" id="seat-retry">Try again</button></section>';if(!S.seatData)return '<section class="buyer-seats"><h3>Choose your seats</h3><p class="hint">Loading the live seating map…</p></section>';
+    var wanted=reservedTicketIds(),groups={};S.seatData.forEach(function(s){if(!wanted[String(s.ticket_id)])return;var key=s.section||'Seating';(groups[key]||(groups[key]=[])).push(s)});var selected={};S.seats.forEach(function(id){selected[id]=1});
+    return '<section class="buyer-seats"><div class="buyer-seat-head"><div><h3>Choose your seats</h3><p>'+S.seats.length+' of '+needed+' selected</p></div><div class="buyer-seat-legend"><span><i></i>Available</span><span><i class="selected"></i>Selected</span><span><i class="reserved"></i>Reserved or sold</span></div></div>'+Object.keys(groups).map(function(name){var rows={};groups[name].forEach(function(s){(rows[s.row||'Area']||(rows[s.row||'Area']=[])).push(s)});return '<div class="buyer-section"><h4>'+esc(name)+'</h4>'+Object.keys(rows).map(function(row){return '<div class="buyer-row"><b>'+esc(row)+'</b><div>'+rows[row].map(function(s){var on=selected[s.id],off=s.status!=='available'&&!on,price=+s.price||0,label=(s.section||'')+' row '+(s.row||'')+' seat '+s.label+', '+naira(price)+', '+(on?'selected':s.status);return '<button type="button" class="buyer-seat'+(on?' selected':'')+'" data-seat="'+s.id+'" data-ticket="'+s.ticket_id+'"'+(off?' disabled':'')+' aria-pressed="'+(on?'true':'false')+'" aria-label="'+esc(label)+'"><b>'+esc(s.label)+'</b><small>'+naira(price)+'</small></button>'}).join('')+'</div></div>'}).join('')+'</div>'}).join('')+'</section>';
+  }
+  function loadSeats(){if(S.seatLoading||S.seatData||!reservedCount())return;S.seatLoading=true;fetch('/tica-api/events/'+e.id+'/seats',{credentials:'same-origin',headers:{Accept:'application/json'}}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.message||'The seating map is unavailable.');return j})}).then(function(j){S.seatLoading=false;S.seatData=j.seats||[];draw()},function(er){S.seatLoading=false;S.seatError=er.message||'The seating map is unavailable.';draw()})}
   function field(i,k,label,type,ac,hint){
     var id='p'+i+'-'+k,err=S.err[i]&&S.err[i][k],v=(S.people[i]&&S.people[i][k])||'';
     return '<div class="inp'+(err?' bad':'')+'"><label for="'+id+'">'+label+'</label><input id="'+id+'" name="'+k+'" type="'+type+'" autocomplete="'+ac+'" value="'+esc(v)+'"'+(err?' aria-invalid="true" aria-describedby="'+id+'-e"':'')+'>'+(err?'<p class="ferr" id="'+id+'-e">'+err+'</p>':(hint?'<p class="hint">'+hint+'</p>':''))+'</div>';
@@ -453,12 +466,13 @@ function renderCheckout(e){
     var n={choose:0,details:1,pay:2}[S.stage];
     view.innerHTML=stepsBar(n)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():S.stage==='details'?detailsWrap():payHtml())+'</div>'+summary()+'</div>';
     bind();
+    if(S.stage==='choose')loadSeats();
     if(focusSel){var f=view.querySelector(focusSel);if(f)f.focus()}
   }
   /* Tica: hand the order to the server, then go to the chosen gateway or the confirmation page. */
   function place(onFail){
     var m=$('pay-msg');if(m){m.className='hint';m.textContent=''}
-    api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,submission_id:S.submission,
+    api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,submission_id:S.submission,seat_ids:S.seats,
       buyer:{name:S.people[0].name,email:S.people[0].email,phone:S.people[0].phone},gateway:isFree()?null:gwKey(),
       attendees:S.people.map(function(p){return {name:p.name,email:p.email||'',answer:p.answer||''}})})
     .then(function(r){clearCheckoutSubmission(e.slug);HOLD=null;PENDING=null;location.href=r.redirect},function(er){
@@ -475,9 +489,12 @@ function renderCheckout(e){
   function bind(){
     view.querySelectorAll('.stepper button').forEach(function(b){b.addEventListener('click',function(){
       var i=+b.dataset.i,d=+b.dataset.d;if(d>0&&count()>=10)return;if(d>0&&S.qty[i]>=tierMax(e,i)){flash('No more '+e.tiers[i][0]+' tickets available');return}
-      S.qty[i]=Math.max(0,S.qty[i]+d);draw('.stepper button[data-i="'+i+'"][data-d="'+d+'"]');
+      S.qty[i]=Math.max(0,S.qty[i]+d);var limits=reservedTicketIds(),counts={};S.seats=S.seats.filter(function(id){var seat=(S.seatData||[]).filter(function(s){return s.id===id})[0];if(!seat)return false;var k=String(seat.ticket_id);counts[k]=(counts[k]||0)+1;return counts[k]<=Number(limits[k]||0)});draw('.stepper button[data-i="'+i+'"][data-d="'+d+'"]');
     })});
+    view.querySelectorAll('.buyer-seat').forEach(function(b){b.addEventListener('click',function(){var id=+b.dataset.seat,ticket=String(b.dataset.ticket),limit=Number(reservedTicketIds()[ticket]||0),has=S.seats.indexOf(id),selectedFor=S.seats.filter(function(x){var seat=(S.seatData||[]).filter(function(s){return s.id===x})[0];return seat&&String(seat.ticket_id)===ticket}).length;if(has>-1)S.seats.splice(has,1);else if(selectedFor<limit)S.seats.push(id);else{flash('You have already chosen enough seats for this ticket type.');return}draw('.buyer-seat[data-seat="'+id+'"]')})});
+    var retry=$('seat-retry');if(retry)retry.addEventListener('click',function(){S.seatError='';S.seatData=null;loadSeats();draw()});
     var td=$('to-details');if(td)td.addEventListener('click',function(){
+      if(S.seats.length!==reservedCount()){flash('Choose '+reservedCount()+' seats before continuing.');return}
       var keep=S.people.slice(0,count());S.people=keep;S.open=0;
       for(var i=0;i<count();i++){if(!(S.people[i]&&S.people[i].done)){S.open=i;break}if(i===count()-1)S.open=i}
       S.stage='details';S.err={};prefill();draw('.pform.open input');window.scrollTo(0,0);
@@ -563,11 +580,11 @@ function addToCalendar(e){
   flash('Calendar file downloaded');
 }
 function tixHtml(e,t,i,o){
-  var num=String(i+1).padStart(2,'0'),openIt=i===0,sent=t.email!==o.buyer;
-  return '<article class="tix"><header><div class="tix-t"><b>'+num+' Ticket</b><span>'+esc(t.tier)+', '+esc(t.name)+'</span></div><span class="status'+(sent||t.status&&t.status!=='issued'?' sent':'')+'">'+(t.status&&t.status!=='issued'?esc(TSTAT[t.status]||t.status):sent?'Sent to '+esc(t.email):'Active')+'</span>'+
+  var num=String(i+1).padStart(2,'0'),openIt=i===0,sent=t.email!==o.buyer,d=t.design||{},show=function(k){return d['show_'+k]!==false&&d['show_'+k]!==0&&d['show_'+k]!=='0'},accent=/^#[0-9a-f]{6}$/i.test(d.accent||'')?d.accent:'#245fd3',seat=[show('section')?t.section:null,show('row')&&t.row?'Row '+t.row:null,show('seat')&&t.seat?'Seat '+t.seat:null].filter(Boolean).join(' · ');
+  return '<article class="tix" style="--ticket-accent:'+accent+'"><header><div class="tix-t"><b>'+num+' Ticket</b><span>'+(show('category')?esc(t.tier):'Admission')+(show('attendee')?', '+esc(t.name):'')+'</span></div>'+(show('status')?'<span class="status'+(sent||t.status&&t.status!=='issued'?' sent':'')+'">'+(t.status&&t.status!=='issued'?esc(TSTAT[t.status]||t.status):sent?'Sent to '+esc(t.email):'Active')+'</span>':'')+
   '<div class="tix-a"><button type="button" class="ic" data-toggle="pass'+i+'" aria-expanded="'+openIt+'" aria-controls="pass'+i+'" aria-label="'+(openIt?'Hide':'Show')+' QR code for ticket '+(i+1)+'">'+ICO.qr+'</button><button type="button" class="ic" data-print aria-label="Download ticket '+(i+1)+'">'+ICO.dl+'</button></div></header>'+
-  '<div class="pass" id="pass'+i+'"'+(openIt?'':' hidden')+'>'+(e.mode==='online'?'<div class="tix-join"><b>Join on '+esc(e.platform)+'</b><p>'+(o.reveal===0?'Your link is ready below. ':'Your link opens here '+(o.reveal>=60?'1 hour':(o.reveal||15)+' minutes')+' before the start, on '+dstr(e)+' at '+esc(e.time)+'. ')+'It\'s also emailed to you.</p>'+(o.join?'<a class="btn btn-hot" href="'+esc(o.join)+'" target="_blank" rel="noopener">Join event</a>':'<a class="btn btn-hot" aria-disabled="true" role="link">Join event</a>')+'<small>'+esc(t.code)+'</small></div>':'<div class="pass-qr">'+qrHtml(t,i)+'<small>'+esc(t.code)+'</small></div>')+
-  '<div class="pass-info"><span class="samplebadge">Admit one</span><h3>'+esc(e.name)+'</h3><dl><div><dt>Name</dt><dd>'+esc(t.name)+'</dd></div><div><dt>Ticket</dt><dd>'+esc(t.tier)+'</dd></div><div><dt>Date</dt><dd>'+dstr(e)+'</dd></div><div><dt>Time</dt><dd>'+esc(e.time[0].toUpperCase()+e.time.slice(1))+'</dd></div><div class="wide"><dt>Venue</dt><dd>'+esc(e.venue)+(sameCity(e)?'':', '+esc(e.city))+'</dd></div></dl></div></div></article>';
+  '<div class="pass" id="pass'+i+'"'+(openIt?'':' hidden')+'>'+(e.mode==='online'?'<div class="tix-join"><b>Join on '+esc(e.platform)+'</b><p>'+(o.reveal===0?'Your link is ready below. ':'Your link opens here '+(o.reveal>=60?'1 hour':(o.reveal||15)+' minutes')+' before the start, on '+dstr(e)+' at '+esc(e.time)+'. ')+'It\'s also emailed to you.</p>'+(o.join?'<a class="btn btn-hot" href="'+esc(o.join)+'" target="_blank" rel="noopener">Join event</a>':'<a class="btn btn-hot" aria-disabled="true" role="link">Join event</a>')+(show('number')?'<small>'+esc(t.code)+'</small>':'')+'</div>':'<div class="pass-qr">'+qrHtml(t,i)+(show('number')?'<small>'+esc(t.code)+'</small>':'')+'</div>')+
+  '<div class="pass-info">'+(show('logo')&&e.image?'<img class="pass-info__logo" src="'+esc(e.image)+'" alt="">':'')+'<span class="samplebadge">Admit one</span><h3>'+esc(e.name)+'</h3><dl>'+(show('attendee')?'<div><dt>Name</dt><dd>'+esc(t.name)+'</dd></div>':'')+(show('category')?'<div><dt>Ticket</dt><dd>'+esc(t.tier)+'</dd></div>':'')+(show('date')?'<div><dt>Date</dt><dd>'+dstr(e)+'</dd></div><div><dt>Time</dt><dd>'+esc(e.time[0].toUpperCase()+e.time.slice(1))+'</dd></div>':'')+(show('venue')?'<div class="wide"><dt>Venue</dt><dd>'+esc(e.venue)+(sameCity(e)?'':', '+esc(e.city))+'</dd></div>':'')+(seat?'<div class="wide"><dt>Seat</dt><dd>'+esc(seat)+'</dd></div>':'')+'</dl></div></div></article>';
 }
 function renderTicket(e){
   window.TICA_CUR=e.cur||null;
@@ -812,7 +829,7 @@ window.addEventListener('tica:navigate',function(){if(CKCAM&&!document.querySele
       FOUND=r.tickets||[];
       if(!FOUND.length){stat('No ticket for "'+q+'" at this event. Check the spelling, or try their email.');return}
       out.innerHTML=FOUND.map(function(t,i){var st=t.status==='issued'?'':t.status==='checked_in'?'Checked in':String(t.status||'').replace(/_/g,' ');
-        return '<li><div><b>'+esc(t.holder_name||'Guest')+'</b><span>'+esc(t.holder_email||'')+'</span><small>'+esc((t.variation_name?t.variation_name+' · ':'')+'Booking '+t.booking_id+' · ticket '+t.sequence+' of '+t.quantity)+'</small></div>'+
+        return '<li><div><b>'+esc(t.holder_name||'Guest')+'</b><span>'+esc(t.holder_email||'')+'</span><small>'+esc((t.variation_name?t.variation_name+' · ':'')+(t.ticket_number?t.ticket_number+' · ':'Booking '+t.booking_id+' · ticket '+t.sequence+' of '+t.quantity)+(t.seat?' · '+[t.section,t.row?'Row '+t.row:null,'Seat '+t.seat].filter(Boolean).join(' · '):''))+'</small></div>'+
           (st?'<em class="ck-found-st'+(t.status==='checked_in'?' in':'')+'">'+esc(st.charAt(0).toUpperCase()+st.slice(1))+'</em>':'<button class="btn btn-hot" type="button" data-found="'+i+'">Check in</button>')+'</li>'}).join('');
     },function(){stat('No connection. Check the internet, then search again.')});
   });
@@ -1288,16 +1305,16 @@ document.addEventListener('click',function(ev){var l=ev.target.closest('#os-side
 window.addEventListener('tica:navigate',function(){var pg=document.querySelector('.page:not([hidden])'),k=pg&&pg.dataset.page;if(k==='create')osActive('events',document.querySelector('[data-page=create] h1')?document.querySelector('[data-page=create] h1').textContent:'Create an event');else if(k==='checkin')osActive('checkin','Gate check-in')});
 
 /* panels */
-var PANELS=['overview','events','orders','payouts','promote','team','settings'];
-function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='promote'&&!CAN.promote)||(p==='orders'&&!CAN.orders)||(p==='payouts'&&!CAN.payouts)||(p==='team'&&!CAN.team)||(p==='settings'&&!CAN.settings))}
+var PANELS=['overview','events','tickets','orders','payouts','promote','team','settings'];
+function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='tickets'&&!CAN.orders)||(p==='promote'&&!CAN.promote)||(p==='orders'&&!CAN.orders)||(p==='payouts'&&!CAN.payouts)||(p==='team'&&!CAN.team)||(p==='settings'&&!CAN.settings))}
 function show(p,push){
   if(PANELS.indexOf(p)<0||!allowed(p))p='overview';
   [].forEach.call(document.querySelectorAll('.od-p'),function(x){x.hidden=x.dataset.p!==p});
-  osActive(p,{overview:'Overview',events:'Events',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]);
+  osActive(p,{overview:'Overview',events:'Events',tickets:'Ticket management',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]);
   if(push){try{history.replaceState(null,'','/dashboard'+(p==='overview'?'':'/'+p))}catch(e){}window.scrollTo({top:0,behavior:'instant'})}
-  var DRAW={events:drawEvents,orders:drawAtt,payouts:drawPay,promote:drawPromote,team:drawTeam,overview:drawOverview,settings:drawSettings};
+  var DRAW={events:drawEvents,tickets:drawTicketing,orders:drawAtt,payouts:drawPay,promote:drawPromote,team:drawTeam,overview:drawOverview,settings:drawSettings};
   DRAW[p]&&DRAW[p]();
-  var wt=document.getElementById('workspace-title');if(wt)wt.textContent={overview:'Overview',events:'Events',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]||'Organiser dashboard';
+  var wt=document.getElementById('workspace-title');if(wt)wt.textContent={overview:'Overview',events:'Events',tickets:'Ticket management',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]||'Organiser dashboard';
 }
 function fromHash(){var m=location.pathname.match(/^\/dashboard(?:\/([a-z]+))?/);if(m)show(m[1]||'overview',false)}
 window.addEventListener('tica:navigate',function(){setTimeout(fromHash,0)});
@@ -1380,6 +1397,42 @@ document.addEventListener('click',function(e){var p=e.target.closest('[data-evpa
   var o=e.target.closest('[data-ev-orders]');if(o){var f=$('od-fe');show('orders',true);if(f){f.value=o.dataset.evOrders;f.dispatchEvent(new Event('change',{bubbles:true}))}return}
   var m=document.querySelector('.t-menu[open]');if(m&&!m.contains(e.target))m.removeAttribute('open')});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.querySelector('.t-menu[open]');if(m){m.removeAttribute('open');m.querySelector('summary').focus()}}});
+
+/* ticket inventory and individual assignments */
+var TK=[],tkCursor=null,tkLoading=false,tkRequest=0,tkTimer=null;
+function ticketCategoryRows(){
+  var q=($('tk-cat-q').value||'').trim().toLowerCase(),event=$('tk-cat-event').value;
+  return (D.ticketing&&D.ticketing.categories||[]).filter(function(t){return (!event||String(t.eventId)===event)&&(!q||(t.event+' '+t.name+' '+t.prefix).toLowerCase().indexOf(q)>-1)});
+}
+function drawTicketing(){
+  var info=D.ticketing||{summary:{},categories:[]},s=info.summary||{},cats=info.categories||[];
+  $('tk-stats').innerHTML=[['Tickets sold',s.sold||0,'Issued and valid'],['Available',s.available||0,'Across limited categories'],['Numbered',s.numbered||0,'Permanent ticket numbers'],['Reserved seats',s.seated||0,'Assigned seat records'],['Ticket revenue',N(s.revenue||0),'Completed and free orders']].map(function(x){return '<article class="t-card t-stat"><span class="t-stat__label">'+x[0]+'</span><b class="t-stat__value">'+esc(String(x[1]))+'</b><span class="t-stat__note">'+x[2]+'</span></article>'}).join('');
+  var eventNames={};cats.forEach(function(t){eventNames[t.eventId]=t.event});
+  var eventOptions=Object.keys(eventNames).map(function(id){return '<option value="'+id+'">'+esc(eventNames[id])+'</option>'}).join('');
+  if($('tk-cat-event').options.length<2)$('tk-cat-event').insertAdjacentHTML('beforeend',eventOptions);
+  if($('tk-event').options.length<2)$('tk-event').insertAdjacentHTML('beforeend',eventOptions);
+  var currentCategory=$('tk-category').value;$('tk-category').innerHTML='<option value="">All ticket types</option>'+cats.filter(function(t){return !$('tk-event').value||String(t.eventId)===$('tk-event').value}).map(function(t){return '<option value="'+t.id+'">'+esc(t.name+' · '+t.event)+'</option>'}).join('');$('tk-category').value=currentCategory;
+  paintTicketCategories();
+  tkRequest++;tkLoading=false;tkCursor=null;TK=[];clearTimeout(tkTimer);tkTimer=setTimeout(function(){loadTickets(false)},160);
+}
+function paintTicketCategories(){
+  var rows=ticketCategoryRows();
+  if(!rows.length){$('tk-cat-table').innerHTML='<div class="t-empty"><h3>No ticket types match</h3><p>Change the event or search term.</p></div>';return}
+  $('tk-cat-table').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards tk-table"><thead><tr><th scope="col">Ticket type</th><th scope="col">Inventory</th><th scope="col">Sold</th><th scope="col">Available</th><th scope="col" class="t-num">Revenue</th><th scope="col">Configuration</th></tr></thead><tbody>'+rows.map(function(t){return '<tr><td data-label=""><b>'+esc(t.name)+'</b><div class="t-muted or-sub">'+esc(t.event)+'</div></td><td data-label="Inventory">'+(t.inventory==null?'—':Number(t.inventory).toLocaleString('en-NG'))+'</td><td data-label="Sold">'+Number(t.sold||0).toLocaleString('en-NG')+'</td><td data-label="Available">'+(t.available==null?'—':Number(t.available).toLocaleString('en-NG'))+'</td><td data-label="Revenue" class="t-num">'+N(t.revenue||0)+'</td><td data-label="Configuration"><span class="t-badge'+(t.status==='on_sale'?' t-badge--green':' t-badge--orange')+'">'+esc(t.status==='on_sale'?'On sale':'Paused')+'</span><div class="t-muted or-sub">'+esc(t.seatingMode==='reserved'?'Reserved seating':'General admission')+(t.prefix?' · '+esc(t.prefix):'')+'</div></td></tr>'}).join('')+'</tbody></table></div>';
+}
+function ticketQuery(){return 'q='+encodeURIComponent($('tk-q').value.trim())+'&event='+$('tk-event').value+'&ticket='+$('tk-category').value+'&status='+$('tk-status').value}
+function loadTickets(append){
+  if(tkLoading||append&&!tkCursor)return;var seq=++tkRequest,url='/tica-api/organizer/attendees?'+ticketQuery()+(append?'&cursor='+encodeURIComponent(tkCursor):'');tkLoading=true;$('tk-units').setAttribute('aria-busy','true');$('tk-more').disabled=true;
+  if(!append)$('tk-units').innerHTML='<div class="t-table-wrap or-skel">'+[1,2,3,4].map(function(){return '<span class="t-skel" style="height:52px;margin:12px 16px"></span>'}).join('')+'</div>';
+  get(url).then(function(r){if(seq!==tkRequest)return;TK=append?TK.concat(r.rows):r.rows;tkCursor=r.nextCursor||null;paintTickets(r)},function(er){if(seq===tkRequest){$('tk-msg').textContent=er.message;$('tk-more').hidden=true}}).then(function(){if(seq===tkRequest){tkLoading=false;$('tk-units').removeAttribute('aria-busy');$('tk-more').disabled=false}});
+}
+function paintTickets(r){
+  if(!TK.length){$('tk-units').innerHTML='<div class="t-empty"><h3>No assigned tickets match</h3><p>Ticket assignments appear after a verified payment or complimentary issue.</p></div>';$('tk-more').hidden=true;$('tk-msg').textContent='';return}
+  $('tk-units').innerHTML='<div class="t-table-wrap"><table class="t-table t-table--cards tk-table"><thead><tr><th scope="col">Ticket number</th><th scope="col">Attendee</th><th scope="col">Ticket type</th><th scope="col">Seat</th><th scope="col">Status</th><th scope="col"><span class="t-sr">Manage</span></th></tr></thead><tbody>'+TK.map(function(a){var seat=[a.section,a.row,a.seat].filter(Boolean).join(' · ');return '<tr><td data-label="Ticket number"><b class="tk-number">'+esc(a.ticketNumber||a.ref)+'</b><div class="t-muted or-sub">'+esc(a.ref)+'</div></td><td data-label="Attendee"><b>'+esc(a.name)+'</b><div class="t-muted or-sub">'+esc(a.email)+'</div></td><td data-label="Ticket type">'+esc(a.tier)+'<div class="t-muted or-sub">'+esc(a.event)+'</div></td><td data-label="Seat">'+(seat?esc(seat):'<span class="t-muted">General admission</span>')+'</td><td data-label="Status">'+attStatus(a.status)+'</td><td class="ev-actions"><a class="t-btn t-btn--ghost t-btn--sm" href="'+esc(a.manageUrl)+'">Manage</a></td></tr>'}).join('')+'</tbody></table></div>';
+  $('tk-more').hidden=!(r&&r.more);$('tk-msg').textContent=r&&r.more?'Showing '+TK.length+'. Load more, or export the full list.':TK.length+' assigned ticket'+(TK.length===1?'':'s');
+}
+['tk-cat-q','tk-cat-event'].forEach(function(id){$(id).addEventListener('input',paintTicketCategories)});
+['tk-q','tk-event','tk-category','tk-status'].forEach(function(id){$(id).addEventListener('input',function(){if(id==='tk-event')drawTicketing();else{tkRequest++;tkLoading=false;tkCursor=null;TK=[];clearTimeout(tkTimer);tkTimer=setTimeout(function(){loadTickets(false)},160)}})});
 
 /* event control dialog */
 var curEv=null;
@@ -1470,6 +1523,8 @@ document.addEventListener('click',function(ev){
   if(t.tagName==='DIALOG'&&t.classList.contains('od-dlg')){t.close();return}
   if(t.id==='od-export'){location.href='/tica-api/organizer/attendees.csv?'+attQuery();toast('Attendee list downloading.');return}
   if(t.id==='od-att-more'){loadAtt(true);return}
+  if(t.id==='tk-export'){location.href='/tica-api/organizer/attendees.csv?'+ticketQuery();toast('Ticket assignment list downloading.');return}
+  if(t.id==='tk-more'){loadTickets(true);return}
   if(t.id==='ev-addt'){var nt=$('ev-newt');nt.hidden=false;t.hidden=true;$('ev-nt-n').focus();return}
   if(t.id==='ev-post'){var pf=$('ev-postf');if(pf.hidden){pf.hidden=false;t.textContent='Save new date';$('ev-dz').textContent='Tickets stay valid. Buyers are emailed the new date and can ask for a refund.';return}
     if(!$('ev-nd').value||!$('ev-ntm').value){$('ev-dz').textContent='Choose the new date and start time.';return}
@@ -1486,14 +1541,17 @@ function fillDlg(id){
   if(id==='od-msg'){$('od-ma').innerHTML=opts.map(function(r){return '<option value="'+r.id+':all">Everyone with a ticket to '+esc(r.name)+' ('+r.sold+')</option><option value="'+r.id+':unscanned">'+esc(r.name)+', people who haven\'t checked in yet</option>'}).join('')||'<option value="">No upcoming events</option>';$('od-mt').value='';$('od-mt').placeholder='Hi! Doors open at 9:30 PM. Bring your QR code and a valid ID. See you tonight.'}
   if(id==='od-comp'){$('od-gv').innerHTML=opts.filter(function(r){return r.regMode!=='corporate'}).map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('');tiersFor()}
 }
-function tiersFor(){var r=evById($('od-gv').value);$('od-gt').innerHTML=r?r.tiers.map(function(t,i){return '<option value="'+i+'">'+esc(t.name)+'</option>'}).join(''):''}
+var guestSeatRequest=0;
+function tiersFor(){var r=evById($('od-gv').value),available=r?r.tiers.map(function(t,i){return {tier:t,index:i}}):[];$('od-gt').innerHTML=available.length?available.map(function(x){return '<option value="'+x.index+'">'+esc(x.tier.name)+(x.tier.seatingMode==='reserved'?' · Reserved':'')+'</option>'}).join(''):'<option value="">No ticket types</option>';loadGuestSeats()}
+function loadGuestSeats(){var r=evById($('od-gv').value),t=r&&r.tiers[+$('od-gt').value],wrap=$('od-gs-wrap'),sel=$('od-gs'),request=++guestSeatRequest;if(!t||t.seatingMode!=='reserved'){wrap.hidden=true;sel.required=false;sel.innerHTML='<option value="">Choose an available seat</option>';return}wrap.hidden=false;sel.required=true;sel.innerHTML='<option value="">Loading available seats…</option>';fetch('/tica-api/events/'+r.id+'/seats',{credentials:'same-origin',headers:{Accept:'application/json'}}).then(function(res){return res.json().then(function(data){if(!res.ok)throw new Error(data.message||'Seats are unavailable.');return data})}).then(function(data){if(request!==guestSeatRequest)return;var seats=(data.seats||[]).filter(function(s){return String(s.ticket_id)===String(t.id)&&s.status==='available'});sel.innerHTML='<option value="">Choose an available seat</option>'+seats.map(function(s){return '<option value="'+s.id+'">'+esc([s.section,s.row?'Row '+s.row:null,'Seat '+s.label].filter(Boolean).join(' · '))+'</option>'}).join('');if(!seats.length)$('od-comp-m').textContent='No seats are currently available for this ticket type.'},function(er){if(request!==guestSeatRequest)return;sel.innerHTML='<option value="">Seats unavailable</option>';$('od-comp-m').textContent=er.message||'Seats are unavailable.'})}
 $('od-gv').addEventListener('change',tiersFor);
+$('od-gt').addEventListener('change',loadGuestSeats);
 (function(){var c=document.querySelector('#od-msg-f .od-chk');if(c)c.innerHTML='<input type="checkbox" checked disabled> Also send as SMS <small>(SMS isn\'t set up on TICA yet, so this goes by email only)</small>'})();
 $('od-msg-f').addEventListener('submit',function(e){e.preventDefault();var v=$('od-ma').value.split(':'),txt=$('od-mt').value.trim(),b=e.target.querySelector('[type=submit]');if(!v[0]){$('od-msg-m').textContent='You have no upcoming events to message.';return}if(txt.length<5){$('od-msg-m').textContent='Write your message first.';return}
   b.disabled=true;api('/tica-api/organizer/message',{event_id:+v[0],audience:v[1],message:txt}).then(function(r){b.disabled=false;$('od-msg').close();toast(r.message)},function(er){b.disabled=false;$('od-msg-m').textContent=errText(er)})});
 $('od-comp-f').addEventListener('submit',function(e){e.preventDefault();var n=$('od-gn').value.trim(),m=$('od-ge').value.trim(),b=e.target.querySelector('[type=submit]');if(!n||m.indexOf('@')<1){$('od-comp-m').textContent='Add the guest\'s name and email.';return}
-  var r=evById($('od-gv').value),t=r&&r.tiers[+$('od-gt').value];if(!t){$('od-comp-m').textContent='Choose an event and ticket.';return}
-  b.disabled=true;api('/tica-api/organizer/guests',{event_id:r.id,ticket_id:t.id,variation:t.variation,name:n,email:m}).then(function(){b.disabled=false;$('od-comp').close();$('od-comp-f').reset();$('od-comp-m').textContent='';loadAtt();toast('Free ticket sent to '+m+'.')},function(er){b.disabled=false;$('od-comp-m').textContent=errText(er)})});
+  var r=evById($('od-gv').value),t=r&&r.tiers[+$('od-gt').value],seat=t&&t.seatingMode==='reserved'?+$('od-gs').value:null;if(!t){$('od-comp-m').textContent='Choose an event and ticket.';return}if(t.seatingMode==='reserved'&&!seat){$('od-comp-m').textContent='Choose an available seat.';$('od-gs').focus();return}
+  b.disabled=true;api('/tica-api/organizer/guests',{event_id:r.id,ticket_id:t.id,variation:t.variation,name:n,email:m,seat_id:seat}).then(function(){b.disabled=false;$('od-comp').close();$('od-comp-f').reset();$('od-comp-m').textContent='';loadAtt();toast('Free ticket sent to '+m+'.')},function(er){b.disabled=false;$('od-comp-m').textContent=errText(er);if(t.seatingMode==='reserved')loadGuestSeats()})});
 
 /* payouts */
 var P=D.payouts;
@@ -1667,7 +1725,7 @@ if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))renderDash
 (function(){
 var $=function(i){return document.getElementById(i)},N=function(n){return window.TICA_MONEY(n)};
 var f=$('create-form');if(!f)return;
-var CD=TICA_DATA.currency||{},OPTS=CD.options||[],CUR=CD.symbol||'₦';
+var CD=TICA_DATA.currency||{},OPTS=CD.options||[],CUR=CD.symbol||'₦',MAX_TYPES=Math.max(1,+TICA_DATA.ticketTypeLimit||50);
 var ADMIN=TICA_DATA.adminBuilder||null,EDIT=TICA_DATA.builderEdit||null;
 var requestedType=(new URLSearchParams(location.search).get('type')||'').toLowerCase();
 if(requestedType==='online'||requestedType==='venue'){
@@ -1693,7 +1751,7 @@ function curOf(code){return OPTS.filter(function(o){return o.code===code})[0]||{
 })();
 function curCode(){return $('c-cur').value||CD.code}
 function setCur(){var o=curOf(curCode());CUR=o.symbol;window.TICA_CUR=o.code===CD.code?null:{code:o.code,symbol:o.symbol,position:'left'};
-  [].forEach.call(f.querySelectorAll('label[for^="c-price"],label[for^="c-teb"]'),function(l){l.textContent=(/teb/.test(l.htmlFor)?'Early bird price':'Price')+' ('+CUR+')'});
+  [].forEach.call(f.querySelectorAll('label[for^="c-price"],label[for^="c-teb"]:not([for^="c-tebe"])'),function(l){l.textContent=(/teb/.test(l.htmlFor)?'Early bird price':'Price')+' ('+CUR+')'});
   var n=$('c-cur-note'),paid=o.paid;n.textContent=paid?'Buyers pay in '+o.code+'. It\'s set from the country, and you can change it.':o.code+' can\'t take card payments yet, so tickets must be free. Choose another currency to sell paid tickets.';
   n.className='hint'+(paid?'':' ce-warn');}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -1708,10 +1766,15 @@ function entry(){return (f.querySelector('[name=c-entry]:checked')||{}).value||'
 /* each ticket type gets its own advanced options under the row */
 function tierOptions(n){
   var k=n>1?n:'';
-  return '<div class="ce-x"><ul class="od-sw"><li><span><b>More options</b><small>Description, limit per order and early bird price</small></span><input class="ck-sw ce-xsw" type="checkbox" aria-label="More options for this ticket"></li></ul>'+
+  return '<div class="ce-x"><ul class="od-sw"><li><span><b>Ticket settings</b><small>Sales window, numbering, seating and ticket design</small></span><input class="ck-sw ce-xsw" type="checkbox" aria-label="Ticket settings for this ticket"></li></ul>'+
   '<div class="ce-xo" hidden><div class="inp"><label for="c-tdesc'+k+'">What\'s included</label><input id="c-tdesc'+k+'" class="ce-tdesc" type="text" maxlength="300" placeholder="Fast-track entry and the VIP area"></div>'+
-  '<div class="two"><div class="inp"><label for="c-tmax'+k+'">Limit per order</label><input id="c-tmax'+k+'" class="ce-tmax" type="number" min="1" step="1" placeholder="No limit"></div><div class="inp"><label for="c-tunl'+k+'">Quantity</label><select id="c-tunl'+k+'" class="ce-tunl"><option value="limited">Limited, as above</option><option value="unlimited">Unlimited</option></select></div></div>'+
-  '<div class="two"><div class="inp"><label for="c-teb'+k+'">Early bird price ('+esc(CUR)+')</label><input id="c-teb'+k+'" class="ce-teb" type="number" min="0" step="500" placeholder="Optional"></div><div class="inp"><label for="c-tebe'+k+'">Early bird ends</label><input id="c-tebe'+k+'" class="ce-tebe" type="datetime-local"></div></div></div></div>';
+  '<div class="three"><div class="inp"><label for="c-tmin'+k+'">Minimum per order</label><input id="c-tmin'+k+'" class="ce-tmin" type="number" min="1" step="1" value="1"></div><div class="inp"><label for="c-tmax'+k+'">Maximum per order</label><input id="c-tmax'+k+'" class="ce-tmax" type="number" min="1" step="1" placeholder="No limit"></div><div class="inp"><label for="c-tunl'+k+'">Inventory</label><select id="c-tunl'+k+'" class="ce-tunl"><option value="limited">Limited, as above</option><option value="unlimited">Unlimited</option></select></div></div>'+
+  '<div class="two"><div class="inp"><label for="c-tsales'+k+'">Sales start</label><input id="c-tsales'+k+'" class="ce-tsales" type="datetime-local"></div><div class="inp"><label for="c-tends'+k+'">Sales end</label><input id="c-tends'+k+'" class="ce-tends" type="datetime-local"></div></div>'+
+  '<div class="two"><div class="inp"><label for="c-tvis'+k+'">Visibility</label><select id="c-tvis'+k+'" class="ce-tvis"><option value="public">Shown to buyers</option><option value="hidden">Hidden, direct allocation only</option></select></div><div class="inp"><label for="c-tstatus'+k+'">Sales status</label><select id="c-tstatus'+k+'" class="ce-tstatus"><option value="on_sale">On sale</option><option value="paused">Paused</option></select></div></div>'+
+  '<div class="two"><div class="inp"><label for="c-teb'+k+'">Early bird price ('+esc(CUR)+')</label><input id="c-teb'+k+'" class="ce-teb" type="number" min="0" step="500" placeholder="Optional"></div><div class="inp"><label for="c-tebe'+k+'">Early bird ends</label><input id="c-tebe'+k+'" class="ce-tebe" type="datetime-local"></div></div>'+
+  '<section class="ce-number"><div class="ce-subhead"><div><b>Automatic ticket numbers</b><small>Each paid or complimentary ticket gets a permanent number.</small></div><input class="ck-sw ce-num-on" type="checkbox" checked aria-label="Automatic ticket numbering"></div><div class="three ce-num-fields"><div class="inp"><label for="c-prefix'+k+'">Prefix</label><input id="c-prefix'+k+'" class="ce-prefix" maxlength="20" placeholder="REG"></div><div class="inp"><label for="c-num-start'+k+'">Starts at</label><input id="c-num-start'+k+'" class="ce-num-start" type="number" min="1" value="1"></div><div class="inp"><label for="c-padding'+k+'">Digits</label><select id="c-padding'+k+'" class="ce-padding"><option value="3">001</option><option value="4">0001</option><option value="5">00001</option></select></div></div><div class="two ce-num-fields"><div class="inp"><label for="c-num-format'+k+'">Format</label><input id="c-num-format'+k+'" class="ce-num-format" value="{PREFIX}-{NUMBER}" maxlength="80"><small>Use {PREFIX} and {NUMBER}. Example: REG-001.</small></div><div class="inp"><label for="c-num-scope'+k+'">Sequence</label><select id="c-num-scope'+k+'" class="ce-num-scope"><option value="category">Start separately for this ticket type</option><option value="event">Share one sequence across the event</option></select><small>Event-wide numbering continues across every ticket type.</small></div></div></section>'+
+  '<section class="ce-seating"><div class="inp"><label for="c-seat-mode'+k+'">Admission style</label><select id="c-seat-mode'+k+'" class="ce-seat-mode"><option value="general_admission">General admission, no seat choice</option><option value="reserved">Reserved seats, buyers choose from a map</option></select></div><div class="ce-seat-editor" hidden><div class="ce-seat-legend"><span><i class="available"></i>Available</span><span><i class="accessible"></i>Accessible</span><span><i class="unavailable"></i>Unavailable</span></div><div class="ce-seat-sections"></div><button class="ce-add ce-add-section" type="button">+ Add seating section</button><p class="hint">Click a seat to mark it unavailable; click again for accessible seating.</p></div></section>'+
+  '<section class="ce-design"><b>Ticket appearance</b><div class="two"><div class="inp"><label for="c-design-color'+k+'">Accent colour</label><input id="c-design-color'+k+'" class="ce-design-color" type="color" value="#245fd3"></div><div class="ce-design-fields"><label class="ce-check"><input class="ce-design-logo" type="checkbox" checked> Event logo</label><label class="ce-check"><input class="ce-design-attendee" type="checkbox" checked> Attendee name</label><label class="ce-check"><input class="ce-design-category" type="checkbox" checked> Ticket category</label><label class="ce-check"><input class="ce-design-number" type="checkbox" checked> Ticket number</label><label class="ce-check"><input class="ce-design-section" type="checkbox" checked> Section</label><label class="ce-check"><input class="ce-design-row" type="checkbox" checked> Row</label><label class="ce-check"><input class="ce-design-seat" type="checkbox" checked> Seat number</label><label class="ce-check"><input class="ce-design-date" type="checkbox" checked> Event date</label><label class="ce-check"><input class="ce-design-venue" type="checkbox" checked> Event venue</label><label class="ce-check"><input class="ce-design-status" type="checkbox" checked> Ticket status</label></div></div><p class="hint">Event name, secure ticket ID and QR verification always stay on the ticket.</p></section></div></div>';
 }
 f.querySelector('.ce-tier').insertAdjacentHTML('beforeend',tierOptions(1));
 $('ce-tiers').addEventListener('change',function(e){var sw=e.target.closest('.ce-xsw');if(sw)sw.closest('.ce-x').querySelector('.ce-xo').hidden=!sw.checked});
@@ -1721,7 +1784,7 @@ function upd(){
   var m=mode(),p=Math.max(0,parseFloat($('c-price').value)||0),fee=Math.round(p*window.TICA_FEE_PCT)/100,reg=entry()==='corporate';
   f.querySelector('.ce-in').hidden=m==='Online';f.querySelector('.ce-on').hidden=m==='In person';
   f.querySelector('.ce-sell').hidden=reg;f.querySelector('.ce-reg').hidden=!reg;
-  var tiers=f.querySelectorAll('#ce-tiers .ce-tier');$('ce-add').hidden=m==='Online'&&tiers.length>=1;
+  var tiers=f.querySelectorAll('#ce-tiers .ce-tier');$('ce-add').hidden=(m==='Online'&&tiers.length>=1)||tiers.length>=MAX_TYPES;
   $('ce-ex-b').textContent=p?'Buyer pays '+N(p+fee)+'. You get '+N(p)+'.':'Free tickets have no fee.';
   $('ce-ex-m').textContent=p?'Buyer pays '+N(p)+'. You get '+N(p-fee)+'.':'Free tickets have no fee.';
   var priced=$('c-price').value.trim()!=='',pf=$('p-fee');pf.hidden=!reg&&!priced;
@@ -1737,11 +1800,27 @@ f.addEventListener('input',upd);f.addEventListener('change',upd);
 
 var n=1;
 $('ce-add').addEventListener('click',function(){
+  if(f.querySelectorAll('#ce-tiers .ce-tier').length>=MAX_TYPES){$('c-msg').textContent='This event has reached the platform limit of '+MAX_TYPES+' ticket types.';return}
   n++;var d=document.createElement('div');d.className='ce-tier';
-  d.innerHTML='<div class="inp"><label for="c-tier'+n+'">Ticket name</label><input id="c-tier'+n+'" type="text" placeholder="VIP"></div><div class="inp"><label for="c-price'+n+'">Price ('+esc(CUR)+')</label><input id="c-price'+n+'" type="number" min="0" step="500" value="15000"></div><div class="inp"><label for="c-qty'+n+'">Quantity</label><input id="c-qty'+n+'" type="number" min="1" value="50"></div><button class="ce-rm" type="button" aria-label="Remove this ticket type">×</button>'+tierOptions(n);
+  d.innerHTML='<div class="inp"><label for="c-tier'+n+'">Ticket name</label><input id="c-tier'+n+'" type="text" placeholder="VIP" list="ce-ticket-presets"></div><div class="inp"><label for="c-price'+n+'">Price ('+esc(CUR)+')</label><input id="c-price'+n+'" type="number" min="0" step="500" value="15000"></div><div class="inp"><label for="c-qty'+n+'">Quantity</label><input id="c-qty'+n+'" type="number" min="1" value="50"></div><button class="ce-rm" type="button" aria-label="Remove this ticket type">×</button>'+tierOptions(n);
   $('ce-tiers').appendChild(d);d.querySelector('input').focus();upd();
 });
 $('ce-tiers').addEventListener('click',function(e){var r=e.target.closest('.ce-rm');if(r){r.closest('.ce-tier').remove();upd()}});
+
+var seatSectionUid=0,seatRowUid=0;
+function seatSection(tier,name,rows,count){
+  var box=tier.querySelector('.ce-seat-sections'),s=document.createElement('section'),sid='ce-section-'+(++seatSectionUid);s.className='ce-seat-section';
+  s.innerHTML='<div class="ce-seat-head"><div class="inp"><label for="'+sid+'-name">Section name</label><input id="'+sid+'-name" class="ce-section-name" maxlength="120" value="'+esc(name||'Main floor')+'"></div><div class="inp"><label for="'+sid+'-kind">Section type</label><select id="'+sid+'-kind" class="ce-section-kind"><option value="seated">Numbered seats</option><option value="standing">Standing zone</option><option value="general_admission">General admission zone</option></select></div><div class="inp"><label for="'+sid+'-price">Price per place ('+esc(CUR)+')</label><input id="'+sid+'-price" class="ce-section-price" type="number" min="0" step="0.01" placeholder="Use ticket price"></div><button class="ce-rm ce-rm-section" type="button" aria-label="Remove seating section">×</button></div><div class="ce-seat-rows"></div><button class="ce-add ce-add-row" type="button">+ Add row or capacity group</button>';
+  box.appendChild(s);for(var i=0;i<(rows||1);i++)seatRow(s,String.fromCharCode(65+i),count||10);return s;
+}
+function seatRow(section,label,count,values){
+  var r=document.createElement('div'),rid='ce-row-'+(++seatRowUid);r.className='ce-seat-row';
+  r.innerHTML='<div class="ce-row-tools"><div class="inp"><label for="'+rid+'-label">Row</label><input id="'+rid+'-label" class="ce-row-label" maxlength="40" value="'+esc(label||'A')+'"></div><div class="inp"><label for="'+rid+'-count">Seats</label><input id="'+rid+'-count" class="ce-seat-count" type="number" min="1" max="500" value="'+(count||10)+'"></div><button class="ce-rm ce-rm-row" type="button" aria-label="Remove row">×</button></div><div class="ce-seat-grid" role="group" aria-label="Seats"></div>';
+  section.querySelector('.ce-seat-rows').appendChild(r);renderSeatButtons(r,values);return r;
+}
+function renderSeatButtons(row,values){var grid=row.querySelector('.ce-seat-grid'),count=Math.max(1,Math.min(500,+row.querySelector('.ce-seat-count').value||1)),old=values||[].map.call(grid.children,function(b){return {label:b.dataset.label,state:b.dataset.state}});grid.innerHTML='';for(var i=0;i<count;i++){var v=old[i]||{},state=v.state||(v.accessible?'accessible':v.status==='unavailable'?'unavailable':'available'),b=document.createElement('button');b.type='button';b.className='ce-seat '+state;b.dataset.state=state;b.dataset.label=v.label||String(i+1);b.textContent=b.dataset.label;b.setAttribute('aria-label','Seat '+b.dataset.label+', '+b.dataset.state);grid.appendChild(b)}}
+$('ce-tiers').addEventListener('change',function(e){var tier=e.target.closest('.ce-tier');if(!tier)return;if(e.target.classList.contains('ce-seat-mode')){var ed=tier.querySelector('.ce-seat-editor');ed.hidden=e.target.value!=='reserved';if(!ed.hidden&&!tier.querySelector('.ce-seat-section'))seatSection(tier,'Main floor',3,10)}if(e.target.classList.contains('ce-seat-count'))renderSeatButtons(e.target.closest('.ce-seat-row'))});
+$('ce-tiers').addEventListener('click',function(e){var tier=e.target.closest('.ce-tier');if(!tier)return;if(e.target.closest('.ce-add-section')){seatSection(tier,'Section '+(tier.querySelectorAll('.ce-seat-section').length+1),1,10);return}if(e.target.closest('.ce-add-row')){var s=e.target.closest('.ce-seat-section'),i=s.querySelectorAll('.ce-seat-row').length;seatRow(s,String.fromCharCode(65+i),10);return}if(e.target.closest('.ce-rm-section')){e.target.closest('.ce-seat-section').remove();return}if(e.target.closest('.ce-rm-row')){var s=e.target.closest('.ce-seat-section');if(s.querySelectorAll('.ce-seat-row').length>1)e.target.closest('.ce-seat-row').remove();return}var seat=e.target.closest('.ce-seat');if(seat){var next=seat.dataset.state==='available'?'unavailable':seat.dataset.state==='unavailable'?'accessible':'available';seat.className='ce-seat '+next;seat.dataset.state=next;seat.setAttribute('aria-label','Seat '+seat.dataset.label+', '+next)}});
 
 /* several dates */
 var dn=0;
@@ -1769,11 +1848,13 @@ function payload(draft){
   if(m!=='Online'){fd.append('address',v('c-venue'));fd.append('city',v('c-city'));fd.append('state',v('c-state'))}
   if(m!=='In person'){fd.append('online_join_url',v('c-link'));fd.append('join_reveal_minutes',$('c-rev').value)}
   if(entry()==='corporate'){fd.append('registration_form_name',v('c-reg-name'));fd.append('registration_intro',$('c-reg-intro').value);fd.append('registration_approval',$('c-reg-mode').value)}
-  else [].forEach.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t,i){
+  else {var si=0;[].forEach.call(f.querySelectorAll('#ce-tiers>.ce-tier'),function(t,i){
     var ins=t.querySelectorAll(':scope>.inp input'),x=t.querySelector('.ce-x'),adv=x&&x.querySelector('.ce-xsw').checked,unl=adv&&x.querySelector('.ce-tunl').value==='unlimited';
     if(t.dataset.tid)fd.append('tiers['+i+'][id]',t.dataset.tid);fd.append('tiers['+i+'][name]',ins[0].value.trim());fd.append('tiers['+i+'][price]',ins[1].value||'0');if(!unl&&ins[2].value)fd.append('tiers['+i+'][quantity]',ins[2].value);
-    if(adv){var g=function(c){return x.querySelector(c).value.trim()};if(g('.ce-tdesc'))fd.append('tiers['+i+'][description]',g('.ce-tdesc'));if(g('.ce-tmax'))fd.append('tiers['+i+'][max_per_order]',g('.ce-tmax'));if(g('.ce-teb')){fd.append('tiers['+i+'][early_price]',g('.ce-teb'));fd.append('tiers['+i+'][early_ends]',g('.ce-tebe'))}}
-  });
+    if(adv){var g=function(c){return x.querySelector(c).value.trim()},ck=function(c){return x.querySelector(c).checked?'1':'0'};if(g('.ce-tdesc'))fd.append('tiers['+i+'][description]',g('.ce-tdesc'));fd.append('tiers['+i+'][min_per_order]',g('.ce-tmin')||'1');if(g('.ce-tmax'))fd.append('tiers['+i+'][max_per_order]',g('.ce-tmax'));if(g('.ce-teb')){fd.append('tiers['+i+'][early_price]',g('.ce-teb'));fd.append('tiers['+i+'][early_ends]',g('.ce-tebe'))}if(g('.ce-tsales'))fd.append('tiers['+i+'][sales_start]',g('.ce-tsales'));if(g('.ce-tends'))fd.append('tiers['+i+'][sales_end]',g('.ce-tends'));fd.append('tiers['+i+'][ticket_visibility]',g('.ce-tvis'));fd.append('tiers['+i+'][sales_status]',g('.ce-tstatus'));fd.append('tiers['+i+'][numbering_enabled]',ck('.ce-num-on'));fd.append('tiers['+i+'][numbering_scope]',g('.ce-num-scope'));if(g('.ce-prefix'))fd.append('tiers['+i+'][number_prefix]',g('.ce-prefix'));fd.append('tiers['+i+'][number_start]',g('.ce-num-start')||'1');fd.append('tiers['+i+'][number_padding]',g('.ce-padding')||'3');fd.append('tiers['+i+'][number_format]',g('.ce-num-format')||'{PREFIX}-{NUMBER}');var sm=g('.ce-seat-mode');fd.append('tiers['+i+'][seating_mode]',sm);fd.append('tiers['+i+'][design_settings][accent]',g('.ce-design-color'));['logo','attendee','category','number','section','row','seat','date','venue','status'].forEach(function(k){fd.append('tiers['+i+'][design_settings][show_'+k+']',ck('.ce-design-'+k))});
+      if(sm==='reserved')[].forEach.call(x.querySelectorAll('.ce-seat-section'),function(section){fd.append('seat_map['+si+'][name]',section.querySelector('.ce-section-name').value.trim());fd.append('seat_map['+si+'][kind]',section.querySelector('.ce-section-kind').value);var sp=section.querySelector('.ce-section-price').value.trim();if(sp!=='')fd.append('seat_map['+si+'][price_override]',sp);fd.append('seat_map['+si+'][ticket_index]',String(i));[].forEach.call(section.querySelectorAll('.ce-seat-row'),function(row,ri){fd.append('seat_map['+si+'][rows]['+ri+'][label]',row.querySelector('.ce-row-label').value.trim());[].forEach.call(row.querySelectorAll('.ce-seat'),function(seat,sj){fd.append('seat_map['+si+'][rows]['+ri+'][seats]['+sj+'][label]',seat.dataset.label);fd.append('seat_map['+si+'][rows]['+ri+'][seats]['+sj+'][status]',seat.dataset.state==='unavailable'?'unavailable':'available');fd.append('seat_map['+si+'][rows]['+ri+'][seats]['+sj+'][accessible]',seat.dataset.state==='accessible'?'1':'0')})});si++})
+    }
+  });}
   fd.append('fee_payer',payer()==='me'?'organizer':'buyer');fd.append('visibility',$('c-vis').value);fd.append('refund_policy',$('c-ref').value);
   fd.append('show_remaining',$('c-left').checked?'1':'0');fd.append('waitlist_enabled',$('c-wait').checked?'1':'0');fd.append('allow_transfers',$('c-trans').checked?'1':'0');fd.append('countdown',$('c-cd').checked?'1':'0');
   fd.append('ask_question',$('c-askq').checked?'1':'0');fd.append('attendee_question',v('c-question'));
@@ -1806,7 +1887,7 @@ function check(i){
     return need('c-date','Choose the date your event starts.')&&need('c-time','Choose the time your event starts.')}
   if(i===1){if(m!=='Online'&&!(need('c-venue','Enter the venue.')&&need('c-city','Enter the city.')))return false;if(m==='Online'&&!need('c-link','Add the link people use to join.'))return false;return true}
   if(i===2){if(entry()==='corporate'){if(ADMIN&&!$('c-owner').value){$('c-msg').textContent='Assign an organizer before using registration approvals.';$('c-owner').focus();return false}return true}var tiers=f.querySelectorAll('#ce-tiers .ce-tier'),paid=false,ok=true;
-    [].forEach.call(tiers,function(t){var ins=t.querySelectorAll(':scope>.inp input');if(!ins[0].value.trim()&&ok){ok=false;$('c-msg').textContent='Give every ticket type a name.';ins[0].focus()}else if(ins[1].value.trim()===''&&ok){ok=false;$('c-msg').textContent='Enter a price for every ticket. Use 0 for free tickets.';ins[1].focus()}if(parseFloat(ins[1].value)>0)paid=true});
+    [].forEach.call(tiers,function(t){var ins=t.querySelectorAll(':scope>.inp input');if(!ins[0].value.trim()&&ok){ok=false;$('c-msg').textContent='Give every ticket type a name.';ins[0].focus()}else if(ins[1].value.trim()===''&&ok){ok=false;$('c-msg').textContent='Enter a price for every ticket. Use 0 for free tickets.';ins[1].focus()}var sm=t.querySelector('.ce-seat-mode');if(ok&&sm&&sm.value==='reserved'&&!t.querySelector('.ce-seat-section')){ok=false;$('c-msg').textContent='Add a seating section for every reserved ticket type.';sm.focus()}if(parseFloat(ins[1].value)>0)paid=true});
     if(!ok)return false;if(paid&&!curOf(curCode()).paid){$('c-msg').textContent=curCode()+' can\'t take card payments yet. Make the tickets free or change the currency in step 2.';return false}return true}
   if(i===3){if($('c-askq').checked&&!need('c-question','Write the question you want to ask.'))return false;return true}
   return true;
@@ -1867,13 +1948,15 @@ function fillEdit(){
     var rows=f.querySelectorAll('#ce-tiers .ce-tier'),row=rows[rows.length-1],ins=row.querySelectorAll(':scope>.inp input');
     row.dataset.tid=t.id;ins[0].value=t.name;ins[1].value=t.price;ins[2].value=t.quantity==null?'':t.quantity;
     var x=row.querySelector('.ce-x');
-    if(x&&(t.description||t.max_per_order||t.early_price!=null||t.quantity==null)){var sw=x.querySelector('.ce-xsw');sw.checked=true;x.querySelector('.ce-xo').hidden=false;
+    if(x&&(t.description||t.max_per_order||t.early_price!=null||t.quantity==null||t.seating_mode==='reserved'||t.number_prefix||t.sales_start||t.sales_end)){var sw=x.querySelector('.ce-xsw');sw.checked=true;x.querySelector('.ce-xo').hidden=false;
       x.querySelector('.ce-tdesc').value=t.description||'';x.querySelector('.ce-tmax').value=t.max_per_order||'';x.querySelector('.ce-tunl').value=t.quantity==null?'unlimited':'limited';
+      x.querySelector('.ce-tmin').value=t.min_per_order||1;x.querySelector('.ce-tsales').value=t.sales_start||'';x.querySelector('.ce-tends').value=t.sales_end||'';x.querySelector('.ce-tvis').value=t.ticket_visibility||'public';x.querySelector('.ce-tstatus').value=t.sales_status||'on_sale';x.querySelector('.ce-num-on').checked=t.numbering_enabled!==false;x.querySelector('.ce-num-scope').value=t.numbering_scope||'category';x.querySelector('.ce-prefix').value=t.number_prefix||'';x.querySelector('.ce-num-start').value=t.number_start||1;x.querySelector('.ce-padding').value=String(t.number_padding||3);x.querySelector('.ce-num-format').value=t.number_format||'{PREFIX}-{NUMBER}';x.querySelector('.ce-seat-mode').value=t.seating_mode||'general_admission';x.querySelector('.ce-seat-editor').hidden=x.querySelector('.ce-seat-mode').value!=='reserved';if(t.design_settings){x.querySelector('.ce-design-color').value=t.design_settings.accent||'#245fd3';['logo','attendee','category','number','section','row','seat','date','venue','status'].forEach(function(k){var el=x.querySelector('.ce-design-'+k),v=t.design_settings['show_'+k];if(el)el.checked=v!==false&&v!=='0'&&v!==0})}
       if(t.early_price!=null){x.querySelector('.ce-teb').value=t.early_price;x.querySelector('.ce-tebe').value=t.early_ends||''}}
     if(t.sold>0||t.locked){ins[1].readOnly=true;var rm=row.querySelector('.ce-rm');if(rm)rm.remove();
       row.insertAdjacentHTML('beforeend','<p class="ce-sold">'+(t.locked?'This ticket has options set in the old editor, so it stays as it is here.':t.sold+' sold, so the price stays the same and it can\'t be removed. The quantity can\'t go below '+t.sold+'.')+'</p>');
       if(t.locked)[].forEach.call(row.querySelectorAll('input,select'),function(el){el.disabled=true})}
   });
+  (E.seat_map||[]).forEach(function(section){var tier=f.querySelectorAll('#ce-tiers>.ce-tier')[section.ticket_index||0];if(!tier)return;var editor=tier.querySelector('.ce-seat-editor');editor.hidden=false;var s=seatSection(tier,section.name,0,0);s.querySelector('.ce-section-kind').value=section.kind||'seated';s.querySelector('.ce-section-price').value=section.price_override==null?'':section.price_override;s.querySelector('.ce-seat-rows').innerHTML='';(section.rows||[]).forEach(function(row){seatRow(s,row.label,(row.seats||[]).length,row.seats)})});
   var pay=f.querySelector('[name=c-payer][value='+(E.fee_payer==='organizer'?'me':'buyer')+']');if(pay)pay.checked=true;
   set('c-vis',E.visibility);set('c-ref',E.refund_policy);
   $('c-left').checked=!!E.show_remaining;$('c-wait').checked=!!E.waitlist_enabled;$('c-trans').checked=!!E.allow_transfers;$('c-cd').checked=!!E.countdown;

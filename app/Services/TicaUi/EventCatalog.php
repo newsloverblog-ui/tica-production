@@ -261,6 +261,8 @@ class EventCatalog
             'maxBuy' => $maxBuy,
             'earlyBird' => $earlyBird ? $this->earlyBirdAmount($earlyBird, $price) : 0,
             'earlyBirdEnds' => $earlyBird['ends'] ?? null,
+            'minBuy' => 1,
+            'seatingMode' => 'general_admission',
           ]);
         }
         continue;
@@ -269,6 +271,11 @@ class EventCatalog
       $price = $ticket->pricing_type === 'free' ? 0.0 : (float) ($ticket->price ?? $ticket->f_price ?? 0);
       $limited = $ticket->ticket_available_type === 'limited';
       $left = $limited ? max(0, (int) $ticket->ticket_available) : null;
+      $available = ($ticket->visibility ?? 'public') === 'public'
+        && ($ticket->sales_status ?? 'on_sale') === 'on_sale'
+        && (!$ticket->sales_start_at || $ticket->sales_start_at->isPast())
+        && (!$ticket->sales_end_at || $ticket->sales_end_at->isFuture());
+      if (!$available) $left = 0;
       $maxBuy = $ticket->max_ticket_buy_type === 'limited' ? max(1, (int) $ticket->max_buy_ticket) : null;
       $tiers[] = $this->tier($title, $price, $left, $sold[$ticket->id . '|*'] ?? 0, [
         'ticketId' => (int) $ticket->id,
@@ -277,6 +284,10 @@ class EventCatalog
         'maxBuy' => $maxBuy,
         'earlyBird' => $earlyBird ? $this->earlyBirdAmount($earlyBird, $price) : 0,
         'earlyBirdEnds' => $earlyBird['ends'] ?? null,
+        'minBuy' => max(1, (int) ($ticket->min_buy_ticket ?? 1)),
+        'seatingMode' => (string) ($ticket->seating_mode ?: 'general_admission'),
+        'numbered' => (bool) ($ticket->numbering_enabled ?? false),
+        'available' => $available,
       ]);
     }
 

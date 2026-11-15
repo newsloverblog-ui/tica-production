@@ -71,6 +71,7 @@ class OrganizerAttendeeDirectory
     {
         $q = trim((string) ($filters['q'] ?? ''));
         $eventId = (int) ($filters['event'] ?? 0);
+        $ticketId = (int) ($filters['ticket'] ?? 0);
         $status = (string) ($filters['status'] ?? '');
         $ticketReference = $this->ticketReference($q);
 
@@ -78,6 +79,7 @@ class OrganizerAttendeeDirectory
             ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
             ->where('bookings.organizer_id', $organizerId)
             ->when($eventId > 0, fn (Builder $builder) => $builder->where('booking_tickets.event_id', $eventId))
+            ->when($ticketId > 0, fn (Builder $builder) => $builder->where('booking_tickets.ticket_id', $ticketId))
             // Order date range (inclusive, by the day the order was placed).
             ->when(!empty($filters['from']), fn (Builder $builder) => $builder->where('bookings.created_at', '>=', $filters['from'] . ' 00:00:00'))
             ->when(!empty($filters['to']), fn (Builder $builder) => $builder->where('bookings.created_at', '<=', $filters['to'] . ' 23:59:59'))
@@ -93,6 +95,10 @@ class OrganizerAttendeeDirectory
                         ->orWhere('bookings.phone', 'like', $like)
                         ->orWhere('bookings.fname', 'like', $like)
                         ->orWhere('bookings.lname', 'like', $like)
+                        ->orWhere('booking_tickets.ticket_number', 'like', $like)
+                        ->orWhere('booking_tickets.seat_label', 'like', $like)
+                        ->orWhere('booking_tickets.row_label', 'like', $like)
+                        ->orWhere('booking_tickets.section_label', 'like', $like)
                         ->orWhereRaw("CONCAT(bookings.fname, ' ', bookings.lname) LIKE ?", [$like]);
                     if ($id > 0) {
                         $where->orWhere('bookings.id', $id);
@@ -218,6 +224,10 @@ class OrganizerAttendeeDirectory
                 'tier' => $ticket->variation_name ?: ($ticketTitles[$ticket->ticket_id] ?? __('General admission')),
                 'event' => (string) ($titles[$ticket->event_id] ?? ''),
                 'ref' => 'TICA-' . str_pad((string) $ticket->booking_id, 6, '0', STR_PAD_LEFT) . '-' . $ticket->sequence,
+                'ticketNumber' => (string) ($ticket->ticket_number ?: ''),
+                'seat' => (string) ($ticket->seat_label ?: ''),
+                'row' => (string) ($ticket->row_label ?: ''),
+                'section' => (string) ($ticket->section_label ?: ''),
                 'amount' => round($orderTotal / $quantity, 2),
                 'orderTotal' => $orderTotal,
                 'orderTickets' => round((float) $ticket->order_price, 2),
@@ -229,6 +239,7 @@ class OrganizerAttendeeDirectory
                 'status' => $statusLabel,
                 'answer' => (string) ($ticket->attendee_answer ?? ''),
                 'refundable' => $statusLabel === 'Paid' && isset($refundable[$ticket->booking_id]),
+                'manageUrl' => route('organizer.event_booking.details', ['id' => $ticket->booking_id]),
             ];
         })->values()->all();
     }

@@ -35,6 +35,7 @@ use App\Models\PaymentGateway\OnlineGateway;
 use App\Services\AuditLogger;
 use App\Services\PaymentGatewayPolicy;
 use App\Services\TicketReservationService;
+use App\Services\SeatReservationService;
 use App\Services\TicketIssuanceService;
 use App\Services\EventBookingDocumentStorage;
 use App\Services\EventBookingInvoiceService;
@@ -471,7 +472,16 @@ class BookingController extends Controller
           ? null
           : app(EventTicketPurchaseLimitService::class)->buyerIdentityHashVersion();
       }
+      if (Schema::hasColumn('bookings', 'ticket_reservation_token')) {
+        $bookingAttributes['ticket_reservation_token'] = $reservationToken ?: null;
+      }
       $booking = Booking::create($bookingAttributes);
+
+      if ($reservationToken
+          && strtolower((string) $booking->paymentStatus) === 'pending'
+          && (string) $booking->gatewayType === 'offline') {
+        app(SeatReservationService::class)->bindPendingPayment($reservationToken, $booking);
+      }
 
       AuditLogger::record('booking.created', $booking, [], [
         'event_id' => $booking->event_id,
@@ -509,8 +519,11 @@ class BookingController extends Controller
         }
       }
 
-      $units = (new TicketIssuanceService())->issueForBooking($booking);
-      $this->assignAttendees($units, $info['attendees'] ?? null);
+      $verified = in_array(strtolower((string) $booking->paymentStatus), ['1', 'paid', 'completed', 'free'], true);
+      if ($verified) {
+        $units = (new TicketIssuanceService())->issueForBooking($booking, $reservationToken ?: null);
+        $this->assignAttendees($units, $info['attendees'] ?? null);
+      }
 
       return $booking;
     }, 3);

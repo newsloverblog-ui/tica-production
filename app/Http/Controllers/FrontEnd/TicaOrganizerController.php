@@ -12,6 +12,9 @@ use App\Models\Event\EventContent;
 use App\Models\Event\EventDates;
 use App\Models\Event\Ticket;
 use App\Models\Event\TicketContent;
+use App\Models\EventSeat;
+use App\Models\SeatingRow;
+use App\Models\SeatingSection;
 use App\Models\Language;
 use App\Rules\ImageMimeTypeRule;
 use App\Services\AuditLogger;
@@ -45,7 +48,26 @@ class TicaOrganizerController extends Controller
     abort_unless(\App\Support\TeamPermissions::can('events.manage'), 403, 'Your team role doesn\'t include creating events.');
     $organizer = Auth::guard('organizer')->user();
 
-    return $this->createEvent($request, (int) $organizer->id);
+    return $this->createEvent($request, (int) $organizer->id, 'organizer');
+  }
+
+  /** Admins create through the same builder and persistence path as organisers. */
+  public function storeAdminEvent(Request $request): JsonResponse
+  {
+    abort_unless(Auth::guard('admin')->user(), 401);
+    $admin = $request->validate([
+      'organizer_id' => ['nullable', 'integer', Rule::exists('organizers', 'id')->where('status', 1)],
+      'is_featured' => ['nullable', 'boolean'],
+    ], [
+      'organizer_id.exists' => 'Choose an active organizer, or leave the event under TICA.',
+    ]);
+
+    return $this->createEvent(
+      $request,
+      isset($admin['organizer_id']) ? (int) $admin['organizer_id'] : null,
+      'admin',
+      $request->boolean('is_featured') ? 'yes' : 'no',
+    );
   }
 
   /**
@@ -53,8 +75,11 @@ class TicaOrganizerController extends Controller
    * defaults) for anything the request leaves out, so the defaults apply to
    * every way an event is created, not only the prefilled form.
    */
-  private function applyOrganizerDefaults(Request $request, int $organizerId): void
+  private function applyOrganizerDefaults(Request $request, ?int $organizerId): void
   {
+    if (!$organizerId) {
+      return;
+    }
     $organizer = \App\Models\Organizer::find($organizerId);
     if (!$organizer) {
       return;
@@ -69,13 +94,16 @@ class TicaOrganizerController extends Controller
     $request->merge(array_diff_key($defaults, array_filter($request->all(), fn ($value) => $value !== null)));
   }
 
-  private function createEvent(Request $request, int $organizerId): JsonResponse
+  private function createEvent(Request $request, ?int $organizerId, string $actor, string $featured = 'no'): JsonResponse
   {
     $this->applyOrganizerDefaults($request, $organizerId);
     $draft = $request->boolean('draft');
     $validated = $this->validateEvent($request, $draft);
+    if ($validated['entry'] === 'corporate' && !$organizerId) {
+      throw ValidationException::withMessages(['organizer_id' => 'Registration events need an organizer. Assign one first.']);
+    }
 
-    $event = DB::transaction(function () use ($request, $validated, $organizerId, $draft) {
+    $event = DB::transaction(function () use ($request, $validated, $organizerId, $draft, $actor, $featured) {
       $online = $validated['mode'] === 'Online';
       $multiple = $request->boolean('multiple');
       [$single, $dates] = $this->dates($validated, $multiple);
@@ -92,7 +120,7 @@ class TicaOrganizerController extends Controller
         'end_time' => $single['end']?->format('H:i'),
         'duration' => $single['start'] && $single['end'] ? DurationCalulate($single['start'], $single['end']) : '',
         'end_date_time' => $multiple ? collect($dates)->max('end') : $single['end'],
-        'is_featured' => 'no',
+        'is_featured' => $actor === 'admin' ? $featured : 'no',
         'event_type' => $online ? 'online' : 'venue',
         'is_hybrid' => $validated['mode'] === 'Hybrid',
         'online_join_url' => in_array($validated['mode'], ['Online', 'Hybrid'], true) ? ($validated['online_join_url'] ?? null) : null,
@@ -124,10 +152,11 @@ class TicaOrganizerController extends Controller
       $this->storeContent($event, $validated, $online);
       if ($validated['entry'] !== 'corporate') {
         $this->storeTickets($event, $validated['tiers'] ?? [], $online);
+        $this->syncSeatingMap($event, $validated['seat_map'] ?? [], $validated['tiers'] ?? []);
       }
 
       AuditLogger::record('event.created_from_tica_ui', $event, [], [
-        'actor' => 'organizer',
+        'actor' => $actor,
         'organizer_id' => $organizerId,
         'is_featured' => $event->is_featured,
         'status' => $event->status,
@@ -156,6 +185,9 @@ class TicaOrganizerController extends Controller
       'status' => $draft ? 'draft' : 'live',
       'url' => route('event.details', [$slug, $event->id]),
       'registration_url' => $validated['entry'] === 'corporate' ? route('organizer.event.registrations.index', ['event_id' => $event->id]) : null,
+      'redirect_url' => $actor === 'admin'
+        ? route('admin.event_management.event', ['language' => $this->getLanguage()->code])
+        : url('/dashboard/events'),
     ]);
   }
 
@@ -263,6 +295,7 @@ class TicaOrganizerController extends Controller
       $this->storeContent($event, $validated, $online);
       if ($validated['entry'] !== 'corporate') {
         $this->syncTickets($event, $request->input('tiers', []), $validated['tiers'] ?? [], $online);
+        $this->syncSeatingMap($event, $validated['seat_map'] ?? [], $validated['tiers'] ?? []);
       }
 
       AuditLogger::record('event.edited_from_tica_ui', $event, $before, array_merge(
@@ -317,6 +350,28 @@ class TicaOrganizerController extends Controller
       }
       $early = isset($tier['early_price']) && $tier['early_price'] !== '' && $tier['early_price'] !== null && $price > 0;
       $earlyEnds = $early ? Carbon::parse($tier['early_ends']) : null;
+      $advanced = [
+        'currency' => $event->currency,
+        'min_buy_ticket' => (int) ($tier['min_per_order'] ?? 1),
+        'sales_start_at' => $tier['sales_start'] ?? null,
+        'sales_end_at' => $tier['sales_end'] ?? null,
+        'visibility' => $tier['ticket_visibility'] ?? 'public',
+        'sales_status' => $tier['sales_status'] ?? 'on_sale',
+        'design_settings' => $tier['design_settings'] ?? null,
+      ];
+      if ($sold === 0) {
+        $advanced += [
+          'numbering_enabled' => array_key_exists('numbering_enabled', $tier) ? (bool) $tier['numbering_enabled'] : true,
+          'numbering_scope' => $tier['numbering_scope'] ?? 'category',
+          'number_prefix' => strtoupper((string) ($tier['number_prefix'] ?? $this->prefix($tier['name']))),
+          'number_start' => (int) ($tier['number_start'] ?? 1),
+          'number_padding' => (int) ($tier['number_padding'] ?? 3),
+          'number_format' => $tier['number_format'] ?? '{PREFIX}-{NUMBER}',
+          'seating_mode' => $tier['seating_mode'] ?? 'general_admission',
+        ];
+      } elseif (($tier['seating_mode'] ?? $ticket->seating_mode) !== $ticket->seating_mode) {
+        throw ValidationException::withMessages(["tiers.$index.seating_mode" => 'Seating mode cannot change after tickets are sold.']);
+      }
       $ticket->forceFill([
         'event_type' => $online ? 'online' : 'venue',
         'title' => $tier['name'],
@@ -332,7 +387,7 @@ class TicaOrganizerController extends Controller
         'early_bird_discount_amount' => $early ? round($price - (float) $tier['early_price'], 2) : null,
         'early_bird_discount_date' => $earlyEnds?->toDateString(),
         'early_bird_discount_time' => $earlyEnds?->format('H:i'),
-      ])->save();
+      ] + $advanced)->save();
       TicketContent::query()->where('ticket_id', $ticket->id)->update([
         'title' => $tier['name'],
         'description' => $tier['description'] ?? null,
@@ -384,14 +439,49 @@ class TicaOrganizerController extends Controller
       'online_join_url' => [$mode === 'Online' && !$draft ? 'required' : 'nullable', 'nullable', 'url', 'max:2000'],
       'join_reveal_minutes' => ['nullable', Rule::in(['0', '15', '30', '60', 0, 15, 30, 60])],
       'entry' => ['required', Rule::in(TicaPlatform::on('registration') ? ['ticketing', 'corporate'] : ['ticketing'])],
-      'tiers' => [$tiers && !$draft ? 'required' : 'nullable', 'array', 'min:1', 'max:30'],
+      'tiers' => [$tiers && !$draft ? 'required' : 'nullable', 'array', 'min:1', 'max:' . (int) config('tickets.max_types_per_event', 50)],
       'tiers.*.name' => ['required', 'string', 'max:120'],
       'tiers.*.price' => ['required', 'numeric', 'min:0', 'max:100000000'],
       'tiers.*.quantity' => ['nullable', 'integer', 'min:1', 'max:1000000'],
       'tiers.*.max_per_order' => ['nullable', 'integer', 'min:1', 'max:10000'],
+      'tiers.*.min_per_order' => ['nullable', 'integer', 'min:1', 'max:10000'],
       'tiers.*.description' => ['nullable', 'string', 'max:300'],
       'tiers.*.early_price' => ['nullable', 'numeric', 'min:0'],
       'tiers.*.early_ends' => ['nullable', 'date'],
+      'tiers.*.sales_start' => ['nullable', 'date'],
+      'tiers.*.sales_end' => ['nullable', 'date'],
+      'tiers.*.ticket_visibility' => ['nullable', Rule::in(['public', 'hidden'])],
+      'tiers.*.sales_status' => ['nullable', Rule::in(['on_sale', 'paused'])],
+      'tiers.*.numbering_enabled' => ['nullable', 'boolean'],
+      'tiers.*.numbering_scope' => ['nullable', Rule::in(['category', 'event'])],
+      'tiers.*.number_prefix' => ['nullable', 'string', 'max:20', 'regex:/\A[A-Za-z0-9_-]+\z/'],
+      'tiers.*.number_start' => ['nullable', 'integer', 'min:1', 'max:999999999'],
+      'tiers.*.number_padding' => ['nullable', 'integer', 'between:1,10'],
+      'tiers.*.number_format' => ['nullable', 'string', 'max:80', 'regex:/\{NUMBER\}/'],
+      'tiers.*.seating_mode' => ['nullable', Rule::in(['general_admission', 'reserved'])],
+      'tiers.*.design_settings' => ['nullable', 'array:accent,show_logo,show_attendee,show_category,show_number,show_seat,show_section,show_row,show_date,show_venue,show_status'],
+      'tiers.*.design_settings.accent' => ['nullable', 'regex:/\A#[0-9A-Fa-f]{6}\z/'],
+      'tiers.*.design_settings.show_logo' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_attendee' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_category' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_number' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_seat' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_section' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_row' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_date' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_venue' => ['nullable', 'boolean'],
+      'tiers.*.design_settings.show_status' => ['nullable', 'boolean'],
+      'seat_map' => ['nullable', 'array', 'max:50'],
+      'seat_map.*.name' => ['required', 'string', 'max:120'],
+      'seat_map.*.kind' => ['required', Rule::in(['seated', 'standing', 'general_admission'])],
+      'seat_map.*.ticket_index' => ['required', 'integer', 'min:0', 'max:' . max(0, (int) config('tickets.max_types_per_event', 50) - 1)],
+      'seat_map.*.price_override' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
+      'seat_map.*.rows' => ['nullable', 'array', 'max:100'],
+      'seat_map.*.rows.*.label' => ['required', 'string', 'max:40'],
+      'seat_map.*.rows.*.seats' => ['required', 'array', 'max:500'],
+      'seat_map.*.rows.*.seats.*.label' => ['required', 'string', 'max:40'],
+      'seat_map.*.rows.*.seats.*.status' => ['nullable', Rule::in(['available', 'unavailable'])],
+      'seat_map.*.rows.*.seats.*.accessible' => ['nullable', 'boolean'],
       'fee_payer' => ['required', Rule::in(TicaPlatform::on('organizer_pays') ? ['buyer', 'organizer'] : ['buyer'])],
       'visibility' => ['required', Rule::in(TicaPlatform::visibilities())],
       'allow_transfers' => ['required', 'boolean'],
@@ -435,6 +525,38 @@ class TicaOrganizerController extends Controller
       if (!empty($tier['early_price']) && empty($tier['early_ends'])) {
         throw ValidationException::withMessages(["tiers.$index.early_ends" => 'Choose when the early bird price ends.']);
       }
+      if (!empty($tier['sales_start']) && !empty($tier['sales_end']) && Carbon::parse($tier['sales_end'])->lessThanOrEqualTo(Carbon::parse($tier['sales_start']))) {
+        throw ValidationException::withMessages(["tiers.$index.sales_end" => 'Ticket sales must end after they start.']);
+      }
+      if (($tier['seating_mode'] ?? 'general_admission') === 'reserved') {
+        $hasSeats = collect($validated['seat_map'] ?? [])->contains(fn ($section) => (int) $section['ticket_index'] === $index);
+        if (!$hasSeats && !$draft) {
+          throw ValidationException::withMessages(["tiers.$index.seating_mode" => 'Add at least one seating section for this reserved ticket type.']);
+        }
+      }
+    }
+    $numbered = collect($validated['tiers'] ?? [])->filter(
+      fn ($tier) => !array_key_exists('numbering_enabled', $tier) || (bool) $tier['numbering_enabled']
+    );
+    $categorySignatures = [];
+    foreach ($numbered->filter(fn ($tier) => ($tier['numbering_scope'] ?? 'category') === 'category') as $index => $tier) {
+      $signature = strtoupper((string) ($tier['number_prefix'] ?? $this->prefix($tier['name'])))
+        . '|' . (string) ($tier['number_format'] ?? '{PREFIX}-{NUMBER}');
+      if (isset($categorySignatures[$signature])) {
+        throw ValidationException::withMessages([
+          "tiers.$index.number_prefix" => 'Category sequences need different prefixes or formats so visible ticket numbers stay unique within the event.',
+        ]);
+      }
+      $categorySignatures[$signature] = true;
+    }
+    $eventStarts = $numbered
+      ->filter(fn ($tier) => ($tier['numbering_scope'] ?? 'category') === 'event')
+      ->map(fn ($tier) => (int) ($tier['number_start'] ?? 1))
+      ->unique();
+    if ($eventStarts->count() > 1) {
+      throw ValidationException::withMessages([
+        'tiers' => 'Ticket types that share the event-wide sequence must use the same starting number.',
+      ]);
     }
 
     return $validated;
@@ -537,6 +659,20 @@ class TicaOrganizerController extends Controller
         'early_bird_discount_amount' => $early ? round($price - (float) $tier['early_price'], 2) : null,
         'early_bird_discount_date' => $earlyEnds?->toDateString(),
         'early_bird_discount_time' => $earlyEnds?->format('H:i'),
+        'currency' => $event->currency,
+        'min_buy_ticket' => (int) ($tier['min_per_order'] ?? 1),
+        'sales_start_at' => $tier['sales_start'] ?? null,
+        'sales_end_at' => $tier['sales_end'] ?? null,
+        'visibility' => $tier['ticket_visibility'] ?? 'public',
+        'sales_status' => $tier['sales_status'] ?? 'on_sale',
+        'numbering_enabled' => array_key_exists('numbering_enabled', $tier) ? (bool) $tier['numbering_enabled'] : true,
+        'numbering_scope' => $tier['numbering_scope'] ?? 'category',
+        'number_prefix' => strtoupper((string) ($tier['number_prefix'] ?? $this->prefix($tier['name']))),
+        'number_start' => (int) ($tier['number_start'] ?? 1),
+        'number_padding' => (int) ($tier['number_padding'] ?? 3),
+        'number_format' => $tier['number_format'] ?? '{PREFIX}-{NUMBER}',
+        'seating_mode' => $tier['seating_mode'] ?? 'general_admission',
+        'design_settings' => $tier['design_settings'] ?? null,
       ]);
       foreach ($languages as $language) {
         TicketContent::create([
@@ -547,5 +683,59 @@ class TicaOrganizerController extends Controller
         ]);
       }
     }
+  }
+
+  private function syncSeatingMap(Event $event, array $sections, array $tiers): void
+  {
+    if ($sections === [] && !collect($tiers)->contains(fn ($tier) => ($tier['seating_mode'] ?? 'general_admission') === 'reserved')) {
+      return;
+    }
+    if (BookingTicket::query()->where('event_id', $event->id)->whereNotNull('seat_id')->exists()) {
+      throw ValidationException::withMessages(['seat_map' => 'Seats have been sold for this event, so its seating map can no longer be rebuilt.']);
+    }
+
+    $tickets = Ticket::query()->where('event_id', $event->id)->orderBy('id')->get()->values();
+    EventSeat::query()->where('event_id', $event->id)->delete();
+    SeatingRow::query()->where('event_id', $event->id)->delete();
+    SeatingSection::query()->where('event_id', $event->id)->delete();
+
+    foreach ($sections as $sectionIndex => $input) {
+      $ticket = $tickets->get((int) $input['ticket_index']);
+      if (!$ticket || $ticket->seating_mode !== 'reserved') {
+        throw ValidationException::withMessages(["seat_map.$sectionIndex.ticket_index" => 'Choose a reserved ticket type for every seating section.']);
+      }
+      $section = SeatingSection::query()->create([
+        'event_id' => $event->id,
+        'name' => $input['name'],
+        'kind' => $input['kind'],
+        'ticket_id' => $ticket->id,
+        'price_override' => array_key_exists('price_override', $input) && $input['price_override'] !== null && $input['price_override'] !== ''
+          ? round((float) $input['price_override'], 2)
+          : null,
+        'capacity' => collect($input['rows'] ?? [])->sum(fn ($row) => count($row['seats'] ?? [])),
+        'sort_order' => $sectionIndex,
+      ]);
+      foreach ($input['rows'] ?? [] as $rowIndex => $rowInput) {
+        $row = SeatingRow::query()->create([
+          'event_id' => $event->id, 'section_id' => $section->id,
+          'label' => $rowInput['label'], 'sort_order' => $rowIndex,
+        ]);
+        foreach ($rowInput['seats'] as $seatIndex => $seatInput) {
+          EventSeat::query()->create([
+            'public_id' => (string) Str::uuid(),
+            'event_id' => $event->id, 'section_id' => $section->id, 'row_id' => $row->id,
+            'ticket_id' => $ticket->id, 'label' => $seatInput['label'],
+            'status' => $seatInput['status'] ?? 'available',
+            'is_accessible' => (bool) ($seatInput['accessible'] ?? false),
+            'sort_order' => $seatIndex,
+          ]);
+        }
+      }
+    }
+  }
+
+  private function prefix(string $name): string
+  {
+    return strtoupper(substr((string) preg_replace('/[^A-Za-z0-9]/', '', $name), 0, 4)) ?: 'TKT';
   }
 }

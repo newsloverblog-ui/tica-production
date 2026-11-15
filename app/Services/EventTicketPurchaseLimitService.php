@@ -27,6 +27,22 @@ final class EventTicketPurchaseLimitService
             throw new RuntimeException('The ticket selection contains an invalid quantity.');
         }
 
+        if (Schema::hasColumn('tickets', 'sales_status')) {
+            if (!in_array((string) $ticket->sales_status, ['on_sale', 'scheduled'], true)) {
+                throw new RuntimeException('This ticket category is not on sale.');
+            }
+            if ($ticket->sales_start_at && $ticket->sales_start_at->isFuture()) {
+                throw new RuntimeException('Sales for this ticket category have not started.');
+            }
+            if ($ticket->sales_end_at && $ticket->sales_end_at->isPast()) {
+                throw new RuntimeException('Sales for this ticket category have ended.');
+            }
+            $minimum = max(1, (int) $ticket->min_buy_ticket);
+            if ($selectedQuantity < $minimum) {
+                throw new RuntimeException("Choose at least {$minimum} tickets from this category.");
+            }
+        }
+
         $limit = $this->limit($ticket, $variationName);
         if ($limit === null) {
             return;

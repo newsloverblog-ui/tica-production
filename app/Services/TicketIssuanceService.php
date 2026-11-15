@@ -6,15 +6,19 @@ use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 
 class TicketIssuanceService
 {
-    public function issueForBooking(Booking $booking): Collection
+    public function issueForBooking(Booking $booking, ?string $reservationToken = null): Collection
     {
-        return DB::transaction(function () use ($booking) {
+        return DB::transaction(function () use ($booking, $reservationToken) {
             $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
+            if (!in_array(strtolower((string) $booking->paymentStatus), ['1', 'paid', 'completed', 'free'], true)) {
+                throw new RuntimeException('Individual tickets cannot be issued before payment is verified.');
+            }
             $existing = BookingTicket::query()
                 ->where('booking_id', $booking->id)
                 ->orderBy('sequence')
@@ -30,7 +34,11 @@ class TicketIssuanceService
                     );
                 }
 
-                return $existing;
+                if ($reservationToken) {
+                    app(SeatReservationService::class)->assign($reservationToken, $booking, $existing);
+                }
+
+                return $existing->fresh();
             }
 
             $allocations = $this->expectedAllocations($booking);
@@ -38,11 +46,23 @@ class TicketIssuanceService
             if ($expectedQuantity < 1 || count($allocations) !== $expectedQuantity) {
                 throw new RuntimeException('Booking ticket quantity does not match its ticket allocation.');
             }
+            $ticketIds = collect($allocations)->pluck('ticket_id')->filter()->unique();
+            $reservedTicketIds = $ticketIds->isEmpty()
+                || !Schema::hasTable('tickets')
+                || !Schema::hasColumn('tickets', 'seating_mode')
+                ? collect()
+                : \App\Models\Event\Ticket::query()
+                    ->whereIn('id', $ticketIds)
+                    ->where('seating_mode', 'reserved')
+                    ->pluck('id');
+            if ($reservedTicketIds->isNotEmpty() && ! $reservationToken) {
+                throw new RuntimeException('Reserved-seat tickets require a valid seat selection before they can be issued.');
+            }
 
             $initialStatus = (int) $booking->scan_status === 1 ? 'checked_in' : 'issued';
             $issued = collect();
             foreach ($allocations as $index => $allocation) {
-                $issued->push(BookingTicket::create([
+                $unit = BookingTicket::create([
                     'public_id' => (string) Str::uuid(),
                     'booking_id' => $booking->id,
                     'event_id' => $booking->event_id,
@@ -54,7 +74,16 @@ class TicketIssuanceService
                     'holder_email' => $booking->email,
                     'status' => $initialStatus,
                     'checked_in_at' => $initialStatus === 'checked_in' ? ($booking->updated_at ?: now()) : null,
-                ]));
+                ]);
+                if (Schema::hasTable('tickets') && $unit->ticket_id) {
+                    app(TicketNumberAllocator::class)->allocate($unit);
+                }
+                $issued->push($unit->fresh());
+            }
+
+            if ($reservationToken) {
+                app(SeatReservationService::class)->assign($reservationToken, $booking, $issued);
+                $issued = BookingTicket::query()->where('booking_id', $booking->id)->orderBy('sequence')->get();
             }
 
             AuditLogger::record('booking.tickets_issued', $booking, [], [

@@ -6,9 +6,11 @@ use App\Models\BasicSettings\Basic;
 use App\Models\Event;
 use App\Models\Event\Coupon;
 use App\Models\Event\Ticket;
+use App\Models\SeatReservation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 final class EventCheckoutQuoteService
@@ -49,6 +51,27 @@ final class EventCheckoutQuoteService
             ->whereIn('id', $ticketIds)
             ->get()
             ->keyBy('id');
+        $seatPrices = collect();
+        $reservationToken = trim((string) Session::get('ticket_reservation_token', ''));
+        if ($reservationToken !== '' && Schema::hasTable('seat_reservations')) {
+            $seatPrices = SeatReservation::query()
+                ->with(['seat.section', 'seat.ticket'])
+                ->where('token', $reservationToken)
+                ->whereIn('status', ['active', 'consumed'])
+                ->get()
+                ->groupBy(fn (SeatReservation $hold): int => (int) $hold->ticket_id)
+                ->map(fn ($holds) => $holds->map(function (SeatReservation $hold): float {
+                    $seat = $hold->seat;
+                    if (!$seat) {
+                        throw new RuntimeException('A selected seat no longer exists.');
+                    }
+
+                    return round(max(0, (float) ($seat->price_override
+                        ?? $seat->section?->price_override
+                        ?? $seat->ticket?->price
+                        ?? 0)), 2);
+                })->values()->all());
+        }
 
         $reviewed = [];
         $seen = [];
@@ -73,6 +96,7 @@ final class EventCheckoutQuoteService
 
             $name = trim((string) ($selection['name'] ?? ''));
             $price = 0.0;
+            $unitPrices = [];
             $availabilityType = $ticket->ticket_available_type;
             $available = (int) $ticket->ticket_available;
             $identity = (string) $ticket->id;
@@ -102,6 +126,15 @@ final class EventCheckoutQuoteService
                 $identity .= '|'.$name;
             }
 
+            if (($ticket->seating_mode ?? 'general_admission') === 'reserved') {
+                $unitPrices = array_values((array) $seatPrices->get((int) $ticket->id, []));
+                if (count($unitPrices) !== (int) $selectedQuantity) {
+                    throw new RuntimeException('Choose exactly one available seat for every reserved ticket.');
+                }
+            } else {
+                $unitPrices = array_fill(0, (int) $selectedQuantity, $price);
+            }
+
             if (isset($seen[$identity])) {
                 throw new RuntimeException('The same ticket option cannot appear more than once.');
             }
@@ -117,13 +150,15 @@ final class EventCheckoutQuoteService
                 throw new RuntimeException('The selected ticket is no longer available in that quantity.');
             }
 
-            $lineEarlyBird = $this->earlyBirdDiscount($ticket, $price, $selectedQuantity, $now);
-            $subtotal += $price * $selectedQuantity;
+            $lineSubtotal = round(array_sum($unitPrices), 2);
+            $lineEarlyBird = round(array_sum(array_map(
+                fn (float $unitPrice): float => $this->earlyBirdDiscount($ticket, $unitPrice, 1, $now),
+                $unitPrices,
+            )), 2);
+            $subtotal += $lineSubtotal;
             $earlyBirdDiscount += $lineEarlyBird;
             $quantity += $selectedQuantity;
-            if ($price > 0) {
-                $paidQuantity += $selectedQuantity;
-            }
+            $paidQuantity += count(array_filter($unitPrices, fn (float $unitPrice): bool => $unitPrice > 0));
             if ($quantity > 100000) {
                 throw new RuntimeException('The ticket selection is too large.');
             }
@@ -133,7 +168,8 @@ final class EventCheckoutQuoteService
                 'early_bird_dicount' => round($lineEarlyBird, 2),
                 'name' => $name,
                 'qty' => (int) $selectedQuantity,
-                'price' => $price,
+                'price' => $selectedQuantity > 0 ? round($lineSubtotal / $selectedQuantity, 2) : 0,
+                'unit_prices' => $unitPrices,
             ];
         }
 

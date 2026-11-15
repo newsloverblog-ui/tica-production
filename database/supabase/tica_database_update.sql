@@ -222,10 +222,184 @@ BEGIN
   PERFORM pg_temp.tica_mark_migration('2026_11_14_180000_expand_tica_promotion_system');
 END $$;
 
--- 8. Keep these tables private --------------------------------------------
+-- 8. Advanced ticket numbering, design and reserved seating ---------------
+DO $$
+BEGIN
+  IF to_regclass('public.events') IS NOT NULL THEN
+    ALTER TABLE public.events ADD COLUMN IF NOT EXISTS seat_reservation_minutes smallint NOT NULL DEFAULT 15;
+  END IF;
+  IF to_regclass('public.tickets') IS NOT NULL THEN
+    ALTER TABLE public.tickets
+      ADD COLUMN IF NOT EXISTS currency varchar(3) NULL,
+      ADD COLUMN IF NOT EXISTS min_buy_ticket integer NOT NULL DEFAULT 1,
+      ADD COLUMN IF NOT EXISTS sales_start_at timestamp(0) without time zone NULL,
+      ADD COLUMN IF NOT EXISTS sales_end_at timestamp(0) without time zone NULL,
+      ADD COLUMN IF NOT EXISTS visibility varchar(24) NOT NULL DEFAULT 'public',
+      ADD COLUMN IF NOT EXISTS sales_status varchar(24) NOT NULL DEFAULT 'on_sale',
+      ADD COLUMN IF NOT EXISTS numbering_enabled boolean NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS numbering_scope varchar(16) NOT NULL DEFAULT 'category',
+      ADD COLUMN IF NOT EXISTS number_prefix varchar(20) NULL,
+      ADD COLUMN IF NOT EXISTS number_start bigint NOT NULL DEFAULT 1,
+      ADD COLUMN IF NOT EXISTS number_padding smallint NOT NULL DEFAULT 3,
+      ADD COLUMN IF NOT EXISTS number_format varchar(80) NOT NULL DEFAULT '{PREFIX}-{NUMBER}',
+      ADD COLUMN IF NOT EXISTS seating_mode varchar(24) NOT NULL DEFAULT 'general_admission',
+      ADD COLUMN IF NOT EXISTS design_settings json NULL;
+    CREATE INDEX IF NOT EXISTS tickets_sales_start_at_index ON public.tickets (sales_start_at);
+    CREATE INDEX IF NOT EXISTS tickets_sales_end_at_index ON public.tickets (sales_end_at);
+    CREATE INDEX IF NOT EXISTS tickets_visibility_index ON public.tickets (visibility);
+    CREATE INDEX IF NOT EXISTS tickets_sales_status_index ON public.tickets (sales_status);
+    CREATE INDEX IF NOT EXISTS tickets_seating_mode_index ON public.tickets (seating_mode);
+  END IF;
+  IF to_regclass('public.bookings') IS NOT NULL THEN
+    ALTER TABLE public.bookings
+      ADD COLUMN IF NOT EXISTS ticket_reservation_token uuid NULL;
+    CREATE INDEX IF NOT EXISTS bookings_ticket_reservation_token_index
+      ON public.bookings (ticket_reservation_token);
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.ticket_number_sequences (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  ticket_id bigint NULL,
+  scope_key varchar(64) NOT NULL,
+  next_number bigint NOT NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT ticket_number_sequences_event_scope_unique UNIQUE (event_id, scope_key)
+);
+CREATE INDEX IF NOT EXISTS ticket_number_sequences_event_id_index ON public.ticket_number_sequences (event_id);
+CREATE INDEX IF NOT EXISTS ticket_number_sequences_ticket_id_index ON public.ticket_number_sequences (ticket_id);
+
+CREATE TABLE IF NOT EXISTS public.seating_sections (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  name varchar(120) NOT NULL,
+  kind varchar(24) NOT NULL DEFAULT 'seated',
+  ticket_id bigint NULL,
+  price_override numeric(18,2) NULL,
+  capacity integer NULL,
+  sort_order integer NOT NULL DEFAULT 0,
+  layout json NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT seating_sections_event_name_unique UNIQUE (event_id, name)
+);
+CREATE INDEX IF NOT EXISTS seating_sections_event_id_index ON public.seating_sections (event_id);
+CREATE INDEX IF NOT EXISTS seating_sections_ticket_id_index ON public.seating_sections (ticket_id);
+
+CREATE TABLE IF NOT EXISTS public.seating_rows (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  section_id bigint NOT NULL,
+  label varchar(40) NOT NULL,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT seating_rows_section_label_unique UNIQUE (section_id, label)
+);
+CREATE INDEX IF NOT EXISTS seating_rows_event_id_index ON public.seating_rows (event_id);
+CREATE INDEX IF NOT EXISTS seating_rows_section_id_index ON public.seating_rows (section_id);
+
+CREATE TABLE IF NOT EXISTS public.event_seats (
+  id bigserial PRIMARY KEY,
+  public_id uuid NOT NULL UNIQUE,
+  event_id bigint NOT NULL,
+  section_id bigint NOT NULL,
+  row_id bigint NULL,
+  ticket_id bigint NULL,
+  label varchar(40) NOT NULL,
+  status varchar(24) NOT NULL DEFAULT 'available',
+  is_accessible boolean NOT NULL DEFAULT false,
+  price_override numeric(18,2) NULL,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT event_seats_identity_unique UNIQUE (event_id, section_id, row_id, label)
+);
+CREATE INDEX IF NOT EXISTS event_seats_event_id_index ON public.event_seats (event_id);
+CREATE INDEX IF NOT EXISTS event_seats_section_id_index ON public.event_seats (section_id);
+CREATE INDEX IF NOT EXISTS event_seats_row_id_index ON public.event_seats (row_id);
+CREATE INDEX IF NOT EXISTS event_seats_ticket_id_index ON public.event_seats (ticket_id);
+CREATE INDEX IF NOT EXISTS event_seats_status_index ON public.event_seats (status);
+
+CREATE TABLE IF NOT EXISTS public.seat_reservations (
+  id bigserial PRIMARY KEY,
+  token uuid NOT NULL,
+  event_id bigint NOT NULL,
+  ticket_id bigint NOT NULL,
+  seat_id bigint NOT NULL,
+  status varchar(24) NOT NULL DEFAULT 'active',
+  session_hash varchar(64) NULL,
+  customer_id bigint NULL,
+  buyer_email_hash char(64) NULL,
+  booking_id bigint NULL,
+  booking_ticket_id bigint NULL UNIQUE,
+  expires_at timestamp(0) without time zone NOT NULL,
+  consumed_at timestamp(0) without time zone NULL,
+  released_at timestamp(0) without time zone NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS seat_reservations_token_index ON public.seat_reservations (token);
+CREATE INDEX IF NOT EXISTS seat_reservations_event_id_index ON public.seat_reservations (event_id);
+CREATE INDEX IF NOT EXISTS seat_reservations_ticket_id_index ON public.seat_reservations (ticket_id);
+CREATE INDEX IF NOT EXISTS seat_reservations_seat_id_index ON public.seat_reservations (seat_id);
+CREATE INDEX IF NOT EXISTS seat_reservations_status_index ON public.seat_reservations (status);
+CREATE INDEX IF NOT EXISTS seat_reservations_customer_id_index ON public.seat_reservations (customer_id);
+CREATE INDEX IF NOT EXISTS seat_reservations_buyer_email_hash_index ON public.seat_reservations (buyer_email_hash);
+CREATE INDEX IF NOT EXISTS seat_reservations_booking_id_index ON public.seat_reservations (booking_id);
+CREATE INDEX IF NOT EXISTS seat_reservations_expires_at_index ON public.seat_reservations (expires_at);
+CREATE INDEX IF NOT EXISTS seat_reservations_status_expires_at_index ON public.seat_reservations (status, expires_at);
+CREATE INDEX IF NOT EXISTS seat_reservations_event_ticket_status_index ON public.seat_reservations (event_id, ticket_id, status);
+CREATE INDEX IF NOT EXISTS seat_reservations_seat_status_expires_index ON public.seat_reservations (seat_id, status, expires_at);
+
+DO $$
+BEGIN
+  IF to_regclass('public.booking_tickets') IS NOT NULL THEN
+    ALTER TABLE public.booking_tickets
+      ADD COLUMN IF NOT EXISTS ticket_number varchar(80) NULL,
+      ADD COLUMN IF NOT EXISTS ticket_number_value bigint NULL,
+      ADD COLUMN IF NOT EXISTS seat_id bigint NULL,
+      ADD COLUMN IF NOT EXISTS seat_label varchar(40) NULL,
+      ADD COLUMN IF NOT EXISTS row_label varchar(40) NULL,
+      ADD COLUMN IF NOT EXISTS section_label varchar(120) NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS booking_tickets_event_number_unique ON public.booking_tickets (event_id, ticket_number);
+    CREATE UNIQUE INDEX IF NOT EXISTS booking_tickets_seat_id_unique ON public.booking_tickets (seat_id);
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.ticket_number_allocations (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  ticket_id bigint NOT NULL,
+  booking_ticket_id bigint NOT NULL UNIQUE,
+  number_value bigint NOT NULL,
+  ticket_number varchar(80) NOT NULL,
+  status varchar(24) NOT NULL DEFAULT 'allocated',
+  allocated_at timestamp(0) without time zone NOT NULL,
+  invalidated_at timestamp(0) without time zone NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT ticket_number_allocations_event_number_unique UNIQUE (event_id, ticket_number),
+  CONSTRAINT ticket_number_allocations_ticket_value_unique UNIQUE (ticket_id, number_value)
+);
+CREATE INDEX IF NOT EXISTS ticket_number_allocations_event_id_index ON public.ticket_number_allocations (event_id);
+CREATE INDEX IF NOT EXISTS ticket_number_allocations_ticket_id_index ON public.ticket_number_allocations (ticket_id);
+CREATE INDEX IF NOT EXISTS ticket_number_allocations_status_index ON public.ticket_number_allocations (status);
+
+SELECT pg_temp.tica_mark_migration('2026_11_14_180000_create_advanced_ticketing_tables');
+
+-- 9. Keep these tables private --------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ticket_number_sequences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seating_sections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seating_rows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_seats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seat_reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ticket_number_allocations ENABLE ROW LEVEL SECURITY;
 
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
@@ -295,6 +469,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('event_registration_session_selections'),
   ('event_registration_sessions'),
   ('event_registration_submissions'),
+  ('event_seats'),
   ('event_waitlist_entries'),
   ('events'),
   ('failed_jobs'),
@@ -366,6 +541,9 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('scanner_offline_manifests'),
   ('scanner_offline_sync_items'),
   ('scanner_staff'),
+  ('seat_reservations'),
+  ('seating_rows'),
+  ('seating_sections'),
   ('section_titles'),
   ('sections'),
   ('seos'),
@@ -387,6 +565,8 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('tica_tracking_links'),
   ('tica_tracking_pixels'),
   ('ticket_contents'),
+  ('ticket_number_allocations'),
+  ('ticket_number_sequences'),
   ('ticket_reservations'),
   ('tickets'),
   ('timezones'),
@@ -541,7 +721,8 @@ SELECT 'update not recorded', m.name
   ('2026_11_13_220000_create_platform_integrations_table'),
   ('2026_11_14_100000_make_registration_forms_reusable'),
   ('2026_11_14_160000_add_totp_to_account_actors'),
-  ('2026_11_14_180000_expand_tica_promotion_system')
+  ('2026_11_14_180000_expand_tica_promotion_system'),
+  ('2026_11_14_180000_create_advanced_ticketing_tables')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

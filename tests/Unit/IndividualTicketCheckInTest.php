@@ -43,6 +43,11 @@ class IndividualTicketCheckInTest extends TestCase
 
         $response = $controller->check_qrcode($this->scanRequest($first));
         $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('TICA Test Night', $response->getData(true)['event']);
+        $this->assertSame('REG-001', $response->getData(true)['ticket_number']);
+        $this->assertSame('01', $response->getData(true)['seat']);
+        $this->assertSame('A', $response->getData(true)['row']);
+        $this->assertSame('Regular', $response->getData(true)['section']);
         $this->assertSame(1, $response->getData(true)['remaining']);
         $this->assertSame(0, (int) $booking->fresh()->scan_status);
 
@@ -152,6 +157,15 @@ class IndividualTicketCheckInTest extends TestCase
         $this->assertCount(1, $matches);
         $this->assertSame($ownedUnit->id, $matches[0]['id']);
 
+        $numberLookup = $controller->ticketLookup(Request::create('/organizer/scanner/ticket-lookup', 'POST', [
+            'query' => 'REG-001',
+        ]));
+        $numberMatch = $numberLookup->getData(true)['tickets'][0];
+        $this->assertSame('REG-001', $numberMatch['ticket_number']);
+        $this->assertSame('01', $numberMatch['seat']);
+        $this->assertSame('A', $numberMatch['row']);
+        $this->assertSame('Regular', $numberMatch['section']);
+
         $manualRequest = Request::create('/organizer/scanner/manual-check-in', 'POST', [
             'ticket_unit_id' => $ownedUnit->id,
         ]);
@@ -215,6 +229,24 @@ class IndividualTicketCheckInTest extends TestCase
         $this->assertSame(1, DB::table('scanner_check_in_conflicts')->count());
     }
 
+    public function test_revoked_and_refunded_ticket_units_are_rejected_at_the_gate(): void
+    {
+        $organizer = $this->organizer();
+        Auth::guard('organizer')->login($organizer);
+        $controller = new OrganizerController();
+
+        foreach (['revoked', 'refunded'] as $status) {
+            $unit = $this->unit($this->booking($organizer->id, 1), 1);
+            $unit->forceFill(['status' => $status])->save();
+
+            $response = $controller->check_qrcode($this->scanRequest($unit));
+
+            $this->assertSame(422, $response->getStatusCode());
+            $this->assertStringContainsString($status, $response->getData(true)['message']);
+            $this->assertNull($unit->fresh()->checked_in_at);
+        }
+    }
+
     private function scanRequest(BookingTicket $unit): Request
     {
         return $this->scanRequestForDevice($unit, $this->scannerDevice($unit->organizer_id));
@@ -267,6 +299,11 @@ class IndividualTicketCheckInTest extends TestCase
 
     private function booking(int $organizerId, int $quantity = 2): Booking
     {
+        DB::table('event_contents')->updateOrInsert(
+            ['event_id' => 50, 'language_id' => 1],
+            ['title' => 'TICA Test Night']
+        );
+
         return Booking::create([
             'booking_id' => (string) Str::uuid(), 'event_id' => 50, 'organizer_id' => $organizerId,
             'fname' => 'Ada', 'lname' => 'Okafor', 'email' => 'ada@example.com', 'quantity' => $quantity,
@@ -281,6 +318,9 @@ class IndividualTicketCheckInTest extends TestCase
             'event_id' => $booking->event_id, 'organizer_id' => $booking->organizer_id,
             'sequence' => $sequence, 'holder_name' => 'Ada Okafor',
             'holder_email' => 'ada@example.com', 'status' => 'issued',
+            'ticket_number' => 'REG-' . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT),
+            'seat_label' => str_pad((string) $sequence, 2, '0', STR_PAD_LEFT),
+            'row_label' => 'A', 'section_label' => 'Regular',
         ]);
     }
 
@@ -297,12 +337,18 @@ class IndividualTicketCheckInTest extends TestCase
             $table->integer('scan_status')->default(0); $table->string('paymentStatus')->nullable();
             $table->string('refund_status')->nullable(); $table->timestamps();
         });
+        Schema::create('event_contents', function (Blueprint $table) {
+            $table->id(); $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('language_id');
+            $table->string('title');
+        });
         Schema::create('booking_tickets', function (Blueprint $table) {
             $table->id(); $table->uuid('public_id')->unique(); $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('organizer_id')->nullable();
             $table->unsignedBigInteger('ticket_id')->nullable(); $table->unsignedInteger('sequence');
             $table->string('variation_name')->nullable(); $table->string('holder_name')->nullable();
             $table->string('holder_email')->nullable(); $table->string('status')->default('issued');
+            $table->string('ticket_number', 80)->nullable(); $table->string('seat_label', 40)->nullable();
+            $table->string('row_label', 40)->nullable(); $table->string('section_label', 120)->nullable();
             $table->timestamp('checked_in_at')->nullable(); $table->unsignedBigInteger('checked_in_by_organizer_id')->nullable();
             $table->unsignedBigInteger('checked_in_scanner_device_id')->nullable();
             $table->unsignedBigInteger('checked_in_scanner_staff_id')->nullable();

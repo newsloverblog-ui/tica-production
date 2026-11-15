@@ -583,6 +583,7 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
   Route::post('/coupon', 'FrontEnd\TicaApiController@coupon')->middleware('throttle:checkout')->name('tica.api.coupon');
   Route::post('/waitlist', 'FrontEnd\TicaApiController@waitlist')->middleware('throttle:10,1')->name('tica.api.waitlist');
   Route::post('/checkout', 'FrontEnd\TicaApiController@checkout')->middleware('throttle:checkout')->name('tica.api.checkout');
+  Route::get('/events/{event}/seats', 'FrontEnd\TicaApiController@seats')->whereNumber('event')->middleware('throttle:120,1')->name('tica.api.events.seats');
   Route::post('/login-code', 'FrontEnd\TicaApiController@loginCode')->middleware('throttle:3,10')->name('tica.api.login-code');
   Route::post('/login-code/verify', 'FrontEnd\TicaApiController@loginCodeVerify')->middleware('throttle:authentication')->name('tica.api.login-code.verify');
   Route::post('/logout', 'FrontEnd\TicaApiController@logout')->middleware('throttle:30,1')->name('tica.api.logout');

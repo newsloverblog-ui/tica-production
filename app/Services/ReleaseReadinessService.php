@@ -75,6 +75,7 @@ class ReleaseReadinessService
             'event_registration_sessions',
             'event_registration_session_selections',
             'event_registration_submissions',
+            'event_seats',
             'event_waitlist_entries',
             'data_export_schedules',
             'gateway_settlement_entries',
@@ -98,9 +99,14 @@ class ReleaseReadinessService
             'scanner_offline_manifests',
             'scanner_offline_sync_items',
             'scanner_staff',
+            'seat_reservations',
+            'seating_rows',
+            'seating_sections',
             'subscriber_campaign_deliveries',
             'subscriber_campaigns',
             'ticket_reservations',
+            'ticket_number_allocations',
+            'ticket_number_sequences',
         ];
     }
 
@@ -145,7 +151,7 @@ class ReleaseReadinessService
             ],
             'bookings' => [
                 'checkout_submission_hash', 'buyer_email_hash', 'buyer_email_hash_version',
-                'refunded_amount', 'refund_status',
+                'refunded_amount', 'refund_status', 'ticket_reservation_token',
             ],
             'booking_deliveries' => [
                 'booking_id', 'kind', 'channel', 'recipient_hash', 'provider_reference',
@@ -155,6 +161,7 @@ class ReleaseReadinessService
             'booking_tickets' => [
                 'checked_in_at', 'checked_in_by_organizer_id',
                 'checked_in_scanner_device_id', 'checked_in_scanner_staff_id', 'checked_in_source',
+                'ticket_number', 'ticket_number_value', 'seat_id', 'seat_label', 'row_label', 'section_label',
             ],
             'earnings' => ['singleton_key'],
             'booking_ticket_delivery_requests' => [
@@ -277,7 +284,16 @@ class ReleaseReadinessService
                 'language_id', 'frequency', 'timezone', 'date_window_days', 'active', 'next_run_at',
                 'last_run_at', 'last_export_id', 'consecutive_failures', 'last_error',
             ],
-            'events' => ['lifecycle_status', 'sales_closed_at', 'cancelled_at', 'cancellation_reason', 'registration_mode'],
+            'events' => ['lifecycle_status', 'sales_closed_at', 'cancelled_at', 'cancellation_reason', 'registration_mode', 'seat_reservation_minutes'],
+            'tickets' => [
+                'currency', 'min_buy_ticket', 'sales_start_at', 'sales_end_at', 'visibility',
+                'sales_status', 'numbering_enabled', 'numbering_scope', 'number_prefix', 'number_start',
+                'number_padding', 'number_format', 'seating_mode', 'design_settings', 'deleted_at',
+            ],
+            'seat_reservations' => [
+                'token', 'event_id', 'ticket_id', 'seat_id', 'status', 'session_hash', 'customer_id',
+                'buyer_email_hash', 'booking_id', 'booking_ticket_id', 'expires_at', 'consumed_at', 'released_at',
+            ],
             'event_cancellation_cases' => [
                 'event_cancellation_request_id', 'booking_id', 'payment_intent_id', 'payment_refund_id',
                 'payment_refund_dispute_id', 'resolved_by_admin_id', 'external_refund_reference',
@@ -340,7 +356,6 @@ class ReleaseReadinessService
                 'notification_dispatch_attempts', 'notification_dispatch_last_attempt_at',
                 'notification_dispatch_last_error', 'notification_dispatch_alerted_at',
             ],
-            'tickets' => ['deleted_at'],
             'role_permissions' => ['export_fields'],
             'transactions' => ['gateway', 'gateway_reference', 'booking_id'],
             'gateway_settlements' => [
