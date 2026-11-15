@@ -796,7 +796,7 @@ body.tica-admin .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-s
 .db-list ol{margin:0;padding-left:var(--t-5);font-size:13px;max-height:320px;overflow:auto}
 
 /* Overview: calm palette. One soft blue for data, neutral surfaces, colour only where it means something. */
-body.orgshell .ov{--ov-ink:#1E293B;--ov-text:#475569;--ov-muted:#64748B;--ov-line:#E6EBF2;--ov-soft:#F3F6FA;--ov-accent:#4C6FD8;--ov-accent-soft:#E8EEFB;--ov-track:#E8EDF4}
+body.orgshell .ov{--ov-ink:#0B2447;--ov-text:#526079;--ov-muted:var(--t-muted);--ov-line:var(--t-line);--ov-soft:var(--t-subtle);--ov-accent:var(--t-blue);--ov-accent-soft:var(--t-blue-50);--ov-track:var(--t-subtle)}
 .ov-card,.ov-kpi{border-color:var(--ov-line);box-shadow:none}
 .ov-card{padding:22px 24px}
 .ov-card__title{font-size:15px;color:var(--ov-ink)}
@@ -961,3 +961,45 @@ body.orgshell .ov-wrap{background:transparent}
 }
 .ov-channels{container-type:inline-size}
 @container ov (max-width:719px){.ov-orders .ov-orders__list li:nth-child(2){border-top:1px solid var(--ov-line,#E6EBF2);padding-top:11px}}
+
+/* ---------------------------------------------------------------------
+   Overview, strictly on the TICA tokens.
+   60: white cards on the light page.  30: light grey surfaces and lines.
+   10: TICA blue, only for actions, the active state and the data marks.
+   Orange only for attention. Text is TICA navy, calm weights.
+   --------------------------------------------------------------------- */
+body.orgshell .ov-head h1{color:var(--ov-ink);font-weight:600;letter-spacing:-.015em}
+.ov-eyebrow,.ov-sub,.ov-refreshed{color:var(--ov-text)}
+.ov-eyebrow{color:var(--t-muted)}
+.ov-card__title,.ov-kpi__value,.ov-money__value,.ov-next__name,.ov-next__stats b,.ov-ev__name,.ov-orders__who b,.ov-orders__amt b,.ov-chan-table td:first-child b,.ov-chan-table .t-num,.ov-table .t-num,.ov-empty h3,.ov-setup h2,.ov-status b,.ov-money__list dd,.ov-next__tiers li span:last-child{color:var(--ov-ink)}
+.ov-card__title{font-weight:600}
+.ov-kpi__value,.ov-money__value{font-weight:600}
+.ov-kpi__label,.ov-card__sub,.ov-kpi__note,.ov-money__label,.ov-orders__who span,.ov-orders__amt span,.ov-ev__meta,.ov-next__meta,.ov-chan-table th,.ov-table th{color:var(--t-muted)}
+.ov-money__list dt,.ov-chan-table td,.ov-next__tiers li,.ov-foot-note,.ov-status span:last-child,.ov-setup p{color:var(--ov-text)}
+.ov-card,.ov-kpi,.ov-seg,.ov-toggle,.ov-mini,.ov-next__stats{border-color:var(--t-line)}
+.ov-setup{border-color:var(--t-line);background:var(--t-surface)}
+.ov-seg button[aria-checked=true],.ov-toggle button[aria-checked=true]{background:var(--t-blue-50);color:var(--t-blue)}
+.ov-link,.ov-chan__more .ov-link{color:var(--t-blue)}
+.ov-spark polyline,.ov-plot__line{stroke:var(--t-blue)}
+.ov-plot__dot{fill:var(--t-blue)}
+.ov-plot__area{fill:var(--t-blue);fill-opacity:.06;opacity:1}
+.ov-plot__grid line{stroke:var(--t-line)}
+.ov-tip{background:var(--ov-ink)}
+.ov-bar,.ov-bars__track{background:var(--t-subtle)}
+.ov-bar i,.ov-bars__track i{background:var(--t-blue)}
+.ov-av,.ov-ev__date,.ov-empty__icon,.ov-foot-note,.ov-chan__promo{background:var(--t-subtle)}
+.ov-av{color:var(--ov-ink)}
+.ov-empty__icon svg{stroke:var(--t-blue)}
+.ov-pill{background:var(--t-subtle);color:var(--ov-text)}
+.ov-pill--green,.ov-delta.is-up{background:var(--t-green-50);color:var(--t-green)}
+.ov-pill--orange{background:var(--t-orange-50);color:var(--t-orange)}
+.ov-pill--red,.ov-delta.is-down{background:var(--t-red-50);color:var(--t-red)}
+.ov-pill--blue{background:var(--t-blue-50);color:var(--t-blue)}
+.ov-delta.is-flat{background:var(--t-subtle);color:var(--t-muted)}
+.ov-status--ok{background:var(--t-green-50)}
+.ov-status--warn{background:var(--t-orange-50)}
+.ov-status--ok .ov-status__icon svg{stroke:var(--t-green)}
+.ov-status--warn .ov-status__icon svg{stroke:var(--t-orange)}
+.ov-steps li.is-done .ov-tick{background:var(--t-green);border-color:var(--t-green)}
+.ov-foot-cta{border-color:var(--t-line-strong);color:var(--ov-text)}
+.ov-foot-cta:hover{border-color:var(--t-blue);color:var(--t-blue);background:var(--t-blue-50)}
