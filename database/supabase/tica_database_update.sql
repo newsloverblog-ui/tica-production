@@ -34,6 +34,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 0. Organiser order lookup index ----------------------------------------
+DO $$
+BEGIN
+  IF to_regclass('public.bookings') IS NOT NULL THEN
+    CREATE INDEX IF NOT EXISTS bookings_organizer_orders_idx
+      ON public.bookings (organizer_id, id);
+    PERFORM pg_temp.tica_mark_migration('2026_11_13_100000_add_organizer_order_index_to_bookings');
+  ELSE
+    RAISE NOTICE 'bookings does not exist yet: skipped the organiser order index.';
+  END IF;
+END $$;
+
 -- 1. Bank account review (admin approves or rejects a payout account) ----
 DO $$
 BEGIN

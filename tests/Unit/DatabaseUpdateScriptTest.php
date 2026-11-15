@@ -58,4 +58,18 @@ class DatabaseUpdateScriptTest extends TestCase
     $this->assertStringContainsString('IF EXISTS (SELECT 1 FROM public.migrations WHERE migration = name) THEN', $sql);
     $this->assertDoesNotMatchRegularExpression('/INSERT INTO migrations[^;]*FROM migrations\s+WHERE NOT EXISTS/i', $sql);
   }
+
+  public function test_organizer_order_index_is_created_and_recorded(): void
+  {
+    $sql = $this->script();
+
+    $this->assertStringContainsString(
+      'CREATE INDEX IF NOT EXISTS bookings_organizer_orders_idx',
+      $sql
+    );
+    $this->assertStringContainsString(
+      "pg_temp.tica_mark_migration('2026_11_13_100000_add_organizer_order_index_to_bookings')",
+      $sql
+    );
+  }
 }
