@@ -81,7 +81,7 @@ class OrganizerWorkspace
       ],
       'kpis' => $metrics['14'],
       'kpisByRange' => $metrics,
-      'chart' => $this->chart($eventIds),
+      'chart' => $this->chart($eventIds, (int) $organizer->id),
       'account' => $this->accountTotals($organizer, $eventIds),
       'next' => $upcoming->first(),
       'events' => $eventRows->all(),
@@ -340,47 +340,54 @@ class OrganizerWorkspace
     ];
   }
 
-  private function chart(array $eventIds): array
+  /**
+   * Sales over time: [label, tickets, revenue] per day for the last 14 and
+   * 30 days, and per month for all time. Revenue is completed paid bookings
+   * in the base currency, the same rule as the revenue figure above it.
+   */
+  private function chart(array $eventIds, int $organizerId = 0): array
   {
-    $empty = ['14' => [], '30' => [], 'all' => []];
-    if ($eventIds === []) {
-      $empty['14'] = $this->days([], 14);
-      $empty['30'] = $this->days([], 30);
-      return $empty;
+    $pg = DB::getDriverName() === 'pgsql';
+    $monthExpr = fn (string $col) => $pg ? "TO_CHAR({$col}, 'YYYY-MM')" : (DB::getDriverName() === 'sqlite' ? "strftime('%Y-%m', {$col})" : "DATE_FORMAT({$col}, '%Y-%m')");
+    $since = now()->subDays(29)->startOfDay();
+    $daily = $monthly = [];
+    if ($eventIds !== []) {
+      $daily = BookingTicket::query()->whereIn('event_id', $eventIds)->whereNull('revoked_at')
+        ->where('created_at', '>=', $since)
+        ->selectRaw('DATE(created_at) as day, count(*) as total')->groupBy('day')->pluck('total', 'day')->all();
+      $monthly = BookingTicket::query()->whereIn('event_id', $eventIds)->whereNull('revoked_at')
+        ->selectRaw($monthExpr('created_at') . ' as month, count(*) as total')
+        ->groupByRaw($monthExpr('created_at'))->pluck('total', 'month')->all();
     }
-    $daily = BookingTicket::query()
-      ->whereIn('event_id', $eventIds)
-      ->whereNull('revoked_at')
-      ->where('created_at', '>=', now()->subDays(30)->startOfDay())
-      ->selectRaw('DATE(created_at) as day, count(*) as total')
-      ->groupBy('day')
-      ->pluck('total', 'day')
-      ->all();
-    $monthly = BookingTicket::query()
-      ->whereIn('event_id', $eventIds)
-      ->whereNull('revoked_at')
-      ->selectRaw((DB::getDriverName() === 'pgsql' ? "TO_CHAR(created_at, 'YYYY-MM')" : "DATE_FORMAT(created_at, '%Y-%m')") . ' as month, count(*) as total')
-      ->groupByRaw(DB::getDriverName() === 'pgsql' ? "TO_CHAR(created_at, 'YYYY-MM')" : "DATE_FORMAT(created_at, '%Y-%m')")
-      ->orderBy('month')
-      ->pluck('total', 'month');
+    $paid = fn () => Booking::query()->where('organizer_id', $organizerId)->where('paymentStatus', 'completed')
+      ->where(fn ($q) => $q->whereNull('currencyText')->orWhere('currencyText', '')->orWhere('currencyText', TicaCurrency::base()));
+    $dailyRevenue = $organizerId ? $paid()->where('created_at', '>=', $since)
+      ->selectRaw('DATE(created_at) as day, COALESCE(SUM(price + COALESCE(tax, 0)), 0) as total')->groupBy('day')->pluck('total', 'day')->all() : [];
+    $monthlyRevenue = $organizerId ? $paid()
+      ->selectRaw($monthExpr('created_at') . ' as month, COALESCE(SUM(price + COALESCE(tax, 0)), 0) as total')
+      ->groupByRaw($monthExpr('created_at'))->pluck('total', 'month')->all() : [];
+    $months = array_unique(array_merge(array_keys($monthly), array_keys($monthlyRevenue)));
+    sort($months);
 
     return [
-      '14' => $this->days($daily, 14),
-      '30' => $this->days($daily, 30),
-      'all' => $monthly->map(fn ($total, $month) => [Carbon::parse($month . '-01')->format('M Y'), (int) $total])->values()->all(),
+      '14' => $this->days($daily, 14, $dailyRevenue),
+      '30' => $this->days($daily, 30, $dailyRevenue),
+      'all' => array_map(fn ($month) => [Carbon::parse($month . '-01')->format('M Y'), (int) ($monthly[$month] ?? 0), round((float) ($monthlyRevenue[$month] ?? 0), 2)], $months),
     ];
   }
 
-  private function days(array $daily, int $count): array
+  private function days(array $daily, int $count, array $revenue = []): array
   {
     $rows = [];
     for ($i = $count - 1; $i >= 0; $i--) {
       $day = now()->subDays($i);
-      $rows[] = [$day->format('j M'), (int) ($daily[$day->toDateString()] ?? 0)];
+      $key = $day->toDateString();
+      $rows[] = [$day->format('j M'), (int) ($daily[$key] ?? 0), round((float) ($revenue[$key] ?? 0), 2)];
     }
 
     return $rows;
   }
+
 
   private function ticketSummary(Booking $booking): string
   {

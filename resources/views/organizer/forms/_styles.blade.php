@@ -39,7 +39,7 @@
   .rf-palette__label{margin:0 0 6px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t-muted,#5b6475)}
   .rf-palette__items{display:flex;flex-wrap:wrap;gap:8px}
   .rf-chip-form{margin:0}
-  .rf-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--t-line,#e3e7ef);border-radius:999px;background:#fff;color:#1d2433;font:500 13.5px/1 inherit;cursor:grab;transition:border-color .15s,background-color .15s}
+  .rf-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--t-line,#e3e7ef);border-radius:999px;background:#fff;color:#1d2433;font-family:inherit;font-size:13.5px;font-weight:500;line-height:1;cursor:grab;transition:border-color .15s,background-color .15s}
   .rf-chip span{color:#2E4FD8;font-weight:700}
   .rf-chip:hover{border-color:#2E4FD8;background:#F3F6FF}
   .rf-chip:active{cursor:grabbing}
