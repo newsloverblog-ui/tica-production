@@ -23,9 +23,21 @@ class RegistrationFormEditorViewTest extends TestCase
     {
         $view = file_get_contents(resource_path('views/organizer/forms/show.blade.php'));
 
-        foreach (['data-rf-chip', 'data-rf-list', 'data-rf-item', 'data-rf-position', 'id="rf-order"', 'data-rf-options', 'class="rf-field rf-fixed"'] as $hook) {
+        $rows = file_get_contents(resource_path('views/organizer/forms/_fields.blade.php'));
+        $client = file_get_contents(resource_path('views/organizer/forms/_motion.blade.php'));
+
+        foreach (['data-rf-chip', 'data-rf-list', 'data-reorder=', 'data-add=', 'data-rf-position', 'class="rf-field rf-fixed"', "@include('organizer.forms._fields')", 'id="rf-edit"', 'data-rf-live'] as $hook) {
             $this->assertStringContainsString($hook, $view);
         }
+        foreach (['data-rf-item', 'data-rf-edit', 'data-rf-remove', "data-q='@json(\$data)'"] as $hook) {
+            $this->assertStringContainsString($hook, $rows);
+        }
+        // Field changes save in the background and redraw the list.
+        $this->assertStringContainsString("'Accept': 'application/json'", $client);
+        $this->assertStringContainsString("'ordered_questions[]'", $client);
+        // The old full-page reorder form and native confirm() boxes are gone.
+        $this->assertStringNotContainsString('id="rf-order"', $view);
+        $this->assertStringNotContainsString('confirm(', $view . $rows);
     }
 
     public function test_form_pages_share_calm_motion_that_respects_reduced_motion(): void
@@ -42,5 +54,14 @@ class RegistrationFormEditorViewTest extends TestCase
         // Cards only ease in on the first visit, not after every save.
         $this->assertStringContainsString("sessionStorage.getItem(key)", $motion);
         $this->assertStringContainsString("if (e.defaultPrevented) return;", $motion);
+    }
+
+    public function test_library_field_endpoints_answer_background_saves_with_the_redrawn_list(): void
+    {
+        $controller = file_get_contents(app_path('Http/Controllers/BackEnd/Organizer/EventRegistrationController.php'));
+
+        $this->assertStringContainsString('return $request->expectsJson() && $form->event_id === null;', $controller);
+        $this->assertStringContainsString("view('organizer.forms._fields', ['form' => \$form])->render()", $controller);
+        $this->assertSame(5, substr_count($controller, '$this->liveFields('));
     }
 }

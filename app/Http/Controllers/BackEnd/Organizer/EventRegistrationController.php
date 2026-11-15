@@ -151,6 +151,9 @@ class EventRegistrationController extends Controller
                 // A field that depends on another must stay after it; leave the new one at the end.
             }
         }
+        if ($this->wantsLiveFields($request, $form)) {
+            return $this->liveFields($form, 'Field added.', $question->public_id);
+        }
         if ($request->boolean('quick') && $form->event_id === null) {
             return redirect()->route('organizer.forms.show', ['form' => $form, 'field' => $question->public_id])->withFragment('rf-editor')
                 ->with('success', 'Field added. Name it below.');
@@ -159,9 +162,13 @@ class EventRegistrationController extends Controller
         return back()->with('success', 'Question added. Republish the form after all changes are complete.');
     }
 
-    public function deleteQuestion(EventRegistrationQuestion $question, EventRegistrationService $registrations)
+    public function deleteQuestion(Request $request, EventRegistrationQuestion $question, EventRegistrationService $registrations)
     {
+        $form = $question->form;
         $registrations->deleteQuestion($question, (int) Auth::guard('organizer')->id());
+        if ($form && $this->wantsLiveFields($request, $form)) {
+            return $this->liveFields($form, 'Field removed.');
+        }
 
         return back()->with('success', 'Question removed.');
     }
@@ -190,6 +197,9 @@ class EventRegistrationController extends Controller
             $validated
         );
 
+        if ($this->wantsLiveFields($request, $updated->form)) {
+            return $this->liveFields($updated->form, 'Field saved.', $updated->public_id);
+        }
         if ($updated->form->event_id === null) {
             return redirect()->route('organizer.forms.show', $updated->form)
                 ->with('success', 'Field saved. Use “Update events” to send the change to events using this form.');
@@ -210,6 +220,9 @@ class EventRegistrationController extends Controller
             (int) Auth::guard('organizer')->id(),
             $validated['ordered_questions']
         );
+        if ($this->wantsLiveFields($request, $form)) {
+            return $this->liveFields($form, 'Order saved.');
+        }
 
         return back()->with('success', 'Question order saved. Republish the form after reviewing the new order.');
     }
@@ -222,6 +235,9 @@ class EventRegistrationController extends Controller
             (int) Auth::guard('organizer')->id(),
             $validated['direction']
         );
+        if ($question->form && $this->wantsLiveFields($request, $question->form)) {
+            return $this->liveFields($question->form, 'Order saved.', $question->public_id);
+        }
 
         return back()->with('success', 'Question moved.');
     }
@@ -479,5 +495,23 @@ class EventRegistrationController extends Controller
         return back()->with('success', !empty($validated['enabled'])
             ? 'Registration embed enabled only for the trusted website origins listed below.'
             : 'Registration embed settings saved. Embedding is currently disabled.');
+    }
+
+    /** The form library editor saves fields in the background and redraws only the field list. */
+    private function wantsLiveFields(Request $request, EventRegistrationForm $form): bool
+    {
+        return $request->expectsJson() && $form->event_id === null;
+    }
+
+    private function liveFields(EventRegistrationForm $form, string $message, ?string $focus = null)
+    {
+        $form = $form->fresh('questions');
+
+        return response()->json([
+            'message' => $message,
+            'count' => $form->questions->count(),
+            'focus' => $focus,
+            'html' => view('organizer.forms._fields', ['form' => $form])->render(),
+        ]);
     }
 }

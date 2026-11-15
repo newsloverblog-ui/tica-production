@@ -70,6 +70,9 @@ class RegistrationFormController extends Controller
       'privacy_notice' => ['required', 'string', 'max:5000'],
     ]);
     $library->updateSettings($form, $this->owned($form), $data);
+    if ($request->expectsJson()) {
+      return response()->json(['message' => 'Form settings saved.', 'name' => $data['name']]);
+    }
 
     return back()->with('success', 'Form settings saved.');
   }
