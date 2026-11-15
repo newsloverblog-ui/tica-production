@@ -127,34 +127,44 @@
       </div>
 
       <!-- PROMOTE -->
-      <div class="od-p" data-p="promote" hidden>
-        <header class="t-page-head"><div><h1>Promote</h1><p>Share your event, make discount codes and see which channels sell.</p></div></header>
-        <section class="t-card pr-share" aria-labelledby="pr-share-h">
-          <div class="t-card__head"><div><h2 class="t-card__title" id="pr-share-h">Share your event</h2><p class="t-help">Post this link anywhere. Use a tracking link below to see which channel sells.</p></div></div>
-          <div class="pr-share__row"><label class="t-field pr-share__ev"><span class="t-label">Event</span><select class="t-select" id="pr-ev"></select></label>
-            <label class="t-field pr-share__url"><span class="t-label">Event link</span><span class="pr-copy"><input class="t-input" id="pr-url" type="text" readonly><button class="t-btn t-btn--primary" type="button" id="pr-copy">Copy link</button></span></label></div>
-          <div class="pr-social" id="pr-social"></div>
+      <div class="od-p pr" data-p="promote" hidden>
+        <header class="pr-head">
+          <div><h1>Promote</h1><p>Share your event, reward buyers with codes and see which channels sell.</p></div>
+        </header>
+
+        <section class="pr-card pr-share" aria-labelledby="pr-share-h">
+          <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-share-h">Share your event</h2><p class="pr-card__sub">Post this link anywhere. Make a tracking link below to see which channel sells.</p></div></div>
+          <div class="pr-share__grid">
+            <label class="pr-field"><span>Event</span><select class="t-select" id="pr-ev"></select></label>
+            <label class="pr-field pr-share__url"><span>Event link</span><span class="pr-copy"><input class="t-input" id="pr-url" type="text" readonly><button class="t-btn t-btn--primary" type="button" id="pr-copy">Copy link</button></span></label>
+          </div>
+          <div class="pr-social" id="pr-social" aria-label="Share to"></div>
         </section>
-        <div class="od-pr2">
-          <section class="t-card"><div class="t-card__head"><h2 class="t-card__title">Discount codes</h2></div>
-            <form class="od-form" id="od-code-f" novalidate>
-              <div class="od-row3"><div class="inp"><label for="od-cn">Code</label><input id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters"></div><div class="inp"><label for="od-cv">Discount</label><select id="od-cv"><option value="10">10% off</option><option value="20">20% off</option><option value="50">50% off</option><option value="1000">₦1,000 off</option></select></div><div class="inp"><label for="od-cl">Uses</label><input id="od-cl" type="number" min="1" value="50"></div></div>
-              <div class="od-row3"><div class="inp"><label for="od-code-event">Event</label><select id="od-code-event"><option value="">All events</option></select></div><div class="inp"><label for="od-code-min">Minimum purchase</label><input id="od-code-min" type="number" min="0" step="0.01" value="0"></div><div class="inp"><label for="od-code-end">Expires</label><input id="od-code-end" type="date"></div></div>
-              <button class="t-btn t-btn--secondary" type="submit">Create code</button><p class="hint" id="od-code-m" role="status"></p>
-            </form>
-            <ul class="od-codes" id="od-codes"></ul>
+
+        <div class="pr-grid">
+          <section class="pr-card" aria-labelledby="pr-codes-h">
+            <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-codes-h">Discount codes <span class="pr-count" id="pr-codes-n"></span></h2><p class="pr-card__sub">Codes buyers enter at checkout.</p></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New code</button></div>
+            <ul class="pr-list" id="od-codes"></ul>
           </section>
-          <section class="t-card"><div class="t-card__head"><h2 class="t-card__title">Tracking links</h2></div>
-            <p class="t-help">Give each channel or promoter its own link, and see which one sells.</p>
-            <ul class="od-links" id="od-links"></ul>
-            <form class="od-form" id="od-link-f" novalidate><div class="od-row3"><div class="inp"><label for="od-ln">Link name</label><input id="od-ln" type="text" placeholder="e.g. Chioma's Instagram"></div><div class="inp"><label for="od-link-channel">Channel</label><input id="od-link-channel" type="text" placeholder="Instagram"></div><div class="inp"><label for="od-link-event">Event</label><select id="od-link-event"><option value="">All events</option></select></div></div><div class="inp"><label for="od-link-influencer">Influencer <small>(optional)</small></label><input id="od-link-influencer" type="text" placeholder="Chioma"></div><button class="t-btn t-btn--secondary" type="submit">Create tracking link</button></form>
+          <section class="pr-card" aria-labelledby="pr-links-h">
+            <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-links-h">Tracking links <span class="pr-count" id="pr-links-n"></span></h2><p class="pr-card__sub">One link per channel or promoter.</p></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New link</button></div>
+            <ul class="pr-list" id="od-links"></ul>
           </section>
         </div>
-        <details class="pr-more"><summary>Conversion tracking <span class="t-help">Meta, TikTok and Google pixels</span></summary>
-        <section class="t-card" aria-labelledby="od-pixel-h"><div class="t-card__head"><div><h2 class="t-card__title" id="od-pixel-h">Conversion tracking</h2><p class="t-help">Submit only the provider's ID. TICA loads an approved integration after consent; custom JavaScript is never accepted.</p></div></div>
-          <form class="od-form od-row3" id="od-pixel-f" novalidate><div class="inp"><label for="od-pixel-provider">Provider</label><select id="od-pixel-provider"><option value="meta">Meta Pixel</option><option value="tiktok">TikTok Pixel</option><option value="google">Google tag</option></select></div><div class="inp"><label for="od-pixel-id">Pixel / tag ID</label><input id="od-pixel-id" maxlength="100" required></div><div class="inp"><label for="od-pixel-label">Label</label><input id="od-pixel-label" maxlength="100" placeholder="Main website" required></div><button class="t-btn t-btn--secondary" type="submit">Submit for review</button><p class="hint" id="od-pixel-m" role="status"></p></form>
-          <ul class="od-links" id="od-pixels"></ul>
-        </section>
+
+        <details class="pr-card pr-more">
+          <summary><span><b>Conversion tracking</b><small>Meta, TikTok and Google pixels</small></span><svg class="pr-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+          <div class="pr-more__body" aria-labelledby="od-pixel-h">
+            <p class="pr-card__sub" id="od-pixel-h">Add only the provider's ID. TICA loads it after a visitor agrees to cookies; custom code is never accepted.</p>
+            <form class="pr-form pr-form--row" id="od-pixel-f" novalidate>
+              <label class="pr-field"><span>Provider</span><select class="t-select" id="od-pixel-provider"><option value="meta">Meta Pixel</option><option value="tiktok">TikTok Pixel</option><option value="google">Google tag</option></select></label>
+              <label class="pr-field"><span>Pixel or tag ID</span><input class="t-input" id="od-pixel-id" maxlength="100" required></label>
+              <label class="pr-field"><span>Label</span><input class="t-input" id="od-pixel-label" maxlength="100" placeholder="Main website" required></label>
+              <button class="t-btn t-btn--secondary" type="submit">Submit for review</button>
+            </form>
+            <p class="pr-msg" id="od-pixel-m" role="status"></p>
+            <ul class="pr-list pr-list--plain" id="od-pixels"></ul>
+          </div>
         </details>
       </div>
 
@@ -243,6 +253,42 @@
 <dialog class="od-dlg" id="od-inv-dlg" aria-labelledby="od-inv-h">
   <div class="sh-head"><div><h2 id="od-inv-h">Invite a team member</h2><p>They get an email with a link to join. You can change their role or remove them any time.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="od-form" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"></select><small id="od-ir-help"></small></div><button class="t-btn t-btn--primary t-btn--block" type="submit">Send invite</button><p class="hint" id="od-inv-m" role="alert"></p></form>
+</dialog>
+<dialog class="od-dlg pr-dlg" id="pr-code-dlg" aria-labelledby="pr-code-h">
+  <div class="sh-head"><div><h2 id="pr-code-h">New discount code</h2><p id="pr-code-p">Buyers enter this at checkout.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="pr-form" id="od-code-f" novalidate>
+    <label class="pr-field"><span>Code</span><input class="t-input" id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters" maxlength="30" required></label>
+    <div class="pr-form__two">
+      <label class="pr-field"><span>Discount type</span><select class="t-select" id="od-ct"><option value="percentage">Percentage off</option><option value="fixed">Amount off</option></select></label>
+      <label class="pr-field"><span id="od-cv-l">Percentage</span><input class="t-input" id="od-cv" type="number" min="1" step="1" value="10" required></label>
+    </div>
+    <label class="pr-field"><span>Event</span><select class="t-select" id="od-code-event"></select></label>
+    <div class="pr-form__two">
+      <label class="pr-field"><span>Use limit <small>(optional)</small></span><input class="t-input" id="od-cl" type="number" min="1" placeholder="No limit"></label>
+      <label class="pr-field"><span>Minimum order <small>(optional)</small></span><input class="t-input" id="od-code-min" type="number" min="0" step="0.01" placeholder="0"></label>
+    </div>
+    <label class="pr-field"><span>Ends on <small>(optional)</small></span><input class="t-input" id="od-code-end" type="date"></label>
+    <p class="pr-msg" id="od-code-m" role="alert"></p>
+    <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit" id="od-code-go">Create code</button></div>
+  </form>
+</dialog>
+<dialog class="od-dlg pr-dlg" id="pr-link-dlg" aria-labelledby="pr-link-h">
+  <div class="sh-head"><div><h2 id="pr-link-h">New tracking link</h2><p id="pr-link-p">Share it with one channel or promoter to see what it sells.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="pr-form" id="od-link-f" novalidate>
+    <label class="pr-field"><span>Link name</span><input class="t-input" id="od-ln" type="text" placeholder="e.g. Chioma's Instagram" maxlength="120" required></label>
+    <div class="pr-form__two">
+      <label class="pr-field"><span>Channel <small>(optional)</small></span><input class="t-input" id="od-link-channel" type="text" placeholder="Instagram" maxlength="80"></label>
+      <label class="pr-field"><span>Influencer <small>(optional)</small></span><input class="t-input" id="od-link-influencer" type="text" placeholder="Chioma" maxlength="120"></label>
+    </div>
+    <label class="pr-field"><span>Event</span><select class="t-select" id="od-link-event"></select></label>
+    <p class="pr-msg" id="od-link-m" role="alert"></p>
+    <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit" id="od-link-go">Create link</button></div>
+  </form>
+</dialog>
+<dialog class="od-dlg pr-dlg pr-qr" id="pr-qr-dlg" aria-labelledby="pr-qr-h">
+  <div class="sh-head"><div><h2 id="pr-qr-h">QR code</h2><p id="pr-qr-p"></p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <canvas id="pr-qr-c" width="320" height="320" role="img" aria-label="QR code for this tracking link"></canvas>
+  <div class="pr-form__actions"><button class="t-btn t-btn--secondary" type="button" id="pr-qr-dl">Download PNG</button></div>
 </dialog>
 <dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
 <dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>
