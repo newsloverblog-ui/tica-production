@@ -30,7 +30,7 @@
           <!-- Sales over time -->
           <section class="ov-card ov-sales" aria-labelledby="ov-chart-h">
             <div class="ov-card__head">
-              <div><h2 class="ov-card__title" id="ov-chart-h">Sales performance</h2><p class="ov-card__sub"><b id="od-chart-total">—</b> <span id="od-chart-sub"></span></p></div>
+              <div><h2 class="ov-card__title" id="ov-chart-h">Sales performance</h2><p class="ov-card__sub" id="od-chart-sub"></p></div>
               <div class="ov-toggle" role="radiogroup" aria-label="Show">
                 <button type="button" role="radio" aria-checked="true" data-metric="revenue">Revenue</button>
                 <button type="button" role="radio" aria-checked="false" data-metric="tickets">Tickets</button>
