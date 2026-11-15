@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { signIn, watch } from './helpers';
+import { noSidewaysScroll, signIn, watch } from './helpers';
 
 test.describe('edge cases (owner)', () => {
   test.beforeEach(async ({ page }) => { await signIn(page, 'owner'); });
