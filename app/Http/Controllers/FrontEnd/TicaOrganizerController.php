@@ -102,6 +102,16 @@ class TicaOrganizerController extends Controller
     if ($validated['entry'] === 'corporate' && !$organizerId) {
       throw ValidationException::withMessages(['organizer_id' => 'Registration events need an organizer. Assign one first.']);
     }
+    if ($request->boolean('use_registration') && !$organizerId) {
+      throw ValidationException::withMessages(['organizer_id' => 'Assign an organizer before adding a registration form.']);
+    }
+    $libraryForm = $request->boolean('use_registration')
+      ? \App\Models\EventRegistrationForm::query()->whereNull('event_id')->where('organizer_id', (int) $organizerId)
+        ->where('public_id', $validated['registration_form_id'])->first()
+      : null;
+    if ($request->boolean('use_registration') && !$libraryForm) {
+      throw ValidationException::withMessages(['registration_form_id' => 'Choose one of this organizer’s saved registration forms.']);
+    }
 
     $event = DB::transaction(function () use ($request, $validated, $organizerId, $draft, $actor, $featured) {
       $online = $validated['mode'] === 'Online';
@@ -168,11 +178,9 @@ class TicaOrganizerController extends Controller
       return $event;
     });
 
-    $libraryForm = ($validated['entry'] === 'corporate' && !empty($validated['registration_form_id']))
-      ? \App\Models\EventRegistrationForm::query()->whereNull('event_id')->where('organizer_id', (int) $organizerId)
-        ->where('public_id', $validated['registration_form_id'])->first()
-      : null;
-    if ($libraryForm) {
+    if ($libraryForm && $validated['entry'] !== 'corporate') {
+      app(\App\Services\RegistrationFormLibrary::class)->useOnTicketedEvent($libraryForm, $event, (int) $organizerId, !$draft);
+    } elseif ($libraryForm) {
       // One of the organiser's saved forms: copy it onto this event, live if the event is.
       $result = app(\App\Services\RegistrationFormLibrary::class)->useOnEvents($libraryForm, (int) $organizerId, [$event->id], !$draft)[0] ?? null;
       if (!$result || !$result['ok']) {
@@ -196,7 +204,7 @@ class TicaOrganizerController extends Controller
       'name' => $validated['name'],
       'status' => $draft ? 'draft' : 'live',
       'url' => route('event.details', [$slug, $event->id]),
-      'registration_url' => $validated['entry'] === 'corporate' ? route('organizer.event.registrations.index', ['event_id' => $event->id]) : null,
+      'registration_url' => ($validated['entry'] === 'corporate' || $libraryForm) ? route('organizer.event.registrations.index', ['event_id' => $event->id]) : null,
       'redirect_url' => $actor === 'admin'
         ? route('admin.event_management.event', ['language' => $this->getLanguage()->code])
         : url('/dashboard/events'),
@@ -247,6 +255,17 @@ class TicaOrganizerController extends Controller
       $request->merge(['currency' => $event->currency ?: $request->input('currency')]);
     }
     $validated = $this->validateEvent($request, $draft, (bool) $event->thumbnail);
+    $targetOrganizerId = $actor === 'admin' ? ($ownership['organizer_id'] ?? null) : $event->organizer_id;
+    $libraryForm = $request->boolean('use_registration') && $targetOrganizerId
+      ? \App\Models\EventRegistrationForm::query()->whereNull('event_id')->where('organizer_id', (int) $targetOrganizerId)
+        ->where('public_id', $validated['registration_form_id'])->first()
+      : null;
+    if ($request->boolean('use_registration') && !$targetOrganizerId) {
+      throw ValidationException::withMessages(['organizer_id' => 'Assign an organizer before adding a registration form.']);
+    }
+    if ($request->boolean('use_registration') && !$libraryForm) {
+      throw ValidationException::withMessages(['registration_form_id' => 'Choose one of this organizer’s saved registration forms.']);
+    }
 
     DB::transaction(function () use ($request, $validated, $event, $draft, $actor, $ownership, $sales) {
       $event = Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
@@ -315,6 +334,23 @@ class TicaOrganizerController extends Controller
         ['actor' => $actor, 'ticket_types' => count($validated['tiers'] ?? [])]
       ));
     });
+
+    if ($event->registration_mode !== 'corporate') {
+      if ($libraryForm) {
+        app(\App\Services\RegistrationFormLibrary::class)->useOnTicketedEvent(
+          $libraryForm,
+          $event->fresh(),
+          (int) $targetOrganizerId,
+          !$draft
+        );
+      } elseif (!$request->boolean('use_registration')) {
+        $eventForm = \App\Models\EventRegistrationForm::query()
+          ->where('event_id', $event->id)->whereNotNull('source_form_id')->whereNull('archived_at')->first();
+        if ($eventForm) {
+          app(\App\Services\RegistrationFormLibrary::class)->stopOnEvent($eventForm, (int) $eventForm->organizer_id);
+        }
+      }
+    }
 
     $slug = EventContent::query()->where('event_id', $event->id)->value('slug');
 
@@ -501,8 +537,9 @@ class TicaOrganizerController extends Controller
       'attendee_question' => [$request->boolean('ask_question') && !$draft ? 'required' : 'nullable', 'nullable', 'string', 'max:200'],
       'meta_description' => ['nullable', 'string', 'max:300'],
       'meta_keywords' => ['nullable', 'string', 'max:300'],
+      'use_registration' => ['nullable', 'boolean'],
       'registration_form_name' => ['nullable', 'string', 'max:150'],
-      'registration_form_id' => ['nullable', 'string', 'max:64'],
+      'registration_form_id' => [$request->boolean('use_registration') ? 'required' : 'nullable', 'nullable', 'string', 'max:64'],
       'registration_intro' => ['nullable', 'string', 'max:2000'],
       'registration_approval' => ['nullable', Rule::in(['manual', 'automatic'])],
       'flyer' => [$draft || $hasFlyer ? 'nullable' : 'required', 'nullable', 'file', 'max:5120', new ImageMimeTypeRule()],
@@ -517,6 +554,7 @@ class TicaOrganizerController extends Controller
       'tiers.required' => 'Add at least one ticket type.',
       'dates.required' => 'Add at least one date.',
       'attendee_question.required' => 'Write the question you want to ask.',
+      'registration_form_id.required' => 'Choose a registration form to attach to this event.',
       'mode.in' => 'This kind of event isn\'t available on TICA right now. Choose another one.',
       'currency.in' => 'TICA doesn\'t sell in this currency right now. Choose another one.',
       'entry.in' => 'Registration events aren\'t available right now. Sell or give away tickets instead.',

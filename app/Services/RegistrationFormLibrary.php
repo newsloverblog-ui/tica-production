@@ -173,6 +173,41 @@ class RegistrationFormLibrary
     return $results;
   }
 
+  /** Attach a saved form to a ticketed event without replacing its tickets. */
+  public function useOnTicketedEvent(EventRegistrationForm $library, Event $event, int $organizerId, bool $publish): EventRegistrationForm
+  {
+    $this->assertLibrary($library, $organizerId);
+    if ((int) $event->organizer_id !== $organizerId) {
+      throw new AuthorizationException('You cannot attach a form to another organiser’s event.');
+    }
+    $library->load('questions');
+
+    return DB::transaction(function () use ($library, $event, $organizerId, $publish) {
+      $eventForm = $this->registrations->saveForm($event, $organizerId, [
+        'name' => $library->name,
+        'approval_mode' => $library->approval_mode,
+        'intro' => $library->intro,
+        'privacy_notice' => $library->privacy_notice ?: self::DEFAULT_PRIVACY,
+      ], 'ticketing');
+      $this->copyQuestions($library, $eventForm, true);
+      $eventForm->forceFill([
+        'source_form_id' => $library->id,
+        'status' => $eventForm->status === 'archived' ? 'draft' : $eventForm->status,
+        'archived_at' => null,
+      ])->save();
+      if ($publish) {
+        $eventForm = $this->registrations->publish($eventForm, $organizerId);
+      }
+      AuditLogger::record('registration_library.attached_to_ticketed_event', $eventForm, [], [
+        'event_id' => $event->id,
+        'source_form_id' => $library->id,
+        'publish' => $publish,
+      ]);
+
+      return $eventForm->fresh('questions');
+    }, 3);
+  }
+
   /** Stop taking registrations on an event: it goes back to ticket sales. Submissions are kept. */
   public function stopOnEvent(EventRegistrationForm $eventForm, int $organizerId): void
   {

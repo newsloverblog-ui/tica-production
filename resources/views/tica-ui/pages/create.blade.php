@@ -72,24 +72,6 @@
           <input type="radio" name="c-entry" value="ticketing" checked tabindex="-1">
           <input type="radio" name="c-entry" value="corporate" tabindex="-1">
         </div>
-        <div class="ce-entry-choice">
-          <label class="ce-choice-row" for="c-use-registration">
-            <input id="c-use-registration" type="checkbox" aria-controls="ce-registration-fields" aria-expanded="false">
-            <span><b>Add a registration form</b><small>People complete a form and wait for your approval instead of buying a ticket instantly.</small></span>
-          </label>
-        </div>
-        <div class="ce-reg ce-disclosure" id="ce-registration-fields" hidden>
-          <div class="ce-reg-empty" id="ce-reg-empty" hidden><b>No saved forms yet</b><p>Create the form for this event below. You can add its questions after publishing.</p></div>
-          <div class="inp ce-reg-pick" id="ce-reg-pick" hidden><label for="c-reg-form">Choose a form</label><select id="c-reg-form" name="registration_form_id"><option value="">Create a new form</option></select><small id="c-reg-form-note">Choose a saved form or create a new one for this event.</small></div>
-          <div class="ce-reg-new" id="ce-reg-new">
-          <div class="two">
-            <div class="inp"><label for="c-reg-name">Form name</label><input id="c-reg-name" name="registration_form_name" type="text" placeholder="Delegate registration"></div>
-            <div class="inp"><label for="c-reg-mode">Approval</label><select id="c-reg-mode" name="registration_approval"><option value="manual">I approve each person</option><option value="automatic">Approve everyone automatically</option></select></div>
-          </div>
-          <div class="inp"><label for="c-reg-intro">Message on the form</label><textarea id="c-reg-intro" name="registration_intro" rows="2" placeholder="Who should apply, and what happens next."></textarea></div>
-          </div>
-          <p class="hint" id="ce-reg-hint">After publishing, add questions, sessions and badges from the event's registration page.</p>
-        </div>
         <div class="ce-sell">
           <datalist id="ce-ticket-presets"><option value="Regular"></option><option value="VIP"></option><option value="VVIP"></option><option value="Early Bird"></option><option value="Student"></option><option value="Complimentary"></option></datalist>
           <div class="ce-tiers" id="ce-tiers">
@@ -98,6 +80,25 @@
           <button class="ce-add" type="button" id="ce-add">+ Add a ticket type</button>
           <p class="hint">Use 0 for free tickets. You can add early bird, VIP or table tickets, and set when each one goes on sale.</p>
         </div>
+        <section class="ce-registration-addon" aria-labelledby="ce-registration-title">
+          <div class="ce-entry-choice">
+            <label class="ce-choice-row" for="c-use-registration">
+              <input id="c-use-registration" name="use_registration" type="checkbox" aria-controls="ce-registration-fields" aria-expanded="false">
+              <span><b id="ce-registration-title">Add a registration form</b><small>Collect extra attendee details alongside these tickets.</small></span>
+            </label>
+          </div>
+          <div class="ce-reg ce-disclosure" id="ce-registration-fields" hidden>
+            <div class="ce-reg-empty" id="ce-reg-empty" hidden>
+              <div><b>No registration forms yet</b><p>Create a reusable form first, then return here to attach it to this event.</p></div>
+              <a class="btn btn-line" href="/organizer/forms">Create a form</a>
+            </div>
+            <div class="inp ce-reg-pick" id="ce-reg-pick" hidden>
+              <label for="c-reg-form">Registration form</label>
+              <select id="c-reg-form" name="registration_form_id"><option value="">Select a saved form</option></select>
+              <div class="ce-reg-pick-foot"><small id="c-reg-form-note">Choose the questions attendees complete with their ticket.</small><a href="/organizer/forms">Manage forms</a></div>
+            </div>
+          </div>
+        </section>
         <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
         <h2 id="ce-fee-title">Fees &amp; payout</h2>
         <p class="ce-q">Who pays the <span data-fee-pct>6%</span> booking fee?</p>

@@ -338,6 +338,23 @@
                   </div>
                 </section>
               @else
+              @if ($registration_form)
+                <section class="pulse-registration-panel pulse-registration-addon" aria-labelledby="registration-addon-title">
+                  <div class="pulse-ticket-panel-heading">
+                    <div>
+                      <span>{{ __('Attendee details') }}</span>
+                      <h2 id="registration-addon-title">{{ __('Registration form included') }}</h2>
+                    </div>
+                    <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                  </div>
+                  <div class="pulse-registration-body">
+                    <p>{{ __('This organizer collects additional attendee details alongside ticket sales.') }}</p>
+                    <a class="theme-btn pulse-registration-submit" href="{{ route('event.registration.show', $content->id) }}">
+                      {{ __('Complete attendee form') }} <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </section>
+              @endif
               <form action="{{ route('check-out2') }}" method="post"
                 @if ($over == true) onsubmit="return false" @endif>
                 @csrf

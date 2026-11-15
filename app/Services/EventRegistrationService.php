@@ -34,7 +34,7 @@ class EventRegistrationService
         'text', 'textarea', 'email', 'phone', 'company', 'job_title', 'country', 'state',
     ];
 
-    public function saveForm(Event $event, int $organizerId, array $data): EventRegistrationForm
+    public function saveForm(Event $event, int $organizerId, array $data, string $registrationMode = 'corporate'): EventRegistrationForm
     {
         $this->assertEventOwner($event, $organizerId);
         $name = trim((string) ($data['name'] ?? ''));
@@ -54,8 +54,20 @@ class EventRegistrationService
             throw ValidationException::withMessages(['intro' => 'The introduction cannot exceed 5,000 characters.']);
         }
 
-        return DB::transaction(function () use ($event, $organizerId, $name, $intro, $privacyNotice, $approvalMode): EventRegistrationForm {
+        if (!in_array($registrationMode, ['corporate', 'ticketing'], true)) {
+            throw ValidationException::withMessages(['form' => 'Choose a supported registration mode.']);
+        }
+
+        return DB::transaction(function () use ($event, $organizerId, $name, $intro, $privacyNotice, $approvalMode, $registrationMode): EventRegistrationForm {
             $form = EventRegistrationForm::where('event_id', $event->id)->lockForUpdate()->first();
+            // Forms attached from the library are an add-on to ticket sales.
+            // Editing their settings later must not silently turn checkout off.
+            if ($registrationMode === 'corporate'
+                && ($event->registration_mode ?: 'ticketing') === 'ticketing'
+                && $form?->source_form_id
+            ) {
+                $registrationMode = 'ticketing';
+            }
             $before = $form?->only(['name', 'status', 'approval_mode', 'version']) ?: [];
             $form ??= new EventRegistrationForm([
                 'public_id' => (string) Str::ulid(),
@@ -73,7 +85,7 @@ class EventRegistrationService
                 'approval_mode' => $approvalMode,
                 'archived_at' => null,
             ])->save();
-            $event->forceFill(['registration_mode' => 'corporate'])->save();
+            $event->forceFill(['registration_mode' => $registrationMode])->save();
 
             AuditLogger::record('event.registration_form_saved', $form, $before, [
                 'name' => $form->name,
@@ -455,8 +467,8 @@ class EventRegistrationService
 
         return DB::transaction(function () use ($form): EventRegistrationForm {
             $locked = EventRegistrationForm::with('event')->whereKey($form->id)->lockForUpdate()->firstOrFail();
-            if (!$locked->event || ($locked->event->registration_mode ?: 'ticketing') !== 'corporate') {
-                throw ValidationException::withMessages(['form' => 'The event must use corporate registration mode.']);
+            if (!$locked->event || !in_array(($locked->event->registration_mode ?: 'ticketing'), ['corporate', 'ticketing'], true)) {
+                throw ValidationException::withMessages(['form' => 'The event does not support registration forms.']);
             }
             if (trim((string) $locked->privacy_notice) === '') {
                 throw ValidationException::withMessages(['privacy_notice' => 'Add a privacy notice before publishing.']);
@@ -484,7 +496,7 @@ class EventRegistrationService
         ?int $sourceAllocationClaimId = null,
     ): EventRegistrationSubmission
     {
-        if (($event->registration_mode ?: 'ticketing') !== 'corporate'
+        if (!in_array(($event->registration_mode ?: 'ticketing'), ['corporate', 'ticketing'], true)
             || (int) $event->status !== 1
             || ($event->lifecycle_status ?: 'scheduled') !== 'scheduled'
             || $event->cancelled_at

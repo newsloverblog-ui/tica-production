@@ -1034,6 +1034,26 @@ class EventRegistrationServiceTest extends TestCase
         $this->assertCount(0, $library->standalone(41));
     }
 
+    public function test_library_form_can_be_added_to_a_ticketed_event_without_replacing_tickets(): void
+    {
+        $library = app(\App\Services\RegistrationFormLibrary::class);
+        $service = app(EventRegistrationService::class);
+        $event = $this->event(41);
+        $form = $library->create(41, 'Ticket attendee details');
+        $service->addQuestion($form, 41, [
+            'label' => 'Dietary needs', 'type' => 'text', 'scope' => 'attendee', 'is_required' => false,
+        ]);
+
+        $copy = $library->useOnTicketedEvent($form, $event, 41, true);
+
+        $this->assertSame('ticketing', $event->fresh()->registration_mode);
+        $this->assertSame('published', $copy->status);
+        $this->assertSame($form->id, (int) $copy->source_form_id);
+        $this->assertSame(['Dietary needs'], $copy->questions()->pluck('label')->all());
+        $submission = $service->submit($event->fresh(), $this->submissionPayload());
+        $this->assertSame($copy->id, (int) $submission->form_id);
+    }
+
     private function publishedForm(EventRegistrationService $service, int $organizerId, string $approvalMode): array
     {
         $event = $this->event($organizerId);
