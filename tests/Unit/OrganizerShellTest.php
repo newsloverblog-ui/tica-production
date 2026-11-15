@@ -17,7 +17,7 @@ class OrganizerShellTest extends TestCase
   {
     $html = $this->render('overview');
 
-    foreach (['Overview', 'Events', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
+    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
       $this->assertStringContainsString($label, $html, $label);
     }
     $this->assertSame(1, substr_count($html, 'Create an event'));
@@ -85,9 +85,11 @@ class OrganizerShellTest extends TestCase
       $this->assertStringContainsString('tsh-org__nm', $html);
       $this->assertSame(1, substr_count($html, 'aria-current="page"'), $active);
     }
-    // Registration forms lives under More tools, and a verified organiser gets a badge, not text.
+    $forms = $this->render('forms');
+    $this->assertMatchesRegularExpression('/<details class="tsh-more"[^>]*open.*?<a class="tsh-sublink os-link is-active" href="\/organizer\/forms"/s', $forms);
+    $this->assertStringNotContainsString('tsh-link os-link is-active" href="/organizer/forms"', $forms);
+    // A verified organiser gets a badge next to the name, not text.
     $html = $this->render('overview');
-    $this->assertMatchesRegularExpression('/<div class="tsh-sub">.*href="\/organizer\/forms"/s', $html);
     $this->assertStringContainsString('class="tsh-verified"', $html);
     $this->assertStringNotContainsString('>Verified organiser</span>', $html);
   }

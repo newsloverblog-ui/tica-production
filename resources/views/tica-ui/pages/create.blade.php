@@ -73,8 +73,9 @@
           <label><input type="radio" name="c-entry" value="corporate"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><b>Registration</b><small>People apply and you approve them</small></span></label>
         </div>
         <div class="ce-sell">
+          <datalist id="ce-ticket-presets"><option value="Regular"></option><option value="VIP"></option><option value="VVIP"></option><option value="Early Bird"></option><option value="Student"></option><option value="Complimentary"></option></datalist>
           <div class="ce-tiers" id="ce-tiers">
-            <div class="ce-tier"><div class="inp"><label for="c-tier">Ticket name</label><input id="c-tier" type="text" value="Regular" placeholder="Regular"></div><div class="inp"><label for="c-price">Price (₦)</label><input id="c-price" type="number" min="0" step="500" placeholder="e.g. 5000" inputmode="decimal"></div><div class="inp"><label for="c-qty">Quantity</label><input id="c-qty" type="number" min="1" step="1" placeholder="e.g. 200" inputmode="numeric"></div></div>
+            <div class="ce-tier"><div class="inp"><label for="c-tier">Ticket name</label><input id="c-tier" type="text" value="Regular" placeholder="Regular" list="ce-ticket-presets"></div><div class="inp"><label for="c-price">Price (₦)</label><input id="c-price" type="number" min="0" step="500" placeholder="e.g. 5000" inputmode="decimal"></div><div class="inp"><label for="c-qty">Quantity</label><input id="c-qty" type="number" min="1" step="1" placeholder="e.g. 200" inputmode="numeric"></div></div>
           </div>
           <button class="ce-add" type="button" id="ce-add">+ Add a ticket type</button>
           <p class="hint">Use 0 for free tickets. You can add early bird, VIP or table tickets, and set when each one goes on sale.</p>

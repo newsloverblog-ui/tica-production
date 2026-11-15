@@ -239,8 +239,43 @@ class TicketLifecycleService
             $before = $this->snapshot($ticket);
             $this->cancelPendingTransfers($ticket);
             $ticket->update(['status' => 'revoked', 'revoked_at' => now(), 'revoked_reason' => $reason]);
+            app(TicketNumberAllocator::class)->invalidate($ticket, 'revoked');
             $this->history($ticket, 'revoked', 'organizer', $organizerId, $before, $this->snapshot($ticket), $reason);
             AuditLogger::record('ticket_unit.revoked', $ticket, $before, $this->snapshot($ticket), ['reason' => $reason]);
+            return $ticket->fresh();
+        }, 3);
+    }
+
+    public function reissueForAdmin(int $ticketId, int $adminId, string $reason): BookingTicket
+    {
+        return $this->rotate(
+            $ticketId,
+            'admin',
+            $adminId,
+            'reissued',
+            [],
+            $this->validatedReason($reason, 'reissue')
+        );
+    }
+
+    public function revokeForAdmin(int $ticketId, int $adminId, string $reason): BookingTicket
+    {
+        $reason = trim($reason);
+        if ($reason === '' || mb_strlen($reason) > 500) {
+            throw ValidationException::withMessages(['reason' => 'A revocation reason of up to 500 characters is required.']);
+        }
+
+        return DB::transaction(function () use ($ticketId, $adminId, $reason) {
+            [$ticket, $booking] = $this->lockedTicket($ticketId);
+            $this->ensureMutable($ticket, $booking);
+
+            $before = $this->snapshot($ticket);
+            $this->cancelPendingTransfers($ticket);
+            $ticket->update(['status' => 'revoked', 'revoked_at' => now(), 'revoked_reason' => $reason]);
+            app(TicketNumberAllocator::class)->invalidate($ticket, 'revoked');
+            $this->history($ticket, 'revoked', 'admin', $adminId, $before, $this->snapshot($ticket), $reason);
+            AuditLogger::record('ticket_unit.revoked', $ticket, $before, $this->snapshot($ticket), ['reason' => $reason]);
+
             return $ticket->fresh();
         }, 3);
     }
@@ -277,9 +312,9 @@ class TicketLifecycleService
 
     private function authorize(BookingTicket $ticket, Booking $booking, string $actorType, int $actorId): void
     {
-        $allowed = $actorType === 'customer'
+        $allowed = $actorType === 'admin' || ($actorType === 'customer'
             ? $this->effectiveOwnerId($ticket, $booking) === $actorId
-            : ($actorType === 'organizer' && (int) $ticket->organizer_id === $actorId);
+            : ($actorType === 'organizer' && (int) $ticket->organizer_id === $actorId));
 
         if (!$allowed) {
             throw new AuthorizationException('You do not own this ticket.');

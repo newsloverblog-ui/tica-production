@@ -616,9 +616,14 @@ class PaymentRefundService
                 'refund_status' => $fullyRefunded ? 'refunded' : 'partially_refunded',
             ]);
             if ($fullyRefunded) {
-                BookingTicket::where('booking_id', $booking->id)
+                $units = BookingTicket::where('booking_id', $booking->id)
                     ->where('status', 'issued')
-                    ->update(['status' => 'refunded', 'updated_at' => now()]);
+                    ->lockForUpdate()
+                    ->get();
+                foreach ($units as $unit) {
+                    $unit->forceFill(['status' => 'refunded'])->save();
+                    app(TicketNumberAllocator::class)->invalidate($unit, 'refunded');
+                }
             }
 
             $refund->update(['financial_applied_at' => now()]);

@@ -52,11 +52,15 @@ class Booking extends Model
     'attachmentFile',
     'event_date',
     'scan_status',
-    'conversation_id'
+    'conversation_id',
+    'ticket_reservation_token'
     , 'coupon_id', 'tracking_link_id', 'promotion_campaign_id'
   ];
 
-  protected $hidden = ['checkout_submission_hash', 'buyer_email_hash', 'buyer_email_hash_version'];
+  protected $hidden = [
+    'checkout_submission_hash', 'buyer_email_hash', 'buyer_email_hash_version',
+    'ticket_reservation_token',
+  ];
 
   /** The short order number buyers see on screen and in email, e.g. TICA-000123. */
   public function getOrderReferenceAttribute(): string

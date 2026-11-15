@@ -17,6 +17,7 @@
   $icons = [
     'overview' => '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/>',
     'events' => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    'tickets' => '<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/><path d="M9 8v9M15 8v9"/>',
     'orders' => '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>',
     'checkin' => '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/>',
     'promote' => '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/>',
@@ -31,6 +32,7 @@
     'Main' => [
       ['overview', 'Overview', '/dashboard', 'overview.view'],
       ['events', 'Events', '/dashboard/events', 'events.view'],
+      ['tickets', 'Ticket management', '/dashboard/tickets', 'orders.view'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
     ],
@@ -60,7 +62,7 @@
     $path = '/' . ltrim(request()->path(), '/');
     $toolHit = collect($tools)->first(fn ($tool) => str_starts_with($path, $tool[1]));
     $active = match (true) {
-      str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'tools',
+      str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'forms',
       $toolHit !== null => 'tools',
       request()->routeIs('organizer.withdraw*', 'organizer.payout*') => 'payouts',
       request()->routeIs('organizer.event_booking.index', 'organizer.event_booking.details') => 'orders',
@@ -68,9 +70,9 @@
       default => 'overview',
     };
   }
-  $toolsActive = $active === 'tools';
+  $toolsActive = in_array($active, ['tools', 'forms'], true);
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
-  $titles = ['overview' => 'Overview', 'events' => 'Events', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
+  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
 
 <div id="tica-shell" class="tsh">
@@ -108,7 +110,7 @@
         <summary class="tsh-link {{ $toolsActive ? 'is-active' : '' }}"><svg viewBox="0 0 24 24" aria-hidden="true">{!! $icons['tools'] !!}</svg><span class="tsh-link__label">More tools</span><svg class="tsh-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
         <div class="tsh-sub">
           @foreach ($tools as [$label, $href])
-            @php($on = $toolsActive && (request()->is(ltrim($href, '/') . '*') || ($href === '/organizer/forms' && request()->is('organizer/event/registrations*'))))
+            @php($on = $toolsActive && ($label === 'Registration forms' ? $active === 'forms' : request()->is(ltrim($href, '/') . '*')))
             <a class="tsh-sublink os-link {{ $on ? 'is-active' : '' }}" href="{{ $href }}" @if ($on) aria-current="page" @endif>{{ $label }}</a>
           @endforeach
         </div>

@@ -9,26 +9,30 @@ class AdminEventBuilderParityTest extends TestCase
     public function test_admin_event_creation_stays_in_the_admin_workspace(): void
     {
         $builder = app('router')->getRoutes()->getByName('admin.event_builder');
+        $store = app('router')->getRoutes()->getByName('admin.event_builder.store');
 
         $this->assertNotNull($builder);
+        $this->assertNotNull($store);
         $this->assertSame(['GET', 'HEAD'], $builder->methods());
-        $this->assertContains('auth:admin', $builder->gatherMiddleware());
-        $this->assertContains('permission:Event Management', $builder->gatherMiddleware());
-        $this->assertNull(app('router')->getRoutes()->getByName('admin.event_builder.store'));
+        $this->assertSame(['POST'], $store->methods());
+        foreach ([$builder, $store] as $route) {
+            $this->assertContains('auth:admin', $route->gatherMiddleware());
+            $this->assertContains('permission:Event Management', $route->gatherMiddleware());
+        }
 
-        $redirect = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaUiController.php'));
+        $ui = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaUiController.php'));
+        $shared = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaOrganizerController.php'));
         $controller = file_get_contents(app_path('Http/Controllers/BackEnd/Event/EventController.php'));
-        $view = file_get_contents(resource_path('views/backend/event/create.blade.php'));
+        $view = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
 
-        $this->assertStringContainsString("redirect()->route('admin.choose-event-type'", $redirect);
+        $this->assertStringContainsString("'adminBuilder' => \$this->adminBuilder()", $ui);
+        $this->assertStringContainsString("'endpoint' => route('admin.event_builder.store')", $ui);
+        $this->assertStringContainsString('public function storeAdminEvent', $shared);
+        $this->assertStringContainsString("return \$this->createEvent(\n      \$request,", $shared);
         $this->assertStringContainsString("return view('backend.event.event_type')", $controller);
-        $this->assertStringContainsString("return view('backend.event.create'", $controller);
-        $this->assertStringContainsString("@extends('backend.layout')", $view);
         $this->assertStringContainsString('name="organizer_id"', $view);
-        $this->assertStringContainsString('name="is_featured"', $view);
-        $this->assertStringContainsString('name="status"', $view);
-        $this->assertStringContainsString('id="my-dropzone"', $view);
-        $this->assertStringContainsString('name="online_join_url"', $view);
+        $this->assertStringContainsString('id="c-featured"', $view);
+        $this->assertStringContainsString('id="ce-admin"', $view);
     }
 
     public function test_admin_and_organizer_share_the_event_type_decision_but_keep_separate_rights(): void
@@ -39,8 +43,8 @@ class AdminEventBuilderParityTest extends TestCase
         $selector = file_get_contents(resource_path('views/shared/event-type-selector.blade.php'));
         $client = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
 
-        $this->assertStringContainsString('return $this->createEvent($request, (int) $organizer->id);', $controller);
-        $this->assertStringNotContainsString('storeAdminEvent', $controller);
+        $this->assertStringContainsString("return \$this->createEvent(\$request, (int) \$organizer->id, 'organizer');", $controller);
+        $this->assertStringContainsString('public function storeAdminEvent', $controller);
         $this->assertStringContainsString("@include('shared.event-type-selector'", $adminType);
         $this->assertStringContainsString("@include('shared.event-type-selector'", $organizerType);
         $this->assertStringContainsString("__('In-person event')", $selector);

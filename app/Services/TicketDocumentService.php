@@ -10,7 +10,7 @@ class TicketDocumentService
 {
     public function generateQrCodes(Booking $booking, bool $bookingRecipientOnly = false): Collection
     {
-        $units = (new TicketIssuanceService())->issueForBooking($booking);
+        $units = (new TicketIssuanceService())->issueForBooking($booking)->loadMissing('ticket');
 
         if ($bookingRecipientOnly) {
             // Accepted transfers belong to the recipient. A resend to the

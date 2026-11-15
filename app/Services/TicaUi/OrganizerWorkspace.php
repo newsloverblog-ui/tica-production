@@ -5,6 +5,8 @@ namespace App\Services\TicaUi;
 use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
 use App\Models\Event\Coupon;
+use App\Models\Event\Ticket;
+use App\Models\Event\TicketContent;
 use App\Models\Language;
 use App\Models\Organizer;
 use App\Models\OrganizerInfo;
@@ -90,6 +92,8 @@ class OrganizerWorkspace
         'cur' => $this->cur($b->currencyText),
         'ago' => Carbon::parse($b->created_at)->diffForHumans(),
       ])->values()->all(),
+      'audience' => $this->audience((int) $organizer->id),
+      'ticketing' => $this->ticketing((int) $organizer->id),
       'payouts' => $this->payouts($organizer, $account),
       'codes' => $this->codes((int) $organizer->id),
       'links' => $this->links((int) $organizer->id),
@@ -148,6 +152,99 @@ class OrganizerWorkspace
       ->get(['id', 'event_id', 'fname', 'lname', 'email', 'price', 'tax', 'commission', 'quantity', 'variation', 'created_at', 'paymentStatus', 'tracking_link_id', 'currencyText']);
   }
 
+  private function ticketing(int $organizerId): array
+  {
+    $empty = [
+      'summary' => ['inventory' => 0, 'sold' => 0, 'checkedIn' => 0, 'available' => 0, 'revenue' => 0, 'numbered' => 0, 'seated' => 0, 'cancelled' => 0],
+      'categories' => [],
+    ];
+    if (!Schema::hasTable('booking_tickets') || !Schema::hasColumn('booking_tickets', 'ticket_number')) {
+      return $empty;
+    }
+
+    $tickets = Ticket::query()
+      ->join('events', 'events.id', '=', 'tickets.event_id')
+      ->where('events.organizer_id', $organizerId)
+      ->whereNull('tickets.deleted_at')
+      ->orderByDesc('events.id')
+      ->orderBy('tickets.id')
+      ->get(['tickets.*']);
+    if ($tickets->isEmpty()) return $empty;
+
+    $ticketIds = $tickets->pluck('id');
+    $titles = TicketContent::query()->whereIn('ticket_id', $ticketIds)->orderBy('language_id')->get()
+      ->unique('ticket_id')->pluck('title', 'ticket_id');
+    $events = DB::table('event_contents')->whereIn('event_id', $tickets->pluck('event_id'))->orderBy('language_id')
+      ->get(['event_id', 'title'])->unique('event_id')->pluck('title', 'event_id');
+    $units = BookingTicket::query()->whereIn('ticket_id', $ticketIds)
+      ->selectRaw("ticket_id, COUNT(*) as allocated, SUM(CASE WHEN status IN ('issued','checked_in') THEN 1 ELSE 0 END) as sold, SUM(CASE WHEN status = 'checked_in' THEN 1 ELSE 0 END) as checked_in, SUM(CASE WHEN status IN ('refunded','revoked') THEN 1 ELSE 0 END) as cancelled, SUM(CASE WHEN ticket_number IS NOT NULL THEN 1 ELSE 0 END) as numbered, SUM(CASE WHEN seat_id IS NOT NULL THEN 1 ELSE 0 END) as seated")
+      ->groupBy('ticket_id')->get()->keyBy('ticket_id');
+    $revenue = BookingTicket::query()
+      ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
+      ->whereIn('booking_tickets.ticket_id', $ticketIds)
+      ->whereIn('bookings.paymentStatus', ['completed', 'free', '1'])
+      ->whereIn('booking_tickets.status', ['issued', 'checked_in'])
+      ->selectRaw('booking_tickets.ticket_id, SUM((bookings.price + COALESCE(bookings.tax, 0)) / NULLIF(bookings.quantity, 0)) as total')
+      ->groupBy('booking_tickets.ticket_id')->pluck('total', 'ticket_id');
+
+    $categories = $tickets->map(function (Ticket $ticket) use ($titles, $events, $units, $revenue): array {
+      $unit = $units->get($ticket->id);
+      $sold = (int) ($unit->sold ?? 0);
+      $available = $ticket->ticket_available_type === 'limited' ? max(0, (int) $ticket->ticket_available) : null;
+      return [
+        'id' => (int) $ticket->id,
+        'eventId' => (int) $ticket->event_id,
+        'event' => (string) ($events[$ticket->event_id] ?? 'Event'),
+        'name' => (string) ($titles[$ticket->id] ?? $ticket->title ?: 'Ticket'),
+        'inventory' => $available === null ? null : $available + $sold,
+        'sold' => $sold,
+        'checkedIn' => (int) ($unit->checked_in ?? 0),
+        'available' => $available,
+        'revenue' => round((float) ($revenue[$ticket->id] ?? 0), 2),
+        'numbered' => (int) ($unit->numbered ?? 0),
+        'seated' => (int) ($unit->seated ?? 0),
+        'cancelled' => (int) ($unit->cancelled ?? 0),
+        'status' => (string) ($ticket->sales_status ?: 'on_sale'),
+        'seatingMode' => (string) ($ticket->seating_mode ?: 'general_admission'),
+        'prefix' => (string) ($ticket->number_prefix ?: ''),
+      ];
+    })->values();
+    $limited = $categories->whereNotNull('inventory');
+
+    return [
+      'summary' => [
+        'inventory' => (int) $limited->sum('inventory'),
+        'sold' => (int) $categories->sum('sold'),
+        'checkedIn' => (int) $categories->sum('checkedIn'),
+        'available' => (int) $limited->sum('available'),
+        'revenue' => round((float) $categories->sum('revenue'), 2),
+        'numbered' => (int) $categories->sum('numbered'),
+        'seated' => (int) $categories->sum('seated'),
+        'cancelled' => (int) $categories->sum('cancelled'),
+      ],
+      'categories' => $categories->all(),
+    ];
+  }
+
+  /** Aggregate buyer activity without exposing customer records in overview data. */
+  private function audience(int $organizerId): array
+  {
+    $base = Booking::query()
+      ->where('organizer_id', $organizerId)
+      ->whereIn('paymentStatus', ['completed', 'free'])
+      ->whereNotNull('email')
+      ->where('email', '!=', '');
+    $grouped = fn ($query) => $query->selectRaw('LOWER(email) AS normalized_email')->groupByRaw('LOWER(email)');
+    $repeat = (clone $base)->selectRaw('LOWER(email) AS normalized_email, COUNT(*) AS purchases')
+      ->groupByRaw('LOWER(email)')->havingRaw('COUNT(*) > 1');
+
+    return [
+      'customers' => (int) DB::query()->fromSub($grouped(clone $base), 'audience_customers')->count(),
+      'active30' => (int) DB::query()->fromSub($grouped((clone $base)->where('created_at', '>=', now()->subDays(29)->startOfDay())), 'audience_recent')->count(),
+      'repeat' => (int) DB::query()->fromSub($repeat, 'audience_repeat')->count(),
+    ];
+  }
+
   private function eventRow(array $event, float $revenue): array
   {
     $sold = collect($event['tiers'])->sum(fn ($tier) => $tier[3] - $tier[2]);
@@ -200,6 +297,7 @@ class OrganizerWorkspace
         'price' => $tier[1],
         'sold' => $tier[3] - $tier[2],
         'total' => $event['tierInfo'][$i]['unlimited'] ? null : $tier[3],
+        'seatingMode' => (string) ($event['tierInfo'][$i]['seatingMode'] ?? 'general_admission'),
       ])->values()->all(),
       'url' => $event['url'],
       'editUrl' => url('/create/' . $event['id']),

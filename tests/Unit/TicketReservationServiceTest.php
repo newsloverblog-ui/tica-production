@@ -129,6 +129,29 @@ class TicketReservationServiceTest extends TestCase
         $this->assertSame(0, TicketReservation::count());
     }
 
+    public function test_sold_out_category_does_not_reduce_another_category_inventory(): void
+    {
+        $regular = $this->ticket(2);
+        $vip = $this->ticket(3);
+        $service = new TicketReservationService();
+
+        $service->reserve(41, [$this->selection($regular, 2)], 'regular-session', 7);
+
+        $this->assertSame(0, (int) $regular->fresh()->ticket_available);
+        $this->assertSame(3, (int) $vip->fresh()->ticket_available);
+
+        try {
+            $service->reserve(41, [$this->selection($regular, 1)], 'sold-out-session', 8);
+            $this->fail('Expected the sold-out Regular category to reject another hold.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('no longer available', $exception->getMessage());
+        }
+
+        $vipToken = $service->reserve(41, [$this->selection($vip, 1)], 'vip-session', 8);
+        $this->assertSame(2, (int) $vip->fresh()->ticket_available);
+        $this->assertSame('active', TicketReservation::where('token', $vipToken)->value('status'));
+    }
+
     public function test_parallel_customer_holds_cannot_exceed_purchase_limit(): void
     {
         $ticket = $this->ticket(10);
