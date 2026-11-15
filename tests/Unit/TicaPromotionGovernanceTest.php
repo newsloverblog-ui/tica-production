@@ -132,14 +132,19 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("->where('payment_status', 'paid')", $sync);
     }
 
-    public function test_organizer_promotion_dashboard_has_packages_campaign_metrics_and_working_tools(): void
+    public function test_organizer_promote_page_keeps_codes_and_links_without_paid_promotion(): void
     {
         $view = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
         $client = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $workspace = file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php'));
 
-        foreach (['od-promo-kpis', 'od-package-grid', 'od-package-summary', 'od-campaigns', 'od-code-min', 'od-link-channel'] as $id) {
+        // Codes and tracking links stay on the organiser's Promote page.
+        foreach (['od-code-min', 'od-link-channel'] as $id) {
             $this->assertStringContainsString('id="' . $id . '"', $view);
+        }
+        // Paid TICA promotion (packages, campaigns, promotion figures) was taken off the Promote page.
+        foreach (['od-promo-kpis', 'od-package-grid', 'od-campaigns', 'od-promo-f'] as $id) {
+            $this->assertStringNotContainsString('id="' . $id . '"', $view);
         }
         $this->assertStringContainsString('data-togglecode', $client);
         $this->assertStringContainsString('data-togglelink', $client);
