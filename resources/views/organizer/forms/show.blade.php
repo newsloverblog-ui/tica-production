@@ -21,7 +21,8 @@
     $f = $editing;
   @endphp
 
-  <div class="t-page-head">
+  <div class="rf-page">
+  <div class="t-page-head rf-head">
     <div>
       <p class="t-help" style="margin:0 0 4px"><a href="{{ route('organizer.forms.index') }}">← {{ __('All forms') }}</a></p>
       <h1 class="page-title">{{ $form->name }}</h1>
@@ -85,13 +86,13 @@
         <form id="rf-order" method="POST" action="{{ route('organizer.event.registrations.questions.reorder', $form) }}">@csrf</form>
         <p class="t-help">{{ __('Drag a field by its handle to move it. Name and email are always asked first.') }}</p>
         <ul class="rf-fields" data-rf-list>
-          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true">⋮⋮</span><div class="rf-field__body"><div class="rf-field__label">{{ __('Full name') }} *</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
-          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true">⋮⋮</span><div class="rf-field__body"><div class="rf-field__label">{{ __('Email') }} *</div><div class="rf-field__type">{{ __('Always asked') }}</div></div></li>
+          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="rf-field__body"><div class="rf-field__label">{{ __('Full name') }} <span class="rf-req" aria-label="{{ __('required') }}">*</span></div><div class="rf-field__type">{{ __('Short answer') }}</div></div><span class="rf-pill">{{ __('Always asked') }}</span></li>
+          <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="rf-field__body"><div class="rf-field__label">{{ __('Email') }} <span class="rf-req" aria-label="{{ __('required') }}">*</span></div><div class="rf-field__type">{{ __('Short answer') }}</div></div><span class="rf-pill">{{ __('Always asked') }}</span></li>
           @foreach ($form->questions as $question)
             <li class="rf-field{{ $f && $f->id === $question->id ? ' is-editing' : '' }}" draggable="true" data-rf-item data-id="{{ $question->public_id }}">
-              <span class="rf-handle" aria-hidden="true" title="{{ __('Drag to move') }}">⋮⋮</span>
+              <span class="rf-handle" aria-hidden="true" title="{{ __('Drag to move') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg></span>
               <div class="rf-field__body">
-                <div class="rf-field__label">{{ $question->label }}@if ($question->is_required) <span aria-label="{{ __('required') }}">*</span>@endif</div>
+                <div class="rf-field__label">{{ $question->label }}@if ($question->is_required) <span class="rf-req" aria-label="{{ __('required') }}">*</span>@endif</div>
                 <div class="rf-field__type">
                   {{ $typeLabels[$question->type] ?? $question->type }}
                   @if ($question->scope === 'attendee') · {{ __('per attendee') }}@endif
@@ -100,10 +101,10 @@
                 </div>
               </div>
               <div class="rf-field__tools">
-                <form method="POST" action="{{ route('organizer.event.registrations.questions.move', $question) }}">@csrf<input type="hidden" name="direction" value="up"><button class="t-icon-btn" type="submit" @disabled($loop->first) aria-label="{{ __('Move :q up', ['q' => $question->label]) }}">↑</button></form>
-                <form method="POST" action="{{ route('organizer.event.registrations.questions.move', $question) }}">@csrf<input type="hidden" name="direction" value="down"><button class="t-icon-btn" type="submit" @disabled($loop->last) aria-label="{{ __('Move :q down', ['q' => $question->label]) }}">↓</button></form>
+                <form method="POST" action="{{ route('organizer.event.registrations.questions.move', $question) }}">@csrf<input type="hidden" name="direction" value="up"><button class="rf-icon" type="submit" @disabled($loop->first) aria-label="{{ __('Move :q up', ['q' => $question->label]) }}">↑</button></form>
+                <form method="POST" action="{{ route('organizer.event.registrations.questions.move', $question) }}">@csrf<input type="hidden" name="direction" value="down"><button class="rf-icon" type="submit" @disabled($loop->last) aria-label="{{ __('Move :q down', ['q' => $question->label]) }}">↓</button></form>
                 <a class="t-btn t-btn--ghost t-btn--sm" href="{{ route('organizer.forms.show', ['form' => $form, 'field' => $question->public_id]) }}#rf-editor">{{ __('Edit') }}</a>
-                <form method="POST" action="{{ route('organizer.event.registrations.questions.delete', $question) }}" onsubmit="return confirm('{{ __('Remove this field?') }}')">@csrf<button class="t-btn t-btn--ghost t-btn--sm" type="submit" aria-label="{{ __('Remove :q', ['q' => $question->label]) }}">{{ __('Remove') }}</button></form>
+                <form method="POST" action="{{ route('organizer.event.registrations.questions.delete', $question) }}" onsubmit="return confirm('{{ __('Remove this field?') }}')">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit" aria-label="{{ __('Remove :q', ['q' => $question->label]) }}">{{ __('Remove') }}</button></form>
               </div>
             </li>
           @endforeach
@@ -134,7 +135,7 @@
                 @endforeach
               </select>
             </label>
-            <label class="t-check" style="align-self:end;padding-bottom:10px">
+            <label class="rf-check rf-check--inline">
               <input type="checkbox" name="is_required" value="1" @checked(old('is_required', session()->hasOldInput() ? false : ($f ? $f->is_required : true)))>
               <span>{{ __('Required') }}</span>
             </label>
@@ -217,16 +218,16 @@
             @foreach ($form->copies as $copy)
               @php [$tone, $label] = $copyStatus[$copy->status] ?? ['', ucfirst($copy->status)]; @endphp
               <li>
-                <span>{{ $eventTitle($copy->event) }} <span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ $label }}</span>
-                  <span class="rf-meta" style="display:block">{{ trans_choice(':count registration|:count registrations', $copy->submissions_count, ['count' => $copy->submissions_count]) }}</span></span>
+                <span class="rf-linked__text"><b>{{ $eventTitle($copy->event) }}</b> <span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ $label }}</span>
+                  <span class="rf-meta">{{ trans_choice(':count registration|:count registrations', $copy->submissions_count, ['count' => $copy->submissions_count]) }}</span></span>
                 <span class="rf-actions">
                   <a class="t-btn t-btn--ghost t-btn--sm" href="{{ route('organizer.event.registrations.index', ['event_id' => $copy->event_id]) }}">{{ __('Manage') }}</a>
-                  <form method="POST" action="{{ route('organizer.forms.stop', $copy) }}" onsubmit="return confirm('{{ __('Stop registration on this event? It goes back to selling tickets. Past registrations are kept.') }}')">@csrf<button class="t-btn t-btn--ghost t-btn--sm" type="submit">{{ __('Stop') }}</button></form>
+                  <form method="POST" action="{{ route('organizer.forms.stop', $copy) }}" onsubmit="return confirm('{{ __('Stop registration on this event? It goes back to selling tickets. Past registrations are kept.') }}')">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Stop') }}</button></form>
                 </span>
               </li>
             @endforeach
           </ul>
-          <form method="POST" action="{{ route('organizer.forms.push', $form) }}" style="margin-top:12px">
+          <form method="POST" action="{{ route('organizer.forms.push', $form) }}" class="rf-push">
             @csrf
             <button class="t-btn t-btn--secondary t-btn--block" type="submit">{{ __('Update events with my changes') }}</button>
             <p class="t-help">{{ __('Sends the current fields and settings to every event above. Past registrations keep the answers they gave.') }}</p>
@@ -246,19 +247,21 @@
                 <li>
                   <label>
                     <input type="checkbox" name="events[]" value="{{ $event->id }}" @checked(in_array($event->id, array_map('intval', (array) old('events', $preselect ? [$preselect] : [])), true))>
-                    <span>{{ $eventTitle($event) }}
+                    <span class="rf-events__text"><b>{{ $eventTitle($event) }}</b>
                       @if ($event->registrationForm && !$event->registrationForm->archived_at)
-                        <span class="rf-meta" style="display:block">{{ __('Replaces its current form “:name”', ['name' => $event->registrationForm->name]) }}@if ($event->registrationForm->submissions_count) · {{ trans_choice(':count registration kept|:count registrations kept', $event->registrationForm->submissions_count, ['count' => $event->registrationForm->submissions_count]) }}@endif</span>
+                        <span class="rf-meta">{{ __('Replaces its current form “:name”', ['name' => $event->registrationForm->name]) }}@if ($event->registrationForm->submissions_count) · {{ trans_choice(':count registration kept|:count registrations kept', $event->registrationForm->submissions_count, ['count' => $event->registrationForm->submissions_count]) }}@endif</span>
                       @elseif (($event->registration_mode ?: 'ticketing') !== 'corporate')
-                        <span class="rf-meta" style="display:block">{{ __('Currently selling tickets') }}</span>
+                        <span class="rf-meta">{{ __('Currently selling tickets') }}</span>
                       @endif
                     </span>
                   </label>
                 </li>
               @endforeach
             </ul>
-            <label class="t-check" style="margin-bottom:8px"><input type="checkbox" name="publish" value="1" @checked(old('publish'))><span>{{ __('Open registration now') }}</span></label>
-            <label class="t-check" style="margin-bottom:12px"><input type="checkbox" name="confirm_switch" value="1" required><span>{{ __('I understand these events will take registrations through this form instead of selling tickets.') }}</span></label>
+            <div class="rf-checks">
+            <label class="rf-check"><input type="checkbox" name="publish" value="1" @checked(old('publish'))><span>{{ __('Open registration now') }}</span></label>
+            <label class="rf-check"><input type="checkbox" name="confirm_switch" value="1" required><span>{{ __('I understand these events will take registrations through this form instead of selling tickets.') }}</span></label>
+            </div>
             <button class="t-btn t-btn--primary t-btn--block" type="submit">{{ __('Add to selected events') }}</button>
           </form>
         @endif
@@ -290,6 +293,7 @@
         </div>
       </section>
     </div>
+  </div>
   </div>
 
   <script>
