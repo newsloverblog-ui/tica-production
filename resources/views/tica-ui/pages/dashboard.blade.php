@@ -6,33 +6,67 @@
 
       <!-- OVERVIEW: key numbers, then sales and the next event, then recent orders. -->
       <div class="od-p ov" data-p="overview">
-        <header class="t-page-head ov-head">
+        <header class="ov-head">
           <div class="ov-head__copy">
+            <p class="ov-eyebrow" id="od-today"></p>
             <h1 id="db-hi">Welcome back</h1>
-            <p>Track sales, guests and the work that needs your attention.</p>
-            <span class="ov-refreshed" id="od-refreshed">Your latest event data</span>
+            <p class="ov-sub">Here's how your events are doing. <span class="ov-refreshed" id="od-refreshed"></span></p>
           </div>
           <div class="ov-head__actions">
-            <label class="ov-range"><span class="t-sr">Performance period</span><select class="t-select" id="od-range" aria-label="Performance period"></select></label>
-            <a class="t-btn t-btn--primary" id="od-overview-create" href="/create">Create an event</a>
+            <div class="ov-seg" role="radiogroup" aria-label="Performance period" id="od-range-seg"></div>
+            <select class="t-select ov-range-select" id="od-range" aria-label="Performance period"></select>
+            <a class="t-btn t-btn--primary" id="od-overview-create" href="/create"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create an event</a>
           </div>
         </header>
+
         <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
-        <div class="ov-stats" id="db-kpis">
-          <span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span><span class="t-skel" style="height:118px"></span>
+
+        <!-- Headline numbers for the chosen period, with change against the period before. -->
+        <div class="ov-kpis" id="db-kpis" aria-live="polite">
+          <span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span>
         </div>
-        <section class="ov-snapshot" id="od-snapshot" aria-label="Event operations snapshot"></section>
-        <section class="t-card ov-analytics" id="od-analytics" aria-labelledby="od-analytics-h"></section>
+
         <div class="ov-grid">
-          <section class="t-card ov-chart-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><div><h2 class="t-card__title" id="ov-chart-h">Ticket sales trend</h2><p class="t-help">Paid and free tickets issued during the selected period.</p></div><span class="t-badge t-badge--blue" id="od-chart-total">0 tickets</span></div><div class="db-chart" id="db-chart"></div></section>
-          <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
+          <div class="ov-col ov-col--main">
+            <!-- Sales over time -->
+            <section class="ov-card ov-sales" aria-labelledby="ov-chart-h">
+              <div class="ov-card__head">
+                <div><h2 class="ov-card__title" id="ov-chart-h">Sales performance</h2><p class="ov-card__sub"><b id="od-chart-total">—</b> <span id="od-chart-sub"></span></p></div>
+                <div class="ov-toggle" role="radiogroup" aria-label="Show">
+                  <button type="button" role="radio" aria-checked="true" data-metric="revenue">Revenue</button>
+                  <button type="button" role="radio" aria-checked="false" data-metric="tickets">Tickets</button>
+                </div>
+              </div>
+              <div class="ov-chart" id="db-chart"></div>
+              <details class="ov-table-view"><summary>Show as a table</summary><div id="od-chart-table"></div></details>
+            </section>
+            <!-- Events -->
+            <section class="ov-card ov-events" aria-labelledby="od-top-h">
+              <div class="ov-card__head"><div><h2 class="ov-card__title" id="od-top-h">Event performance</h2><p class="ov-card__sub">Upcoming and recent events, by tickets sold.</p></div><button class="ov-link" type="button" data-panel="events">All events</button></div>
+              <div id="od-top"></div>
+            </section>
+            <!-- Recent orders -->
+            <section class="ov-card ov-orders" aria-labelledby="ov-ord-h">
+              <div class="ov-card__head"><div><h2 class="ov-card__title" id="ov-ord-h">Recent orders</h2><p class="ov-card__sub" id="od-order-count"></p></div><button class="ov-link" type="button" data-panel="orders">All orders</button></div>
+              <div id="db-ord"></div>
+            </section>
+          </div>
+          <div class="ov-col ov-col--side">
+            <!-- Money -->
+            <section class="ov-card ov-money" id="od-money" aria-labelledby="od-money-h"></section>
+            <!-- Next event -->
+            <section class="ov-card ov-next" id="od-next" aria-label="Next event"></section>
+            <!-- Needs attention -->
+            <section class="ov-card ov-attn" id="od-attn" aria-labelledby="od-attn-h"></section>
+          </div>
         </div>
-        <div class="ov-lower">
-          <section class="t-card ov-orders" aria-labelledby="ov-ord-h">
-            <div class="t-card__head"><div><h2 class="t-card__title" id="ov-ord-h">Recent orders</h2><p class="t-help" id="od-order-count">Your five latest completed orders.</p></div><button class="t-btn t-btn--ghost t-btn--sm" type="button" data-panel="orders">View all</button></div>
-            <div id="db-ord"></div>
-          </section>
-          <aside class="t-card ov-business" id="od-business" aria-labelledby="od-business-h"></aside>
+        <div class="ov-row3">
+          <!-- Ticket types -->
+          <section class="ov-card ov-types" id="od-types" aria-labelledby="od-types-h"></section>
+          <!-- Audience and entry -->
+          <section class="ov-card ov-audience" id="od-audience" aria-labelledby="od-audience-h"></section>
+          <!-- Channels and promotion -->
+          <section class="ov-card ov-channels" id="od-channels" aria-labelledby="od-channels-h"></section>
         </div>
       </div>
 

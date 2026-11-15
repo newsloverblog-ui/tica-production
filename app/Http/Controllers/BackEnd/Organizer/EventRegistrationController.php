@@ -124,8 +124,37 @@ class EventRegistrationController extends Controller
             'condition_question_key' => ['nullable', 'string', 'max:80'],
             'condition_operator' => ['nullable', 'in:equals,not_equals,not_empty'],
             'condition_value' => ['nullable', 'string', 'max:500'],
+            'position' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'quick' => ['nullable', 'boolean'],
         ]);
-        $registrations->addQuestion($form, (int) Auth::guard('organizer')->id(), $validated);
+        $organizerId = (int) Auth::guard('organizer')->id();
+        if ($request->boolean('quick') && empty($validated['question_key'])) {
+            // One-click fields from the field picker: give each its own data key.
+            $base = trim((string) preg_replace('/[^a-z0-9_]+/', '_', strtolower(\Illuminate\Support\Str::snake($validated['label']))), '_') ?: 'field';
+            $base = mb_substr($base, 0, 70);
+            $taken = EventRegistrationQuestion::where('form_id', $form->id)->pluck('question_key')->all();
+            $key = $base;
+            for ($n = 2; in_array($key, $taken, true); $n++) {
+                $key = $base . '_' . $n;
+            }
+            $validated['question_key'] = $key;
+        }
+        $question = $registrations->addQuestion($form, $organizerId, $validated);
+        if (!empty($validated['position'])) {
+            // Dropped at a spot in the list: move it there.
+            $order = EventRegistrationQuestion::where('form_id', $form->id)->orderBy('position')->orderBy('id')
+                ->pluck('public_id')->reject(fn ($id) => $id === $question->public_id)->values()->all();
+            array_splice($order, min(count($order), (int) $validated['position'] - 1), 0, [$question->public_id]);
+            try {
+                $registrations->reorderQuestions($form->fresh(), $organizerId, $order);
+            } catch (\Illuminate\Validation\ValidationException) {
+                // A field that depends on another must stay after it; leave the new one at the end.
+            }
+        }
+        if ($request->boolean('quick') && $form->event_id === null) {
+            return redirect()->route('organizer.forms.show', ['form' => $form, 'field' => $question->public_id])->withFragment('rf-editor')
+                ->with('success', 'Field added. Name it below.');
+        }
 
         return back()->with('success', 'Question added. Republish the form after all changes are complete.');
     }

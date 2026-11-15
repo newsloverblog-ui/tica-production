@@ -168,7 +168,19 @@ class TicaOrganizerController extends Controller
       return $event;
     });
 
-    if ($validated['entry'] === 'corporate') {
+    $libraryForm = ($validated['entry'] === 'corporate' && !empty($validated['registration_form_id']))
+      ? \App\Models\EventRegistrationForm::query()->whereNull('event_id')->where('organizer_id', (int) $organizerId)
+        ->where('public_id', $validated['registration_form_id'])->first()
+      : null;
+    if ($libraryForm) {
+      // One of the organiser's saved forms: copy it onto this event, live if the event is.
+      $result = app(\App\Services\RegistrationFormLibrary::class)->useOnEvents($libraryForm, (int) $organizerId, [$event->id], !$draft)[0] ?? null;
+      if (!$result || !$result['ok']) {
+        // Fall back to an empty draft form so the event is still in registration mode.
+        $libraryForm = null;
+      }
+    }
+    if ($validated['entry'] === 'corporate' && !$libraryForm) {
       app(EventRegistrationService::class)->saveForm($event, (int) $organizerId, [
         'name' => $validated['registration_form_name'] ?: $validated['name'],
         'intro' => $validated['registration_intro'] ?? '',
@@ -490,6 +502,7 @@ class TicaOrganizerController extends Controller
       'meta_description' => ['nullable', 'string', 'max:300'],
       'meta_keywords' => ['nullable', 'string', 'max:300'],
       'registration_form_name' => ['nullable', 'string', 'max:150'],
+      'registration_form_id' => ['nullable', 'string', 'max:64'],
       'registration_intro' => ['nullable', 'string', 'max:2000'],
       'registration_approval' => ['nullable', Rule::in(['manual', 'automatic'])],
       'flyer' => [$draft || $hasFlyer ? 'nullable' : 'required', 'nullable', 'file', 'max:5120', new ImageMimeTypeRule()],

@@ -81,12 +81,15 @@
           <p class="hint">Use 0 for free tickets. You can add early bird, VIP or table tickets, and set when each one goes on sale.</p>
         </div>
         <div class="ce-reg" hidden>
+          <div class="inp ce-reg-pick" id="ce-reg-pick" hidden><label for="c-reg-form">Registration form</label><select id="c-reg-form" name="registration_form_id"><option value="">Start a new form for this event</option></select><small id="c-reg-form-note">Pick one of your saved forms and its fields are added to this event.</small></div>
+          <div class="ce-reg-new" id="ce-reg-new">
           <div class="two">
             <div class="inp"><label for="c-reg-name">Form name</label><input id="c-reg-name" name="registration_form_name" type="text" placeholder="Delegate registration"></div>
             <div class="inp"><label for="c-reg-mode">Approval</label><select id="c-reg-mode" name="registration_approval"><option value="manual">I approve each person</option><option value="automatic">Approve everyone automatically</option></select></div>
           </div>
           <div class="inp"><label for="c-reg-intro">Message on the form</label><textarea id="c-reg-intro" name="registration_intro" rows="2" placeholder="Who should apply, and what happens next."></textarea></div>
-          <p class="hint">After publishing, add your questions, sessions and badges from the event's registration page.</p>
+          </div>
+          <p class="hint" id="ce-reg-hint">After publishing, add your questions, sessions and badges from the event's registration page. You can also build reusable forms under More tools › Registration forms.</p>
         </div>
         <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
         <h2 id="ce-fee-title">Fees &amp; payout</h2>

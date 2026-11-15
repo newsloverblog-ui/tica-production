@@ -83,37 +83,43 @@ class OrganizerOverviewMetricsTest extends TestCase
 
         $metrics = (new OrganizerOverviewMetrics())->build(1, [10], 12345.67);
 
-        $this->assertSame(['gross' => 318.0, 'sold' => 3, 'views' => 2, 'available' => 12345.67], $metrics['14']);
-        $this->assertSame(['gross' => 636.0, 'sold' => 4, 'views' => 3, 'available' => 12345.67], $metrics['30']);
-        $this->assertSame(['gross' => 1060.0, 'sold' => 5, 'views' => 4, 'available' => 12345.67], $metrics['all']);
+        // Orders count completed and free bookings; each period also carries the window just before it.
+        $this->assertSame(['gross' => 318.0, 'sold' => 3, 'views' => 2, 'orders' => 4, 'available' => 12345.67,
+            'prev' => ['gross' => 318.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['14']);
+        $this->assertSame(['gross' => 636.0, 'sold' => 4, 'views' => 3, 'orders' => 5, 'available' => 12345.67,
+            'prev' => ['gross' => 424.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['30']);
+        $this->assertSame(['gross' => 1060.0, 'sold' => 5, 'views' => 4, 'orders' => 6, 'available' => 12345.67, 'prev' => null], $metrics['all']);
     }
 
     public function test_overview_range_control_updates_cards_and_chart_together(): void
     {
         $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
 
-        $this->assertStringContainsString(
-            "addEventListener('change',function(){drawOverviewKpis(this.value);drawChart(this.value)})",
-            $script
-        );
-        $this->assertStringContainsString('D.kpisByRange&&D.kpisByRange[range]||D.kpis', $script);
+        // The segmented control and the phone dropdown both go through setRange.
+        $this->assertStringContainsString("function setRange(v){OV.range=v;drawRangeControls();drawOverviewKpis(v);drawChart(v)}", $script);
+        $this->assertStringContainsString("\$('od-range').addEventListener('change',function(){setRange(this.value)})", $script);
+        $this->assertStringContainsString('D.kpisByRange&&D.kpisByRange[OV.range]||D.kpis', $script);
     }
 
-    public function test_overview_presents_performance_operations_and_lifetime_context(): void
+    public function test_overview_is_a_detailed_responsive_dashboard(): void
     {
         $view = (string) file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
         $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = (string) file_get_contents(public_path('assets/tica-ui/css/ds.css'));
 
-        foreach (['od-refreshed', 'od-snapshot', 'od-analytics', 'od-chart-total', 'od-business', 'od-order-count'] as $hook) {
+        foreach (['db-kpis', 'db-chart', 'od-chart-table', 'od-money', 'od-top', 'od-next', 'db-ord', 'od-attn', 'od-types', 'od-audience', 'od-channels', 'od-range-seg', 'od-range'] as $hook) {
             $this->assertStringContainsString('id="'.$hook.'"', $view, $hook);
         }
-        foreach (['Ticket conversion', 'Events on sale', 'Business analytics', 'Unique customers', 'Checked in', 'Active members', 'Attributed tickets', 'Available payout', 'Registration forms'] as $label) {
-            $this->assertStringContainsString($label, $script, $label);
+        foreach (['Event page views', 'Conversion', 'Available to withdraw', 'Needs attention', 'Top ticket types', 'Where sales come from', 'Checked in', 'Show as a table'] as $label) {
+            $this->assertStringContainsString($label, $script.$view, $label);
         }
-        $this->assertStringContainsString('@media (max-width:520px)', $styles);
-        $this->assertStringContainsString('.ov-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}', $styles);
-        $this->assertStringContainsString('.ov-analytics__grid{grid-template-columns:1fr', $styles);
+        // Change against the previous period, and a chart you can hover.
+        $this->assertStringContainsString('function delta(now,prev)', $script);
+        $this->assertStringContainsString("svg.addEventListener('pointermove'", $script);
+        // Layout collapses: two columns, then one; the events table turns into cards on phones.
+        $this->assertStringContainsString('@media (max-width:1279px)', $styles);
+        $this->assertStringContainsString('.ov-grid{grid-template-columns:1fr}', $styles);
+        $this->assertStringContainsString('.ov-table thead{display:none}', $styles);
         $this->assertStringContainsString("'checkedIn' => (int) \$categories->sum('checkedIn')", (string) file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php')));
     }
 

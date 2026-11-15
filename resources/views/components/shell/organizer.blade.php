@@ -85,8 +85,8 @@
   <a class="tsh-org" href="{{ $can('settings.manage') ? '/dashboard/settings' : '/dashboard' }}" aria-label="Profile and settings for {{ $name }}">
     <x-organizer-avatar :organizer="$organizer" size="40" class="tsh-avatar" />
     <span class="tsh-org__text">
-      <span class="tsh-org__name">{{ $name }}</span>
-      <span class="tsh-org__status {{ $verified ? 'is-ok' : 'is-warn' }}">{{ $verified ? 'Verified organiser' : 'Not verified yet' }}</span>
+      <span class="tsh-org__name"><span class="tsh-org__nm">{{ $name }}</span>@if ($verified)<svg class="tsh-verified" viewBox="0 0 24 24" role="img" aria-label="Verified organiser"><title>Verified organiser</title><path class="tsh-verified__seal" d="M12 1.8l2.4 1.8 3-.2.9 2.9 2.5 1.7-.9 2.9.9 2.9-2.5 1.7-.9 2.9-3-.2L12 22.2l-2.4-1.8-3 .2-.9-2.9-2.5-1.7.9-2.9-.9-2.9 2.5-1.7.9-2.9 3 .2z"/><path class="tsh-verified__tick" d="M8.2 12.3l2.5 2.5 5.1-5.3"/></svg>@endif</span>
+      @unless ($verified)<span class="tsh-org__status is-warn">Not verified yet</span>@endunless
     </span>
   </a>
 
