@@ -1337,19 +1337,32 @@ function drawOverviewSnapshot(){
     ['Sell-through',sell===null?'—':sell+'%',known?'Across limited tickets':'No limited inventory','tickets']
   ].map(function(x){return '<button type="button" data-panel="'+x[3]+'"><span>'+x[0]+'</span><b>'+x[1]+'</b><small>'+x[2]+'</small></button>'}).join('');
 }
+function drawOverviewAttention(){
+  var events=D.events||[],drafts=events.filter(function(e){return e.state==='draft'}),up=events.filter(function(e){return e.state==='up'}),items=[],near=up.filter(function(e){return e.cap&&e.sold<e.cap&&e.sold/e.cap>=.8}).sort(function(a,b){return b.sold/b.cap-a.sold/a.cap})[0],quiet=up.filter(function(e){return e.status==='On sale'&&!e.sold})[0],review=D.payouts&&D.payouts.review;
+  if(review&&CAN.payouts)items.push(['orange','Payout account needs attention',review.status==='rejected'?'Review the account details and add another bank account.':'TICA needs more information before payouts can start.','data-panel="payouts"']);
+  if(drafts.length&&CAN.events)items.push(['orange',drafts.length+(drafts.length===1?' draft is':' drafts are')+' waiting',drafts.length===1?'Finish the event and publish it when you are ready.':'Finish the event details that are still in progress.','data-panel="events"']);
+  if(near)items.push(['green',near.name+' is nearly full',(near.cap-near.sold).toLocaleString('en-NG')+' '+(near.cap-near.sold===1?'ticket':'tickets')+' left before capacity.',CAN.events?'data-manage="'+near.id+'"':'data-panel="tickets"']);
+  if(quiet&&CAN.promote)items.push(['blue','Help '+quiet.name+' reach its first buyer','Share the event or create a tracked promotion link.','data-panel="promote"']);
+  items=items.slice(0,3);
+  $('od-attention').innerHTML='<div class="t-card__head"><div><h2 class="t-card__title" id="od-attention-h">Action centre</h2><p class="t-help">The next useful things to handle.</p></div>'+(items.length?'<span class="t-count">'+items.length+'</span>':'')+'</div>'+
+    (items.length?'<div class="ov-attention__list">'+items.map(function(x){return '<button class="ov-attention__item" type="button" '+x[3]+'><i class="is-'+x[0]+'" aria-hidden="true"></i><span><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></span><em aria-hidden="true">›</em></button>'}).join('')+'</div>':'<div class="ov-attention__clear"><span aria-hidden="true">'+ICO.ok+'</span><div><b>All caught up</b><small>No urgent event or payout tasks right now.</small></div></div>');
+}
 function drawOverviewBusiness(){
-  var a=D.account||{},p=D.payouts||{},links=[];
+  var a=D.account||{},p=D.payouts||{},all=D.kpisByRange&&D.kpisByRange.all||D.kpis||{},avg=Number(all.sold||0)?Number(all.gross||0)/Number(all.sold):0,links=[];
   if(CAN.events)links.push('<a href="/create">Create event</a>');
   if(CAN.promote)links.push('<button type="button" data-panel="promote">Promote</button>');
   if(CAN.events)links.push('<a href="/organizer/forms">Registration forms</a>');
   $('od-business').innerHTML='<div class="t-card__head"><div><h2 class="t-card__title" id="od-business-h">Your business</h2><p class="t-help">All-time activity across this organiser account.</p></div></div><dl class="ov-business__list">'+
-    '<div><dt>Events</dt><dd>'+Number(a.events||0).toLocaleString('en-NG')+'</dd></div><div><dt>Bookings</dt><dd>'+Number(a.bookings||0).toLocaleString('en-NG')+'</dd></div><div><dt>Transactions</dt><dd>'+Number(a.transactions||0).toLocaleString('en-NG')+'</dd></div><div><dt>Available payout</dt><dd>'+esc(N(p.available||0))+'</dd></div></dl>'+
+    '<div><dt>Events</dt><dd>'+Number(a.events||0).toLocaleString('en-NG')+'</dd></div><div><dt>Bookings</dt><dd>'+Number(a.bookings||0).toLocaleString('en-NG')+'</dd></div><div><dt>Tickets issued</dt><dd>'+Number(all.sold||0).toLocaleString('en-NG')+'</dd></div><div><dt>Average ticket value</dt><dd>'+esc(N(avg))+'</dd></div><div><dt>Transactions</dt><dd>'+Number(a.transactions||0).toLocaleString('en-NG')+'</dd></div><div><dt>Available payout</dt><dd>'+esc(N(p.available||0))+'</dd></div></dl>'+
     (links.length?'<div class="ov-business__actions" aria-label="Quick actions">'+links.join('')+'</div>':'');
+}
+function animateOverview(){
+  var ov=document.querySelector('.od-p.ov');if(!ov||ov.dataset.revealed)return;ov.dataset.revealed='true';requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('is-ready')})});
 }
 function drawOverview(){
   var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');
   if($('od-overview-create'))$('od-overview-create').hidden=!CAN.events;
-  drawOverviewSnapshot();drawOverviewBusiness();
+  drawOverviewSnapshot();drawOverviewAttention();drawOverviewBusiness();
   setup.hidden=doneN===3||!CAN.payouts;
   if(!setup.hidden){
     var next=!s.identity?['Verify your identity so you can be paid.','Verify identity',D.setup.kycUrl]:!s.payout?['Add the bank account your sales should go to.','Add bank account',null]:['Publish your first event.','Create an event','/create'];
@@ -1368,6 +1381,7 @@ function drawOverview(){
       (e.tiers.length>1?'<details class="ov-tiers"><summary>By ticket type</summary><ul>'+e.tiers.map(function(t){return '<li><span>'+esc(t.name)+'</span><span>'+t.sold+(t.total!=null?' / '+t.total:'')+'</span></li>'}).join('')+'</ul></details>':'')+
       '<div class="ov-next__act">'+(CAN.events?'<button class="t-btn t-btn--secondary" type="button" data-manage="'+e.id+'">Manage</button>':'')+(CAN.checkin?'<a class="t-btn t-btn--ghost" href="/checkin">Check in guests</a>':'')+'</div>';
   }else $('od-next').innerHTML='<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>No upcoming events</h3><p>Your next event will show here with its ticket sales.</p>'+(CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>':'')+'</div>';
+  animateOverview();
 }
 function drawOverviewKpis(range){
   var k=D.kpisByRange&&D.kpisByRange[range]||D.kpis,per=$('od-range').selectedOptions[0]?$('od-range').selectedOptions[0].text.toLowerCase():'',rate=k.views?Math.min(999,Math.round(k.sold/k.views*1000)/10):0;

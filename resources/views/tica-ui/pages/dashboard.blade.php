@@ -24,7 +24,10 @@
         <section class="ov-snapshot" id="od-snapshot" aria-label="Event operations snapshot"></section>
         <div class="ov-grid">
           <section class="t-card ov-chart-card" aria-labelledby="ov-chart-h"><div class="t-card__head"><div><h2 class="t-card__title" id="ov-chart-h">Ticket sales trend</h2><p class="t-help">Paid and free tickets issued during the selected period.</p></div><span class="t-badge t-badge--blue" id="od-chart-total">0 tickets</span></div><div class="db-chart" id="db-chart"></div></section>
-          <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
+          <div class="ov-rail">
+            <section class="t-card ov-attention" id="od-attention" aria-labelledby="od-attention-h"></section>
+            <section class="t-card ov-next" id="od-next" aria-label="Next event"></section>
+          </div>
         </div>
         <div class="ov-lower">
           <section class="t-card ov-orders" aria-labelledby="ov-ord-h">

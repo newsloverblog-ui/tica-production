@@ -102,14 +102,16 @@ class OrganizerOverviewMetricsTest extends TestCase
         $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = (string) file_get_contents(public_path('assets/tica-ui/css/ds.css'));
 
-        foreach (['od-refreshed', 'od-snapshot', 'od-chart-total', 'od-business', 'od-order-count'] as $hook) {
+        foreach (['od-refreshed', 'od-snapshot', 'od-chart-total', 'od-attention', 'od-business', 'od-order-count'] as $hook) {
             $this->assertStringContainsString('id="'.$hook.'"', $view, $hook);
         }
-        foreach (['Ticket conversion', 'Events on sale', 'Available payout', 'Registration forms'] as $label) {
+        foreach (['Ticket conversion', 'Events on sale', 'Action centre', 'Average ticket value', 'Available payout', 'Registration forms'] as $label) {
             $this->assertStringContainsString($label, $script, $label);
         }
         $this->assertStringContainsString('@media (max-width:520px)', $styles);
         $this->assertStringContainsString('.ov-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}', $styles);
+        $this->assertStringContainsString('@keyframes ov-enter', $styles);
+        $this->assertStringContainsString('animation-delay:0ms!important', $styles);
     }
 
     private function booking(int $organizerId, string $status, float $price, float $tax, string $currency, Carbon $createdAt): void
