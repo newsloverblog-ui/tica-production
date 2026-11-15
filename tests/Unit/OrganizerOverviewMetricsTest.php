@@ -3,6 +3,8 @@
 namespace Tests\Unit;
 
 use App\Services\TicaUi\OrganizerOverviewMetrics;
+use App\Services\TicaUi\OrganizerWorkspace;
+use App\Models\Language;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +32,7 @@ class OrganizerOverviewMetricsTest extends TestCase
             $table->decimal('price', 14, 2)->default(0);
             $table->decimal('tax', 14, 2)->default(0);
             $table->string('currencyText')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
         });
         Schema::create('booking_tickets', function (Blueprint $table): void {
@@ -102,19 +105,34 @@ class OrganizerOverviewMetricsTest extends TestCase
         $script = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = (string) file_get_contents(public_path('assets/tica-ui/css/ds.css'));
 
-        foreach (['od-refreshed', 'od-snapshot', 'od-chart-total', 'od-attention', 'od-business', 'od-order-count'] as $hook) {
+        foreach (['od-refreshed', 'od-snapshot', 'od-analytics', 'od-chart-total', 'od-business', 'od-order-count'] as $hook) {
             $this->assertStringContainsString('id="'.$hook.'"', $view, $hook);
         }
-        foreach (['Ticket conversion', 'Events on sale', 'Action centre', 'Average ticket value', 'Available payout', 'Registration forms'] as $label) {
+        foreach (['Ticket conversion', 'Events on sale', 'Business analytics', 'Unique customers', 'Checked in', 'Active members', 'Attributed tickets', 'Available payout', 'Registration forms'] as $label) {
             $this->assertStringContainsString($label, $script, $label);
         }
         $this->assertStringContainsString('@media (max-width:520px)', $styles);
         $this->assertStringContainsString('.ov-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}', $styles);
-        $this->assertStringContainsString('@keyframes ov-enter', $styles);
-        $this->assertStringContainsString('animation-delay:0ms!important', $styles);
+        $this->assertStringContainsString('.ov-analytics__grid{grid-template-columns:1fr', $styles);
+        $this->assertStringContainsString("'checkedIn' => (int) \$categories->sum('checkedIn')", (string) file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php')));
     }
 
-    private function booking(int $organizerId, string $status, float $price, float $tax, string $currency, Carbon $createdAt): void
+    public function test_audience_analytics_are_scoped_deduplicated_and_aggregate_only(): void
+    {
+        $this->booking(1, 'completed', 100, 0, 'NGN', now(), 'ada@example.com');
+        $this->booking(1, 'completed', 100, 0, 'NGN', now()->subDays(10), 'ADA@example.com');
+        $this->booking(1, 'free', 0, 0, 'NGN', now()->subDays(40), 'chi@example.com');
+        $this->booking(1, 'pending', 100, 0, 'NGN', now(), 'pending@example.com');
+        $this->booking(2, 'completed', 100, 0, 'NGN', now(), 'other@example.com');
+
+        $method = new \ReflectionMethod(OrganizerWorkspace::class, 'audience');
+        $method->setAccessible(true);
+        $analytics = $method->invoke(new OrganizerWorkspace(new Language()), 1);
+
+        $this->assertSame(['customers' => 2, 'active30' => 1, 'repeat' => 1], $analytics);
+    }
+
+    private function booking(int $organizerId, string $status, float $price, float $tax, string $currency, Carbon $createdAt, ?string $email = null): void
     {
         DB::table('bookings')->insert([
             'organizer_id' => $organizerId,
@@ -122,6 +140,7 @@ class OrganizerOverviewMetricsTest extends TestCase
             'price' => $price,
             'tax' => $tax,
             'currencyText' => $currency,
+            'email' => $email,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ]);

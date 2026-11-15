@@ -91,6 +91,7 @@ class OrganizerWorkspace
         'cur' => $this->cur($b->currencyText),
         'ago' => Carbon::parse($b->created_at)->diffForHumans(),
       ])->values()->all(),
+      'audience' => $this->audience((int) $organizer->id),
       'ticketing' => $this->ticketing((int) $organizer->id),
       'payouts' => $this->payouts($organizer, $account),
       'codes' => $this->codes((int) $organizer->id),
@@ -153,7 +154,7 @@ class OrganizerWorkspace
   private function ticketing(int $organizerId): array
   {
     $empty = [
-      'summary' => ['inventory' => 0, 'sold' => 0, 'available' => 0, 'revenue' => 0, 'numbered' => 0, 'seated' => 0, 'cancelled' => 0],
+      'summary' => ['inventory' => 0, 'sold' => 0, 'checkedIn' => 0, 'available' => 0, 'revenue' => 0, 'numbered' => 0, 'seated' => 0, 'cancelled' => 0],
       'categories' => [],
     ];
     if (!Schema::hasTable('booking_tickets') || !Schema::hasColumn('booking_tickets', 'ticket_number')) {
@@ -175,7 +176,7 @@ class OrganizerWorkspace
     $events = DB::table('event_contents')->whereIn('event_id', $tickets->pluck('event_id'))->orderBy('language_id')
       ->get(['event_id', 'title'])->unique('event_id')->pluck('title', 'event_id');
     $units = BookingTicket::query()->whereIn('ticket_id', $ticketIds)
-      ->selectRaw("ticket_id, COUNT(*) as allocated, SUM(CASE WHEN status IN ('issued','checked_in') THEN 1 ELSE 0 END) as sold, SUM(CASE WHEN status IN ('refunded','revoked') THEN 1 ELSE 0 END) as cancelled, SUM(CASE WHEN ticket_number IS NOT NULL THEN 1 ELSE 0 END) as numbered, SUM(CASE WHEN seat_id IS NOT NULL THEN 1 ELSE 0 END) as seated")
+      ->selectRaw("ticket_id, COUNT(*) as allocated, SUM(CASE WHEN status IN ('issued','checked_in') THEN 1 ELSE 0 END) as sold, SUM(CASE WHEN status = 'checked_in' THEN 1 ELSE 0 END) as checked_in, SUM(CASE WHEN status IN ('refunded','revoked') THEN 1 ELSE 0 END) as cancelled, SUM(CASE WHEN ticket_number IS NOT NULL THEN 1 ELSE 0 END) as numbered, SUM(CASE WHEN seat_id IS NOT NULL THEN 1 ELSE 0 END) as seated")
       ->groupBy('ticket_id')->get()->keyBy('ticket_id');
     $revenue = BookingTicket::query()
       ->join('bookings', 'bookings.id', '=', 'booking_tickets.booking_id')
@@ -196,6 +197,7 @@ class OrganizerWorkspace
         'name' => (string) ($titles[$ticket->id] ?? $ticket->title ?: 'Ticket'),
         'inventory' => $available === null ? null : $available + $sold,
         'sold' => $sold,
+        'checkedIn' => (int) ($unit->checked_in ?? 0),
         'available' => $available,
         'revenue' => round((float) ($revenue[$ticket->id] ?? 0), 2),
         'numbered' => (int) ($unit->numbered ?? 0),
@@ -212,6 +214,7 @@ class OrganizerWorkspace
       'summary' => [
         'inventory' => (int) $limited->sum('inventory'),
         'sold' => (int) $categories->sum('sold'),
+        'checkedIn' => (int) $categories->sum('checkedIn'),
         'available' => (int) $limited->sum('available'),
         'revenue' => round((float) $categories->sum('revenue'), 2),
         'numbered' => (int) $categories->sum('numbered'),
@@ -219,6 +222,25 @@ class OrganizerWorkspace
         'cancelled' => (int) $categories->sum('cancelled'),
       ],
       'categories' => $categories->all(),
+    ];
+  }
+
+  /** Aggregate buyer activity without exposing customer records in overview data. */
+  private function audience(int $organizerId): array
+  {
+    $base = Booking::query()
+      ->where('organizer_id', $organizerId)
+      ->whereIn('paymentStatus', ['completed', 'free'])
+      ->whereNotNull('email')
+      ->where('email', '!=', '');
+    $grouped = fn ($query) => $query->selectRaw('LOWER(email) AS normalized_email')->groupByRaw('LOWER(email)');
+    $repeat = (clone $base)->selectRaw('LOWER(email) AS normalized_email, COUNT(*) AS purchases')
+      ->groupByRaw('LOWER(email)')->havingRaw('COUNT(*) > 1');
+
+    return [
+      'customers' => (int) DB::query()->fromSub($grouped(clone $base), 'audience_customers')->count(),
+      'active30' => (int) DB::query()->fromSub($grouped((clone $base)->where('created_at', '>=', now()->subDays(29)->startOfDay())), 'audience_recent')->count(),
+      'repeat' => (int) DB::query()->fromSub($repeat, 'audience_repeat')->count(),
     ];
   }
 
