@@ -402,7 +402,51 @@ CREATE INDEX IF NOT EXISTS ticket_number_allocations_status_index ON public.tick
 
 SELECT pg_temp.tica_mark_migration('2026_11_14_180000_create_advanced_ticketing_tables');
 
--- 9. Keep these tables private --------------------------------------------
+-- 9. Organizer operations: sponsorship inventory and account plans ---------
+CREATE TABLE IF NOT EXISTS public.tica_sponsorship_packages (
+  id bigserial PRIMARY KEY,
+  public_id uuid NOT NULL UNIQUE,
+  organizer_id bigint NOT NULL,
+  event_id bigint NULL,
+  name varchar(120) NOT NULL,
+  summary varchar(300) NULL,
+  deliverables json NOT NULL,
+  price numeric(18,2) NULL,
+  currency varchar(3) NOT NULL DEFAULT 'NGN',
+  available_slots integer NULL,
+  status varchar(24) NOT NULL DEFAULT 'draft',
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS tica_sponsorship_packages_organizer_id_index ON public.tica_sponsorship_packages (organizer_id);
+CREATE INDEX IF NOT EXISTS tica_sponsorship_packages_event_id_index ON public.tica_sponsorship_packages (event_id);
+CREATE INDEX IF NOT EXISTS tica_sponsorship_packages_status_index ON public.tica_sponsorship_packages (status);
+CREATE INDEX IF NOT EXISTS tica_sponsor_org_status_idx ON public.tica_sponsorship_packages (organizer_id, status, id);
+
+CREATE TABLE IF NOT EXISTS public.tica_organizer_subscriptions (
+  id bigserial PRIMARY KEY,
+  organizer_id bigint NOT NULL UNIQUE,
+  plan varchar(24) NOT NULL DEFAULT 'launch',
+  status varchar(24) NOT NULL DEFAULT 'active',
+  automatic_upgrade boolean NOT NULL DEFAULT false,
+  requested_plan varchar(24) NULL,
+  change_requested_at timestamp(0) without time zone NULL,
+  started_at timestamp(0) without time zone NULL,
+  renews_at timestamp(0) without time zone NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS tica_organizer_subscriptions_status_index ON public.tica_organizer_subscriptions (status);
+
+DO $$
+BEGIN
+  IF to_regclass('public.bookings') IS NOT NULL THEN
+    CREATE INDEX IF NOT EXISTS bookings_organizer_channel_idx ON public.bookings (organizer_id, "gatewayType", id);
+  END IF;
+END $$;
+SELECT pg_temp.tica_mark_migration('2026_11_15_090000_create_organizer_operations_tables');
+
+-- 10. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -412,6 +456,8 @@ ALTER TABLE public.seating_rows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_seats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.seat_reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_number_allocations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tica_sponsorship_packages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tica_organizer_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
@@ -567,6 +613,8 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('subscriber_campaign_deliveries'),
   ('subscriber_campaigns'),
   ('subscribers'),
+  ('tica_organizer_subscriptions'),
+  ('tica_sponsorship_packages'),
   ('support_ticket_statuses'),
   ('support_tickets'),
   ('testimonial_sections'),
@@ -734,7 +782,8 @@ SELECT 'update not recorded', m.name
   ('2026_11_14_100000_make_registration_forms_reusable'),
   ('2026_11_14_160000_add_totp_to_account_actors'),
   ('2026_11_14_180000_expand_tica_promotion_system'),
-  ('2026_11_14_180000_create_advanced_ticketing_tables')
+  ('2026_11_14_180000_create_advanced_ticketing_tables'),
+  ('2026_11_15_090000_create_organizer_operations_tables')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

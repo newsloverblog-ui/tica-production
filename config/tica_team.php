@@ -64,6 +64,7 @@ return [
       'organizer.event.update', 'organizer.event.preview', 'organizer.event.ticket', 'organizer.event.add.ticket',
       'organizer.event.edit.ticket', 'organizer.ticket_management.*', 'organizer.event_cancellations.store',
       'organizer.event.registrations.*', 'organizer.forms.*', 'organizer.event.guest-list.*',
+      'organizer.operations.door-sales*', 'organizer.operations.sponsorships*',
     ],
     'orders.view' => ['organizer.event.booking', 'organizer.event_booking.details', 'organizer.event_booking.invoice', 'organizer.event_booking.attachment'],
     'orders.manage' => ['organizer.event_booking.resend-tickets', 'organizer.event_booking.ticket.reissue', 'organizer.event_booking.ticket.revoke'],
@@ -77,7 +78,7 @@ return [
     'owner.only' => [
       'organizer.event_booking.delete', 'organizer.event_booking.bulk_delete', 'organizer.edit.profile', 'organizer.update_profile',
       'organizer.change.password', 'organizer.update_password', 'organizer.kyc.*', 'organizer.scanner.staff.*',
-      'organizer.data_export_schedules.*',
+      'organizer.data_export_schedules.*', 'organizer.operations.plans*',
     ],
   ],
 

@@ -44,6 +44,8 @@
     ],
   ];
   $tools = array_values(array_filter([
+    ['Door sales', '/organizer/operations/door-sales', 'events.manage'],
+    ['Sponsorship packages', '/organizer/operations/sponsorships', 'events.manage'],
     ['Registration forms', '/organizer/forms', 'events.manage'],
     ['Booking report', '/organizer/event-booking/report', 'reports.view'],
     ['Guest lists and RSVPs', '/organizer/event/guest-list', 'events.manage'],
@@ -54,6 +56,7 @@
     ['Check-in ledger', '/organizer/check-in-ledger/exports', 'orders.export'],
     ['Gate staff and devices', '/organizer/pwa', 'team.manage'],
     ['Identity and bank', '/organizer/kyc', 'bank.manage'],
+    ['Plans and usage', '/organizer/operations/plans', 'settings.manage'],
     ['Support', '/organizer/support-tikcet/tickets', 'support.use'],
   ], fn ($tool) => $can($tool[2])));
   // Legacy pages don't say which item they belong to: work it out from the address, most specific first,
