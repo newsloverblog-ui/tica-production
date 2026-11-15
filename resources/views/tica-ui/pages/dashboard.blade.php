@@ -21,12 +21,12 @@
 
         <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
 
-        <!-- Headline numbers for the chosen period, with change against the period before. -->
-        <div class="ov-kpis" id="db-kpis" aria-live="polite">
-          <span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span>
+        <!-- One performance rail for the chosen period, with change against the period before. -->
+        <div class="ov-summary" id="db-kpis" aria-live="polite">
+          <span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span>
         </div>
 
-        <div class="ov-row">
+        <div class="ov-row ov-row--primary">
           <!-- Sales over time -->
           <section class="ov-card ov-sales" aria-labelledby="ov-chart-h">
             <div class="ov-card__head">
@@ -42,10 +42,10 @@
           <!-- Next event -->
           <section class="ov-card ov-next" id="od-next" aria-label="Next event"></section>
         </div>
-        <div class="ov-row">
+        <div class="ov-row ov-row--secondary">
           <!-- Events -->
           <section class="ov-card ov-events" aria-labelledby="od-top-h">
-            <div class="ov-card__head"><div><h2 class="ov-card__title" id="od-top-h">Event performance</h2><p class="ov-card__sub">Upcoming and recent events, by tickets sold.</p></div><button class="ov-link" type="button" data-panel="events">All events</button></div>
+            <div class="ov-card__head"><div><h2 class="ov-card__title" id="od-top-h">Events</h2><p class="ov-card__sub">Published events and their current ticket pace.</p></div><button class="ov-link" type="button" data-panel="events">All events</button></div>
             <div id="od-top"></div>
           </section>
           <!-- Money -->
