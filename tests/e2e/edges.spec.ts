@@ -14,9 +14,10 @@ test.describe('edge cases (owner)', () => {
     future.setDate(future.getDate() + 14);
     const date = future.toISOString().slice(0, 10);
 
+    await page.addInitScript(() => {
+      localStorage.setItem('tica_consent_v1', JSON.stringify({ v: 1, at: new Date().toISOString(), p: false, a: false, m: false }));
+    });
     await page.goto('/create', { waitUntil: 'networkidle' });
-    const acceptCookies = page.locator('[data-ck="accept"]');
-    if (await acceptCookies.isVisible()) await acceptCookies.click();
     await page.fill('#c-name', name);
     await page.fill('#c-date', date);
     await page.fill('#c-time', '18:00');
