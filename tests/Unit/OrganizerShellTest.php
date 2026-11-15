@@ -22,10 +22,8 @@ class OrganizerShellTest extends TestCase
     }
     $this->assertSame(1, substr_count($html, 'Create an event'));
     $this->assertSame(1, substr_count($html, 'aria-current="page"'), 'Exactly one active item.');
-    // Door sales, Sponsorships and Plans and usage were taken out of the menu.
-    foreach (['/organizer/operations/door-sales', '/organizer/operations/sponsorships', '/organizer/operations/plans'] as $href) {
-      $this->assertStringNotContainsString('href="'.$href.'"', $html, $href);
-    }
+    // Door sales, Sponsorships and Plans and usage were removed from TICA.
+    $this->assertStringNotContainsString('/organizer/operations/', $html);
   }
 
   public function test_finance_member_only_sees_what_finance_can_open(): void
@@ -71,7 +69,6 @@ class OrganizerShellTest extends TestCase
     foreach (['Event setup', 'Reports', 'Exports and access', 'Account help'] as $group) {
       $this->assertStringContainsString('class="tsh-subgroup">'.$group, $html);
     }
-    $this->assertStringNotContainsString('tsh-sublink os-link" href="/organizer/operations/door-sales"', $html);
   }
 
   public function test_drawer_controls_are_labelled(): void

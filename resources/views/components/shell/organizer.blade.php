@@ -19,13 +19,10 @@
     'events' => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
     'tickets' => '<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/><path d="M9 8v9M15 8v9"/>',
     'orders' => '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>',
-    'door_sales' => '<path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
     'checkin' => '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/>',
     'promote' => '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/>',
-    'sponsorships' => '<path d="M8.5 12.5l2 2a2 2 0 0 0 3 0l4.5-4.5M3 9l4-4 4 2-6 6zM21 9l-4-4-4 2 6 6z"/><path d="M7 13l4.5 4.5a2 2 0 0 0 3-2.5"/>',
     'payouts' => '<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
     'team' => '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>',
-    'plans' => '<path d="M12 3L3 8l9 5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/>',
     'forms' => '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
     'settings' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
     'tools' => '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
@@ -77,9 +74,6 @@
     $path = '/' . ltrim(request()->path(), '/');
     $toolHit = collect($tools)->first(fn ($tool) => str_starts_with($path, $tool[1]));
     $active = match (true) {
-      str_starts_with($path, '/organizer/operations/door-sales') => 'door_sales',
-      str_starts_with($path, '/organizer/operations/sponsorships') => 'sponsorships',
-      str_starts_with($path, '/organizer/operations/plans') => 'plans',
       str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'forms',
       $toolHit !== null => 'tools',
       request()->routeIs('organizer.withdraw*', 'organizer.payout*') => 'payouts',
@@ -90,7 +84,7 @@
   }
   $toolsActive = in_array($active, ['tools', 'forms'], true);
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
-  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'door_sales' => 'Door sales', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'sponsorships' => 'Sponsorships', 'payouts' => 'Payouts', 'team' => 'Team', 'plans' => 'Plans and usage', 'settings' => 'Settings', 'tools' => 'More tools'];
+  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
 
 <div id="tica-shell" class="tsh">
