@@ -137,6 +137,19 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
   Route::get('event/guest-list/import-template', 'BackEnd\Organizer\EventGuestListController@template')->name('organizer.event.guest-list.import-template');
   Route::post('event/guest-list/export', 'BackEnd\Organizer\EventGuestListController@export')->name('organizer.event.guest-list.export');
 
+  // Organizer operations: in-person box office, sponsorship inventory and account plan.
+  Route::get('operations/door-sales', 'BackEnd\Organizer\OrganizerOperationsController@doorSales')->name('organizer.operations.door-sales');
+  Route::post('operations/door-sales', 'BackEnd\Organizer\OrganizerOperationsController@recordDoorSale')->middleware('throttle:30,1')->name('organizer.operations.door-sales.store');
+  Route::post('operations/door-sales/import', 'BackEnd\Organizer\OrganizerOperationsController@importDoorSales')->middleware('throttle:5,1')->name('organizer.operations.door-sales.import');
+  Route::get('operations/door-sales/template', 'BackEnd\Organizer\OrganizerOperationsController@doorSalesTemplate')->name('organizer.operations.door-sales.template');
+  Route::get('operations/sponsorships', 'BackEnd\Organizer\OrganizerOperationsController@sponsorships')->name('organizer.operations.sponsorships');
+  Route::post('operations/sponsorships', 'BackEnd\Organizer\OrganizerOperationsController@storeSponsorship')->middleware('throttle:30,1')->name('organizer.operations.sponsorships.store');
+  Route::post('operations/sponsorships/{package}', 'BackEnd\Organizer\OrganizerOperationsController@updateSponsorship')->middleware('throttle:30,1')->name('organizer.operations.sponsorships.update');
+  Route::post('operations/sponsorships/{package}/delete', 'BackEnd\Organizer\OrganizerOperationsController@deleteSponsorship')->middleware('throttle:20,1')->name('organizer.operations.sponsorships.delete');
+  Route::get('operations/plans', 'BackEnd\Organizer\OrganizerOperationsController@plans')->name('organizer.operations.plans');
+  Route::post('operations/plans/automation', 'BackEnd\Organizer\OrganizerOperationsController@updatePlanAutomation')->middleware('throttle:20,1')->name('organizer.operations.plans.automation');
+  Route::post('operations/plans/request', 'BackEnd\Organizer\OrganizerOperationsController@requestPlan')->middleware('throttle:5,10')->name('organizer.operations.plans.request');
+
   // Registration forms library: build a form once, use it on any events.
   Route::get('forms', 'BackEnd\Organizer\RegistrationFormController@index')->name('organizer.forms.index');
   Route::post('forms', 'BackEnd\Organizer\RegistrationFormController@store')->middleware('throttle:30,1')->name('organizer.forms.store');
