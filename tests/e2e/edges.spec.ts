@@ -15,6 +15,8 @@ test.describe('edge cases (owner)', () => {
     const date = future.toISOString().slice(0, 10);
 
     await page.goto('/create', { waitUntil: 'networkidle' });
+    const acceptCookies = page.locator('[data-ck="accept"]');
+    if (await acceptCookies.isVisible()) await acceptCookies.click();
     await page.fill('#c-name', name);
     await page.fill('#c-date', date);
     await page.fill('#c-time', '18:00');
