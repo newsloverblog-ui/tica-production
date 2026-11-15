@@ -1465,7 +1465,43 @@ window.TICA_renderDash=renderDash;
 function evRows(){var q=($('ev-q')&&$('ev-q').value||'').trim().toLowerCase();return D.events.filter(function(r){return r.state===OD.ef&&(!q||(r.name+' '+(r.city||'')+' '+(r.venue||'')).toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return OD.ef==='past'?b.ts-a.ts:a.ts-b.ts})}
 OD.evPage=0;var EV_PER=10;
 function evStatus(r){var cls=r.status==='On sale'?'green':r.status==='Sales paused'||r.status==='Cancelling'?'orange':r.status==='Cancelled'?'red':r.state==='draft'?'':'blue';return '<span class="t-badge'+(cls?' t-badge--'+cls:'')+'">'+esc(r.status)+'</span>'}
+var floatingRowMenu=null;
+function restoreRowMenu(details){
+  if(!details||!details._ticaMenuList)return;
+  var list=details._ticaMenuList,marker=details._ticaMenuMarker;
+  if(marker&&marker.parentNode)marker.parentNode.insertBefore(list,marker);
+  if(marker&&marker.parentNode)marker.parentNode.removeChild(marker);
+  list.classList.remove('is-floating');
+  list.removeAttribute('style');
+  details._ticaMenuList=null;details._ticaMenuMarker=null;
+  if(floatingRowMenu===details)floatingRowMenu=null;
+}
+function closeRowMenu(){
+  if(!floatingRowMenu)return;
+  var details=floatingRowMenu;
+  details.removeAttribute('open');
+  restoreRowMenu(details);
+}
+function floatRowMenu(details){
+  if(floatingRowMenu&&floatingRowMenu!==details)closeRowMenu();
+  var list=details.querySelector('.t-menu__list'),trigger=details.querySelector('summary');
+  if(!list||!trigger)return;
+  var marker=document.createComment('row-menu');
+  list.parentNode.insertBefore(marker,list);
+  details._ticaMenuList=list;details._ticaMenuMarker=marker;floatingRowMenu=details;
+  document.body.appendChild(list);list.classList.add('is-floating');
+  list.style.visibility='hidden';list.style.left='12px';list.style.top='12px';list.style.maxHeight=Math.max(120,window.innerHeight-24)+'px';
+  var rect=trigger.getBoundingClientRect(),width=list.offsetWidth,height=Math.min(list.scrollHeight,window.innerHeight-24),gap=6,pad=12;
+  var left=Math.max(pad,Math.min(rect.right-width,window.innerWidth-width-pad));
+  var below=rect.bottom+gap,top=below+height<=window.innerHeight-pad?below:Math.max(pad,rect.top-height-gap);
+  list.style.left=Math.round(left)+'px';list.style.top=Math.round(top)+'px';list.style.visibility='visible';
+  requestAnimationFrame(function(){var first=list.querySelector('a,button');if(first&&details.open)first.focus()});
+}
+function bindRowMenus(root){
+  [].forEach.call(root.querySelectorAll('.t-menu'),function(details){details.addEventListener('toggle',function(){if(details.open)floatRowMenu(details);else restoreRowMenu(details)})});
+}
 function drawEvents(){
+  closeRowMenu();
   [].forEach.call(document.querySelectorAll('[data-ef]'),function(b){b.setAttribute('aria-selected',b.dataset.ef===OD.ef?'true':'false')});
   ['up','draft','past'].forEach(function(k){var c=document.querySelector('[data-efc='+k+']');if(c)c.textContent=D.events.filter(function(r){return r.state===k}).length});
   var create=document.querySelector('.od-events-create');if(create)create.hidden=!CAN.events;
@@ -1486,12 +1522,15 @@ function drawEvents(){
       '<td data-label="Status">'+evStatus(r)+'</td>'+
       '<td class="ev-actions">'+(menu.length?'<details class="t-menu"><summary class="t-icon-btn" aria-label="Actions for '+esc(r.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></summary><div class="t-menu__list">'+menu.join('')+'</div></details>':'')+'</td></tr>'}).join('')+'</tbody></table></div>'+
     (pages>1?'<div class="t-pager"><span>'+(OD.evPage*EV_PER+1)+'–'+(OD.evPage*EV_PER+rows.length)+' of '+all.length+'</span><span class="t-pager__btns"><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="-1"'+(OD.evPage===0?' disabled':'')+'>Previous</button><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-evpage="1"'+(OD.evPage>=pages-1?' disabled':'')+'>Next</button></span></div>':'');
+  bindRowMenus($('od-evlist'));
 }
 document.addEventListener('input',function(e){if(e.target.id==='ev-q'){OD.evPage=0;drawEvents()}});
 document.addEventListener('click',function(e){var p=e.target.closest('[data-evpage]');if(p){OD.evPage+=+p.dataset.evpage;drawEvents();return}
   var o=e.target.closest('[data-ev-orders]');if(o){var f=$('od-fe');show('orders',true);if(f){f.value=o.dataset.evOrders;f.dispatchEvent(new Event('change',{bubbles:true}))}return}
-  var m=document.querySelector('.t-menu[open]');if(m&&!m.contains(e.target))m.removeAttribute('open')});
+  var m=document.querySelector('.t-menu[open]'),list=m&&m._ticaMenuList;if(m&&!m.contains(e.target)&&!(list&&list.contains(e.target)))m.removeAttribute('open');else if(m&&list&&list.contains(e.target)&&e.target.closest('a,button'))m.removeAttribute('open')});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.querySelector('.t-menu[open]');if(m){m.removeAttribute('open');m.querySelector('summary').focus()}}});
+document.addEventListener('scroll',function(e){if(floatingRowMenu&&e.target!==floatingRowMenu._ticaMenuList)closeRowMenu()},true);
+window.addEventListener('resize',closeRowMenu);
 
 /* ticket inventory and individual assignments */
 var TK=[],tkCursor=null,tkLoading=false,tkRequest=0,tkTimer=null;

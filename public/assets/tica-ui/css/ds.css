@@ -145,6 +145,7 @@
 .t-menu>summary{list-style:none;cursor:pointer}
 .t-menu>summary::-webkit-details-marker{display:none}
 .t-menu__list{position:absolute;right:0;top:calc(100% + 4px);z-index:20;min-width:190px;padding:var(--t-1);background:var(--t-surface);border:1px solid var(--t-line);border-radius:var(--t-radius-sm);box-shadow:var(--t-shadow-pop);display:grid;animation:t-pop var(--t-fast) var(--t-ease)}
+.t-menu__list.is-floating{position:fixed;top:auto;right:auto;z-index:1200;max-width:calc(100vw - 24px);overflow-y:auto;overscroll-behavior:contain}
 .t-menu__list a,.t-menu__list button{display:block;width:100%;padding:var(--t-2) var(--t-3);border:0;border-radius:6px;background:none;text-align:left;color:var(--t-text-c)!important;font:400 14px/1.4 var(--t-font);text-decoration:none!important;cursor:pointer;white-space:nowrap}
 .t-menu__list a:hover,.t-menu__list button:hover{background:var(--t-subtle)}
 .t-menu__list .is-danger{color:var(--t-red)!important}

@@ -7,6 +7,29 @@ import { noSidewaysScroll, signIn, watch } from './helpers';
 test.describe('edge cases (owner)', () => {
   test.beforeEach(async ({ page }) => { await signIn(page, 'owner'); });
 
+  test('event action menu escapes the scrolling event card and stays on screen', async ({ page }) => {
+    await page.goto('/dashboard/events');
+    const trigger = page.locator('#od-evlist .t-menu summary').first();
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+
+    const menu = page.locator('body > .t-menu__list.is-floating');
+    await expect(menu).toBeVisible();
+    await expect(menu.getByText('Manage sales and settings')).toBeVisible();
+    const box = await menu.boundingBox();
+    const viewport = page.viewportSize();
+    expect(box).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(8);
+    expect(box!.y).toBeGreaterThanOrEqual(8);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width - 8);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height - 8);
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
   test('a setting saves once on double-click and survives a reload', async ({ page }) => {
     await page.goto('/dashboard/settings');
     const sw = page.locator('[data-pref="notify_sale"]');
