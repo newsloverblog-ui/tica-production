@@ -68,9 +68,27 @@
       </fieldset>
 
       <fieldset id="ce-tix"><legend>Your tickets</legend>
-        <div class="ce-mode ce-how" role="radiogroup" aria-label="How people get in">
-          <label><input type="radio" name="c-entry" value="ticketing" checked><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/></svg><b>Tickets</b><small>Sell tickets or give them away free</small></span></label>
-          <label><input type="radio" name="c-entry" value="corporate"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><b>Registration</b><small>People apply and you approve them</small></span></label>
+        <div class="ce-entry-state" aria-hidden="true">
+          <input type="radio" name="c-entry" value="ticketing" checked tabindex="-1">
+          <input type="radio" name="c-entry" value="corporate" tabindex="-1">
+        </div>
+        <div class="ce-entry-choice">
+          <label class="ce-choice-row" for="c-use-registration">
+            <input id="c-use-registration" type="checkbox" aria-controls="ce-registration-fields" aria-expanded="false">
+            <span><b>Add a registration form</b><small>People complete a form and wait for your approval instead of buying a ticket instantly.</small></span>
+          </label>
+        </div>
+        <div class="ce-reg ce-disclosure" id="ce-registration-fields" hidden>
+          <div class="ce-reg-empty" id="ce-reg-empty" hidden><b>No saved forms yet</b><p>Create the form for this event below. You can add its questions after publishing.</p></div>
+          <div class="inp ce-reg-pick" id="ce-reg-pick" hidden><label for="c-reg-form">Choose a form</label><select id="c-reg-form" name="registration_form_id"><option value="">Create a new form</option></select><small id="c-reg-form-note">Choose a saved form or create a new one for this event.</small></div>
+          <div class="ce-reg-new" id="ce-reg-new">
+          <div class="two">
+            <div class="inp"><label for="c-reg-name">Form name</label><input id="c-reg-name" name="registration_form_name" type="text" placeholder="Delegate registration"></div>
+            <div class="inp"><label for="c-reg-mode">Approval</label><select id="c-reg-mode" name="registration_approval"><option value="manual">I approve each person</option><option value="automatic">Approve everyone automatically</option></select></div>
+          </div>
+          <div class="inp"><label for="c-reg-intro">Message on the form</label><textarea id="c-reg-intro" name="registration_intro" rows="2" placeholder="Who should apply, and what happens next."></textarea></div>
+          </div>
+          <p class="hint" id="ce-reg-hint">After publishing, add questions, sessions and badges from the event's registration page.</p>
         </div>
         <div class="ce-sell">
           <datalist id="ce-ticket-presets"><option value="Regular"></option><option value="VIP"></option><option value="VVIP"></option><option value="Early Bird"></option><option value="Student"></option><option value="Complimentary"></option></datalist>
@@ -79,17 +97,6 @@
           </div>
           <button class="ce-add" type="button" id="ce-add">+ Add a ticket type</button>
           <p class="hint">Use 0 for free tickets. You can add early bird, VIP or table tickets, and set when each one goes on sale.</p>
-        </div>
-        <div class="ce-reg" hidden>
-          <div class="inp ce-reg-pick" id="ce-reg-pick" hidden><label for="c-reg-form">Registration form</label><select id="c-reg-form" name="registration_form_id"><option value="">Start a new form for this event</option></select><small id="c-reg-form-note">Pick one of your saved forms and its fields are added to this event.</small></div>
-          <div class="ce-reg-new" id="ce-reg-new">
-          <div class="two">
-            <div class="inp"><label for="c-reg-name">Form name</label><input id="c-reg-name" name="registration_form_name" type="text" placeholder="Delegate registration"></div>
-            <div class="inp"><label for="c-reg-mode">Approval</label><select id="c-reg-mode" name="registration_approval"><option value="manual">I approve each person</option><option value="automatic">Approve everyone automatically</option></select></div>
-          </div>
-          <div class="inp"><label for="c-reg-intro">Message on the form</label><textarea id="c-reg-intro" name="registration_intro" rows="2" placeholder="Who should apply, and what happens next."></textarea></div>
-          </div>
-          <p class="hint" id="ce-reg-hint">After publishing, add your questions, sessions and badges from the event's registration page. You can also build reusable forms under More tools › Registration forms.</p>
         </div>
         <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
         <h2 id="ce-fee-title">Fees &amp; payout</h2>

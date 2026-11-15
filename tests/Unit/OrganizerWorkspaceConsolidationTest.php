@@ -121,6 +121,24 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString('.page[data-page=dashboard] .od{grid-template-columns:minmax(0,1fr);width:100%}', $css);
     }
 
+    public function test_ticket_setup_uses_progressive_registration_early_bird_and_seating_choices(): void
+    {
+        $create = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        $this->assertStringContainsString('id="c-use-registration" type="checkbox"', $create);
+        $this->assertStringContainsString('id="ce-registration-fields" hidden', $create);
+        $this->assertStringContainsString('id="ce-reg-empty" hidden', $create);
+        $this->assertStringNotContainsString('role="radiogroup" aria-label="How people get in"', $create);
+        $this->assertStringContainsString('class="ce-early-on" type="checkbox"', $script);
+        $this->assertStringContainsString('class="ce-seat-on" type="checkbox"', $script);
+        $this->assertStringContainsString("modeInput.value=seats.checked?'reserved':'general_admission'", $script);
+        $this->assertStringContainsString("fd.append('tiers['+i+'][seating_mode]',reserved?'reserved':'general_admission')", $script);
+        $this->assertStringContainsString('.page[data-page=create] .ce-choice-row', $css);
+        $this->assertStringContainsString('.page[data-page=create] .ce-option-fields[hidden]{display:none}', $css);
+    }
+
     public function test_team_workspace_has_no_raw_blade_and_explains_server_enforcement(): void
     {
         $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
