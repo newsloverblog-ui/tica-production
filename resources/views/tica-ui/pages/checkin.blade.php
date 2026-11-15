@@ -2,6 +2,7 @@
 <section class="page" data-page="checkin">
   <div class="ck">
     <div class="wrap ck-wrap">
+      <header class="t-page-head ck-head"><div><h1>Gate check-in</h1><p>Scan tickets at the door. Results stay live, and it keeps working offline.</p></div></header>
       <div class="ck-top">
         <div class="ck-ev"><label for="ck-event">Checking in for</label><select id="ck-event"></select></div>
         <p class="ck-sync"><i aria-hidden="true"></i>Works offline. Synced just now.</p>
