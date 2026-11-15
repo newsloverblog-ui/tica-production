@@ -2051,7 +2051,7 @@ function stage(i,focus){
   var cur=f.querySelector('.ce-steps a[aria-current=step]'),bar=f.querySelector('.ce-steps');if(cur&&bar&&bar.scrollWidth>bar.clientWidth)bar.scrollLeft=Math.max(0,cur.offsetLeft-bar.offsetLeft-16);
   var last=at===STAGES.length-1;$('ce-back').hidden=at===0;$('ce-next').hidden=last;$('ce-draft').hidden=!last;$('ce-publish').hidden=!last;
   if(last)summary();
-  $('c-msg').textContent='';
+  setCreateMessage('');
   var top=f.querySelector('.ce-steps');if(top&&top.getBoundingClientRect().top<0)top.scrollIntoView({behavior:'smooth',block:'start'});
   if(focus){var x=$(STAGES[at]).querySelector('input:not([type=radio]):not([type=checkbox]),select,textarea');if(x)x.focus({preventScroll:true})}
 }
@@ -2079,24 +2079,34 @@ $('ce-next').addEventListener('click',function(){if(check(at))stage(at+1,true)})
 $('ce-back').addEventListener('click',function(){stage(at-1,true)});
 f.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'&&at<STAGES.length-1){e.preventDefault();if(check(at))stage(at+1,true)}});
 var FIELDS={organizer_id:'c-owner',is_featured:'c-featured',currency:'c-cur',country:'c-country',name:'c-name',category_id:'c-cat',start_date:'c-date',start_time:'c-time',end_date:'c-edate',end_time:'c-etime',address:'c-venue',city:'c-city',online_join_url:'c-link',flyer:'c-flyer',attendee_question:'c-question',dates:'c-multi',tiers:'ce-add'};
+function setCreateMessage(text,state){var msg=$('c-msg');msg.textContent=text||'';msg.className='ce-feedback'+(state?' is-'+state:'')}
+function showCreateSuccess(r,draft){
+  var panel=$('ce-success'),title=$('ce-success-title'),copy=$('ce-success-copy'),manage=$('ce-success-manage'),view=$('ce-success-view'),kicker=panel.querySelector('.ce-success-kicker');
+  kicker.textContent=EDIT?'Changes saved':draft?'Draft saved':'Event created';title.textContent=EDIT?'Your changes are saved':draft?'Your draft is ready':r.name+' is live';
+  copy.textContent=EDIT?'The latest event details are now saved.':draft?'Continue whenever you are ready from Events › Drafts.':'The event was created successfully and is ready to manage.';
+  manage.href=r.redirect_url||r.registration_url||(ADMIN?ADMIN.backUrl:'/dashboard/events');manage.textContent=draft?'Open drafts':'Manage event';
+  view.href=r.url||'#';view.hidden=draft||!r.url;panel.hidden=false;panel.focus();
+}
 function save(draft){
-  var msg=$('c-msg'),btns=f.querySelectorAll('.ce-go .btn');msg.textContent=draft?'Saving your draft…':'Publishing your event…';
+  var msg=$('c-msg'),btns=f.querySelectorAll('.ce-go .btn');setCreateMessage(draft?'Saving your draft…':'Publishing your event…','working');
   [].forEach.call(btns,function(b){b.disabled=true});
   var req={method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)};
   (EDIT?fetch(EDIT.endpoint,req):fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',req))
   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.message||'We couldn\'t save your event. Try again.');e.data=j;throw e}return j})})
   .then(function(r){
+    if(!r||!r.event_id||!r.name){var incomplete=new Error('Your session may have expired. Sign in again, then publish the event.');incomplete.data=r||{};throw incomplete}
     window.TICA_NEW={name:r.name,status:r.status};
-    msg.textContent=EDIT?'Your changes to '+r.name+' are saved.':draft?r.name+' is saved as a draft. Find it under Events, Drafts.':r.name+' is now live.';
-    setTimeout(function(){location.href=r.redirect_url||r.registration_url||(ADMIN?ADMIN.backUrl:'/dashboard')},900);
+    setCreateMessage('');showCreateSuccess(r,draft);
   },function(er){
     [].forEach.call(btns,function(b){b.disabled=false});
-    var errs=er.data&&er.data.errors||{},k=Object.keys(errs)[0],text=k?errs[k][0]:er.message;msg.textContent=text;
-    var id=k&&(FIELDS[k]||FIELDS[k.split('.')[0]]);if(id)stage(stageOf(id));else if(k&&/^tiers/.test(k))stage(2);if(k&&/^tiers\.\d+\./.test(k)){var t=f.querySelectorAll('#ce-tiers .ce-tier')[+k.split('.')[1]];if(t){t.scrollIntoView({behavior:'smooth',block:'center'});var x=t.querySelector('input');if(x)x.focus({preventScroll:true})}return}
-    if(id&&$(id)){$(id).scrollIntoView({behavior:'smooth',block:'center'});$(id).focus({preventScroll:true})}
+    var errs=er.data&&er.data.errors||{},k=Object.keys(errs)[0],text=k?errs[k][0]:er.message;
+    var id=k&&(FIELDS[k]||FIELDS[k.split('.')[0]]);if(id)stage(stageOf(id));else if(k&&/^tiers/.test(k))stage(2);setCreateMessage(text||'We couldn\'t save your event. Try again.','error');
+    if(k&&/^tiers\.\d+\./.test(k)){var t=f.querySelectorAll('#ce-tiers .ce-tier')[+k.split('.')[1]];if(t){t.scrollIntoView({behavior:'smooth',block:'center'});var x=t.querySelector('input');if(x)x.focus({preventScroll:true})}}
+    else if(id&&$(id)){$(id).scrollIntoView({behavior:'smooth',block:'center'});$(id).focus({preventScroll:true})}
+    else msg.scrollIntoView({behavior:'smooth',block:'center'});
   });
 }
-f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}if(!$('c-flyer').files[0]&&!(EDIT&&EDIT.event.flyer)){stage(3,false);$('c-msg').textContent='Add a flyer before you publish.';$('c-flyer').focus();return}save(false)});
+f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}if(!$('c-flyer').files[0]&&!(EDIT&&EDIT.event.flyer)){stage(3,false);setCreateMessage('Add a flyer before you publish.','error');$('c-flyer').focus();return}save(false)});
 $('ce-draft').addEventListener('click',function(){if($('c-name').value.trim().length<3){$('c-msg').textContent='Give your event a name first.';$('c-name').focus();return}save(true)});
 f.querySelector('.ce-steps').addEventListener('click',function(e){var a=e.target.closest('[data-ce]');if(!a)return;e.preventDefault();e.stopPropagation();var to=STAGES.indexOf(a.dataset.ce);
   if(to<=at||to<=reached){stage(to,true);return}for(var k=at;k<to;k++){if(!check(k)){stage(k,false);return}}stage(to,true)},true);

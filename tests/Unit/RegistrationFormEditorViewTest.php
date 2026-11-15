@@ -64,4 +64,20 @@ class RegistrationFormEditorViewTest extends TestCase
         $this->assertStringContainsString("view('organizer.forms._fields', ['form' => \$form])->render()", $controller);
         $this->assertSame(5, substr_count($controller, '$this->liveFields('));
     }
+
+    public function test_form_pages_share_calm_motion_that_respects_reduced_motion(): void
+    {
+        $styles = file_get_contents(resource_path('views/organizer/forms/_styles.blade.php'));
+        $motion = file_get_contents(resource_path('views/organizer/forms/_motion.blade.php'));
+
+        foreach (['show', 'index'] as $page) {
+            $view = file_get_contents(resource_path("views/organizer/forms/{$page}.blade.php"));
+            $this->assertStringContainsString('<div class="rf-page">', $view);
+            $this->assertStringContainsString("@include('organizer.forms._motion')", $view);
+        }
+        $this->assertStringContainsString('@media (prefers-reduced-motion:reduce)', $styles);
+        // Cards only ease in on the first visit, not after every save.
+        $this->assertStringContainsString("sessionStorage.getItem(key)", $motion);
+        $this->assertStringContainsString("if (e.defaultPrevented) return;", $motion);
+    }
 }

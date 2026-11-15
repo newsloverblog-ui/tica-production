@@ -4814,6 +4814,19 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 
 /* Advanced ticketing: a quiet configuration surface around one visual seat-map tool. */
 .page[data-page=create] .ce-entry-state{display:none}
+.page[data-page=create] .ce-feedback{min-height:0;margin:16px 0 10px;padding:0;color:#526079;font-size:13px;font-weight:650;line-height:1.45}
+.page[data-page=create] .ce-feedback:empty{display:none}
+.page[data-page=create] .ce-feedback.is-working,.page[data-page=create] .ce-feedback.is-error{display:block;padding:12px 14px;border-radius:11px}
+.page[data-page=create] .ce-feedback.is-working{border:1px solid #cddbf2;background:#f5f8fd;color:#244c88}
+.page[data-page=create] .ce-feedback.is-error{border:1px solid #f1c7bc;background:#fff5f2;color:#9b2c20}
+.page[data-page=create] .ce-success{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:20px;background:rgba(12,28,54,.48);backdrop-filter:blur(6px)}
+.page[data-page=create] .ce-success[hidden]{display:none}
+.page[data-page=create] .ce-success-card{width:min(100%,500px);padding:34px;border:1px solid #d9e4f3;border-radius:22px;background:#fff;box-shadow:0 28px 80px rgba(12,28,54,.24);text-align:center}
+.page[data-page=create] .ce-success-mark{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 16px;border-radius:50%;background:#e7f7ed;color:#168447;font-size:26px;font-weight:800}
+.page[data-page=create] .ce-success-kicker{margin:0 0 6px;color:#245fd3;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.page[data-page=create] .ce-success-card h2{margin:0;color:#12213a;font-size:27px;line-height:1.15}
+.page[data-page=create] .ce-success-card>p:not(.ce-success-kicker){margin:12px auto 0;max-width:390px;color:#667085;font-size:14px;line-height:1.55}
+.page[data-page=create] .ce-success-actions{display:flex;justify-content:center;gap:10px;margin-top:24px}
 .page[data-page=create] .ce-entry-choice{margin-bottom:14px;padding:4px 16px;border:1px solid #dbe4f1;border-radius:14px;background:#fff}
 .page[data-page=create] .ce-choice-row{display:flex;align-items:flex-start;gap:13px;padding:14px 0;color:#14213a;cursor:pointer}
 .page[data-page=create] .ce-choice-row>input[type=checkbox]{flex:0 0 auto;width:19px;height:19px;margin:1px 0 0;accent-color:#245fd3}
@@ -4863,6 +4876,9 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .page[data-page=create] .ce-seat.accessible{border-color:#ef9b47;background:#fff4e7;color:#9b4a08}
 .page[data-page=create] .ce-rm-section,.page[data-page=create] .ce-rm-row{position:static;flex:none;margin-bottom:10px}
 @media (max-width:700px){
+  .page[data-page=create] .ce-success{align-items:end;padding:12px}
+  .page[data-page=create] .ce-success-card{padding:27px 20px;border-radius:19px}
+  .page[data-page=create] .ce-success-actions{display:grid}.page[data-page=create] .ce-success-actions .btn{width:100%;justify-content:center}
   .page[data-page=create] .ce-entry-choice{padding-inline:13px}
   .page[data-page=create] .ce-disclosure{padding:14px}
   .page[data-page=create] .ce-choice-row{min-height:48px}

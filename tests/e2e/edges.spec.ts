@@ -7,6 +7,47 @@ import { noSidewaysScroll, signIn, watch } from './helpers';
 test.describe('edge cases (owner)', () => {
   test.beforeEach(async ({ page }) => { await signIn(page, 'owner'); });
 
+  test('publishing an event returns a real event and shows a durable success confirmation', async ({ page }) => {
+    const problems = watch(page);
+    const name = `QA publish ${Date.now()}`;
+    const future = new Date();
+    future.setDate(future.getDate() + 14);
+    const date = future.toISOString().slice(0, 10);
+
+    await page.goto('/create', { waitUntil: 'networkidle' });
+    await page.fill('#c-name', name);
+    await page.fill('#c-date', date);
+    await page.fill('#c-time', '18:00');
+    await page.click('#ce-next');
+
+    await page.fill('#c-venue', 'QA Test Hall');
+    await page.fill('#c-city', 'Lagos');
+    await page.click('#ce-next');
+
+    await page.fill('#c-price', '0');
+    await page.fill('#c-qty', '20');
+    await page.click('#ce-next');
+
+    await page.setInputFiles('#c-flyer', {
+      name: 'qa-event.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z7V8AAAAASUVORK5CYII=', 'base64'),
+    });
+    await page.click('#ce-next');
+
+    const responsePromise = page.waitForResponse((response) => response.url().endsWith('/tica-api/events') && response.request().method() === 'POST');
+    await page.click('#ce-publish');
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.event_id).toBeTruthy();
+    expect(body.name).toBe(name);
+    await expect(page.locator('#ce-success')).toBeVisible();
+    await expect(page.locator('#ce-success-title')).toContainText(name);
+    await expect(page.locator('#ce-success-manage')).toHaveAttribute('href', /\/dashboard\/events/);
+    expect(problems).toEqual([]);
+  });
+
   test('event action menu escapes the scrolling event card and stays on screen', async ({ page }) => {
     await page.goto('/dashboard/events');
     await page.evaluate(() => {
