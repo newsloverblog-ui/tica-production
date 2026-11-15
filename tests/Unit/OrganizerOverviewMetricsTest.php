@@ -113,20 +113,25 @@ class OrganizerOverviewMetricsTest extends TestCase
         foreach (['od-attn', 'od-types', 'od-audience'] as $removed) {
             $this->assertStringNotContainsString('id="'.$removed.'"', $view, $removed);
         }
-        foreach (['Event page views', 'Conversion', 'Available to withdraw', 'Where sales come from', 'New tracking link', 'Show as a table'] as $label) {
+        foreach (['Audience', 'conversion', 'Available now', 'Where sales come from', 'New tracking link', 'Show as a table'] as $label) {
             $this->assertStringContainsString($label, $script.$view, $label);
         }
         // Change against the previous period, and a chart you can hover.
         $this->assertStringContainsString('function delta(now,prev)', $script);
         $this->assertStringContainsString("svg.addEventListener('pointermove'", $script);
-        // Paired rows share a height; the layout follows the dashboard's own width, not the screen's,
-        // and the events table turns into cards when its card gets narrow.
-        $this->assertStringContainsString('.ov-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:16px;align-items:stretch}', $styles);
+        // The overview uses one integrated four-part summary instead of five repetitive cards.
+        $this->assertStringContainsString('class="ov-summary"', $view);
+        $this->assertStringContainsString("class=\"ov-summary__item", $script);
+        $this->assertStringNotContainsString("class=\"ov-kpi", $script);
+        $this->assertStringContainsString('.ov-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))', $styles);
+        // The layout follows the dashboard's own width, not the screen's, and the events table
+        // turns into cards when its card gets narrow.
         $this->assertStringContainsString('.ov-wrap{container-type:inline-size;container-name:ov}', $styles);
         $this->assertStringContainsString('@container ov (max-width:899px)', $styles);
         $this->assertStringContainsString('@container (max-width:620px)', $styles);
         $this->assertStringContainsString('.ov-table thead{display:none}', $styles);
-        $this->assertSame(2, substr_count($view, 'class="ov-row"'));
+        $this->assertSame(2, substr_count($view, 'class="ov-row '));
+        $this->assertStringNotContainsString('No other events yet', $script);
         $this->assertStringContainsString("'checkedIn' => (int) \$categories->sum('checkedIn')", (string) file_get_contents(app_path('Services/TicaUi/OrganizerWorkspace.php')));
     }
 

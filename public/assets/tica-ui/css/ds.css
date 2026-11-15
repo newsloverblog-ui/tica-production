@@ -1081,3 +1081,98 @@ body.orgshell .pr{display:grid;gap:20px;max-width:1440px;margin:0 auto;container
 }
 @media (max-width:767px){.pr-head h1{font-size:22px;line-height:30px}}
 @media (max-width:520px){.pr-form__two{grid-template-columns:1fr}.pr-copy{flex-direction:column}.pr-copy .t-btn{width:100%}.pr-card__head{flex-wrap:wrap}}
+
+/* Organizer overview: a compact operating snapshot, not a wall of cards. */
+body.orgshell .ov{gap:16px}
+.ov-card{border-radius:12px;box-shadow:0 1px 2px rgba(16,33,61,.025)}
+
+/* Setup is a quiet readiness strip. */
+.ov-setup{grid-template-columns:auto minmax(220px,1fr) auto auto;gap:14px;min-height:74px;padding:12px 14px;border-radius:12px;background:#fff}
+.ov-setup__count{display:grid;place-items:center;align-content:center;width:54px;height:48px;border-radius:10px;background:var(--t-blue-50);color:var(--t-blue);font-variant-numeric:tabular-nums}
+.ov-setup__count b{font-size:15px;line-height:18px}
+.ov-setup__count span{font-size:10px;line-height:12px;text-transform:uppercase;letter-spacing:.06em}
+.ov-setup h2{font-size:14px;line-height:20px}
+.ov-setup p{margin:1px 0 0;font-size:13px;line-height:18px}
+.ov-setup .ov-steps{grid-column:auto;display:flex;gap:6px}
+.ov-setup .ov-steps li{gap:0}
+.ov-setup .ov-tick{width:18px;height:18px;background:#fff}
+.ov-setup>.t-btn{grid-column:auto;grid-row:auto;min-height:38px}
+
+/* Four related measures share one surface; audience includes conversion. */
+.ov-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:hidden;border:1px solid var(--t-line);border-radius:12px;background:#fff}
+.ov-summary .t-skel{height:112px;border-radius:0;border-left:1px solid var(--t-line)}
+.ov-summary .t-skel:first-child{border-left:0}
+.ov-summary__item{display:grid;align-content:start;gap:5px;min-width:0;min-height:112px;padding:15px 18px;border:0;border-left:1px solid var(--t-line);background:#fff;color:inherit;text-align:left;font:inherit;transition:background-color .16s ease}
+button.ov-summary__item{cursor:pointer}
+.ov-summary__item:first-child{border-left:0}
+button.ov-summary__item:hover{background:var(--t-surface)}
+button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px solid var(--t-blue);outline-offset:-2px}
+.ov-summary__label{color:var(--t-muted);font-size:12px;font-weight:600;line-height:18px;letter-spacing:.015em}
+.ov-summary__value{overflow:hidden;color:var(--ov-ink);font-size:25px;font-weight:650;line-height:30px;letter-spacing:-.025em;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ov-summary__foot{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;color:var(--t-muted);font-size:11px;line-height:16px}
+
+/* The primary and secondary rows use the same calm rhythm. */
+.ov-row--primary,.ov-row--secondary{grid-template-columns:minmax(0,1.75fr) minmax(300px,.85fr);gap:16px}
+.ov-row--primary{align-items:start}
+.ov-row--secondary{align-items:stretch}
+
+/* An empty chart should still read as a useful, bounded module. */
+.ov-sales .ov-chart{min-height:260px}
+.ov-sales .ov-chart.is-empty{min-height:220px}
+.ov-empty--chart{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;justify-items:start;gap:12px;width:100%;max-width:620px;margin:auto;padding:18px;border:1px solid var(--t-line);border-radius:11px;background:var(--t-surface);text-align:left}
+.ov-empty--chart .ov-empty__icon{margin:0}
+.ov-empty--chart h3,.ov-empty--chart p{margin:0}
+.ov-empty--chart .ov-link{align-self:center}
+
+/* Next event is an operations brief, not another poster or KPI block. */
+.ov-next__brief{display:grid;grid-template-columns:112px minmax(0,1fr);gap:14px;align-items:center}
+.ov-next .ov-next__flyer{width:112px;height:84px;max-height:none;margin:0;aspect-ratio:4/3;border-radius:9px}
+.ov-next__copy{min-width:0}
+.ov-next__name{font-size:16px;line-height:22px}
+.ov-next__meta{margin:3px 0 9px;line-height:18px}
+.ov-next__pace{margin:0;color:var(--ov-text);font-size:12px;line-height:18px}
+.ov-next__pace b{color:var(--ov-ink);font-size:14px;font-variant-numeric:tabular-nums}
+.ov-next .ov-bar--lg{height:6px;margin-top:16px}
+.ov-next__pct{margin-top:5px}
+.ov-next__act{margin-top:12px;padding-top:12px;border-top:1px solid var(--t-line)}
+.ov-next__act .t-btn{min-height:38px}
+
+/* Event and payout cards remain informative with very little data. */
+.ov-empty--compact{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;justify-items:start;gap:12px;min-height:112px;padding:14px;border-radius:10px;background:var(--t-surface);text-align:left}
+.ov-empty--compact .ov-empty__icon{margin:0}
+.ov-empty--compact h3,.ov-empty--compact p{margin:0}
+.ov-money__lead{margin-bottom:12px;padding:12px 14px;border-radius:10px;background:var(--t-surface)}
+.ov-money__value{margin:2px 0 0;font-size:26px;line-height:32px}
+.ov-money__list{grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin-bottom:12px;overflow:hidden;border:1px solid var(--t-line);border-radius:10px;background:var(--t-line)}
+.ov-money__list>div{display:grid;gap:2px;padding:10px 12px;border:0;background:#fff;font-size:12px}
+.ov-money__list dd{font-size:14px}
+.ov-money .ov-status{margin-bottom:12px}
+.ov-money>.t-btn{min-height:40px}
+
+@container ov (max-width:899px){
+  .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ov-summary__item:nth-child(3),.ov-summary__item:nth-child(4),.ov-summary .t-skel:nth-child(3),.ov-summary .t-skel:nth-child(4){border-top:1px solid var(--t-line)}
+  .ov-summary__item:nth-child(3),.ov-summary .t-skel:nth-child(3){border-left:0}
+  .ov-row--primary,.ov-row--secondary{grid-template-columns:1fr}
+  .ov-setup{grid-template-columns:auto minmax(0,1fr) auto}
+  .ov-setup .ov-steps{display:none}
+}
+@container ov (max-width:599px){
+  .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ov-summary__item{min-height:100px;padding:13px 14px}
+  .ov-summary__value{font-size:22px;line-height:28px}
+  .ov-summary__foot{display:grid;gap:3px}
+  .ov-setup{grid-template-columns:auto minmax(0,1fr)}
+  .ov-setup>.t-btn{grid-column:1/-1;width:100%;justify-content:center}
+  .ov-empty--chart,.ov-empty--compact{grid-template-columns:auto minmax(0,1fr)}
+  .ov-empty--chart .ov-link,.ov-empty--compact .ov-link{grid-column:2}
+  .ov-sales .ov-chart,.ov-sales .ov-chart.is-empty{min-height:190px}
+}
+@container ov (max-width:399px){
+  .ov-next__brief{grid-template-columns:88px minmax(0,1fr)}
+  .ov-next .ov-next__flyer{width:88px;height:72px}
+  .ov-next__act{display:grid;grid-template-columns:1fr}
+  .ov-next__act .t-btn{justify-content:center}
+  .ov-money__list{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.ov-summary__item{transition:none}}
