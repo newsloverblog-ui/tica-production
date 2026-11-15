@@ -17,7 +17,7 @@ class OrganizerShellTest extends TestCase
   {
     $html = $this->render('overview');
 
-    foreach (['Overview', 'Events', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
+    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
       $this->assertStringContainsString($label, $html, $label);
     }
     $this->assertSame(1, substr_count($html, 'Create an event'));
@@ -85,7 +85,9 @@ class OrganizerShellTest extends TestCase
       $this->assertStringContainsString('tsh-org__name', $html);
       $this->assertSame(1, substr_count($html, 'aria-current="page"'), $active);
     }
-    $this->assertMatchesRegularExpression('/tsh-link os-link is-active[^>]*href="\/organizer\/forms"/', $this->render('forms'));
+    $forms = $this->render('forms');
+    $this->assertMatchesRegularExpression('/<details class="tsh-more"[^>]*open.*?<a class="tsh-sublink os-link is-active" href="\/organizer\/forms"/s', $forms);
+    $this->assertStringNotContainsString('tsh-link os-link is-active" href="/organizer/forms"', $forms);
   }
 
   public function test_shell_styles_load_last_in_both_layouts(): void

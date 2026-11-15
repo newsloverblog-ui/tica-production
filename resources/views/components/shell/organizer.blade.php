@@ -33,7 +33,6 @@
       ['overview', 'Overview', '/dashboard', 'overview.view'],
       ['events', 'Events', '/dashboard/events', 'events.view'],
       ['tickets', 'Ticket management', '/dashboard/tickets', 'orders.view'],
-      ['forms', 'Registration forms', '/organizer/forms', 'events.manage'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
     ],
@@ -45,6 +44,7 @@
     ],
   ];
   $tools = array_values(array_filter([
+    ['Registration forms', '/organizer/forms', 'events.manage'],
     ['Booking report', '/organizer/event-booking/report', 'reports.view'],
     ['Guest lists and RSVPs', '/organizer/event/guest-list', 'events.manage'],
     ['Transactions', '/organizer/transaction', 'reports.view'],
@@ -70,7 +70,7 @@
       default => 'overview',
     };
   }
-  $toolsActive = $active === 'tools';
+  $toolsActive = in_array($active, ['tools', 'forms'], true);
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
   $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
@@ -110,7 +110,7 @@
         <summary class="tsh-link {{ $toolsActive ? 'is-active' : '' }}"><svg viewBox="0 0 24 24" aria-hidden="true">{!! $icons['tools'] !!}</svg><span class="tsh-link__label">More tools</span><svg class="tsh-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
         <div class="tsh-sub">
           @foreach ($tools as [$label, $href])
-            @php($on = $toolsActive && request()->is(ltrim($href, '/') . '*'))
+            @php($on = $toolsActive && ($label === 'Registration forms' ? $active === 'forms' : request()->is(ltrim($href, '/') . '*')))
             <a class="tsh-sublink os-link {{ $on ? 'is-active' : '' }}" href="{{ $href }}" @if ($on) aria-current="page" @endif>{{ $label }}</a>
           @endforeach
         </div>
