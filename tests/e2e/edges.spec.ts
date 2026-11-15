@@ -9,6 +9,33 @@ test.describe('edge cases (owner)', () => {
 
   test('event action menu escapes the scrolling event card and stays on screen', async ({ page }) => {
     await page.goto('/dashboard/events');
+    await page.evaluate(() => {
+      const dashboard = (window as any).TICA_DATA.dashboard;
+      dashboard.events = [{
+        id: 999,
+        name: 'QA action menu event',
+        state: 'up',
+        status: 'On sale',
+        ts: Date.now() + 86_400_000,
+        day: '16',
+        mon: 'Nov',
+        time: '6:00 PM',
+        city: 'Lagos',
+        venue: 'QA venue',
+        mode: 'In person',
+        payer: 'buyer',
+        regMode: 'ticket',
+        sold: 2,
+        cap: 50,
+        revenue: 5000,
+        cur: { code: 'NGN', symbol: '₦', position: 'left' },
+        slug: 'qa-action-menu-event/999',
+        editUrl: '/create?event=999',
+        registrationUrl: '',
+        art: '',
+      }];
+    });
+    await page.locator('#ev-q').fill('QA action menu event');
     const trigger = page.locator('#od-evlist .t-menu summary').first();
     await expect(trigger).toBeVisible();
     await trigger.click();
