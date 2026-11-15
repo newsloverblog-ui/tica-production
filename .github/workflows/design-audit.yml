@@ -96,7 +96,7 @@ jobs:
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
 
       - name: Capture organiser pages
-        run: npx playwright test tests/e2e/sweep.spec.ts --grep "^owner " || true
+        run: npx playwright test tests/e2e/sweep.spec.ts --grep "owner /" || true
 
       - name: Print screenshots into the log
         if: always()
