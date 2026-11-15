@@ -54,6 +54,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -520,26 +521,75 @@ class TicaWorkspaceController extends Controller
     return response()->json(['message' => 'Code created.']);
   }
 
+  /** Edit a discount code, or pause/resume it. Anything not sent stays as it is. */
   public function updateCode(Request $request, int $coupon): JsonResponse
   {
     $this->allow('promote.manage');
     $record = Coupon::query()->whereKey($coupon)->where('organizer_id', $this->organizerId())->firstOrFail();
+    if ($request->has('code')) {
+      $request->merge(['code' => strtoupper(preg_replace('/\s+/', '', (string) $request->input('code')))]);
+    }
     $validated = $request->validate([
+      'code' => ['sometimes', 'regex:/^[A-Z0-9]{3,30}$/', Rule::unique('coupons', 'code')->ignore($record->id)],
+      'type' => ['sometimes', Rule::in(['percentage', 'fixed'])],
+      'value' => ['sometimes', 'numeric', 'min:1', ($request->input('type', $record->type) === 'percentage') ? 'max:100' : 'max:100000000'],
       'max_uses' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+      'event_id' => ['nullable', 'integer'],
       'end_date' => ['nullable', 'date', 'after_or_equal:today'],
       'minimum_purchase' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
-      'is_active' => ['required', 'boolean'],
-    ]);
-    $before = $record->only(['max_uses', 'end_date', 'minimum_purchase', 'is_active', 'paused_at']);
-    $record->forceFill([
-      'max_uses' => $validated['max_uses'] ?? $record->max_uses,
-      'end_date' => $validated['end_date'] ?? $record->end_date,
-      'minimum_purchase' => $validated['minimum_purchase'] ?? $record->minimum_purchase,
-      'is_active' => (bool) $validated['is_active'],
-      'paused_at' => $validated['is_active'] ? null : now(),
-    ])->save();
+      'is_active' => ['sometimes', 'boolean'],
+    ], ['code.unique' => 'That code is already taken. Try another.']);
+    if (isset($validated['code']) && $validated['code'] !== $record->code && (int) $record->used_count > 0) {
+      throw ValidationException::withMessages(['code' => 'This code has already been used, so its name can\'t change. Create a new code instead.']);
+    }
+    if (isset($validated['max_uses']) && (int) $validated['max_uses'] < (int) $record->used_count) {
+      throw ValidationException::withMessages(['max_uses' => 'It has already been used '.(int) $record->used_count.' times. Set the limit to at least that.']);
+    }
+    $before = $record->only(['code', 'type', 'value', 'events', 'max_uses', 'end_date', 'minimum_purchase', 'is_active']);
+    $fill = [];
+    foreach (['code', 'type', 'value', 'end_date', 'minimum_purchase'] as $key) {
+      if (array_key_exists($key, $validated) && $validated[$key] !== null) {
+        $fill[$key] = $validated[$key];
+      }
+    }
+    if (isset($fill['code'])) {
+      $fill['name'] = $fill['code'];
+    }
+    if ($request->exists('max_uses')) {
+      $fill['max_uses'] = $validated['max_uses'] ?? null;
+    }
+    if ($request->exists('event_id')) {
+      $fill['events'] = json_encode(!empty($validated['event_id'])
+        ? [(int) $this->ownedEvent((int) $validated['event_id'])->id]
+        : Event::query()->where('organizer_id', $this->organizerId())->pluck('id')->map(fn ($id) => (int) $id)->values()->all());
+    }
+    if (array_key_exists('is_active', $validated)) {
+      $fill['is_active'] = (bool) $validated['is_active'];
+      $fill['paused_at'] = $validated['is_active'] ? null : now();
+    }
+    $record->forceFill($fill)->save();
     AuditLogger::record('coupon.updated_by_organizer', $record, $before, $record->fresh()->only(array_keys($before)));
-    return response()->json(['message' => $record->is_active ? 'Discount code activated.' : 'Discount code paused.']);
+
+    $message = array_keys($fill) === ['is_active', 'paused_at']
+      ? ($record->is_active ? 'Discount code resumed.' : 'Discount code paused.')
+      : 'Discount code saved.';
+
+    return response()->json(['message' => $message]);
+  }
+
+  /** Delete a code nobody has used. Used codes stay for the order records; pause them instead. */
+  public function deleteCode(int $coupon): JsonResponse
+  {
+    $this->allow('promote.manage');
+    $record = Coupon::query()->whereKey($coupon)->where('organizer_id', $this->organizerId())->firstOrFail();
+    $usedOnOrders = Schema::hasColumn('bookings', 'coupon_id') && Booking::query()->where('coupon_id', $record->id)->exists();
+    if ((int) $record->used_count > 0 || $usedOnOrders) {
+      throw ValidationException::withMessages(['code' => 'This code is on past orders, so it\'s kept for your records. Pause it to stop new use.']);
+    }
+    AuditLogger::record('coupon.deleted_by_organizer', $record, $record->only(['code', 'type', 'value']), []);
+    $record->delete();
+
+    return response()->json(['message' => 'Discount code deleted.']);
   }
 
   public function storeLink(Request $request): JsonResponse
@@ -562,15 +612,53 @@ class TicaWorkspaceController extends Controller
     return response()->json(['message' => 'Link created.']);
   }
 
+  /** Edit a tracking link (name, channel, influencer, event) or pause/resume it. Its URL code never changes. */
   public function updateLink(Request $request, int $link): JsonResponse
   {
     $this->allow('promote.manage');
     $record = TicaTrackingLink::query()->whereKey($link)->where('organizer_id', $this->organizerId())->firstOrFail();
-    $validated = $request->validate(['is_active' => ['required', 'boolean']]);
-    $before = $record->only(['is_active']);
-    $record->forceFill(['is_active' => (bool) $validated['is_active']])->save();
-    AuditLogger::record('tracking_link.updated_by_organizer', $record, $before, $record->only(['is_active']));
-    return response()->json(['message' => $record->is_active ? 'Tracking link activated.' : 'Tracking link paused.']);
+    $validated = $request->validate([
+      'name' => ['sometimes', 'string', 'min:2', 'max:120'],
+      'channel' => ['nullable', 'string', 'max:80'],
+      'influencer' => ['nullable', 'string', 'max:120'],
+      'event_id' => ['nullable', 'integer'],
+      'is_active' => ['sometimes', 'boolean'],
+    ]);
+    $before = $record->only(['name', 'channel', 'influencer', 'event_id', 'is_active']);
+    $fill = [];
+    if (isset($validated['name'])) {
+      $fill['name'] = $validated['name'];
+    }
+    foreach (['channel', 'influencer'] as $key) {
+      if ($request->exists($key)) {
+        $fill[$key] = ($validated[$key] ?? '') !== '' ? $validated[$key] : null;
+      }
+    }
+    if ($request->exists('event_id')) {
+      $fill['event_id'] = !empty($validated['event_id']) ? $this->ownedEvent((int) $validated['event_id'])->id : null;
+    }
+    if (array_key_exists('is_active', $validated)) {
+      $fill['is_active'] = (bool) $validated['is_active'];
+    }
+    $record->forceFill($fill)->save();
+    AuditLogger::record('tracking_link.updated_by_organizer', $record, $before, $record->only(array_keys($before)));
+
+    $message = array_keys($fill) === ['is_active']
+      ? ($record->is_active ? 'Tracking link resumed.' : 'Tracking link paused.')
+      : 'Tracking link saved.';
+
+    return response()->json(['message' => $message]);
+  }
+
+  /** Delete a tracking link. Orders it brought in keep their totals; they just stop being grouped under it. */
+  public function deleteLink(int $link): JsonResponse
+  {
+    $this->allow('promote.manage');
+    $record = TicaTrackingLink::query()->whereKey($link)->where('organizer_id', $this->organizerId())->firstOrFail();
+    AuditLogger::record('tracking_link.deleted_by_organizer', $record, $record->only(['name', 'code', 'clicks']), []);
+    $record->delete();
+
+    return response()->json(['message' => 'Tracking link deleted. Anyone using the old link still reaches your event.']);
   }
 
   public function storePromotion(Request $request, TicaPromotionService $promotions): JsonResponse

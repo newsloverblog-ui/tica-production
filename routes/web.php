@@ -621,6 +621,8 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/codes/{coupon}', 'FrontEnd\TicaWorkspaceController@updateCode')->whereNumber('coupon')->middleware('throttle:20,1');
       Route::post('/links', 'FrontEnd\TicaWorkspaceController@storeLink')->middleware('throttle:20,1');
       Route::post('/links/{link}', 'FrontEnd\TicaWorkspaceController@updateLink')->whereNumber('link')->middleware('throttle:20,1');
+      Route::post('/codes/{coupon}/delete', 'FrontEnd\TicaWorkspaceController@deleteCode')->whereNumber('coupon')->middleware('throttle:20,1');
+      Route::post('/links/{link}/delete', 'FrontEnd\TicaWorkspaceController@deleteLink')->whereNumber('link')->middleware('throttle:20,1');
       Route::post('/promotions', 'FrontEnd\TicaWorkspaceController@storePromotion')->middleware('throttle:10,1');
       Route::post('/promotions/{campaign}/pay', 'FrontEnd\TicaWorkspaceController@payPromotion')->whereNumber('campaign')->middleware('throttle:5,10');
       Route::post('/promotions/{campaign}/checkout', 'FrontEnd\TicaWorkspaceController@checkoutPromotion')->whereNumber('campaign')->middleware('throttle:5,10');

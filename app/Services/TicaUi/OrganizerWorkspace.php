@@ -495,6 +495,13 @@ class OrganizerWorkspace
         'ends' => $coupon->end_date ? Carbon::parse($coupon->end_date)->format('j M Y') : null,
         'tickets' => (int) optional($sales->get($coupon->id))->tickets,
         'revenue' => round((float) optional($sales->get($coupon->id))->revenue, 2),
+        // For editing: the raw values behind the labels above.
+        'type' => (string) $coupon->type,
+        'value' => (float) $coupon->value,
+        'eventId' => count($events) === 1 ? (int) $events[0] : null,
+        'endsIso' => $coupon->end_date ? Carbon::parse($coupon->end_date)->toDateString() : null,
+        'paused' => !(bool) $coupon->is_active,
+        'status' => !$coupon->is_active ? 'Paused' : ($ended ? 'Ended' : ($usedUp ? 'Used up' : 'Active')),
       ];
     })->values()->all();
   }

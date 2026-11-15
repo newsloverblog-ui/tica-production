@@ -616,19 +616,6 @@ body.orgshell .tm-roles .od-roles{display:grid;grid-template-columns:repeat(auto
 /* =====================================================================
    Page: Promote
    ===================================================================== */
-.pr-share{margin-bottom:var(--t-5)}
-.pr-share__row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:var(--t-4)}
-.pr-copy{display:flex;gap:var(--t-2)}
-.pr-copy .t-input{flex:1;min-width:0;background:var(--t-subtle)}
-.pr-social{display:flex;flex-wrap:wrap;gap:var(--t-2);margin-top:var(--t-4)}
-body.orgshell [data-p=promote] .od-pr2{display:grid;grid-template-columns:1fr 1fr;gap:var(--t-4);margin-bottom:var(--t-5);align-items:start}
-.pr-more{margin-top:var(--t-2)}
-.pr-more>summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--t-2);padding:var(--t-3) 0;font-weight:600;color:var(--t-ink)}
-.pr-more>summary::-webkit-details-marker{display:none}
-.pr-more>summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--t-muted);border-bottom:2px solid var(--t-muted);transform:rotate(-45deg);transition:transform var(--t-fast) var(--t-ease);margin-right:var(--t-1)}
-.pr-more[open]>summary::before{transform:rotate(45deg)}
-.pr-more>.t-card{margin-top:var(--t-4)}
-@media (max-width:900px){.pr-share__row,body.orgshell [data-p=promote] .od-pr2{grid-template-columns:1fr}.pr-copy{flex-direction:column}}
 
 /* =====================================================================
    Page: Create / Edit event (inside the shell)
@@ -1004,3 +991,93 @@ body.orgshell .ov-head h1{color:var(--ov-ink);font-weight:600;letter-spacing:-.0
 .ov-steps li.is-done .ov-tick{background:var(--t-green);border-color:var(--t-green)}
 .ov-foot-cta{border-color:var(--t-line-strong);color:var(--ov-text)}
 .ov-foot-cta:hover{border-color:var(--t-blue);color:var(--t-blue);background:var(--t-blue-50)}
+
+/* ---------------------------------------------------------------------
+   Promote. TICA tokens only: white cards, light grey lines and surfaces,
+   TICA blue for actions; navy headings, calm grey-blue text.
+   --------------------------------------------------------------------- */
+body.orgshell .pr{display:grid;gap:20px;max-width:1440px;margin:0 auto;container-type:inline-size;container-name:pr}
+.pr-head h1{margin:0;color:#0B2447;font-size:28px;line-height:36px;font-weight:600;letter-spacing:-.015em}
+.pr-head p{margin:4px 0 0;color:#526079;font-size:14px}
+.pr-card{min-width:0;padding:22px 24px;border:1px solid var(--t-line);border-radius:14px;background:var(--t-surface)}
+.pr-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.pr-card__title{display:flex;align-items:center;gap:8px;margin:0;color:#0B2447;font-size:16px;line-height:24px;font-weight:600}
+.pr-card__sub{margin:2px 0 0;color:var(--t-muted);font-size:13px;line-height:18px}
+.pr-card__head .t-btn svg{width:15px;height:15px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.pr-count{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--t-subtle);color:#526079;font-size:12px;font-weight:600}
+.pr-count:empty{display:none}
+.pr-field{display:grid;gap:6px;min-width:0}
+.pr-field>span{color:#0B2447;font-size:13px;font-weight:500}
+.pr-field>span small{color:var(--t-muted);font-weight:400}
+.pr-field .t-input,.pr-field .t-select{width:100%}
+/* share */
+.pr-share__grid{display:grid;grid-template-columns:minmax(200px,1fr) minmax(0,2fr);gap:16px}
+.pr-copy{display:flex;gap:8px}
+.pr-copy .t-input{flex:1;min-width:0;color:#526079;background:var(--t-subtle)}
+.pr-social{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--t-line)}
+.pr-social .t-btn{border-radius:999px}
+/* lists */
+.pr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.pr-list{display:grid;margin:0;padding:0;list-style:none}
+.pr-row{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:16px 0;border-top:1px solid var(--t-line)}
+.pr-row:first-child{border-top:0;padding-top:0}
+.pr-row:last-child{padding-bottom:0}
+.pr-row__main{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.pr-code{flex:none;padding:6px 10px;border-radius:8px;background:var(--t-blue-50);color:var(--t-blue);font:600 13px/18px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.pr-row__text{display:grid;gap:2px;min-width:0}
+.pr-row__text b{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#0B2447;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.pr-row__text small{color:var(--t-muted);font-size:12.5px;line-height:18px;overflow-wrap:anywhere}
+.pr-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px!important}
+.pr-row__stats{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--t-muted);font-size:12.5px}
+.pr-row__stats span{display:inline-flex;align-items:center;gap:6px}
+.pr-row__stats b{color:#0B2447;font-weight:600;font-variant-numeric:tabular-nums}
+.pr-bar{display:inline-block;width:56px;height:5px;border-radius:999px;background:var(--t-subtle);overflow:hidden}
+.pr-bar i{display:block;height:100%;background:var(--t-blue);border-radius:inherit}
+.pr-row__act{display:flex;flex-wrap:wrap;gap:4px}
+.pr-row__act button{min-height:30px;padding:0 10px;border:1px solid var(--t-line);border-radius:8px;background:var(--t-surface);color:#526079;font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
+.pr-row__act button:hover{border-color:var(--t-line-strong);color:#0B2447;background:var(--t-subtle)}
+.pr-row__act button.is-danger{color:var(--t-red)}
+.pr-row__act button.is-danger:hover{border-color:#F3C9C4;background:var(--t-red-50)}
+.pr-row__act button[data-sure]{border-color:var(--t-red);background:var(--t-red);color:#fff}
+.pr-row__act button:disabled{opacity:.6;cursor:wait}
+.pr-row--plain{display:flex;align-items:center;justify-content:space-between}
+.pr-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11.5px;line-height:16px;font-weight:600}
+.pr-pill--green{background:var(--t-green-50);color:var(--t-green)}
+.pr-pill--grey{background:var(--t-subtle);color:#526079}
+.pr-empty{display:grid;justify-items:start;gap:4px;padding:18px;border:1.5px dashed var(--t-line-strong);border-radius:12px;color:var(--t-muted);font-size:13px}
+.pr-empty b{color:#0B2447;font-size:14px;font-weight:600}
+.pr-empty .t-btn{margin-top:8px}
+/* conversion tracking */
+.pr-card.pr-more{padding:0}
+.pr-more summary{text-align:left;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;cursor:pointer;list-style:none}
+.pr-more summary::-webkit-details-marker{display:none}
+.pr-more summary b{display:block;color:#0B2447;font-size:15px;font-weight:600}
+.pr-more summary small{color:var(--t-muted);font-size:13px}
+.pr-chev{width:18px;height:18px;fill:none;stroke:#526079;stroke-width:2;transition:transform .15s}
+.pr-more[open] .pr-chev{transform:rotate(180deg)}
+.pr-more__body{padding:0 24px 22px;border-top:1px solid var(--t-line)}
+.pr-more__body>.pr-card__sub{margin:16px 0}
+.pr-form{display:grid;gap:14px}
+.pr-form--row{grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:end}
+.pr-form__two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pr-form__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.pr-msg{margin:0;color:var(--t-red);font-size:13px}
+.pr-msg:empty{display:none}
+.pr-list--plain{margin-top:12px}
+/* dialogs */
+.pr-dlg{width:min(520px,calc(100% - 24px))}
+.pr-dlg .sh-head h2{color:#0B2447;font-weight:600;font-size:18px}
+.pr-dlg .sh-head p{color:var(--t-muted)}
+.pr-qr canvas{display:block;width:260px;height:260px;margin:8px auto 16px;border:1px solid var(--t-line);border-radius:12px}
+.pr-qr #pr-qr-p{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;overflow-wrap:anywhere}
+.pr-qr .pr-form__actions{justify-content:center}
+/* responsive, by the page's own width */
+@container pr (max-width:960px){.pr-grid{grid-template-columns:1fr}}
+@container pr (max-width:700px){
+  .pr-share__grid,.pr-form--row{grid-template-columns:1fr}
+  .pr-card{padding:16px}
+  .pr-more summary{padding:16px}
+  .pr-more__body{padding:0 16px 16px}
+}
+@media (max-width:767px){.pr-head h1{font-size:22px;line-height:30px}}
+@media (max-width:520px){.pr-form__two{grid-template-columns:1fr}.pr-copy{flex-direction:column}.pr-copy .t-btn{width:100%}.pr-card__head{flex-wrap:wrap}}

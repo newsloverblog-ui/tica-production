@@ -146,11 +146,28 @@ class TicaPromotionGovernanceTest extends TestCase
         foreach (['od-promo-kpis', 'od-package-grid', 'od-campaigns', 'od-promo-f'] as $id) {
             $this->assertStringNotContainsString('id="' . $id . '"', $view);
         }
-        $this->assertStringContainsString('data-togglecode', $client);
-        $this->assertStringContainsString('data-togglelink', $client);
-        $this->assertStringContainsString('data-qr', $client);
+        // Every code and link row can be edited, paused, deleted; links also copy and show a QR.
+        foreach (['data-predit', 'data-prpause', 'data-prdel', 'data-prqr', 'data-copy'] as $hook) {
+            $this->assertStringContainsString($hook, $client);
+        }
+        foreach (['pr-code-dlg', 'pr-link-dlg', 'pr-qr-dlg'] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $view);
+        }
         $this->assertStringContainsString("'promotionStats' => \$this->promotionStats", $workspace);
         $this->assertStringContainsString("'attributed_tickets'", file_get_contents(app_path('Models/TicaPromotionCampaign.php')));
+    }
+
+    public function test_organizer_can_edit_and_delete_codes_and_tracking_links(): void
+    {
+        $routes = file_get_contents(base_path('routes/web.php'));
+        $controller = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaWorkspaceController.php'));
+
+        $this->assertStringContainsString("Route::post('/codes/{coupon}/delete', 'FrontEnd\\TicaWorkspaceController@deleteCode')", $routes);
+        $this->assertStringContainsString("Route::post('/links/{link}/delete', 'FrontEnd\\TicaWorkspaceController@deleteLink')", $routes);
+        $this->assertStringContainsString('public function deleteCode(int $coupon)', $controller);
+        $this->assertStringContainsString('public function deleteLink(int $link)', $controller);
+        // A code that is on past orders is kept for records; it can only be paused.
+        $this->assertStringContainsString('kept for your records', $controller);
     }
 
     public function test_modern_promotion_center_is_not_redirected_as_a_retired_advertising_page(): void
