@@ -5194,21 +5194,21 @@ body.isorg.appmode .workspace-context{gap:0}
 .ck-sw:disabled{opacity:.5;cursor:not-allowed}
 
 /* Brand buttons only (TICA Brand Identity Style Guideline).
-   Nollydic Blue #0011FF for actions; Orange #FF8C42 with navy text for
+   Nollydic Blue #2E4FD8 for actions; Orange #F2A06B with navy text for
    buying and registering. Nothing else on the page changes. */
 html body .btn-hot,html body .ms-go,html body .filter-submit,html body .acd-primary,html body .acd-find,
 html body .page[data-page=home] .h-in .search.ms .ms-go,html body .page[data-page=discover] .d-search,
 html body .page[data-page=create] .btn-hot,html body .page[data-page=dashboard] .btn-hot,html body .ce-side .btn-hot,
 html body .page[data-page=account] .btn-hot,html body .page[data-page=checkin] .btn-hot{
-  background:#0011FF!important;border-color:#0011FF!important;color:#fff!important;box-shadow:none!important}
+  background:#2E4FD8!important;border-color:#2E4FD8!important;color:#fff!important;box-shadow:none!important}
 html body .btn-hot:hover,html body .ms-go:hover,html body .filter-submit:hover,html body .acd-primary:hover,html body .acd-find:hover,
 html body .page[data-page=home] .h-in .search.ms .ms-go:hover,html body .page[data-page=discover] .d-search:hover{
-  background:#000DCC!important;border-color:#000DCC!important;color:#fff!important}
+  background:#2541B8!important;border-color:#2541B8!important;color:#fff!important}
 
 html body #spot-link,html body #bb-go,html body #pay-now,html body #to-details,html body .btn-hot.tp-go{
-  background:#FF8C42!important;border-color:#FF8C42!important;color:#003366!important}
+  background:#F2A06B!important;border-color:#F2A06B!important;color:#0B2447!important}
 html body #spot-link:hover,html body #bb-go:hover,html body #pay-now:hover,html body #to-details:hover,html body .btn-hot.tp-go:hover{
-  background:#F57A2C!important;border-color:#F57A2C!important;color:#003366!important}
+  background:#EA9058!important;border-color:#EA9058!important;color:#0B2447!important}
 
 /* Selected toggle buttons use the same blue. */
-html body .tab[aria-pressed=true],html body .x-seg button[aria-pressed=true]{background:#0011FF!important;border-color:#0011FF!important;color:#fff!important}
+html body .tab[aria-pressed=true],html body .x-seg button[aria-pressed=true]{background:#2E4FD8!important;border-color:#2E4FD8!important;color:#fff!important}
