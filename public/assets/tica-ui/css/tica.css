@@ -5181,3 +5181,43 @@ body.isorg.appmode .workspace-context{gap:0}
 .ck-sw::after{background:#fff!important;box-shadow:0 1px 3px rgba(16,24,40,.3)!important}
 .ck-sw:focus-visible{outline:2px solid #2E4FD8!important;outline-offset:2px}
 .ck-sw:disabled{opacity:.5;cursor:not-allowed}
+
+/* =====================================================================
+   Brand pass. One blue, one navy, orange only for attention.
+   60 white/tint surfaces · 30 navy text and dark surfaces · 10 TICA blue
+   for actions, active states and data marks.
+   ===================================================================== */
+:root{
+  --brand:#2E4FD8;--brand-hover:#2541B8;--brand-50:#EEF2FF;--brand-200:#C7D2FE;
+  --indigo-2:var(--brand);
+  --action:var(--brand);--action-hover:var(--brand-hover);--action-soft:var(--brand-50);--action-line:var(--brand-200)
+}
+.page[data-page=dashboard],.page[data-page=account],.page[data-page=create],.ce-side{
+  --c-blue:#2E4FD8;--c-blue-2:#2541B8;--c-blue-soft:#EEF2FF;--c-blue-line:#C7D2FE}
+
+/* Large surfaces stay navy: a wall of bright blue would break the 10%. */
+.org,.h-frame,.who>div:nth-child(2),.x-big,.whoc,.bn.pic,.ph,.joincard img,.city:first-child:hover{background-color:#0B2447}
+.tc-img{background:linear-gradient(135deg,#1A3A6B,#0B2447)}
+
+/* Primary action: TICA blue, white text, everywhere. */
+html body .btn-hot,html body .ms-go,html body .filter-submit,html body .acd-primary,html body .acd-find,
+html body .page[data-page=home] .h-in .search.ms .ms-go,html body .page[data-page=discover] .d-search,
+html body .page[data-page=create] .btn-hot,html body .page[data-page=dashboard] .btn-hot,html body .ce-side .btn-hot{
+  background:var(--brand)!important;border-color:var(--brand)!important;color:#fff!important;box-shadow:none!important}
+html body .btn-hot:hover,html body .ms-go:hover,html body .filter-submit:hover,html body .acd-primary:hover,html body .acd-find:hover,
+html body .page[data-page=home] .h-in .search.ms .ms-go:hover,html body .page[data-page=discover] .d-search:hover{
+  background:var(--brand-hover)!important;border-color:var(--brand-hover)!important;color:#fff!important;transform:none!important}
+html body .btn-hot:focus-visible,html body .ms-go:focus-visible,html body .d-search:focus-visible,html body .btn-line:focus-visible{outline:2px solid var(--brand)!important;outline-offset:2px!important}
+
+/* Secondary action: white, quiet line, navy text. Never filled, even in filter footers. */
+html body .btn-line,html body .f-foot .btn-line,html body .page[data-page=create] .btn-line,html body .page[data-page=dashboard] .btn-line,html body .page[data-page=account] .btn-line{
+  background:#fff!important;border:1px solid #C5CFDD!important;color:#0B2447!important;box-shadow:none!important}
+html body .btn-line:hover,html body .f-foot .btn-line:hover,html body .page[data-page=home] .tk .btn-line:hover{
+  background:#F3F6FB!important;border-color:#0B2447!important;color:#0B2447!important;transform:none!important}
+
+/* Segmented choices read the same everywhere: white chip on a soft track. */
+.x-seg,.ac-tabs,.od-tabs{background:#F1F3F6!important;border-color:transparent!important}
+.x-seg button[aria-pressed=true],.ac-tabs button[aria-pressed=true],.od-tabs button[aria-pressed=true]{background:#fff!important;color:#0B2447!important;box-shadow:0 1px 3px rgba(11,36,71,.14)!important}
+
+/* Orange stays for attention only (badges, saved hearts, today, dots), not for hover states. */
+.calendar-days button.is-today{box-shadow:inset 0 0 0 1.5px var(--brand)}
