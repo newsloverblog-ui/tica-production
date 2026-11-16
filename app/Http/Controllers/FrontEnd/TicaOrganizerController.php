@@ -542,10 +542,12 @@ class TicaOrganizerController extends Controller
       'registration_form_id' => [$request->boolean('use_registration') ? 'required' : 'nullable', 'nullable', 'string', 'max:64'],
       'registration_intro' => ['nullable', 'string', 'max:2000'],
       'registration_approval' => ['nullable', Rule::in(['manual', 'automatic'])],
-      'flyer' => [$draft || $hasFlyer ? 'nullable' : 'required', 'nullable', 'file', 'max:5120', new ImageMimeTypeRule()],
+      // Events can launch with TICA's neutral artwork and add a flyer later.
+      // The builder describes this field as optional, so publishing must not
+      // silently turn it into a requirement at the final step.
+      'flyer' => ['nullable', 'file', 'max:5120', new ImageMimeTypeRule()],
     ], [
       'name.required' => 'Give your event a name first.',
-      'flyer.required' => 'Add a flyer before you publish.',
       'start_date.required' => 'Choose the date your event starts.',
       'start_time.required' => 'Choose the time your event starts.',
       'address.required' => 'Enter the venue.',

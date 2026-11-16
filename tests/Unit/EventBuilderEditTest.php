@@ -32,4 +32,21 @@ class EventBuilderEditTest extends TestCase
         $this->assertSame("First line\nsecond\n\nNext & last", EventBuilderPrefill::plainText('<p>First line<br>second</p><p>Next &amp; last</p>'));
         $this->assertSame('', EventBuilderPrefill::plainText(''));
     }
+
+    public function test_edit_builder_restores_the_attached_registration_form(): void
+    {
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringContainsString("set('c-reg-form',E.registration_form_id||'')", $script);
+        $this->assertStringContainsString("sel.value=keep||editForm||''", $script);
+    }
+
+    public function test_publishing_does_not_require_a_flyer(): void
+    {
+        $controller = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaOrganizerController.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringContainsString("'flyer' => ['nullable', 'file'", $controller);
+        $this->assertStringNotContainsString("setCreateMessage('Add a flyer before you publish.'", $script);
+    }
 }

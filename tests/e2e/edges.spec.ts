@@ -31,11 +31,7 @@ test.describe('edge cases (owner)', () => {
     await page.fill('#c-qty', '20');
     await page.click('#ce-next');
 
-    await page.setInputFiles('#c-flyer', {
-      name: 'qa-event.png',
-      mimeType: 'image/png',
-      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z7V8AAAAASUVORK5CYII=', 'base64'),
-    });
+    // A flyer is optional: an organiser can publish now and add artwork later.
     await page.click('#ce-next');
 
     const responsePromise = page.waitForResponse((response) => response.url().endsWith('/tica-api/events') && response.request().method() === 'POST');

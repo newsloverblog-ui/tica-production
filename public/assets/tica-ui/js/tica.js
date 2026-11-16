@@ -2072,7 +2072,7 @@ function check(i){
 function summary(){
   var m=mode(),o=curOf(curCode()),tiers=[].map.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t){var ins=t.querySelectorAll(':scope>.inp input');return esc(ins[0].value.trim()||'Ticket')+', '+(parseFloat(ins[1].value)>0?esc(N(+ins[1].value)):'Free')+(ins[2]&&ins[2].value?', '+esc(ins[2].value)+' available':'')});
   var when=$('c-multi').checked?[].map.call($('ce-dates').children,function(r){return r.querySelector('.ce-md').value+' '+r.querySelector('.ce-mt').value}).join('; '):($('c-date').value+' '+$('c-time').value);
-  var rows=[['Event',esc($('c-name').value.trim())],['When',esc(when)],['Where',m==='Online'?'Online, '+esc($('c-plat').value):esc([$('c-venue').value,$('c-city').value,$('c-country').value].filter(Boolean).join(', '))+(m==='Hybrid'?' and online':'')],['Currency',esc(o.code+' ('+o.symbol+')')],['Tickets',tiers.join('<br>')],['Registration form',$('c-use-registration').checked?esc($('c-reg-form').selectedOptions[0].text):'Not added'],['Booking fee',payer()==='buyer'?'Buyers pay it':'Included in your prices'],['Who can find it',esc($('c-vis').selectedOptions[0].text)],['Flyer',$('c-flyer').files[0]?esc($('c-flyer').files[0].name):'<span class="ce-warn">Add a flyer in step 4 before you publish</span>']];
+  var rows=[['Event',esc($('c-name').value.trim())],['When',esc(when)],['Where',m==='Online'?'Online, '+esc($('c-plat').value):esc([$('c-venue').value,$('c-city').value,$('c-country').value].filter(Boolean).join(', '))+(m==='Hybrid'?' and online':'')],['Currency',esc(o.code+' ('+o.symbol+')')],['Tickets',tiers.join('<br>')],['Registration form',$('c-use-registration').checked?esc($('c-reg-form').selectedOptions[0].text):'Not added'],['Booking fee',payer()==='buyer'?'Buyers pay it':'Included in your prices'],['Who can find it',esc($('c-vis').selectedOptions[0].text)],['Flyer',$('c-flyer').files[0]?esc($('c-flyer').files[0].name):(EDIT&&EDIT.event.flyer?'Current flyer':'TICA neutral artwork')]];
   if(ADMIN)rows.splice(1,0,['Owner',$('c-owner').value?esc($('c-owner').selectedOptions[0].text):'TICA · platform-managed'],['Featured',$('c-featured').checked?'Yes':'No']);
   $('ce-sum').innerHTML=rows.map(function(r){return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'}).join('');
 }
@@ -2107,7 +2107,7 @@ function save(draft){
     else msg.scrollIntoView({behavior:'smooth',block:'center'});
   });
 }
-f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}if(!$('c-flyer').files[0]&&!(EDIT&&EDIT.event.flyer)){stage(3,false);setCreateMessage('Add a flyer before you publish.','error');$('c-flyer').focus();return}save(false)});
+f.addEventListener('submit',function(e){e.preventDefault();if(at<STAGES.length-1){if(check(at))stage(at+1,true);return}for(var k=0;k<STAGES.length-1;k++){if(!check(k)){stage(k,false);check(k);return}}save(false)});
 $('ce-draft').addEventListener('click',function(){if($('c-name').value.trim().length<3){$('c-msg').textContent='Give your event a name first.';$('c-name').focus();return}save(true)});
 f.querySelector('.ce-steps').addEventListener('click',function(e){var a=e.target.closest('[data-ce]');if(!a)return;e.preventDefault();e.stopPropagation();var to=STAGES.indexOf(a.dataset.ce);
   if(to<=at||to<=reached){stage(to,true);return}for(var k=at;k<to;k++){if(!check(k)){stage(k,false);return}}stage(to,true)},true);
@@ -2125,7 +2125,7 @@ function fillEdit(){
   var mr=f.querySelector('[name=c-mode][value="'+E.mode+'"]');if(mr)mr.checked=true;
   var er=f.querySelector('[name=c-entry][value="'+E.entry+'"]');if(er)er.checked=true;
   [].forEach.call(f.querySelectorAll('[name=c-entry]'),function(x){x.disabled=true});
-  var registrationToggle=$('c-use-registration');if(registrationToggle){registrationToggle.checked=!!E.registration_form_id;registrationToggle.disabled=E.entry==='corporate';registrationToggle.setAttribute('aria-expanded',String(registrationToggle.checked));$('ce-registration-fields').hidden=!registrationToggle.checked}
+  var registrationToggle=$('c-use-registration');if(registrationToggle){registrationToggle.checked=!!E.registration_form_id;registrationToggle.disabled=E.entry==='corporate';registrationToggle.setAttribute('aria-expanded',String(registrationToggle.checked));$('ce-registration-fields').hidden=!registrationToggle.checked;set('c-reg-form',E.registration_form_id||'');ceFormPicked()}
   if(E.country){var cs=$('c-country');if(![].some.call(cs.options,function(o){return o.value===E.country}))cs.insertAdjacentHTML('beforeend','<option>'+esc(E.country)+'</option>');cs.value=E.country}
   if(E.currency)set('c-cur',E.currency);
   set('c-venue',E.address);set('c-city',E.city);set('c-state',E.state);set('c-link',E.online_join_url);set('c-rev',E.join_reveal_minutes);
