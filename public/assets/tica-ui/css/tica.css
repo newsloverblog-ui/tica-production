@@ -5221,3 +5221,12 @@ footer,footer.ft{--indigo-2:#0F4C9E}
 /* Large blue surfaces belong to the navy 30%, not the 10% accent. */
 .org,.h-frame,.who>div:nth-child(2),.x-big,.whoc,.bn.pic,.ph,.joincard img,.city:first-child:hover{background-color:#0B2447}
 .tc-img{background:linear-gradient(135deg,#1A3A6B,#0B2447)}
+
+/* Organiser band picture: the TICA fan cut-out, standing on the band's bottom edge. */
+.page[data-page=home] .org-girl{position:relative;align-self:end;display:flex;justify-content:center;margin-bottom:calc(-1 * clamp(76px,8vw,118px))}
+.page[data-page=home] .org-girl::before{content:"";position:absolute;left:50%;bottom:8%;width:86%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(46,79,216,.45) 0%,rgba(46,79,216,0) 68%);z-index:0}
+.page[data-page=home] .org-girl img{position:relative;z-index:1;display:block;width:100%;max-width:520px;height:auto}
+@media (max-width:900px){
+  .page[data-page=home] .org-girl{order:2;margin-bottom:-64px}
+  .page[data-page=home] .org-girl img{max-width:360px}
+}
