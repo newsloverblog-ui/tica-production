@@ -5268,3 +5268,6 @@ html body .page[data-page=home] h2.display{font-size:clamp(28px,3vw,40px)!import
 @media (min-width:861px){html body .page[data-page=home] .spot{grid-template-columns:auto minmax(0,1fr)!important}}
 /* Mood tiles share the full row instead of leaving half of it empty. */
 @media (min-width:701px){html body .page[data-page=home] .moods{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}}
+/* Readable partner row. */
+html body .page[data-page=home] .partners p{color:#526079!important;font-size:13px!important}
+html body .page[data-page=home] .partner-logo.coh b{background:var(--orange)!important;color:var(--navy)!important}
