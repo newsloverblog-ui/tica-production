@@ -5192,8 +5192,9 @@ body.isorg.appmode .workspace-context{gap:0}
   --indigo-2:var(--brand);
   --action:var(--brand);--action-hover:var(--brand-hover);--action-soft:var(--brand-50);--action-line:var(--brand-200)
 }
-.page[data-page=dashboard],.page[data-page=account],.page[data-page=create],.ce-side{
-  --c-blue:#2E4FD8;--c-blue-2:#2541B8;--c-blue-soft:#EEF2FF;--c-blue-line:#C7D2FE}
+html body .page[data-page=dashboard],html body .page[data-page=account],html body .page[data-page=checkin],html body .page[data-page=create],html body .ce-side{
+  --c-blue:#2E4FD8;--c-blue-2:#2541B8;--c-blue-soft:#EEF2FF;--c-blue-line:#C7D2FE;
+  --dash-primary:#2E4FD8;--dash-primary-hover:#2541B8;--dash-primary-soft:#EEF2FF;--dash-text:#0B2447}
 
 /* Large surfaces stay navy: a wall of bright blue would break the 10%. */
 .org,.h-frame,.who>div:nth-child(2),.x-big,.whoc,.bn.pic,.ph,.joincard img,.city:first-child:hover{background-color:#0B2447}
