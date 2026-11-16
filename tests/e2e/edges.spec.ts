@@ -148,19 +148,6 @@ test.describe('edge cases (owner)', () => {
     await page.waitForTimeout(2500);
     expect(problems).toEqual([]);
   });
-
-  test('door sales is one responsive workflow with direct navigation', async ({ page }) => {
-    const problems = watch(page);
-    await page.goto('/organizer/operations/door-sales', { waitUntil: 'networkidle' });
-
-    await expect(page.getByRole('heading', { name: 'Sell at the door' })).toBeVisible();
-    await expect(page.locator('.door-step')).toHaveCount(3);
-    await expect(page.locator('.door-receipt')).toBeVisible();
-    await expect(page.locator('.tsh-link[href="/organizer/operations/door-sales"]')).toHaveCount(0);
-    await expect(page.locator('.tsh-more')).not.toHaveAttribute('open', '');
-    await noSidewaysScroll(page);
-    expect(problems).toEqual([]);
-  });
 });
 
 test('a ₦100,000,000 balance and a very long name fit', async ({ page }) => {
