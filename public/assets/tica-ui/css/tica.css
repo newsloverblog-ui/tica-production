@@ -5213,9 +5213,9 @@ footer,footer.ft{--ink:#0B2447;--indigo:#0B2447;--indigo-2:#0F4C9E;--tint:#F3F6F
 .org,.h-frame,.who>div:nth-child(2),.x-big,.whoc,.bn.pic,.ph,.joincard img,.city:first-child:hover{background-color:var(--navy)}
 .tc-img{background:linear-gradient(135deg,#0A4A8A,var(--navy))}
 
-/* One brand mark: the guideline's zigzag, once, along the foot of the hero. */
-.page[data-page=home] .h-frame{position:relative}
-.page[data-page=home] .h-frame::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='10' viewBox='0 0 48 10'%3E%3Cpath d='M0 10L8 0l8 10z' fill='%230011FF'/%3E%3Cpath d='M16 10l8-10 8 10z' fill='%23FF8C42'/%3E%3Cpath d='M32 10l8-10 8 10z' fill='%2300A8E8'/%3E%3C/svg%3E") repeat-x left bottom/48px 10px;opacity:.95;pointer-events:none}
+/* One brand mark: the guideline's zigzag, once, along the top of the organiser band. */
+.page[data-page=home] .org{position:relative}
+.page[data-page=home] .org::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;z-index:1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='10' viewBox='0 0 48 10'%3E%3Cpath d='M0 10L8 0l8 10z' fill='%230011FF'/%3E%3Cpath d='M16 10l8-10 8 10z' fill='%23FF8C42'/%3E%3Cpath d='M32 10l8-10 8 10z' fill='%2300A8E8'/%3E%3C/svg%3E") repeat-x left top/48px 10px;opacity:.95;pointer-events:none}
 .home-progress{background:linear-gradient(90deg,var(--brand),var(--electric))!important}
 
 /* Primary action: Nollydic Blue, white text. */
@@ -5260,3 +5260,11 @@ html body .btn-hot:focus-visible,html body .ms-go:focus-visible,html body .d-sea
   .btn,.ms-go,.d-search{transition:background-color .18s,border-color .18s,color .18s,transform .12s}
   .btn:active:not(:disabled),.ms-go:active,.d-search:active{transform:scale(.98)}
 }
+
+/* Home layout fixes. */
+/* One heading size for every home section. */
+html body .page[data-page=home] h2.display{font-size:clamp(28px,3vw,40px)!important;line-height:1.15!important;font-weight:700!important;letter-spacing:-.02em!important}
+/* The featured card's flyer column fits the flyer; no dead strip beside it. */
+@media (min-width:861px){html body .page[data-page=home] .spot{grid-template-columns:auto minmax(0,1fr)!important}}
+/* Mood tiles share the full row instead of leaving half of it empty. */
+@media (min-width:701px){html body .page[data-page=home] .moods{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}}
