@@ -523,7 +523,6 @@ class TicaOrganizerController extends Controller
       'seat_map.*.name' => ['required', 'string', 'max:120'],
       'seat_map.*.kind' => ['required', Rule::in(['seated', 'standing', 'general_admission'])],
       'seat_map.*.ticket_index' => ['required', 'integer', 'min:0', 'max:' . max(0, (int) config('tickets.max_types_per_event', 50) - 1)],
-      'seat_map.*.price_override' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
       'seat_map.*.rows' => ['nullable', 'array', 'max:100'],
       'seat_map.*.rows.*.label' => ['required', 'string', 'max:40'],
       'seat_map.*.rows.*.seats' => ['required', 'array', 'max:500'],
@@ -762,9 +761,9 @@ class TicaOrganizerController extends Controller
         'name' => $input['name'],
         'kind' => $input['kind'],
         'ticket_id' => $ticket->id,
-        'price_override' => array_key_exists('price_override', $input) && $input['price_override'] !== null && $input['price_override'] !== ''
-          ? round((float) $input['price_override'], 2)
-          : null,
+        // Assigned seating organises attendees; it does not create a second
+        // price list. The linked ticket remains the single pricing source.
+        'price_override' => null,
         'capacity' => collect($input['rows'] ?? [])->sum(fn ($row) => count($row['seats'] ?? [])),
         'sort_order' => $sectionIndex,
       ]);

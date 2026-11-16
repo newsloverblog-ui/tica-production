@@ -310,7 +310,7 @@ class AdvancedTicketingModuleTest extends TestCase
         $this->assertStringContainsString("'tiers.*.design_settings.show_logo'", $builderController);
         $this->assertStringContainsString("'tiers.*.design_settings.show_section'", $builderController);
         $this->assertStringContainsString("'tiers.*.design_settings.show_row'", $builderController);
-        $this->assertStringContainsString("'seat_map.*.price_override'", $builderController);
+        $this->assertStringContainsString("'price_override' => null", $builderController);
         $this->assertStringContainsString('$seat->section?->price_override', $quoteService);
         $this->assertStringContainsString('$booking->ticket_reservation_token ?: null', $manualPayment);
         $this->assertStringContainsString("'payment_rejected'", $manualPayment);

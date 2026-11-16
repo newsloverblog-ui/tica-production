@@ -136,6 +136,12 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringNotContainsString('role="radiogroup" aria-label="How people get in"', $create);
         $this->assertStringContainsString('class="ce-early-on" type="checkbox"', $script);
         $this->assertStringContainsString('class="ce-seat-on" type="checkbox"', $script);
+        $this->assertStringContainsString('class="ce-tier ce-ticket-row"', $create);
+        $this->assertStringContainsString('function validateEarlyBird(tier)', $script);
+        $this->assertStringContainsString('Enter an early-bird price below ', $script);
+        $this->assertStringContainsString('Every seat uses this ticket price.', $script);
+        $this->assertStringNotContainsString('ce-section-price', $script);
+        $this->assertStringContainsString('.page[data-page=create] .ce-ticket-row{align-items:start}', $css);
         $this->assertStringContainsString("modeInput.value=seats.checked?'reserved':'general_admission'", $script);
         $this->assertStringContainsString("fd.append('tiers['+i+'][seating_mode]',reserved?'reserved':'general_admission')", $script);
         $this->assertStringContainsString("fd.append('use_registration',$('c-use-registration').checked?'1':'0')", $script);

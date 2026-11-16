@@ -27,8 +27,20 @@ test.describe('edge cases (owner)', () => {
     await page.fill('#c-city', 'Lagos');
     await page.click('#ce-next');
 
-    await page.fill('#c-price', '0');
+    await page.fill('#c-price', '500');
     await page.fill('#c-qty', '20');
+    await page.check('.ce-early-on');
+    await page.fill('.ce-teb', '600');
+    const earlyEnd = new Date(future);
+    earlyEnd.setDate(earlyEnd.getDate() - 2);
+    await page.fill('.ce-tebe', earlyEnd.toISOString().slice(0, 16));
+    await page.click('#ce-next');
+    await expect(page.locator('.ce-field-error')).toContainText('below');
+    await expect(page.locator('.ce-teb')).toHaveAttribute('aria-invalid', 'true');
+    await page.fill('.ce-teb', '400');
+    await expect(page.locator('.ce-field-error')).toBeHidden();
+    await page.uncheck('.ce-early-on');
+    await page.fill('#c-price', '0');
     await page.click('#ce-next');
 
     // A flyer is optional: an organiser can publish now and add artwork later.
