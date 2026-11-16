@@ -22,6 +22,7 @@ a:focus-visible,button:focus-visible{outline:3px solid rgba(46,79,216,.35);outli
 .taa-card{width:100%;max-width:400px;margin:48px auto}
 .taa-logo-sm{display:none}
 .taa-card h1{margin:0 0 8px;font-size:32px;font-weight:800;line-height:1.2;letter-spacing:-.02em}
+.taa-card h1+form{margin-top:24px}
 .taa-lead{margin:0 0 24px;color:var(--soft);font-size:15px;line-height:1.6}
 .taa-msg{display:flex;gap:10px;align-items:flex-start;margin:0 0 22px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.5;font-weight:500}
 .taa-msg.bad{background:#FEF2F2;border:1px solid #FBD5D5;color:#9B1C1C}

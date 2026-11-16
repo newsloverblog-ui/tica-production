@@ -4,7 +4,6 @@
 
 @section('form')
   <h1>{{ __('Admin sign in') }}</h1>
-  <p class="taa-lead">{{ __('Use the admin username and password you were given.') }}</p>
   <form action="{{ route('admin.auth') }}" method="POST" novalidate>
     @csrf
     <div class="taa-field">
