@@ -5276,3 +5276,5 @@ html body .page[data-page=home] .partner-logo.coh b{background:var(--orange)!imp
   html body .page[data-page=home] .h-hero h1{font-size:28px!important;line-height:1.15!important;letter-spacing:-.03em!important;text-wrap:balance}
   html body .page[data-page=home] .wrap.h-sec>h2.display,html body .page[data-page=home] h2.display{font-size:26px!important}
 }
+html body .page[data-page=home] .h-sec:has(.moods)>h2.display{font-size:clamp(28px,3vw,40px)!important}
+@media (max-width:600px){html body .page[data-page=home] .h-sec:has(.moods)>h2.display{font-size:26px!important}}
