@@ -40,6 +40,7 @@ class AdminEventBuilderParityTest extends TestCase
         $this->assertStringContainsString("if(!m||!topbar)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
         $this->assertStringContainsString("if(!m)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
         $this->assertStringContainsString("if(!fab||!fk||!fv||!fb)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
+        $this->assertGreaterThanOrEqual(8, substr_count(file_get_contents(public_path('assets/tica-ui/js/tica.js')), 'if(window.TICA_ADMIN)return'));
     }
 
     public function test_admin_and_organizer_share_the_event_type_decision_but_keep_separate_rights(): void

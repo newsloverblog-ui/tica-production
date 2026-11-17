@@ -1110,6 +1110,7 @@ s.addEventListener('touchend',function(e){if(x===null)return;var dx=e.changedTou
 })();
 /* design script 10 */
 (function(){
+if(window.TICA_ADMIN)return;
 var $=function(i){return document.getElementById(i)},more=$('f-more'),bd=$('f-bd'),btn=$('f-btn'),last=null;
 var SEL=[['d-where','City'],['d-cat','Category'],['d-price','Price'],['d-month','Date']];
 function ui(){
@@ -1133,9 +1134,10 @@ document.addEventListener('click',function(e){if(e.target.closest('.nav-ic')){se
 ui();
 })();
 /* design script 11 */
-(function(){function p(){var s=innerWidth<=480;var e=document.getElementById('h-q');if(e)e.placeholder=s?'Search events':'Search events or artists';var d=document.getElementById('d-q');if(d)d.placeholder=s?'Search events':'Artist, event or organiser'}p();addEventListener('resize',p)})();
+(function(){if(window.TICA_ADMIN)return;function p(){var s=innerWidth<=480;var e=document.getElementById('h-q');if(e)e.placeholder=s?'Search events':'Search events or artists';var d=document.getElementById('d-q');if(d)d.placeholder=s?'Search events':'Artist, event or organiser'}p();addEventListener('resize',p)})();
 /* design script 12 */
 (function(){
+if(window.TICA_ADMIN)return;
 var s=[].slice.call(document.querySelectorAll('.h-slide'));if(s.length<2)return;
 var i=0,red=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 s.forEach(function(x,k){if(k){var im=x.querySelector('img');im.loading='eager'}});
@@ -1143,6 +1145,7 @@ setInterval(function(){if(red||document.hidden)return;var hero=document.querySel
 })();
 /* design script 14 */
 (function(){
+if(window.TICA_ADMIN)return;
 var m=document.getElementById('share');
 document.getElementById('sh-x').addEventListener('click',function(){m.close()});
 m.addEventListener('click',function(e){if(e.target===m)m.close()});
@@ -1153,6 +1156,7 @@ addEventListener('tica:navigate',function(){if(m.open)m.close()});
 })();
 /* design script 15 */
 (function(){
+if(window.TICA_ADMIN)return;
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 function run(el){var t=el.textContent.trim(),m=t.match(/^(₦?)([\d,.]+)([A-Za-z]*)(.*)$/);if(!m||el.dataset.cu)return;el.dataset.cu=1;
  var pre=m[1],num=parseFloat(m[2].replace(/,/g,'')),suf=m[3]+m[4],dec=(m[2].split('.')[1]||'').length,comma=m[2].indexOf(',')>-1,t0=null;
@@ -1165,6 +1169,7 @@ addEventListener('tica:navigate',function(){setTimeout(scan,350)});document.addE
 })();
 /* design script 16 */
 (function(){
+if(window.TICA_ADMIN)return;
 var s=document.querySelector('.spot');if(!s)return;
 var bar=document.createElement('i');bar.className='spot-prog';bar.setAttribute('aria-hidden','true');s.appendChild(bar);
 var red=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;if(red)return;
@@ -1183,6 +1188,7 @@ restart();
 })();
 /* design script 17 */
 (function(){
+if(window.TICA_ADMIN)return;
 var $=function(i){return document.getElementById(i)},KEY='tica_consent_v1',ban=$('ck-banner'),dlg=$('ck-dlg');
 function load(){var c;try{c=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){c=window.__ck||null}if(c&&c.at&&Date.now()-Date.parse(c.at)>365*864e5)return null;return c}
 function save(c){c.v=1;c.at=new Date().toISOString();window.__ck=c;try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}ban.hidden=true;if(dlg.open)dlg.close();startNB();document.dispatchEvent(new CustomEvent('tica:consent',{detail:c}))}
@@ -1245,6 +1251,7 @@ window.TICA_consent=load;
 /* design script 18 */
 /* v38: legal hub navigation */
 (function(){
+  if(window.TICA_ADMIN)return;
   var page=document.querySelector('.page[data-page="policies"]');if(!page)return;
   var links=[].slice.call(page.querySelectorAll('[data-pol]'));
   function hdr(){var t=document.querySelector('.topbar');if(t)page.style.setProperty('--hdr',t.offsetHeight+'px')}hdr();window.addEventListener('resize',hdr);
@@ -2180,6 +2187,7 @@ upd();stage(0);
 })();
 /* design script 21 */
 (() => {
+  if (window.TICA_ADMIN) return;
   if (document.querySelector('.home-progress')) return;
 
   const progress = document.createElement('div');
