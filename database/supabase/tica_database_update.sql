@@ -20,10 +20,26 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.migrations WHERE migration = name) THEN
     RETURN;
   END IF;
+  -- Imports and manual restores can leave an identity sequence behind the
+  -- highest migrations.id. Serialize migration-history writes and align the
+  -- sequence before relying on the identity default.
+  LOCK TABLE public.migrations IN SHARE ROW EXCLUSIVE MODE;
+  IF EXISTS (SELECT 1 FROM public.migrations WHERE migration = name) THEN
+    RETURN;
+  END IF;
   SELECT is_identity = 'YES' INTO is_identity_column
     FROM information_schema.columns
    WHERE table_schema = 'public' AND table_name = 'migrations' AND column_name = 'id';
   IF is_identity_column THEN
+    IF EXISTS (SELECT 1 FROM public.migrations) THEN
+      PERFORM setval(
+        pg_get_serial_sequence('public.migrations', 'id'),
+        (SELECT MAX(id) FROM public.migrations),
+        true
+      );
+    ELSE
+      PERFORM setval(pg_get_serial_sequence('public.migrations', 'id'), 1, false);
+    END IF;
     INSERT INTO public.migrations (migration, batch)
     VALUES (name, (SELECT COALESCE(MAX(batch), 0) + 1 FROM public.migrations));
   ELSE

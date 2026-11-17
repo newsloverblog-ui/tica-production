@@ -59,6 +59,15 @@ class DatabaseUpdateScriptTest extends TestCase
     $this->assertDoesNotMatchRegularExpression('/INSERT INTO migrations[^;]*FROM migrations\s+WHERE NOT EXISTS/i', $sql);
   }
 
+  public function test_migration_identity_sequence_is_repaired_before_inserting(): void
+  {
+    $sql = $this->script();
+
+    $this->assertStringContainsString('LOCK TABLE public.migrations IN SHARE ROW EXCLUSIVE MODE', $sql);
+    $this->assertStringContainsString("pg_get_serial_sequence('public.migrations', 'id')", $sql);
+    $this->assertStringContainsString('(SELECT MAX(id) FROM public.migrations)', $sql);
+  }
+
   public function test_organizer_order_index_is_created_and_recorded(): void
   {
     $sql = $this->script();
