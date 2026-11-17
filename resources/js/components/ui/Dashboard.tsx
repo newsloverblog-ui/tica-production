@@ -1,7 +1,7 @@
 import type {HTMLAttributes,InputHTMLAttributes,ReactNode,SelectHTMLAttributes} from 'react';
 import {cn} from '../../lib/utils';
 
-export function DashboardPage({className,...props}:HTMLAttributes<HTMLElement>){return <main className={cn('min-h-[70vh] bg-background',className)} {...props}/>}
+export function DashboardPage({className,...props}:HTMLAttributes<HTMLElement>){return <main className={cn('dashboard-page min-h-[70vh] bg-background',className)} {...props}/>}
 export function DashboardHeader({eyebrow,title,intro,action}:{eyebrow:string;title:string;intro:string;action?:ReactNode}){return <header className="border-b border-line bg-white"><div className="shell flex flex-wrap items-end justify-between gap-5 py-9 sm:py-11"><div><p className="text-xs font-extrabold uppercase tracking-[.12em] text-primary">{eyebrow}</p><h1 className="display mt-2 text-[clamp(32px,4vw,48px)] text-navy">{title}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-soft sm:text-base">{intro}</p></div>{action}</div></header>}
 export function DashboardCard({className,...props}:HTMLAttributes<HTMLElement>){return <section className={cn('rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6',className)} {...props}/>}
 export function IconTile({children,accent=false}:{children:ReactNode;accent?:boolean}){return <span className={cn('grid size-11 shrink-0 place-items-center rounded-xl',accent?'bg-peach text-orange':'bg-primary-soft text-primary')}>{children}</span>}

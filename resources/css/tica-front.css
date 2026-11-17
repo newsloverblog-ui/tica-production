@@ -74,8 +74,8 @@ footer.ft{overflow:hidden;padding:clamp(64px,8vw,112px) 0 0;background:var(--ink
 .tica-account-legacy{background:var(--tint)}
 .tica-account-legacy .page-banner{display:none!important}
 .tica-account-legacy .user-dashbord{padding:clamp(42px,6vw,82px) 0;background:var(--tint)}
-.tica-account-legacy .user-dashbord>.container{width:min(1180px,calc(100% - 32px));max-width:none;margin-inline:auto;padding:0}
-.tica-account-legacy .user-dashbord>.container>.row{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px;margin:0}
+.tica-account-legacy .user-dashbord>.container{width:min(1720px,calc(100% - 32px));max-width:none;margin-inline:auto;padding:0}
+.tica-account-legacy .user-dashbord>.container>.row{display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(24px,2.2vw,40px);margin:0}
 .tica-account-legacy .user-dashbord>.container>.row>[class*=col-]{width:auto;max-width:none;padding:0}
 .tica-account-legacy .user-dashbord .row{margin-inline:0}
 .tica-account-legacy .user-dashbord [class*=col-]{padding-inline:8px}
@@ -122,7 +122,7 @@ footer.ft{overflow:hidden;padding:clamp(64px,8vw,112px) 0 0;background:var(--ink
 .tica-account-legacy textarea.form-control{min-height:120px;resize:vertical}
 .tica-account-legacy .form-control:focus{border-color:var(--camwood);outline:3px solid rgba(249,115,22,.16)}
 @media(max-width:900px){.tica-account-legacy .user-dashbord>.container>.row{grid-template-columns:1fr}.tica-account-legacy .user-sidebar{overflow-x:auto}.tica-account-legacy .user-sidebar ul{display:flex;min-width:max-content}.tica-account-legacy .billing-add-area .row{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.tica-account-legacy .user-dashbord{padding:30px 0}.tica-account-legacy .user-dashbord>.container{width:min(100% - 24px,1180px)}.tica-account-legacy .main-info,.tica-account-legacy .view-order-page,.tica-account-legacy .billing-add-area,.tica-account-legacy .product-list,.tica-account-legacy .reply-section{padding:16px!important;border-radius:14px!important}.tica-account-legacy .billing-add-area .row{grid-template-columns:1fr}.tica-account-legacy .prinit{align-items:stretch;margin-top:14px}.tica-account-legacy .prinit .btn{width:100%}.tica-account-legacy table{min-width:680px}.tica-account-legacy .single-message{padding:14px}}
+@media(max-width:620px){.tica-account-legacy .user-dashbord{padding:30px 0}.tica-account-legacy .user-dashbord>.container{width:min(100% - 24px,1720px)}.tica-account-legacy .main-info,.tica-account-legacy .view-order-page,.tica-account-legacy .billing-add-area,.tica-account-legacy .product-list,.tica-account-legacy .reply-section{padding:16px!important;border-radius:14px!important}.tica-account-legacy .billing-add-area .row{grid-template-columns:1fr}.tica-account-legacy .prinit{align-items:stretch;margin-top:14px}.tica-account-legacy .prinit .btn{width:100%}.tica-account-legacy table{min-width:680px}.tica-account-legacy .single-message{padding:14px}}
 
 /* TICA UI Test customer dashboard — shared calm workspace language. */
 .tica-account-legacy{--tica-dash-bg:#f6f8fc;--tica-dash-primary:#2f5bd3;--tica-dash-primary-soft:#eef2ff;--tica-dash-accent:#f5a524;--tica-dash-accent-soft:#fff7e8;--tica-dash-text:#12213a;--tica-dash-muted:#667085;--tica-dash-line:#e3e8f1;background:var(--tica-dash-bg)}
