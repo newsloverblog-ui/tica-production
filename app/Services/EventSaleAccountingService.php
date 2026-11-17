@@ -6,6 +6,7 @@ use App\Models\Organizer;
 use App\Models\Transaction;
 use App\Support\TicaCurrency;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use LogicException;
 
 class EventSaleAccountingService
@@ -53,6 +54,11 @@ class EventSaleAccountingService
             $earning = app(PlatformEarningService::class)->lock();
 
             $transaction = $this->ledger->recordGatewaySale($booking, $gateway, $reference);
+            if (Schema::hasTable('financial_ledger_accounts')
+                && Schema::hasTable('organizer_earning_releases')
+                && !empty($booking->organizer_id)) {
+                app(FinancialLedgerService::class)->recordSale($booking, $transaction);
+            }
             if (!$transaction->wasRecentlyCreated) {
                 return $transaction;
             }

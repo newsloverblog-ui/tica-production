@@ -33,12 +33,17 @@ class OrganizerPayoutAccountService
         mixed $client = null
     ): OrganizerPayoutAccount {
         $organizer = Organizer::findOrFail($organizerId);
-        if ($organizer->kyc_status !== 'verified' || trim((string) $organizer->verified_legal_name) === '') {
-            throw new RuntimeException('Complete organizer verification before adding a payout account.');
-        }
-
         $provider = $this->provider($client);
         $looked = $this->lookup($bankCode, $accountNumber, $provider);
+        if ($organizer->kyc_status !== 'verified' || trim((string) $organizer->verified_legal_name) === '') {
+            return $this->storePendingIdentityAccount(
+                $organizer,
+                $provider,
+                $looked,
+                $bankCode,
+                $accountNumber
+            );
+        }
         $matched = $this->namesMatch($organizer->verified_legal_name, $looked['name']);
         if (!$matched) {
             AuditLogger::record('organizer.payout_account_name_mismatch', $organizer, [], [], [
@@ -105,6 +110,59 @@ class OrganizerPayoutAccountService
         }
 
         return $account;
+    }
+
+    /**
+     * Bank setup is allowed before identity verification. The resolved account
+     * is encrypted and retained, but it cannot become the default payout
+     * destination or receive a transfer recipient until KYC is approved.
+     */
+    private function storePendingIdentityAccount(
+        Organizer $organizer,
+        PayoutProvider $provider,
+        array $looked,
+        string $bankCode,
+        string $accountNumber
+    ): OrganizerPayoutAccount {
+        try {
+            return DB::transaction(function () use ($organizer, $provider, $looked, $bankCode, $accountNumber) {
+                Organizer::whereKey($organizer->id)->lockForUpdate()->firstOrFail();
+                OrganizerPayoutAccount::where('organizer_id', $organizer->id)
+                    ->where('status', 'pending_kyc')->update(['status' => 'replaced']);
+
+                $account = OrganizerPayoutAccount::create([
+                    'public_id' => (string) Str::uuid(),
+                    'organizer_id' => $organizer->id,
+                    'provider' => $provider->name(),
+                    'country_code' => 'NG',
+                    'currency' => 'NGN',
+                    'bank_code' => $bankCode,
+                    'bank_name' => $looked['bank'],
+                    'account_number' => $accountNumber,
+                    'account_number_hash' => $this->accountHash($bankCode, $accountNumber),
+                    'account_last4' => substr($accountNumber, -4),
+                    'resolved_account_name' => $looked['name'],
+                    'name_match_status' => 'pending_kyc',
+                    'status' => 'pending_kyc',
+                    'is_default' => false,
+                    'verified_at' => null,
+                    'hold_until' => null,
+                ]);
+
+                AuditLogger::record('organizer.payout_account_pending_kyc', $account, [], [
+                    'status' => 'pending_kyc',
+                    'bank_name' => $account->bank_name,
+                    'account_last4' => $account->account_last4,
+                ]);
+                DB::afterCommit(fn () => $this->notifyChanged($account, $organizer));
+                return $account;
+            }, 3);
+        } catch (Throwable $exception) {
+            if ($this->isDuplicateDestination($exception)) {
+                throw new RuntimeException('This payout account is already registered. Contact support if you own it.');
+            }
+            throw $exception;
+        }
     }
 
     /**

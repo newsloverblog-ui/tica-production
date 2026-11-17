@@ -6,6 +6,7 @@ use App\Models\Organizer;
 use App\Models\Transaction;
 use App\Models\Withdraw;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 class WithdrawalCancellationService
@@ -84,6 +85,9 @@ class WithdrawalCancellationService
                 // lifecycle status changes when the reservation is released.
                 $transaction->payment_status = 2;
                 $transaction->save();
+                if (Schema::hasTable('financial_ledger_accounts')) {
+                    app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, 'NGN');
+                }
 
                 AuditLogger::record('withdrawal.cancelled', $withdrawal, [
                     'status' => Withdraw::STATUS_PENDING,

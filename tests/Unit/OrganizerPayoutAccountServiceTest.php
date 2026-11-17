@@ -163,18 +163,25 @@ class OrganizerPayoutAccountServiceTest extends TestCase
         $this->assertSame('RCP_0123456789', $account->fresh()->provider_recipient_code);
     }
 
-    public function test_unverified_organizer_cannot_add_a_payout_account(): void
+    public function test_unverified_organizer_can_resolve_account_but_cannot_activate_it(): void
     {
         $organizer = $this->organizer('pending', null);
-        $client = Mockery::mock(PaystackGatewayClient::class);
-        $client->shouldNotReceive('listBanks');
-        $client->shouldNotReceive('resolveAccount');
+        $client = $this->client('0123456789', 'ADA LOVELACE');
+        $client->shouldNotReceive('createTransferRecipient');
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Complete organizer verification');
-        (new OrganizerPayoutAccountService())->verify(
+        $account = (new OrganizerPayoutAccountService())->verify(
             $organizer->id, '058', '0123456789', $client
         );
+
+        $this->assertSame('pending_kyc', $account->status);
+        $this->assertSame('pending_kyc', $account->name_match_status);
+        $this->assertFalse($account->is_default);
+        $this->assertNull($account->verified_at);
+        $this->assertNull($account->provider_recipient_code);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'organizer.payout_account_pending_kyc',
+            'subject_id' => $account->id,
+        ]);
     }
 
     private function client(string $number, string $name): PaystackGatewayClient

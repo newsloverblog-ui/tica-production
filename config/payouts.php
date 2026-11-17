@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'event_hold_days' => max(0, (int) env('PAYOUT_EVENT_HOLD_DAYS', 3)),
+    'verify_provider_balance' => (bool) env('PAYOUT_VERIFY_PROVIDER_BALANCE', true),
     'paystack_transfers_enabled' => (bool) env('PAYSTACK_TRANSFERS_ENABLED', false),
     'automatic_release_enabled' => (bool) env('PAYOUT_AUTOMATIC_RELEASE_ENABLED', false),
     'reconcile_after_minutes' => (int) env('PAYOUT_RECONCILE_AFTER_MINUTES', 5),

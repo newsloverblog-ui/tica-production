@@ -5,6 +5,36 @@ namespace App\Services;
 final class EventFeeCalculatorService
 {
     /**
+     * Integer version used by the authoritative ledger. Percent is expressed
+     * in basis points (600 = 6%) so no floating-point money enters accounting.
+     */
+    public function quoteMinor(
+        int $ticketPriceMinor,
+        int $quantity,
+        int $flatFeeMinor,
+        int $percentageBasisPoints,
+        string $payer
+    ): array {
+        $ticketPriceMinor = max(0, $ticketPriceMinor);
+        $quantity = max(1, min(100000, $quantity));
+        $flatFeeMinor = max(0, $flatFeeMinor);
+        $percentageBasisPoints = max(0, min(10000, $percentageBasisPoints));
+        $sales = $ticketPriceMinor * $quantity;
+        $flat = $flatFeeMinor * $quantity;
+        $percentage = intdiv(($sales * $percentageBasisPoints) + 5000, 10000);
+        $fee = $flat + $percentage;
+        $organizerPays = $payer === 'organizer';
+
+        return [
+            'ticket_sales_minor' => $sales,
+            'platform_fee_minor' => $fee,
+            'attendee_total_minor' => $organizerPays ? $sales : $sales + $fee,
+            'organizer_net_minor' => $organizerPays ? max(0, $sales - $fee) : $sales,
+            'payer' => $organizerPays ? 'organizer' : 'customer',
+        ];
+    }
+
+    /**
      * Return the attendee charge and organizer proceeds for a paid ticket run.
      *
      * The booking fee is a fixed amount per paid ticket. The platform

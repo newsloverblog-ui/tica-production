@@ -41,6 +41,7 @@ class PayoutTransferServiceTest extends TestCase
         config()->set('app.key', 'base64:' . base64_encode(str_repeat('p', 32)));
         config()->set('cache.default', 'array');
         config()->set('payouts.paystack_transfers_enabled', true);
+        config()->set('payouts.verify_provider_balance', false);
         config()->set('payouts.reconcile_after_minutes', 1);
         config()->set('payouts.verification_max_attempts', 2);
         config()->set('payouts.finance_email', 'finance@tica.example');

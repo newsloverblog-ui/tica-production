@@ -671,6 +671,21 @@ body.orgshell-legacy .t-card__title{font:600 16px/1.3 var(--t-font);color:var(--
 .lg-ledger__head{justify-content:space-between;align-items:flex-end;margin-bottom:var(--t-3)}
 .lg-note{margin:0 0 var(--t-3)}
 @media (max-width:900px){.lg-two{grid-template-columns:1fr}.lg-filters .t-input[type=date]{width:100%}}
+
+/* Earnings: one financial story instead of a wall of interchangeable cards. */
+.fin-balance{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:var(--t-6);overflow:hidden;margin:0 0 var(--t-4);padding:clamp(24px,4vw,42px);border:1px solid #cfdcf7;border-radius:22px;background:linear-gradient(135deg,#102b57 0%,#173b75 58%,#315fd6 100%);color:#fff;box-shadow:0 18px 42px rgba(18,53,108,.13)}
+.fin-balance:after{content:"";position:absolute;right:-90px;top:-130px;width:330px;height:330px;border:52px solid rgba(255,255,255,.055);border-radius:50%;pointer-events:none}
+.fin-balance__primary,.fin-balance__actions{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start}
+.fin-balance__primary{gap:6px}.fin-balance__primary strong{font-size:clamp(36px,5vw,58px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}.fin-balance__primary>span:last-child{color:#dce7ff}
+.fin-eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bcd0fb}
+.fin-balance__actions{gap:8px;align-items:flex-end}.fin-balance__actions .t-btn{background:#fff;color:#173b75;border-color:#fff}.fin-balance__actions .t-help{color:#dce7ff}
+.fin-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 var(--t-5);border:1px solid var(--t-line);border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(15,36,71,.05)}
+.fin-flow__step{position:relative;display:grid;grid-template-columns:14px 1fr;gap:12px;min-width:0;padding:22px}.fin-flow__step:not(:last-child):after{content:"";position:absolute;right:0;top:20px;bottom:20px;width:1px;background:var(--t-line)}
+.fin-flow__dot{width:12px;height:12px;margin-top:4px;border:3px solid #b7c9ee;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #f2f6ff}.fin-flow__step--check .fin-flow__dot{border-color:#315fd6}.fin-flow__step--shield .fin-flow__dot{border-color:#d78a3d}.fin-flow__step--bank .fin-flow__dot{border-color:#16825d}
+.fin-flow__step div{display:flex;min-width:0;flex-direction:column}.fin-flow__step span{font-size:13px;font-weight:650;color:var(--t-text-c)}.fin-flow__step strong{margin:2px 0 5px;font-size:22px;font-variant-numeric:tabular-nums;color:var(--t-ink)}.fin-flow__step small{line-height:1.35;color:var(--t-muted)}
+.fin-two>.t-card{border-radius:18px;box-shadow:0 8px 24px rgba(15,36,71,.045)}
+@media (max-width:900px){.fin-flow{grid-template-columns:1fr 1fr}.fin-flow__step:nth-child(2):after{display:none}.fin-flow__step:nth-child(-n+2){border-bottom:1px solid var(--t-line)}.fin-balance{align-items:flex-start;flex-direction:column}.fin-balance__actions{align-items:flex-start}}
+@media (max-width:560px){.fin-flow{grid-template-columns:1fr}.fin-flow__step{padding:18px}.fin-flow__step:after{display:none}.fin-flow__step:not(:last-child){border-bottom:1px solid var(--t-line)}.fin-balance{border-radius:16px}.fin-balance__actions,.fin-balance__actions .t-btn{width:100%}.fin-balance__actions .t-btn{justify-content:center}.lg-range{width:100%}.lg-range .t-field{flex:1 1 130px}.lg-range .t-input{width:100%}}
 .lg-check{width:44px}
 .lg-link{color:var(--t-ink);font-weight:500;text-decoration:none}
 .lg-link:hover{color:var(--t-blue);text-decoration:underline}

@@ -256,6 +256,13 @@ class PayoutTransferService
         }
 
         try {
+            if ((bool) config('payouts.verify_provider_balance', true)
+                && method_exists($provider, 'availableBalanceMinor')) {
+                $requiredMinor = (int) round((float) $transfer->amount * 100);
+                if ($provider->availableBalanceMinor($transfer->currency) < $requiredMinor) {
+                    throw new RuntimeException('The Paystack payout balance is too low for this transfer. Add funds before retrying.');
+                }
+            }
             $result = $provider->initiateTransfer(
                 $account->provider_recipient_code,
                 (float) $transfer->amount,
@@ -467,7 +474,8 @@ class PayoutTransferService
                 'success' => 'success',
                 'failed' => 'failed',
                 'reversed' => 'reversed',
-                'pending', 'received', 'otp' => 'pending',
+                'otp' => 'verification_required',
+                'pending', 'received' => 'pending',
                 default => 'processing',
             };
             $transfer->forceFill([
@@ -506,7 +514,21 @@ class PayoutTransferService
                     'decision_reason' => null,
                     'paid_at' => now(),
                 ])->save();
+                if (Schema::hasTable('financial_ledger_accounts')) {
+                    app(FinancialLedgerService::class)->settleWithdrawal($withdrawal, $transfer->currency);
+                }
                 $withdrawalTransaction->payment_status = 1;
+                $withdrawalTransaction->save();
+            } elseif ($status === 'reversed' && (int) $withdrawal->status === Withdraw::STATUS_PAID) {
+                if (Schema::hasTable('financial_ledger_accounts')) {
+                    app(FinancialLedgerService::class)->reversePaidWithdrawal($withdrawal, $transfer->currency);
+                }
+                $withdrawal->forceFill([
+                    'status' => Withdraw::STATUS_HELD,
+                    'decision_reason' => 'The provider reversed this payout; finance review is required.',
+                    'paid_at' => null,
+                ])->save();
+                $withdrawalTransaction->payment_status = 0;
                 $withdrawalTransaction->save();
             } elseif (in_array($status, ['failed', 'reversed'], true)
                 && (int) $withdrawal->status === Withdraw::STATUS_PROCESSING) {

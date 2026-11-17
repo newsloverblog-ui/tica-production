@@ -12,8 +12,8 @@
 
   <div class="t-page-head">
     <div>
-      <h1 class="page-title">{{ __('Finance statement') }}</h1>
-      <p>{{ __('Sales, fees, refunds and payouts for any date range.') }}</p>
+      <h1 class="page-title">{{ __('Earnings & payouts') }}</h1>
+      <p>{{ __('A clear view of what is pending, ready to withdraw and already paid.') }}</p>
     </div>
     <form method="get" class="lg-range">
       <label class="t-field"><span class="t-label">{{ __('From') }}</span><input type="date" name="from" class="t-input" value="{{ $from->format('Y-m-d') }}" required></label>
@@ -22,17 +22,36 @@
     </form>
   </div>
 
-  {{-- Layer 1: the four numbers that answer "how did I do?" --}}
-  <div class="lg-stats">
-    @foreach ([['Gross sales', 'gross_sales'], ['Net sales', 'net_sales'], ['Available balance', 'available_balance'], ['Paid out', 'paid_out']] as [$label, $key])
-      <div class="t-card t-stat"><span class="t-stat__label">{{ __($label) }}</span><b class="t-stat__value">{{ $money($statement[$key]) }}</b></div>
+  <section class="fin-balance" aria-labelledby="fin-balance-h">
+    <div class="fin-balance__primary">
+      <span class="fin-eyebrow">{{ __('Ready to withdraw') }}</span>
+      <strong id="fin-balance-h">{{ $money($statement['available_balance']) }}</strong>
+      <span>{{ __('Verified, released earnings available now') }}</span>
+    </div>
+    <div class="fin-balance__actions">
+      <a class="t-btn t-btn--primary" href="{{ url('/dashboard/payouts') }}">{{ __('Manage payouts') }}</a>
+      <span class="t-help">{{ __('NGN bank payouts only') }}</span>
+    </div>
+  </section>
+
+  <section class="fin-flow" aria-label="{{ __('Earnings lifecycle') }}">
+    @foreach ([
+      ['Pending', 'Ticket sales held until the event clears', 'pending_earnings', 'clock'],
+      ['Available', 'Released and ready for payout', 'available_balance', 'check'],
+      ['On hold', 'Reserved or awaiting a finance review', 'on_hold_balance', 'shield'],
+      ['Paid out', 'Completed in this date range', 'paid_out', 'bank'],
+    ] as [$label, $description, $key, $icon])
+      <div class="fin-flow__step fin-flow__step--{{ $icon }}">
+        <span class="fin-flow__dot" aria-hidden="true"></span>
+        <div><span>{{ __($label) }}</span><strong>{{ $money($statement[$key]) }}</strong><small>{{ __($description) }}</small></div>
+      </div>
     @endforeach
-  </div>
+  </section>
 
   {{-- Layer 2: next payout, then the breakdown --}}
-  <div class="lg-two">
+  <div class="lg-two fin-two">
     <section class="t-card" aria-labelledby="fin-next-h">
-      <div class="t-card__head"><h2 class="t-card__title" id="fin-next-h">{{ __('Next payout') }}</h2>@if ($nextPayout['scheduled_at'])<span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ __($nextPayout['label']) }}</span>@endif</div>
+      <div class="t-card__head"><h2 class="t-card__title" id="fin-next-h">{{ __('Payout readiness') }}</h2><span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ __($nextPayout['label']) }}</span></div>
       <p class="lg-big">
         @if ($nextPayout['scheduled_at'])
           {{ \Carbon\Carbon::parse($nextPayout['scheduled_at'])->timezone(config('payouts.eligibility_policy.timezone', 'Africa/Lagos'))->format('D, j M Y \a\t g:i A') }}
@@ -53,7 +72,7 @@
         <div><dt>{{ __('Pending payouts') }}</dt><dd>{{ $money($statement['pending_payouts']) }}</dd></div>
         <div><dt>{{ __('Payout fees') }}</dt><dd>{{ $money($statement['payout_fees']) }}</dd></div>
       </dl>
-      <p class="t-help">{{ __('Card processing fees are settled with Paystack and are not included here.') }}</p>
+      <p class="t-help">{{ __('The verified gateway fee is recorded during settlement reconciliation; it is never estimated.') }}</p>
     </section>
   </div>
 

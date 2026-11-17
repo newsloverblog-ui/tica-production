@@ -8,6 +8,17 @@ use PHPUnit\Framework\TestCase;
 
 class EventFeeCalculatorServiceTest extends TestCase
 {
+    public function test_minor_unit_quote_combines_flat_and_percentage_fee_without_float_money(): void
+    {
+        $quote = (new EventFeeCalculatorService())->quoteMinor(500000, 2, 10000, 600, 'customer');
+
+        $this->assertSame(1000000, $quote['ticket_sales_minor']);
+        $this->assertSame(80000, $quote['platform_fee_minor']);
+        $this->assertSame(1080000, $quote['attendee_total_minor']);
+        $this->assertSame(1000000, $quote['organizer_net_minor']);
+        $this->assertSame('customer', $quote['payer']);
+    }
+
     #[Test]
     public function it_matches_the_event_checkout_fee_formula(): void
     {

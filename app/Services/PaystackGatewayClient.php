@@ -299,6 +299,17 @@ class PaystackGatewayClient
         return $payload;
     }
 
+    public function balance(): array
+    {
+        $response = Http::withToken($this->secret)->acceptJson()->timeout(20)
+            ->get('https://api.paystack.co/balance');
+        $payload = $response->json() ?: [];
+        if (!$response->successful() || ($payload['status'] ?? false) !== true || !is_array($payload['data'] ?? null)) {
+            throw new RuntimeException((string) ($payload['message'] ?? 'Unable to retrieve the Paystack balance.'));
+        }
+        return $payload;
+    }
+
     public function verifyTransfer(string $reference): array
     {
         $response = Http::withToken($this->secret)

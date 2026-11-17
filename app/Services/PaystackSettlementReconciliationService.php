@@ -7,6 +7,7 @@ use App\Models\GatewaySettlementEntry;
 use App\Models\PaymentIntent;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class PaystackSettlementReconciliationService
@@ -219,6 +220,16 @@ class PaystackSettlementReconciliationService
                     GatewaySettlementEntry::create(array_merge($entry, [
                         'gateway_settlement_id' => $lockedSettlement->id,
                     ]));
+                    if ($entry['result'] === 'matched'
+                        && !empty($entry['booking_id'])
+                        && (float) $entry['gateway_fee'] > 0
+                        && Schema::hasTable('organizer_earning_releases')) {
+                        app(FinancialLedgerService::class)->recordProcessorFee(
+                            (int) $entry['booking_id'],
+                            (string) $entry['reference'],
+                            \App\Support\Money::toMinor($entry['gateway_fee'])
+                        );
+                    }
                 }
 
                 $lockedSettlement->update([

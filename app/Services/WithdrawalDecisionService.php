@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Organizer;
 use App\Models\Withdraw;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 class WithdrawalDecisionService
@@ -68,6 +69,10 @@ class WithdrawalDecisionService
             $withdrawal->paid_at = now();
             $withdrawal->save();
 
+            if (Schema::hasTable('financial_ledger_accounts')) {
+                app(FinancialLedgerService::class)->settleWithdrawal($withdrawal, 'NGN');
+            }
+
             $transaction->payment_status = 1;
             $transaction->save();
             AuditLogger::record('withdrawal.paid', $withdrawal, ['status' => $beforeStatus], [
@@ -109,6 +114,9 @@ class WithdrawalDecisionService
             $withdrawal->save();
             $transaction->payment_status = 2;
             $transaction->save();
+            if (Schema::hasTable('financial_ledger_accounts')) {
+                app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, 'NGN');
+            }
 
             AuditLogger::record('withdrawal.rejected', $withdrawal, ['status' => $beforeStatus], [
                 'status' => Withdraw::STATUS_REJECTED,

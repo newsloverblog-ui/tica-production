@@ -8,6 +8,8 @@ use App\Models\Transaction;
 use App\Models\Withdraw;
 use App\Models\WithdrawPaymentMethod;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use App\Support\Money;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -52,6 +54,16 @@ class WithdrawalService
                     'withdraw_method' => ['Payouts are on a 24-hour security hold after a bank-account change.'],
                 ]);
             }
+            $financialLedger = null;
+            if (Schema::hasTable('financial_ledger_accounts') && Schema::hasTable('financial_ledger_entries')) {
+                $financialLedger = app(FinancialLedgerService::class);
+                $financialLedger->ensureOpeningAvailable($organizer->id, Money::toMinor($organizer->amount), 'NGN');
+                if ($financialLedger->accountBalance($organizer->id, FinancialLedgerService::AVAILABLE, 'NGN') < Money::toMinor($amount)) {
+                    throw ValidationException::withMessages([
+                        'withdraw_amount' => ['You do not have enough released earnings to withdraw.'],
+                    ]);
+                }
+            }
             if ((float) $organizer->amount < $amount) {
                 throw ValidationException::withMessages([
                     'withdraw_amount' => ['You do not have enough available balance to withdraw.'],
@@ -79,6 +91,9 @@ class WithdrawalService
             ]);
             $withdraw->status = 0;
             $withdraw->save();
+            if ($financialLedger) {
+                $financialLedger->reserveWithdrawal($withdraw, 'NGN');
+            }
 
             Transaction::create([
                 'transcation_id' => (string) Str::uuid(),

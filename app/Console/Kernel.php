@@ -70,6 +70,9 @@ class Kernel extends ConsoleKernel
     $schedule->command('payouts:reconcile-paystack')
       ->everyTenMinutes()
       ->withoutOverlapping();
+    $schedule->command('finance:release-earnings')
+      ->everyFifteenMinutes()
+      ->withoutOverlapping();
     $schedule->command('payouts:dispatch-pending')
       ->everyMinute()
       ->withoutOverlapping();

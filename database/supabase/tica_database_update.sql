@@ -12,7 +12,7 @@
 -- name to that list once, whether or not the id column numbers itself.
 CREATE OR REPLACE FUNCTION pg_temp.tica_mark_migration(name text) RETURNS void AS $$
 DECLARE
-  has_default boolean;
+  is_identity_column boolean;
 BEGIN
   IF to_regclass('public.migrations') IS NULL THEN
     RETURN;
@@ -20,10 +20,10 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.migrations WHERE migration = name) THEN
     RETURN;
   END IF;
-  SELECT column_default IS NOT NULL OR is_identity = 'YES' INTO has_default
+  SELECT is_identity = 'YES' INTO is_identity_column
     FROM information_schema.columns
    WHERE table_schema = 'public' AND table_name = 'migrations' AND column_name = 'id';
-  IF has_default THEN
+  IF is_identity_column THEN
     INSERT INTO public.migrations (migration, batch)
     VALUES (name, (SELECT COALESCE(MAX(batch), 0) + 1 FROM public.migrations));
   ELSE
@@ -459,7 +459,81 @@ BEGIN
   END IF;
 END $$;
 
--- 11. Keep these tables private -------------------------------------------
+-- 11. Integer, double-entry organizer earnings ledger ----------------------
+CREATE TABLE IF NOT EXISTS public.financial_ledger_accounts (
+  id bigserial PRIMARY KEY,
+  public_id uuid NOT NULL UNIQUE,
+  owner_type varchar(255) NULL,
+  owner_id bigint NULL,
+  code varchar(64) NOT NULL,
+  name varchar(120) NOT NULL,
+  category varchar(24) NOT NULL,
+  normal_balance varchar(6) NOT NULL,
+  currency char(3) NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT financial_ledger_account_owner_unique UNIQUE (owner_type, owner_id, code, currency),
+  CONSTRAINT financial_ledger_account_normal_check CHECK (normal_balance IN ('debit','credit'))
+);
+CREATE INDEX IF NOT EXISTS financial_ledger_accounts_owner_index ON public.financial_ledger_accounts (owner_type, owner_id);
+CREATE INDEX IF NOT EXISTS financial_ledger_accounts_code_currency_index ON public.financial_ledger_accounts (code, currency);
+
+CREATE TABLE IF NOT EXISTS public.financial_ledger_transactions (
+  id bigserial PRIMARY KEY,
+  public_id uuid NOT NULL UNIQUE,
+  reference varchar(191) NOT NULL UNIQUE,
+  kind varchar(48) NOT NULL,
+  source_type varchar(255) NULL,
+  source_id bigint NULL,
+  occurred_at timestamp(0) without time zone NOT NULL,
+  metadata json NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS financial_ledger_transactions_source_index ON public.financial_ledger_transactions (source_type, source_id);
+CREATE INDEX IF NOT EXISTS financial_ledger_transactions_kind_occurred_index ON public.financial_ledger_transactions (kind, occurred_at);
+
+CREATE TABLE IF NOT EXISTS public.financial_ledger_entries (
+  id bigserial PRIMARY KEY,
+  financial_ledger_transaction_id bigint NOT NULL REFERENCES public.financial_ledger_transactions(id),
+  financial_ledger_account_id bigint NOT NULL REFERENCES public.financial_ledger_accounts(id),
+  direction varchar(6) NOT NULL,
+  amount_minor bigint NOT NULL,
+  currency char(3) NOT NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL,
+  CONSTRAINT financial_ledger_entry_direction_check CHECK (direction IN ('debit','credit')),
+  CONSTRAINT financial_ledger_entry_amount_check CHECK (amount_minor > 0)
+);
+CREATE INDEX IF NOT EXISTS financial_ledger_entries_account_id_index ON public.financial_ledger_entries (financial_ledger_account_id, id);
+CREATE INDEX IF NOT EXISTS financial_ledger_entries_transaction_id_index ON public.financial_ledger_entries (financial_ledger_transaction_id);
+
+CREATE TABLE IF NOT EXISTS public.organizer_earning_releases (
+  id bigserial PRIMARY KEY,
+  public_id uuid NOT NULL UNIQUE,
+  organizer_id bigint NOT NULL REFERENCES public.organizers(id),
+  event_id bigint NULL REFERENCES public.events(id),
+  booking_id bigint NOT NULL UNIQUE,
+  financial_ledger_transaction_id bigint NOT NULL REFERENCES public.financial_ledger_transactions(id),
+  currency char(3) NOT NULL,
+  gross_amount_minor bigint NOT NULL,
+  platform_fee_minor bigint NOT NULL DEFAULT 0,
+  processor_fee_minor bigint NOT NULL DEFAULT 0,
+  organizer_amount_minor bigint NOT NULL,
+  status varchar(24) NOT NULL DEFAULT 'pending',
+  available_at timestamp(0) without time zone NULL,
+  released_at timestamp(0) without time zone NULL,
+  held_at timestamp(0) without time zone NULL,
+  hold_reason text NULL,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS organizer_earning_releases_status_available_index ON public.organizer_earning_releases (status, available_at);
+CREATE INDEX IF NOT EXISTS organizer_earning_releases_owner_status_index ON public.organizer_earning_releases (organizer_id, currency, status);
+SELECT pg_temp.tica_mark_migration('2026_11_17_120000_create_financial_ledger');
+
+-- 12. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -471,6 +545,10 @@ ALTER TABLE public.seat_reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_number_allocations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tica_sponsorship_packages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tica_organizer_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financial_ledger_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financial_ledger_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financial_ledger_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organizer_earning_releases ENABLE ROW LEVEL SECURITY;
 
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
@@ -540,6 +618,9 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('event_registration_session_selections'),
   ('event_registration_sessions'),
   ('event_registration_submissions'),
+  ('financial_ledger_accounts'),
+  ('financial_ledger_entries'),
+  ('financial_ledger_transactions'),
   ('event_seats'),
   ('event_waitlist_entries'),
   ('events'),
@@ -567,6 +648,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('order_items'),
   ('organizer_currency_balances'),
   ('organizer_email_verification_deliveries'),
+  ('organizer_earning_releases'),
   ('organizer_infos'),
   ('organizer_kyc_documents'),
   ('organizer_kyc_submissions'),
@@ -805,6 +887,7 @@ SELECT 'update not recorded', m.name
   ('2026_11_14_180000_create_advanced_ticketing_tables'),
   ('2026_11_15_090000_create_organizer_operations_tables'),
   ('2026_11_17_100000_add_timezone_to_events')
+  ,('2026_11_17_120000_create_financial_ledger')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

@@ -61,6 +61,17 @@ class PaystackPayoutProvider implements PayoutProvider
     return ['data' => (array) ($payload['data'] ?? []), 'raw' => $payload];
   }
 
+  public function availableBalanceMinor(string $currency): int
+  {
+    $currency = strtoupper($currency);
+    foreach ((array) ($this->client()->balance()['data'] ?? []) as $balance) {
+      if (strtoupper((string) ($balance['currency'] ?? '')) === $currency) {
+        return max(0, (int) ($balance['balance'] ?? 0));
+      }
+    }
+    return 0;
+  }
+
   public function testConnection(): void
   {
     $this->client()->listBanks('nigeria', 'NGN');

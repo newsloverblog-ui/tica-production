@@ -8,6 +8,8 @@ use App\Models\Withdraw;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
+use App\Support\Money;
 
 class OrganizerFinanceStatementService
 {
@@ -69,6 +71,14 @@ class OrganizerFinanceStatementService
         $paidPayouts = Withdraw::where('organizer_id', $organizerId)
             ->where('status', Withdraw::STATUS_PAID)
             ->whereBetween('paid_at', [$from->startOfDay(), $to->endOfDay()])->get();
+        $financialBalances = null;
+        if (Schema::hasTable('financial_ledger_accounts')
+            && Schema::hasTable('financial_ledger_entries')) {
+            $ledger = app(FinancialLedgerService::class);
+            if ($ledger->hasOrganizerLedger($organizerId, 'NGN')) {
+                $financialBalances = $ledger->balances($organizerId, 'NGN');
+            }
+        }
 
         return [
             'from' => $from->startOfDay(),
@@ -80,7 +90,16 @@ class OrganizerFinanceStatementService
             'manual_credits' => $credits,
             'manual_debits' => $debits,
             'net_sales' => $netSales,
-            'available_balance' => (float) Organizer::whereKey($organizerId)->value('amount'),
+            'available_balance' => $financialBalances
+                ? Money::fromMinor($financialBalances['available_minor'])
+                : (float) Organizer::whereKey($organizerId)->value('amount'),
+            'pending_earnings' => $financialBalances
+                ? Money::fromMinor($financialBalances['pending_minor'])
+                : 0.0,
+            'on_hold_balance' => $financialBalances
+                ? Money::fromMinor($financialBalances['on_hold_minor'])
+                : $this->sum($pendingPayouts->where('status', Withdraw::STATUS_HELD), 'amount'),
+            'uses_financial_ledger' => $financialBalances !== null,
             'pending_payouts' => $this->sum($pendingPayouts, 'amount'),
             'paid_out' => $this->sum($paidPayouts, 'payable_amount'),
             'payout_fees' => $this->sum($paidPayouts, 'total_charge'),
