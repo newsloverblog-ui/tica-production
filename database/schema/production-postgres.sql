@@ -789,6 +789,7 @@ CREATE TABLE "event_dates" (
   "event_id" bigint,
   "start_date" varchar(255),
   "start_time" varchar(255),
+  "timezone" varchar(64) DEFAULT 'Africa/Lagos' NOT NULL,
   "end_date" varchar(255),
   "end_time" varchar(255),
   "duration" varchar(255),

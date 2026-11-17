@@ -446,7 +446,20 @@ BEGIN
 END $$;
 SELECT pg_temp.tica_mark_migration('2026_11_15_090000_create_organizer_operations_tables');
 
--- 10. Keep these tables private -------------------------------------------
+-- 10. Event-local timezone -------------------------------------------------
+-- Keeps the organizer's intended local time explicit for tickets, reminders
+-- and exports. Existing events remain on West Africa Time.
+DO $$
+BEGIN
+  IF to_regclass('public.events') IS NOT NULL THEN
+    ALTER TABLE public.events ADD COLUMN IF NOT EXISTS timezone varchar(64) NOT NULL DEFAULT 'Africa/Lagos';
+    PERFORM pg_temp.tica_mark_migration('2026_11_17_100000_add_timezone_to_events');
+  ELSE
+    RAISE NOTICE 'events does not exist yet: skipped the event timezone column.';
+  END IF;
+END $$;
+
+-- 11. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -642,6 +655,13 @@ SELECT 'missing table' AS problem, t.name AS detail
   ) AS t(name)
  WHERE to_regclass('public.' || t.name) IS NULL
 UNION ALL
+SELECT 'missing update', 'events.timezone column'
+ WHERE to_regclass('public.events') IS NOT NULL
+   AND NOT EXISTS (
+     SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'events' AND column_name = 'timezone'
+   )
+UNION ALL
 SELECT 'update not recorded', m.name
   FROM (VALUES
   ('2023_03_04_134315_drop_secondary_color_from_basic_settings_table'),
@@ -783,7 +803,8 @@ SELECT 'update not recorded', m.name
   ('2026_11_14_160000_add_totp_to_account_actors'),
   ('2026_11_14_180000_expand_tica_promotion_system'),
   ('2026_11_14_180000_create_advanced_ticketing_tables'),
-  ('2026_11_15_090000_create_organizer_operations_tables')
+  ('2026_11_15_090000_create_organizer_operations_tables'),
+  ('2026_11_17_100000_add_timezone_to_events')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

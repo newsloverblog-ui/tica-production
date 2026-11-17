@@ -19,6 +19,7 @@
           <div class="form-group">
             <label for="tcat-create-name">{{ __('Name') }}*</label>
             <input type="text" id="tcat-create-name" class="form-control" name="name" placeholder="{{ __('e.g. Concerts') }}">
+            <p class="tcat-help mb-0 mt-2">{{ __('URL') }}: <strong>/events/category/<span id="tcat-create-slug">concerts</span></strong></p>
             <p id="err_name" class="mt-1 mb-0 text-danger em"></p>
             <p id="err_language_id" class="mt-1 mb-0 text-danger em"></p>
           </div>
@@ -47,7 +48,7 @@
             <div class="form-group">
               <label for="tcat-create-order">{{ __('Order') }}*</label>
               <input type="number" id="tcat-create-order" class="form-control ltr" name="serial_number"
-                value="{{ ($categories->max('serial_number') ?? 0) + 1 }}" min="0">
+                value="{{ ($categories->max('serial_number') ?? 0) + 1 }}" min="1">
               <p id="err_serial_number" class="mt-1 mb-0 text-danger em"></p>
             </div>
           </div>

@@ -17,6 +17,7 @@
           <div class="form-group">
             <label for="in_name">{{ __('Name') }}*</label>
             <input type="text" id="in_name" class="form-control" name="name">
+            <p class="tcat-help mb-0 mt-2">{{ __('URL') }}: <strong>/events/category/<span id="tcat-edit-slug"></span></strong></p>
             <p id="editErr_name" class="mt-1 mb-0 text-danger em"></p>
           </div>
 
@@ -43,7 +44,7 @@
 
             <div class="form-group">
               <label for="in_serial_number">{{ __('Order') }}*</label>
-              <input type="number" id="in_serial_number" class="form-control ltr" name="serial_number" min="0">
+              <input type="number" id="in_serial_number" class="form-control ltr" name="serial_number" min="1">
               <p id="editErr_serial_number" class="mt-1 mb-0 text-danger em"></p>
             </div>
           </div>

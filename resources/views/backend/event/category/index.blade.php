@@ -17,6 +17,12 @@
     .tcat-btn-primary:hover{background:#1E3AB0}
     .tcat-btn-danger{background:#FEF2F2;color:#9B1C1C!important;border:1px solid #FBD5D5}
     .tcat-card{background:#fff;border:1px solid var(--tc-line);border-radius:16px;overflow:hidden}
+    .tcat-card-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border-bottom:1px solid var(--tc-line);background:#FBFCFE;color:var(--tc-soft);font-size:13px}
+    .tcat-save-state{display:inline-flex;align-items:center;gap:7px;min-height:22px;font-weight:650}
+    .tcat-save-state:before{content:"";width:7px;height:7px;border-radius:50%;background:#98A2B3}
+    .tcat-save-state.saving:before{background:var(--tc-orange)}
+    .tcat-save-state.saved:before{background:#079455}
+    .tcat-save-state.error{color:#B42318}.tcat-save-state.error:before{background:#D92D20}
     .tcat-table{width:100%;border-collapse:collapse}
     .tcat-table th{padding:14px 16px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tc-soft);background:#F8FAFD;border-bottom:1px solid var(--tc-line);text-align:left}
     .tcat-table td{padding:14px 16px;border-bottom:1px solid var(--tc-line);vertical-align:middle;font-size:15px}
@@ -24,6 +30,12 @@
     .tcat-table tbody tr:hover{background:#FAFBFE}
     .tcat-check{width:44px}
     .tcat-check input{width:18px;height:18px;accent-color:var(--tc-blue)}
+    .tcat-drag-cell{width:52px;text-align:center}
+    .tcat-drag{width:36px;height:36px;display:inline-grid;place-items:center;border:0;border-radius:9px;background:transparent;color:#8793A8;cursor:grab;touch-action:none}
+    .tcat-drag:hover,.tcat-drag:focus-visible{background:var(--tc-blue-50);color:var(--tc-blue);outline:0}
+    .tcat-drag svg{width:19px;height:19px;fill:currentColor}
+    .tcat-row-dragging{opacity:.45;background:var(--tc-blue-50)!important}
+    .tcat-drop-before{box-shadow:inset 0 3px 0 var(--tc-blue)}
     .tcat-name{display:flex;align-items:center;gap:14px}
     .tcat-ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--tc-blue-50);color:var(--tc-blue);display:grid;place-items:center}
     .tcat-ico svg,.tcat-opt-box svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -35,16 +47,20 @@
     .tcat-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
     .tcat-pill.on{background:#ECFDF3;color:#067647}
     .tcat-pill.off{background:#F2F4F7;color:#475467}
-    .tcat-feat{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--tc-line);background:#fff;font-size:13px;font-weight:600;color:var(--tc-soft);cursor:pointer}
-    .tcat-feat svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
-    .tcat-feat.is-on{background:var(--tc-orange-50);border-color:#F2C594;color:var(--tc-orange)}
-    .tcat-feat.is-on svg{fill:currentColor}
+    .tcat-switch-form{display:inline-flex;margin:0}
+    .tcat-switch{display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;padding:2px;color:var(--tc-soft);font-size:13px;font-weight:700;cursor:pointer}
+    .tcat-switch-track{position:relative;width:38px;height:22px;border-radius:99px;background:#D8DEE9;box-shadow:inset 0 0 0 1px rgba(15,23,42,.08);transition:background .18s ease}
+    .tcat-switch-track:after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.24);transition:transform .18s ease}
+    .tcat-switch[aria-pressed="true"] .tcat-switch-track{background:var(--tc-blue)}
+    .tcat-switch[aria-pressed="true"] .tcat-switch-track:after{transform:translateX(16px)}
+    .tcat-switch.feature[aria-pressed="true"] .tcat-switch-track{background:var(--tc-orange)}
     .tcat-order{font-variant-numeric:tabular-nums;color:var(--tc-soft)}
     .tcat-actions{display:flex;gap:8px;justify-content:flex-end}
     .tcat-act{width:40px;height:40px;display:inline-grid;place-items:center;border-radius:10px;border:1px solid var(--tc-line);background:#fff;color:var(--tc-ink);cursor:pointer}
     .tcat-act svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .tcat-act:hover{border-color:var(--tc-blue);color:var(--tc-blue)}
     .tcat-act.del:hover{border-color:#F04438;color:#B42318}
+    .tcat-act[disabled]{cursor:not-allowed;opacity:.38;background:#F8FAFC}.tcat-act[disabled]:hover{border-color:var(--tc-line);color:var(--tc-ink)}
     .tcat-empty{padding:56px 24px;text-align:center}
     .tcat-empty .tcat-ico{margin:0 auto 14px;width:56px;height:56px}
     .tcat-empty h2{font-size:18px;font-weight:700;margin:0 0 6px}
@@ -73,10 +89,11 @@
     @media (max-width:767px){
       .tcat-row,.tcat-row-3{grid-template-columns:1fr}
       .tcat-table thead{display:none}
-      .tcat-table tr{display:grid;grid-template-columns:44px 1fr auto;gap:8px 12px;padding:14px 12px;border-bottom:1px solid var(--tc-line)}
+      .tcat-table tr{display:grid;grid-template-columns:36px 36px 1fr;gap:8px 10px;padding:14px 12px;border-bottom:1px solid var(--tc-line)}
       .tcat-table td{border:0;padding:0}
-      .tcat-table td.tcat-status,.tcat-table td.tcat-feat-cell,.tcat-table td.tcat-order{grid-column:2}
-      .tcat-table td.tcat-actions-cell{grid-column:2/4}
+      .tcat-table td:nth-child(3){grid-column:3}
+      .tcat-table td.tcat-status,.tcat-table td.tcat-feat-cell,.tcat-table td.tcat-order{grid-column:3}
+      .tcat-table td.tcat-actions-cell{grid-column:3}
       .tcat-actions{justify-content:flex-start}
     }
   </style>
@@ -114,10 +131,15 @@
           <a href="#" data-toggle="modal" data-target="#createModal" class="tcat-btn tcat-btn-primary">{{ __('Add category') }}</a>
         </div>
       @else
+        <div class="tcat-card-head">
+          <span>{{ __('Drag categories into the order customers should see them.') }}</span>
+          <span class="tcat-save-state saved" id="tcat-save-state" role="status" aria-live="polite">{{ __('Order saved') }}</span>
+        </div>
         <div class="table-responsive">
           <table class="tcat-table">
             <thead>
               <tr>
+                <th scope="col" class="tcat-drag-cell"><span class="sr-only">{{ __('Reorder') }}</span></th>
                 <th scope="col" class="tcat-check">
                   <input type="checkbox" class="bulk-check" data-val="all" aria-label="{{ __('Select all categories') }}">
                 </th>
@@ -128,12 +150,17 @@
                 <th scope="col" class="text-right">{{ __('Actions') }}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="tcat-sortable" data-reorder-url="{{ route('admin.event_management.category.reorder') }}">
               @foreach ($categories as $category)
                 @php($icon = $icons[$category->icon] ?? null)
-                <tr>
+                <tr data-category-id="{{ $category->id }}" draggable="true">
+                  <td class="tcat-drag-cell">
+                    <button class="tcat-drag" type="button" aria-label="{{ __('Move') }} {{ $category->name }}" title="{{ __('Drag to reorder. Use the up and down arrow keys when focused.') }}">
+                      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7" cy="5" r="1.3"/><circle cx="13" cy="5" r="1.3"/><circle cx="7" cy="10" r="1.3"/><circle cx="13" cy="10" r="1.3"/><circle cx="7" cy="15" r="1.3"/><circle cx="13" cy="15" r="1.3"/></svg>
+                    </button>
+                  </td>
                   <td class="tcat-check">
-                    <input type="checkbox" class="bulk-check" data-val="{{ $category->id }}" aria-label="{{ __('Select') }} {{ $category->name }}">
+                    <input type="checkbox" class="bulk-check" data-val="{{ $category->id }}" aria-label="{{ __('Select') }} {{ $category->name }}" {{ $category->events_count > 0 ? 'disabled' : '' }}>
                   </td>
                   <td>
                     <div class="tcat-name">
@@ -153,42 +180,47 @@
                     </div>
                   </td>
                   <td class="tcat-status">
-                    @if ($category->status == 1)
-                      <span class="tcat-pill on">{{ __('Active') }}</span>
-                    @else
-                      <span class="tcat-pill off">{{ __('Hidden') }}</span>
-                    @endif
-                  </td>
-                  <td class="tcat-feat-cell">
-                    <form action="{{ route('admin.event_management.category.update_featured', ['id' => $category->id]) }}" method="post">
+                    <form class="tcat-switch-form" action="{{ route('admin.event_management.category.update_status', ['id' => $category->id]) }}" method="post">
                       @csrf
-                      <input type="hidden" name="is_featured" value="{{ $category->is_featured == 'yes' ? 'no' : 'yes' }}">
-                      <button type="submit" class="tcat-feat {{ $category->is_featured == 'yes' ? 'is-on' : '' }}"
-                        aria-pressed="{{ $category->is_featured == 'yes' ? 'true' : 'false' }}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
-                        {{ $category->is_featured == 'yes' ? __('Featured') : __('Not featured') }}
+                      <input type="hidden" name="status" value="{{ $category->status == 1 ? 0 : 1 }}">
+                      <button class="tcat-switch" type="submit" aria-pressed="{{ $category->status == 1 ? 'true' : 'false' }}" aria-label="{{ $category->status == 1 ? __('Hide') : __('Show') }} {{ $category->name }}">
+                        <span class="tcat-switch-track" aria-hidden="true"></span><span>{{ $category->status == 1 ? __('Active') : __('Hidden') }}</span>
                       </button>
                     </form>
                   </td>
-                  <td class="tcat-order">{{ $category->serial_number }}</td>
+                  <td class="tcat-feat-cell">
+                    <form class="tcat-switch-form" action="{{ route('admin.event_management.category.update_featured', ['id' => $category->id]) }}" method="post">
+                      @csrf
+                      <input type="hidden" name="is_featured" value="{{ $category->is_featured == 'yes' ? 'no' : 'yes' }}">
+                      <button type="submit" class="tcat-switch feature" aria-pressed="{{ $category->is_featured == 'yes' ? 'true' : 'false' }}" aria-label="{{ $category->is_featured == 'yes' ? __('Remove from featured') : __('Add to featured') }}">
+                        <span class="tcat-switch-track" aria-hidden="true"></span><span>{{ $category->is_featured == 'yes' ? __('Featured') : __('Standard') }}</span>
+                      </button>
+                    </form>
+                  </td>
+                  <td class="tcat-order" data-order>{{ $category->serial_number }}</td>
                   <td class="tcat-actions-cell">
                     <div class="tcat-actions">
                       <a class="tcat-act editBtn" href="#" data-toggle="modal" data-target="#editEventCategoryModal"
                         aria-label="{{ __('Edit') }} {{ $category->name }}"
                         data-id="{{ $category->id }}" data-name="{{ $category->name }}"
+                        data-slug="{{ $category->slug }}"
                         data-cat_icon="{{ $category->icon }}" data-status="{{ $category->status }}"
                         data-serial_number="{{ $category->serial_number }}"
                         data-is_featured="{{ $category->is_featured }}">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>
                       </a>
-                      <form class="deleteForm d-inline-block"
-                        action="{{ route('admin.event_management.delete_category', ['id' => $category->id]) }}" method="post">
-                        @csrf
-                        <button type="submit" class="tcat-act del deleteBtn" aria-label="{{ __('Delete') }} {{ $category->name }}"
-                          @if ($category->events_count > 0) title="{{ __('Deleting this category also deletes its events.') }}" @endif>
+                      @if ($category->events_count > 0)
+                        <button type="button" class="tcat-act del" disabled aria-label="{{ __('Cannot delete') }} {{ $category->name }}" title="{{ __('Move linked events to another category before deleting this one.') }}">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
                         </button>
-                      </form>
+                      @else
+                        <form class="deleteForm d-inline-block" action="{{ route('admin.event_management.delete_category', ['id' => $category->id]) }}" method="post">
+                          @csrf
+                          <button type="submit" class="tcat-act del deleteBtn" aria-label="{{ __('Delete') }} {{ $category->name }}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
+                          </button>
+                        </form>
+                      @endif
                     </div>
                   </td>
                 </tr>
@@ -237,7 +269,37 @@
           input.checked = input.value === icon;
         });
         sync(picker);
+        var slug = document.getElementById('tcat-edit-slug');
+        if (slug) slug.textContent = $(this).attr('data-slug') || '';
       });
+
+      function slugify(value) {
+        return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+      }
+      [['tcat-create-name','tcat-create-slug'],['in_name','tcat-edit-slug']].forEach(function (ids) {
+        var input = document.getElementById(ids[0]), output = document.getElementById(ids[1]);
+        if (input && output) input.addEventListener('input', function () { output.textContent = slugify(input.value); });
+      });
+
+      var sortable = document.getElementById('tcat-sortable');
+      var state = document.getElementById('tcat-save-state');
+      if (!sortable) return;
+      var dragged = null;
+      function rows() { return Array.prototype.slice.call(sortable.querySelectorAll('tr[data-category-id]')); }
+      function syncOrder() { rows().forEach(function (row, index) { var cell = row.querySelector('[data-order]'); if (cell) cell.textContent = index + 1; }); }
+      function saveOrder() {
+        syncOrder(); state.className = 'tcat-save-state saving'; state.textContent = @json(__('Saving order…'));
+        fetch(sortable.dataset.reorderUrl, {method:'POST', credentials:'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify({ids:rows().map(function (row) { return Number(row.dataset.categoryId); })})})
+          .then(function (response) { if (!response.ok) return response.json().then(function (data) { throw new Error(data.message || 'Unable to save order.'); }); return response.json(); })
+          .then(function () { state.className = 'tcat-save-state saved'; state.textContent = @json(__('Order saved')); })
+          .catch(function (error) { state.className = 'tcat-save-state error'; state.textContent = error.message; window.setTimeout(function () { window.location.reload(); }, 1600); });
+      }
+      sortable.addEventListener('dragstart', function (event) { var row = event.target.closest('tr[data-category-id]'); if (!row) return; dragged = row; row.classList.add('tcat-row-dragging'); event.dataTransfer.effectAllowed = 'move'; });
+      sortable.addEventListener('dragover', function (event) { if (!dragged) return; event.preventDefault(); var row = event.target.closest('tr[data-category-id]'); rows().forEach(function (item) { item.classList.remove('tcat-drop-before'); }); if (row && row !== dragged) row.classList.add('tcat-drop-before'); });
+      sortable.addEventListener('drop', function (event) { event.preventDefault(); var target = event.target.closest('tr[data-category-id]'); if (!dragged || !target || dragged === target) return; var box = target.getBoundingClientRect(); sortable.insertBefore(dragged, event.clientY > box.top + box.height / 2 ? target.nextSibling : target); saveOrder(); });
+      sortable.addEventListener('dragend', function () { rows().forEach(function (row) { row.classList.remove('tcat-row-dragging','tcat-drop-before'); }); dragged = null; });
+      sortable.addEventListener('keydown', function (event) { var handle = event.target.closest('.tcat-drag'); if (!handle || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return; event.preventDefault(); var row = handle.closest('tr'), sibling = event.key === 'ArrowUp' ? row.previousElementSibling : row.nextElementSibling; if (!sibling) return; if (event.key === 'ArrowUp') sortable.insertBefore(row, sibling); else sortable.insertBefore(sibling, row); handle.focus(); saveOrder(); });
     })();
   </script>
 @endsection

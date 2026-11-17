@@ -108,10 +108,10 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
         $this->assertStringContainsString('3. Tickets &amp; fees', $create);
-        $this->assertStringContainsString('Step 1 of 5: Basics', $create);
+        $this->assertStringContainsString('Step 1 of 5: Details', $create);
         $this->assertStringContainsString('class="ce-subsection" id="ce-fee"', $create);
         $this->assertStringContainsString("var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review']", $script);
-        $this->assertStringContainsString("var STEPNAME=['Basics','Location','Tickets & fees','Settings','Review']", $script);
+        $this->assertStringContainsString("var STEPNAME=['Details','Type & location','Tickets & fees','Media & settings','Preview']", $script);
         $this->assertStringNotContainsString("'ce-tix','ce-fee','ce-more'", $script);
         $this->assertStringContainsString('.page[data-page=create] .creategrid>.preview{order:-1;display:grid', $css);
         $this->assertStringContainsString('.page[data-page=create] .preview{position:static', $css);

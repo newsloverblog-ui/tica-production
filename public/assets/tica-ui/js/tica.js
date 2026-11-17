@@ -1914,7 +1914,9 @@ if(requestedType==='online'||requestedType==='venue'){
 }
 if(ADMIN){
   var adminPanel=$('ce-admin'),owner=$('c-owner');adminPanel.hidden=false;document.body.classList.add('admin-builder');
-  owner.innerHTML='<option value="">TICA · platform-managed event</option>'+(ADMIN.organizers||[]).map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+(o.email?' · '+esc(o.email):'')+'</option>'}).join('');
+  function ownerOptions(query){var selected=owner.value,q=String(query||'').trim().toLowerCase(),list=(ADMIN.organizers||[]).filter(function(o){return !q||(String(o.name||'')+' '+String(o.email||'')).toLowerCase().indexOf(q)>-1});owner.innerHTML='<option value="">TICA · platform-managed event</option>'+list.map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+(o.email?' · '+esc(o.email):'')+'</option>'}).join('');if([].some.call(owner.options,function(o){return o.value===selected}))owner.value=selected}
+  ownerOptions('');
+  var ownerSearch=$('c-owner-search');if(ownerSearch)ownerSearch.addEventListener('input',function(){ownerOptions(ownerSearch.value)});
   var workspaceBack=document.querySelector('.workspace-site');if(workspaceBack)workspaceBack.href=ADMIN.backUrl||'/admin/dashboard';
   var bank=$('ce-bank');if(bank)bank.innerHTML='<span><b>Payout ownership</b><small>Assign an organizer for organizer payouts. TICA-managed events remain under platform finance.</small></span><a class="btn btn-line" href="'+esc(ADMIN.backUrl||'/admin/dashboard')+'">All events</a>';
 }
@@ -2040,7 +2042,7 @@ function payload(draft){
   fd.append('description',$('c-desc').value);fd.append('mode',m);fd.append('entry',entry());fd.append('use_registration',$('c-use-registration').checked?'1':'0');
   if($('c-multi').checked){fd.append('multiple','1');[].forEach.call($('ce-dates').children,function(r,i){var d=r.querySelector('.ce-md').value;fd.append('dates['+i+'][start_date]',d);fd.append('dates['+i+'][start_time]',r.querySelector('.ce-mt').value);if(r.querySelector('.ce-me').value){fd.append('dates['+i+'][end_date]',d);fd.append('dates['+i+'][end_time]',r.querySelector('.ce-me').value)}})}
   else{fd.append('multiple','0');['start_date:c-date','start_time:c-time','end_date:c-edate','end_time:c-etime'].forEach(function(x){var k=x.split(':');if(v(k[1]))fd.append(k[0],v(k[1]))})}
-  fd.append('currency',curCode());fd.append('country',$('c-country').value);
+  fd.append('currency',curCode());fd.append('country',$('c-country').value);fd.append('timezone',$('c-timezone').value);
   if(m!=='Online'){fd.append('address',v('c-venue'));fd.append('city',v('c-city'));fd.append('state',v('c-state'))}
   if(m!=='In person'){fd.append('online_join_url',v('c-link'));fd.append('join_reveal_minutes',$('c-rev').value)}
   if($('c-use-registration').checked&&$('c-reg-form').value)fd.append('registration_form_id',$('c-reg-form').value);
@@ -2063,7 +2065,7 @@ function payload(draft){
 }
 /* step by step */
 var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review'],at=0,reached=0;
-var STEPNAME=['Basics','Location','Tickets & fees','Settings','Review'];
+var STEPNAME=['Details','Type & location','Tickets & fees','Media & settings','Preview'];
 function stageOf(id){var el=$(id);if(!el)return 0;var fs=el.closest('fieldset');var i=fs?STAGES.indexOf(fs.id):0;return i<0?0:i}
 function stage(i,focus){
   at=Math.max(0,Math.min(STAGES.length-1,i));reached=Math.max(reached,at);
@@ -2071,7 +2073,7 @@ function stage(i,focus){
   [].forEach.call(f.querySelectorAll('.ce-steps a'),function(a,k){if(k===at)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');a.classList.toggle('done',k<at||k<=reached&&k!==at)});
   $('ce-progress').textContent='Step '+(at+1)+' of '+STAGES.length+': '+STEPNAME[at];
   var cur=f.querySelector('.ce-steps a[aria-current=step]'),bar=f.querySelector('.ce-steps');if(cur&&bar&&bar.scrollWidth>bar.clientWidth)bar.scrollLeft=Math.max(0,cur.offsetLeft-bar.offsetLeft-16);
-  var last=at===STAGES.length-1;$('ce-back').hidden=at===0;$('ce-next').hidden=last;$('ce-draft').hidden=!last;$('ce-publish').hidden=!last;
+  var last=at===STAGES.length-1;$('ce-back').hidden=at===0;$('ce-next').hidden=last;$('ce-draft').hidden=false;$('ce-publish').hidden=!last;
   if(last)summary();
   setCreateMessage('');
   var top=f.querySelector('.ce-steps');if(top&&top.getBoundingClientRect().top<0)top.scrollIntoView({behavior:'smooth',block:'start'});
@@ -2080,10 +2082,11 @@ function stage(i,focus){
 function need(id,msg){var el=$(id);if(el&&!String(el.value).trim()){$('c-msg').textContent=msg;el.focus();return false}return true}
 function check(i){
   var m=mode();
-  if(i===0){if($('c-name').value.trim().length<3){$('c-msg').textContent='Give your event a name first.';$('c-name').focus();return false}
-    if($('c-multi').checked){var rows=$('ce-dates').children;if(!rows.length||[].some.call(rows,function(r){return !r.querySelector('.ce-md').value||!r.querySelector('.ce-mt').value})){$('c-msg').textContent='Add a date and start time for each day.';return false}return true}
-    return need('c-date','Choose the date your event starts.')&&need('c-time','Choose the time your event starts.')}
-  if(i===1){if(m!=='Online'&&!(need('c-venue','Enter the venue.')&&need('c-city','Enter the city.')))return false;if(m==='Online'&&!need('c-link','Add the link people use to join.'))return false;return true}
+  if(i===0){if($('c-name').value.trim().length<3){$('c-msg').textContent='Give your event a name first.';$('c-name').focus();return false}return true}
+  if(i===1){
+    if($('c-multi').checked){var rows=$('ce-dates').children;if(!rows.length||[].some.call(rows,function(r){return !r.querySelector('.ce-md').value||!r.querySelector('.ce-mt').value})){$('c-msg').textContent='Add a date and start time for each day.';return false}}
+    else if(!(need('c-date','Choose the date your event starts.')&&need('c-time','Choose the time your event starts.')))return false;
+    if(m!=='Online'&&!(need('c-venue','Enter the venue.')&&need('c-city','Enter the city.')))return false;if(m!=='In person'&&!need('c-link','Add the link people use to join.'))return false;return true}
   if(i===2){if($('c-use-registration').checked){if(ADMIN&&!$('c-owner').value){$('c-msg').textContent='Assign an organizer before adding a registration form.';$('c-owner').focus();return false}if(!$('c-reg-form').value){$('c-msg').textContent=(TICA_DATA.registrationForms||[]).length?'Choose the registration form to attach.':'Create a registration form first, then return to attach it.';var target=(TICA_DATA.registrationForms||[]).length?$('c-reg-form'):$('ce-reg-empty').querySelector('a');target.focus();return false}}var tiers=f.querySelectorAll('#ce-tiers .ce-tier'),paid=false,ok=true;
     [].forEach.call(tiers,function(t){var ins=t.querySelectorAll(':scope>.inp input');if(!ins[0].value.trim()&&ok){ok=false;$('c-msg').textContent='Give every ticket type a name.';ins[0].focus()}else if(ins[1].value.trim()===''&&ok){ok=false;$('c-msg').textContent='Enter a price for every ticket. Use 0 for free tickets.';ins[1].focus()}var early=t.querySelector('.ce-early-on'),earlyError='';if(ok&&early&&early.checked&&!t.querySelector('.ce-teb').value){ok=false;$('c-msg').textContent='Enter the early-bird price.';t.querySelector('.ce-teb').focus()}else if(ok&&early&&early.checked&&(earlyError=validateEarlyBird(t))){ok=false;$('c-msg').textContent=earlyError;t.querySelector('.ce-teb').focus()}else if(ok&&early&&early.checked&&!t.querySelector('.ce-tebe').value){ok=false;$('c-msg').textContent='Choose when the early-bird price ends.';t.querySelector('.ce-tebe').focus()}var sm=t.querySelector('.ce-seat-mode');if(ok&&sm&&sm.value==='reserved'&&!t.querySelector('.ce-seat-section')){ok=false;$('c-msg').textContent='Add a seating section for every reserved ticket type.';t.querySelector('.ce-seat-on').focus()}else if(ok&&sm&&sm.value==='reserved'){var emptySection=[].filter.call(t.querySelectorAll('.ce-seat-section'),function(section){return !section.querySelector('.ce-seat-row')})[0];if(emptySection){ok=false;$('c-msg').textContent='Add at least one row to every seating section.';emptySection.querySelector('.ce-add-row').focus()}}if(parseFloat(ins[1].value)>0)paid=true});
     if(!ok)return false;if(paid&&!curOf(curCode()).paid){$('c-msg').textContent=curCode()+' can\'t take card payments yet. Make the tickets free or change the currency in step 2.';return false}return true}
@@ -2093,14 +2096,14 @@ function check(i){
 function summary(){
   var m=mode(),o=curOf(curCode()),tiers=[].map.call(f.querySelectorAll('#ce-tiers .ce-tier'),function(t){var ins=t.querySelectorAll(':scope>.inp input');return esc(ins[0].value.trim()||'Ticket')+', '+(parseFloat(ins[1].value)>0?esc(N(+ins[1].value)):'Free')+(ins[2]&&ins[2].value?', '+esc(ins[2].value)+' available':'')});
   var when=$('c-multi').checked?[].map.call($('ce-dates').children,function(r){return r.querySelector('.ce-md').value+' '+r.querySelector('.ce-mt').value}).join('; '):($('c-date').value+' '+$('c-time').value);
-  var rows=[['Event',esc($('c-name').value.trim())],['When',esc(when)],['Where',m==='Online'?'Online, '+esc($('c-plat').value):esc([$('c-venue').value,$('c-city').value,$('c-country').value].filter(Boolean).join(', '))+(m==='Hybrid'?' and online':'')],['Currency',esc(o.code+' ('+o.symbol+')')],['Tickets',tiers.join('<br>')],['Registration form',$('c-use-registration').checked?esc($('c-reg-form').selectedOptions[0].text):'Not added'],['Booking fee',payer()==='buyer'?'Buyers pay it':'Included in your prices'],['Who can find it',esc($('c-vis').selectedOptions[0].text)],['Flyer',$('c-flyer').files[0]?esc($('c-flyer').files[0].name):(EDIT&&EDIT.event.flyer?'Current flyer':'TICA neutral artwork')]];
+  var rows=[['Event',esc($('c-name').value.trim())],['When',esc(when)],['Timezone',esc($('c-timezone').selectedOptions[0].text)],['Where',m==='Online'?'Online, '+esc($('c-plat').value):esc([$('c-venue').value,$('c-city').value,$('c-country').value].filter(Boolean).join(', '))+(m==='Hybrid'?' and online':'')],['Currency',esc(o.code+' ('+o.symbol+')')],['Tickets',tiers.join('<br>')],['Registration form',$('c-use-registration').checked?esc($('c-reg-form').selectedOptions[0].text):'Not added'],['Booking fee',payer()==='buyer'?'Buyers pay it':'Included in your prices'],['Who can find it',esc($('c-vis').selectedOptions[0].text)],['Flyer',$('c-flyer').files[0]?esc($('c-flyer').files[0].name):(EDIT&&EDIT.event.flyer?'Current flyer':'TICA neutral artwork')]];
   if(ADMIN)rows.splice(1,0,['Owner',$('c-owner').value?esc($('c-owner').selectedOptions[0].text):'TICA · platform-managed'],['Featured',$('c-featured').checked?'Yes':'No']);
   $('ce-sum').innerHTML=rows.map(function(r){return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'}).join('');
 }
 $('ce-next').addEventListener('click',function(){if(check(at))stage(at+1,true)});
 $('ce-back').addEventListener('click',function(){stage(at-1,true)});
 f.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'&&at<STAGES.length-1){e.preventDefault();if(check(at))stage(at+1,true)}});
-var FIELDS={organizer_id:'c-owner',is_featured:'c-featured',currency:'c-cur',country:'c-country',name:'c-name',category_id:'c-cat',start_date:'c-date',start_time:'c-time',end_date:'c-edate',end_time:'c-etime',address:'c-venue',city:'c-city',online_join_url:'c-link',flyer:'c-flyer',attendee_question:'c-question',dates:'c-multi',tiers:'ce-add'};
+var FIELDS={organizer_id:'c-owner',is_featured:'c-featured',currency:'c-cur',country:'c-country',timezone:'c-timezone',name:'c-name',category_id:'c-cat',start_date:'c-date',start_time:'c-time',end_date:'c-edate',end_time:'c-etime',address:'c-venue',city:'c-city',online_join_url:'c-link',flyer:'c-flyer',attendee_question:'c-question',dates:'c-multi',tiers:'ce-add'};
 function setCreateMessage(text,state){var msg=$('c-msg');msg.textContent=text||'';msg.className='ce-feedback'+(state?' is-'+state:'')}
 function showCreateSuccess(r,draft){
   var panel=$('ce-success'),title=$('ce-success-title'),copy=$('ce-success-copy'),manage=$('ce-success-manage'),view=$('ce-success-view'),kicker=panel.querySelector('.ce-success-kicker');
@@ -2142,7 +2145,7 @@ function fillEdit(){
     var del=$('ce-delete');if(del)del.addEventListener('click',function(){if(!window.confirm('Delete "'+E.name+'"? This removes the event, its tickets and its page, and can\'t be undone.'))return;del.disabled=true;
       var fd=new FormData();fd.append('_token',TICA_DATA.csrf);fetch(EDIT.deleteUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':TICA_DATA.csrf},body:fd}).then(function(){location.href=ADMIN.backUrl},function(){del.disabled=false;$('c-msg').textContent='We couldn\'t delete the event. Try again.'})});}
   if(ADMIN){set('c-owner',E.organizer_id||'');$('c-featured').checked=!!E.is_featured}
-  set('c-name',E.name);if(E.category_id)set('c-cat',E.category_id);set('c-age',E.age_restriction);set('c-desc',E.description);
+  set('c-name',E.name);if(E.category_id)set('c-cat',E.category_id);set('c-age',E.age_restriction);set('c-desc',E.description);set('c-timezone',E.timezone||'Africa/Lagos');
   var mr=f.querySelector('[name=c-mode][value="'+E.mode+'"]');if(mr)mr.checked=true;
   var er=f.querySelector('[name=c-entry][value="'+E.entry+'"]');if(er)er.checked=true;
   [].forEach.call(f.querySelectorAll('[name=c-entry]'),function(x){x.disabled=true});

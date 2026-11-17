@@ -195,6 +195,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
       Route::post('/category/{id}/update-featured', 'BackEnd\Event\CategoryController@updateFeatured')->name('admin.event_management.category.update_featured');
 
+      Route::post('/category/{id}/update-status', 'BackEnd\Event\CategoryController@updateStatus')->name('admin.event_management.category.update_status');
+
+      Route::post('/categories/reorder', 'BackEnd\Event\CategoryController@reorder')->name('admin.event_management.category.reorder');
+
       Route::put('/update-category', 'BackEnd\Event\CategoryController@update')->name('admin.event_management.update_category');
 
       Route::post('/delete-category/{id}', 'BackEnd\Event\CategoryController@destroy')->name('admin.event_management.delete_category');

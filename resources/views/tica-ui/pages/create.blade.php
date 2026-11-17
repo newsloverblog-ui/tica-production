@@ -8,14 +8,14 @@
       <section class="ce-admin" id="ce-admin" hidden aria-labelledby="ce-admin-title">
         <div class="ce-admin-head"><span class="ce-admin-kicker">Admin controls</span><div><h2 id="ce-admin-title">Event ownership</h2><p>Create for TICA or assign the event to an organizer.</p></div></div>
         <div class="ce-admin-grid">
-          <div class="inp"><label for="c-owner">Event owner</label><select id="c-owner" name="organizer_id"><option value="">TICA · platform-managed event</option></select><small id="c-owner-note">The selected organizer will manage tickets, attendees and payouts.</small></div>
+          <div class="inp"><label for="c-owner-search">Event owner</label><input id="c-owner-search" type="search" autocomplete="off" placeholder="Search organizer name or email"><select id="c-owner" name="organizer_id" aria-label="Event owner"><option value="">TICA · platform-managed event</option></select><small id="c-owner-note">The selected organizer will manage tickets, attendees and payouts.</small></div>
           <label class="ce-admin-feature" for="c-featured"><span><b>Feature this event</b><small>Give it priority in approved featured placements.</small></span><input class="ck-sw" type="checkbox" id="c-featured" name="is_featured"></label>
           <div class="inp ce-admin-edit" hidden><label for="c-status">Status</label><select id="c-status"><option value="live">Live, people can buy tickets</option><option value="draft">Hidden, saved as a draft</option></select></div>
         </div>
         <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
       </section>
-      <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Basics</a></li><li><a href="#ce-where" data-ce="ce-where">2. Location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Settings</a></li><li><a href="#ce-review" data-ce="ce-review">5. Review</a></li></ol>
-      <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 5: Basics</p>
+      <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Details</a></li><li><a href="#ce-where" data-ce="ce-where">2. Type &amp; location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Media &amp; settings</a></li><li><a href="#ce-review" data-ce="ce-review">5. Preview</a></li></ol>
+      <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 5: Details</p>
 
       <fieldset id="ce-basics"><legend>The basics</legend>
         <div class="inp"><label for="c-name">Event name</label><input id="c-name" name="name" type="text" maxlength="255" placeholder="Give it a name people will remember"></div>
@@ -23,6 +23,16 @@
           <div class="inp"><label for="c-cat">Category</label><select id="c-cat" name="category_id"><option>Party and nightlife</option><option>Concert or show</option><option>Campus</option><option>Conference or class</option><option>Faith</option><option>Sport and fitness</option><option>Art and food</option></select></div>
           <div class="inp"><label for="c-age">Who can come</label><select id="c-age" name="age_restriction"><option value="">All ages</option><option>18+ only, with ID</option><option>16+ only</option></select></div>
         </div>
+        <div class="inp"><label for="c-desc">Description</label><textarea id="c-desc" name="description" rows="3" placeholder="What should people expect? Line-up, dress code, what's included."></textarea></div>
+      </fieldset>
+
+      <fieldset id="ce-where"><legend>Where it happens</legend>
+        <div class="ce-mode" role="radiogroup" aria-label="Event type">
+          <label><input type="radio" name="c-mode" value="In person" checked><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><b>In person</b><small>At a venue</small></span></label>
+          <label><input type="radio" name="c-mode" value="Online"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg><b>Online</b><small>Zoom, Meet, live stream</small></span></label>
+          <label><input type="radio" name="c-mode" value="Hybrid"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20s5-4.6 5-8.5a5 5 0 0 0-10 0C3 15.4 8 20 8 20z"/><rect x="14" y="4" width="8" height="6" rx="1"/></svg><b>Both</b><small>Venue and live stream</small></span></label>
+        </div>
+        <div class="inp"><label for="c-timezone">Event timezone</label><select id="c-timezone" name="timezone"><option value="Africa/Lagos">West Africa Time · Lagos</option><option value="Africa/Accra">Greenwich Mean Time · Accra</option><option value="Africa/Nairobi">East Africa Time · Nairobi</option><option value="Africa/Johannesburg">South Africa Time · Johannesburg</option><option value="Europe/London">United Kingdom · London</option><option value="America/New_York">Eastern Time · New York</option><option value="America/Toronto">Eastern Time · Toronto</option><option value="Asia/Dubai">Gulf Standard Time · Dubai</option></select><small>Times on tickets and event messages use this timezone.</small></div>
         <div class="ce-one">
           <div class="two">
             <div class="inp"><label for="c-date">Date</label><input id="c-date" name="start_date" type="date"></div>
@@ -36,15 +46,6 @@
         <ul class="od-sw ce-sw"><li><span><b>Runs on more than one date</b><small>Add each date. Buyers choose one at checkout.</small></span><input class="ck-sw" type="checkbox" id="c-multi" aria-label="Runs on more than one date"></li></ul>
         <div class="ce-dates" id="ce-dates" hidden></div>
         <button class="ce-add" type="button" id="ce-add-date" hidden>+ Add a date</button>
-        <div class="inp"><label for="c-desc">Description</label><textarea id="c-desc" name="description" rows="3" placeholder="What should people expect? Line-up, dress code, what's included."></textarea></div>
-      </fieldset>
-
-      <fieldset id="ce-where"><legend>Where it happens</legend>
-        <div class="ce-mode" role="radiogroup" aria-label="Event type">
-          <label><input type="radio" name="c-mode" value="In person" checked><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><b>In person</b><small>At a venue</small></span></label>
-          <label><input type="radio" name="c-mode" value="Online"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg><b>Online</b><small>Zoom, Meet, live stream</small></span></label>
-          <label><input type="radio" name="c-mode" value="Hybrid"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20s5-4.6 5-8.5a5 5 0 0 0-10 0C3 15.4 8 20 8 20z"/><rect x="14" y="4" width="8" height="6" rx="1"/></svg><b>Both</b><small>Venue and live stream</small></span></label>
-        </div>
         <div class="two">
           <div class="inp"><label for="c-country">Country</label><select id="c-country" name="country"></select></div>
           <div class="inp"><label for="c-cur">Currency</label><select id="c-cur" name="currency"></select></div>
@@ -110,7 +111,7 @@
         </section>
       </fieldset>
 
-      <fieldset id="ce-more"><legend>Settings</legend>
+      <fieldset id="ce-more"><legend>Media &amp; settings</legend>
         <div class="two">
           <div class="inp"><label for="c-vis">Who can find it</label><select id="c-vis" name="visibility"><option value="public">Public, on Discover</option><option value="unlisted">Link only</option><option value="private">Private, by invite</option></select></div>
           <div class="inp"><label for="c-ref">Refunds</label><select id="c-ref" name="refund_policy"><option value="">TICA standard</option><option>Up to 7 days before</option><option>Up to 48 hours before</option></select></div>
@@ -130,7 +131,7 @@
           <div class="inp"><label for="c-keys">Search keywords</label><input id="c-keys" name="meta_keywords" type="text" maxlength="300" placeholder="afrobeats, owerri, concert"></div>
         </div>
       </fieldset>
-      <fieldset id="ce-review"><legend>Review and publish</legend>
+      <fieldset id="ce-review"><legend>Preview and publish</legend>
         <dl class="ce-sum" id="ce-sum"></dl>
         <p class="hint">Publish to put it on sale now, or save a draft and finish later.</p>
       </fieldset>

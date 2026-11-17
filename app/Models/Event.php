@@ -26,6 +26,7 @@ class Event extends Model
     'date_type',
     'start_date',
     'start_time',
+    'timezone',
     'duration',
     'end_date',
     'end_time',

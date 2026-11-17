@@ -8,10 +8,9 @@ use App\Http\Requests\Event\UpdateCategoryRequest;
 use Illuminate\Http\Request;
 use App\Models\Event\EventCategory;
 use App\Models\Language;
-use App\Http\Helpers\UploadFile;
-use App\Models\Event\EventContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
@@ -46,19 +45,42 @@ class CategoryController extends Controller
 
   public function updateFeatured(Request $request, $id)
   {
-    $category = EventCategory::find($id);
-
-    if ($request['is_featured'] == 'yes') {
-      $category->update(['is_featured' => 'yes']);
-
-      Session::flash('success', 'Updated Successfully!');
-    } else {
-      $category->update(['is_featured' => 'no']);
-
-      Session::flash('success', 'Updated Successfully!');
-    }
+    $data = $request->validate(['is_featured' => ['required', Rule::in(['yes', 'no'])]]);
+    EventCategory::findOrFail($id)->update(['is_featured' => $data['is_featured']]);
+    Session::flash('success', 'Featured placement updated.');
 
     return redirect()->back();
+  }
+
+  public function updateStatus(Request $request, $id)
+  {
+    $data = $request->validate(['status' => ['required', 'boolean']]);
+    EventCategory::findOrFail($id)->update(['status' => (int) $data['status']]);
+    Session::flash('success', (int) $data['status'] === 1 ? 'Category is now visible.' : 'Category is now hidden.');
+
+    return redirect()->back();
+  }
+
+  public function reorder(Request $request)
+  {
+    $data = $request->validate([
+      'ids' => ['required', 'array', 'min:1'],
+      'ids.*' => ['required', 'integer', 'distinct', 'exists:event_categories,id'],
+    ]);
+
+    $categories = EventCategory::query()->whereIn('id', $data['ids'])->get()->keyBy('id');
+    $languageIds = $categories->pluck('language_id')->unique();
+    if ($languageIds->count() !== 1) {
+      return response()->json(['message' => 'Categories from different languages cannot be reordered together.'], 422);
+    }
+
+    DB::transaction(function () use ($data, $categories) {
+      foreach ($data['ids'] as $position => $id) {
+        $categories->get((int) $id)->update(['serial_number' => $position + 1]);
+      }
+    });
+
+    return response()->json(['status' => 'success', 'message' => 'Category order saved.']);
   }
 
   public function update(UpdateCategoryRequest $request)
@@ -74,36 +96,43 @@ class CategoryController extends Controller
 
   public function destroy($id)
   {
-    $category = EventCategory::where('id', $id)->first();
-    @unlink(public_path('assets/admin/img/event-category/') . $category->image);
-
-    //events
-    $event_contents = EventContent::where('event_category_id', $category->id)->get();
-    foreach ($event_contents as $event_content) {
-      $event_content->delete();
+    $category = EventCategory::findOrFail($id);
+    $eventCount = $category->events_contens()->count();
+    if ($eventCount > 0) {
+      return redirect()->back()->with('warning', "Move the {$eventCount} linked " . ($eventCount === 1 ? 'event' : 'events') . ' to another category before deleting this one.');
     }
 
+    if ($category->image) {
+      @unlink(public_path('assets/admin/img/event-category/') . $category->image);
+    }
     $category->delete();
-    return redirect()->back()->with('success', 'Deleted Successfully');
+    return redirect()->back()->with('success', 'Category deleted.');
   }
 
   public function bulkDestroy(Request $request)
   {
-    $ids = $request->ids;
-
-    foreach ($ids as $id) {
-      $category = EventCategory::where('id', $id)->first();
-      @unlink(public_path('assets/admin/img/event-category/') . $category->image);
-
-      //events
-      $event_contents = EventContent::where('event_category_id', $category->id)->get();
-      foreach ($event_contents as $event_content) {
-        $event_content->delete();
-      }
-
-      $category->delete();
+    $data = $request->validate([
+      'ids' => ['required', 'array', 'min:1'],
+      'ids.*' => ['required', 'integer', 'distinct', 'exists:event_categories,id'],
+    ]);
+    $categories = EventCategory::query()->withCount('events_contens as events_count')->whereIn('id', $data['ids'])->get();
+    $blocked = $categories->filter(fn ($category) => $category->events_count > 0);
+    if ($blocked->isNotEmpty()) {
+      return response()->json([
+        'status' => 'error',
+        'message' => 'Move linked events before deleting: ' . $blocked->pluck('name')->implode(', ') . '.',
+      ], 422);
     }
-    Session::flash('success', 'Deleted Successfully');
+
+    DB::transaction(function () use ($categories) {
+      foreach ($categories as $category) {
+        if ($category->image) {
+          @unlink(public_path('assets/admin/img/event-category/') . $category->image);
+        }
+        $category->delete();
+      }
+    });
+    Session::flash('success', 'Categories deleted.');
     return response()->json(['status' => 'success'], 200);
   }
 }

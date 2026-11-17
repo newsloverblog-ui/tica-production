@@ -103,6 +103,7 @@ class EventBuilderPrefill
       'category_id' => optional($content)->event_category_id ? (int) $content->event_category_id : null,
       'age_restriction' => (string) ($event->age_restriction ?? ''),
       'description' => self::plainText((string) optional($content)->description),
+      'timezone' => (string) ($event->timezone ?: config('app.timezone', 'Africa/Lagos')),
       'multiple' => $event->date_type === 'multiple',
       'start_date' => (string) ($event->start_date ?? ''),
       'start_time' => substr((string) $event->start_time, 0, 5),
