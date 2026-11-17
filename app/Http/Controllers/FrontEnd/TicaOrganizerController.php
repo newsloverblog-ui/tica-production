@@ -18,6 +18,7 @@ use App\Models\SeatingSection;
 use App\Models\Language;
 use App\Rules\ImageMimeTypeRule;
 use App\Services\AuditLogger;
+use App\Services\EventProgrammeService;
 use App\Services\EventRegistrationService;
 use App\Support\TicaCurrency;
 use App\Support\TicaPlatform;
@@ -161,6 +162,7 @@ class TicaOrganizerController extends Controller
       }
 
       $this->storeContent($event, $validated, $online);
+      app(EventProgrammeService::class)->sync($event, $request, $validated);
       if ($validated['entry'] !== 'corporate') {
         $this->storeTickets($event, $validated['tiers'] ?? [], $online);
         $this->syncSeatingMap($event, $validated['seat_map'] ?? [], $validated['tiers'] ?? []);
@@ -326,6 +328,7 @@ class TicaOrganizerController extends Controller
       $event->forceFill($fields)->save();
 
       $this->storeContent($event, $validated, $online);
+      app(EventProgrammeService::class)->sync($event, $request, $validated);
       if ($validated['entry'] !== 'corporate') {
         $this->syncTickets($event, $request->input('tiers', []), $validated['tiers'] ?? [], $online);
         $this->syncSeatingMap($event, $validated['seat_map'] ?? [], $validated['tiers'] ?? []);
@@ -465,6 +468,7 @@ class TicaOrganizerController extends Controller
     $needed = $draft ? 'nullable' : 'required';
     $mode = (string) $request->input('mode');
     $tiers = $request->input('entry') !== 'corporate';
+    $programme = $request->boolean('programme_enabled');
 
     $validated = $request->validate([
       'name' => ['required', 'string', 'min:3', 'max:255'],
@@ -544,6 +548,23 @@ class TicaOrganizerController extends Controller
       'registration_form_id' => [$request->boolean('use_registration') ? 'required' : 'nullable', 'nullable', 'string', 'max:64'],
       'registration_intro' => ['nullable', 'string', 'max:2000'],
       'registration_approval' => ['nullable', Rule::in(['manual', 'automatic'])],
+      'programme_enabled' => ['nullable', 'boolean'],
+      'programme_type' => [$programme ? 'required' : 'nullable', Rule::in(['speaker', 'artist'])],
+      'programme_people' => $programme && !$draft ? ['required', 'array', 'min:1', 'max:24'] : ['nullable', 'array', 'max:24'],
+      'programme_people.*.id' => ['nullable', 'integer'],
+      'programme_people.*.name' => ['required', 'string', 'max:120'],
+      'programme_people.*.role' => ['nullable', 'string', 'max:160'],
+      'programme_people.*.topic' => ['nullable', 'string', 'max:240'],
+      'programme_people.*.bio' => ['nullable', 'string', 'max:1200'],
+      'programme_people.*.remove_image' => ['nullable', 'boolean'],
+      'programme_people.*.image' => ['nullable', 'file', 'max:3072', new ImageMimeTypeRule()],
+      'agenda_items' => ['nullable', 'array', 'max:50'],
+      'agenda_items.*.title' => ['required', 'string', 'max:180'],
+      'agenda_items.*.person_index' => ['nullable', 'integer', 'min:0', 'max:23'],
+      'agenda_items.*.location' => ['nullable', 'string', 'max:160'],
+      'agenda_items.*.description' => ['nullable', 'string', 'max:1200'],
+      'agenda_items.*.starts_at' => ['nullable', 'date'],
+      'agenda_items.*.ends_at' => ['nullable', 'date'],
       // Events can launch with TICA's neutral artwork and add a flyer later.
       // The builder describes this field as optional, so publishing must not
       // silently turn it into a requirement at the final step.
@@ -559,6 +580,7 @@ class TicaOrganizerController extends Controller
       'dates.required' => 'Add at least one date.',
       'attendee_question.required' => 'Write the question you want to ask.',
       'registration_form_id.required' => 'Choose a registration form to attach to this event.',
+      'programme_people.required' => 'Add at least one speaker or artist, or turn the event programme off.',
       'mode.in' => 'This kind of event isn\'t available on TICA right now. Choose another one.',
       'currency.in' => 'TICA doesn\'t sell in this currency right now. Choose another one.',
       'entry.in' => 'Registration events aren\'t available right now. Sell or give away tickets instead.',
@@ -588,6 +610,15 @@ class TicaOrganizerController extends Controller
         if (!$hasSeats && !$draft) {
           throw ValidationException::withMessages(["tiers.$index.seating_mode" => 'Add at least one seating section for this reserved ticket type.']);
         }
+      }
+    }
+    $peopleCount = count($validated['programme_people'] ?? []);
+    foreach ($validated['agenda_items'] ?? [] as $index => $item) {
+      if (isset($item['person_index']) && $item['person_index'] !== null && (int) $item['person_index'] >= $peopleCount) {
+        throw ValidationException::withMessages(["agenda_items.$index.person_index" => 'Choose a speaker or artist who is still in this programme.']);
+      }
+      if (!empty($item['starts_at']) && !empty($item['ends_at']) && Carbon::parse($item['ends_at'])->lessThanOrEqualTo(Carbon::parse($item['starts_at']))) {
+        throw ValidationException::withMessages(["agenda_items.$index.ends_at" => 'An agenda item must end after it starts.']);
       }
     }
     $numbered = collect($validated['tiers'] ?? [])->filter(

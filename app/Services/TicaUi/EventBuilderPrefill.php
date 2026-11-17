@@ -10,8 +10,12 @@ use App\Models\Event\EventDates;
 use App\Models\Event\Ticket;
 use App\Models\Event\TicketContent;
 use App\Models\EventRegistrationForm;
+use App\Models\EventAgendaItem;
+use App\Models\EventProgrammePerson;
 use App\Models\SeatingSection;
+use App\Support\PublicImage;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Turns a saved event back into the values the shared event builder fills in,
@@ -95,6 +99,13 @@ class EventBuilderPrefill
     })->values()->all();
 
     $refund = array_search((string) optional($content)->refund_policy, self::REFUND_POLICIES, true);
+    $programmePeople = Schema::hasTable('event_programme_people')
+      ? EventProgrammePerson::query()->where('event_id', $event->id)->orderBy('sort_order')->get()
+      : collect();
+    $programmeIndex = $programmePeople->pluck('id')->flip();
+    $agendaItems = Schema::hasTable('event_agenda_items')
+      ? EventAgendaItem::query()->where('event_id', $event->id)->orderBy('sort_order')->get()
+      : collect();
 
     return [
       'id' => (int) $event->id,
@@ -135,6 +146,24 @@ class EventBuilderPrefill
       'flyer' => $event->thumbnail ? \App\Support\PublicImage::flyer($event->thumbnail) : null,
       'organizer_id' => $event->organizer_id ? (int) $event->organizer_id : null,
       'is_featured' => $event->is_featured === 'yes',
+      'programme_enabled' => $programmePeople->isNotEmpty(),
+      'programme_type' => (string) ($programmePeople->first()?->kind ?: 'speaker'),
+      'programme_people' => $programmePeople->map(fn (EventProgrammePerson $person) => [
+        'id' => (int) $person->id,
+        'name' => (string) $person->name,
+        'role' => (string) ($person->role ?? ''),
+        'topic' => (string) ($person->topic ?? ''),
+        'bio' => (string) ($person->bio ?? ''),
+        'image' => $person->image ? PublicImage::url('assets/admin/img/event/programme', $person->image, $person->updated_at) : null,
+      ])->values()->all(),
+      'agenda_items' => $agendaItems->map(fn (EventAgendaItem $item) => [
+        'title' => (string) $item->title,
+        'person_index' => $item->programme_person_id ? $programmeIndex->get($item->programme_person_id) : null,
+        'location' => (string) ($item->location ?? ''),
+        'description' => (string) ($item->description ?? ''),
+        'starts_at' => optional($item->starts_at)?->format('Y-m-d\TH:i'),
+        'ends_at' => optional($item->ends_at)?->format('Y-m-d\TH:i'),
+      ])->values()->all(),
       'locks' => [
         'sales' => $sales,
         'dates' => $sales,

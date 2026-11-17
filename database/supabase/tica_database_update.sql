@@ -558,7 +558,44 @@ BEGIN
   END IF;
 END $$;
 
--- 12. Keep these tables private -------------------------------------------
+-- 12. Public event programme: speakers, artists and agenda -----------------
+CREATE TABLE IF NOT EXISTS public.event_programme_people (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  kind varchar(24) NOT NULL DEFAULT 'speaker',
+  name varchar(120) NOT NULL,
+  role varchar(160) NULL,
+  topic varchar(240) NULL,
+  bio text NULL,
+  image varchar(255) NULL,
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_visible boolean NOT NULL DEFAULT true,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS event_programme_people_event_id_index ON public.event_programme_people (event_id);
+CREATE INDEX IF NOT EXISTS event_programme_people_event_order_idx ON public.event_programme_people (event_id, is_visible, sort_order);
+
+CREATE TABLE IF NOT EXISTS public.event_agenda_items (
+  id bigserial PRIMARY KEY,
+  event_id bigint NOT NULL,
+  programme_person_id bigint NULL,
+  title varchar(180) NOT NULL,
+  location varchar(160) NULL,
+  description text NULL,
+  starts_at timestamp(0) without time zone NULL,
+  ends_at timestamp(0) without time zone NULL,
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_visible boolean NOT NULL DEFAULT true,
+  created_at timestamp(0) without time zone NULL,
+  updated_at timestamp(0) without time zone NULL
+);
+CREATE INDEX IF NOT EXISTS event_agenda_items_event_id_index ON public.event_agenda_items (event_id);
+CREATE INDEX IF NOT EXISTS event_agenda_items_programme_person_id_index ON public.event_agenda_items (programme_person_id);
+CREATE INDEX IF NOT EXISTS event_agenda_items_event_order_idx ON public.event_agenda_items (event_id, is_visible, starts_at, sort_order);
+SELECT pg_temp.tica_mark_migration('2026_11_17_180000_create_event_programme_tables');
+
+-- 13. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -573,6 +610,8 @@ ALTER TABLE public.tica_organizer_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_programme_people ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_agenda_items ENABLE ROW LEVEL SECURITY;
 DO $$
 BEGIN
   IF to_regclass('public.organizer_earning_releases') IS NOT NULL THEN
@@ -624,6 +663,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('event_cancellation_requests'),
   ('event_categories'),
   ('event_contents'),
+  ('event_agenda_items'),
   ('event_dates'),
   ('event_feature_sections'),
   ('event_features'),
@@ -631,6 +671,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('event_guest_imports'),
   ('event_guest_invitations'),
   ('event_images'),
+  ('event_programme_people'),
   ('event_registration_allocation_claims'),
   ('event_registration_allocations'),
   ('event_registration_answers'),
@@ -918,6 +959,7 @@ SELECT 'update not recorded', m.name
   ('2026_11_15_090000_create_organizer_operations_tables'),
   ('2026_11_17_100000_add_timezone_to_events')
   ,('2026_11_17_120000_create_financial_ledger')
+  ,('2026_11_17_180000_create_event_programme_tables')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

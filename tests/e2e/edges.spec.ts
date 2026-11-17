@@ -43,6 +43,16 @@ test.describe('edge cases (owner)', () => {
     await page.fill('#c-price', '0');
     await page.click('#ce-next');
 
+    // A programme is optional and sits beside ticketing rather than replacing it.
+    await page.check('#c-programme');
+    await page.fill('.ce-person-name', 'Ada Test Speaker');
+    await page.fill('.ce-person-role', 'Product lead');
+    await page.fill('.ce-person-topic', 'Building welcoming event experiences');
+    await page.click('#ce-add-agenda');
+    await page.fill('.ce-agenda-title', 'Opening keynote');
+    await page.selectOption('.ce-agenda-person', { label: 'Ada Test Speaker' });
+    await page.fill('.ce-agenda-location', 'Main hall');
+
     // A flyer is optional: an organiser can publish now and add artwork later.
     await page.click('#ce-next');
 
@@ -56,6 +66,12 @@ test.describe('edge cases (owner)', () => {
     await expect(page.locator('#ce-success')).toBeVisible();
     await expect(page.locator('#ce-success-title')).toContainText(name);
     await expect(page.locator('#ce-success-manage')).toHaveAttribute('href', /\/dashboard\/events/);
+    await page.goto(body.url, { waitUntil: 'networkidle' });
+    await expect(page.getByRole('heading', { name: 'Featured speakers' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ada Test Speaker' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Opening keynote' })).toBeVisible();
+    await noSidewaysScroll(page);
     expect(problems).toEqual([]);
   });
 

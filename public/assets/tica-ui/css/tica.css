@@ -5254,3 +5254,95 @@ footer,footer.ft{--indigo-2:#0F4C9E}
 .page[data-page=home] .tk .da-main img{object-position:center 30%}
 @media (max-width:600px){.page[data-page=home] .tk .duo-art::before{left:-8px!important;top:-10px!important}}
 .home-sections{display:flex;min-width:0;flex-direction:column}
+
+/* Event programme builder -------------------------------------------------
+   One quiet canvas for speakers/artists and the agenda; the portraits and
+   timeline provide the visual rhythm instead of a stack of coloured cards. */
+.ce-programme{margin:18px 0 20px;border:1px solid #D9E2F1;border-radius:16px;background:linear-gradient(180deg,#FAFCFF 0%,#F5F8FD 100%);overflow:hidden}
+.ce-programme-toggle{padding:16px 18px;background:#fff}
+.ce-programme-toggle span b{font-size:15px;color:#0B1F3A}
+.ce-programme-toggle span small{color:#65738B}
+.ce-programme-fields{padding:18px;border-top:1px solid #E1E8F3}
+.ce-programme-kind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}
+.ce-programme-kind label{position:relative;cursor:pointer}
+.ce-programme-kind input{position:absolute;opacity:0}
+.ce-programme-kind span{display:block;height:100%;padding:13px 15px;border:1px solid #D7DFEB;border-radius:12px;background:#fff;transition:.16s ease}
+.ce-programme-kind b,.ce-programme-kind small{display:block}
+.ce-programme-kind b{font-size:14px;color:#0B1F3A}
+.ce-programme-kind small{font-size:12.5px;color:#65738B;margin-top:2px}
+.ce-programme-kind input:checked+span{border-color:#2F5FDF;background:#EEF4FF;box-shadow:inset 0 0 0 1px #2F5FDF}
+.ce-programme-kind input:focus-visible+span{outline:3px solid rgba(47,95,223,.22);outline-offset:2px}
+.ce-programme-head{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:0 0 12px}
+.ce-programme-head h2{font-size:18px;color:#0B1F3A;margin:0 0 3px}
+.ce-programme-head p{font-size:13px;color:#65738B;margin:0}
+.ce-programme-head .btn{min-height:40px;white-space:nowrap}
+.ce-people,.ce-agenda-editor{display:grid;gap:12px}
+.ce-person,.ce-agenda-row{position:relative;border:1px solid #DCE4EF;border-radius:14px;background:#fff;padding:16px}
+.ce-person{display:grid;grid-template-columns:132px minmax(0,1fr);gap:18px}
+.ce-person-media{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ce-person-photo{width:104px;aspect-ratio:1;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,#E8EFFF,#F8FAFF);border:1px solid #D2DDF3;color:#2F5FDF;font:800 26px/1 var(--display)}
+.ce-person-photo img{width:100%;height:100%;object-fit:cover}
+.ce-photo-pick{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 11px;border:1px solid #CCD7E6;border-radius:9px;color:#224FAD;background:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.ce-photo-pick input{position:absolute;width:1px;height:1px;opacity:0}
+.ce-clear-photo{border:0;background:transparent;color:#65738B;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ce-person-remove,.ce-agenda-remove{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:9px;background:#F2F5F9;color:#65738B;font-size:19px;cursor:pointer;z-index:1}
+.ce-person-remove:hover,.ce-agenda-remove:hover{background:#FFF1EA;color:#A74413}
+.ce-person-fields{min-width:0;padding-right:28px}
+.ce-person-fields .inp:last-child,.ce-agenda-row .inp:last-child{margin-bottom:0}
+.ce-agenda-head{margin-top:28px;padding-top:22px;border-top:1px solid #DCE4EF}
+.ce-agenda-row{padding-right:54px}
+
+/* Public event programme -------------------------------------------------- */
+.ev-programme,.ev-agenda{background:#fff;border:1px solid #DDE4EE;padding:clamp(20px,2.4vw,28px)}
+.ev-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-bottom:14px;margin-bottom:20px;border-bottom:1px solid #E3E8F0}
+.ev-section-head h2{font-size:clamp(22px,2.2vw,30px);letter-spacing:-.025em;margin:2px 0 0}
+.ev-kicker{display:block;color:#2F5FDF;text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800}
+.ev-count{font-size:12px;color:#65738B;background:#EEF4FF;border-radius:999px;padding:6px 10px;white-space:nowrap}
+.ev-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:22px 18px}
+.ev-person{min-width:0}
+.ev-person-photo{width:min(100%,172px);aspect-ratio:1;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,#E8EFFF,#FFF3EA);color:#244FB2;font:800 30px/1 var(--display);margin-bottom:12px}
+.ev-person-photo img{width:100%;height:100%;object-fit:cover;transition:transform .28s ease}
+.ev-person:hover .ev-person-photo img{transform:scale(1.035)}
+.ev-person h3{font-size:17px;line-height:1.25;margin:0 0 3px;color:#0B1F3A}
+.ev-person .ev-person-role{font-size:13px;color:#65738B;margin:0}
+.ev-person .ev-person-topic{font-size:13px;font-weight:700;color:#224FAD;margin:8px 0 0}
+.ev-person .ev-person-bio{font-size:12.5px;color:#65738B;line-height:1.55;margin:7px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ev-agenda-list{list-style:none;padding:0;margin:0;display:grid}
+.ev-agenda-list>li{display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px;position:relative;padding-bottom:18px}
+.ev-agenda-list>li:last-child{padding-bottom:0}
+.ev-agenda-rail{position:relative;display:flex;justify-content:center}
+.ev-agenda-rail::after{content:"";position:absolute;top:34px;bottom:-18px;width:1px;background:#D9E2EF}
+.ev-agenda-list>li:last-child .ev-agenda-rail::after{display:none}
+.ev-agenda-rail span{position:relative;z-index:1;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#EEF4FF;color:#2F5FDF;font-size:12px;font-weight:800;border:1px solid #D5E0F6}
+.ev-agenda-list>li:nth-child(3n+2) .ev-agenda-rail span{background:#FFF2E8;color:#B45316;border-color:#F5D4BC}
+.ev-agenda-list>li:nth-child(3n) .ev-agenda-rail span{background:#EAF8F1;color:#177A4B;border-color:#CBEBD9}
+.ev-agenda-list article{border:1px solid #DDE4EE;border-radius:12px;padding:15px 16px;background:#FBFCFE}
+.ev-agenda-top{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:start}
+.ev-agenda-top time{display:block;color:#2F5FDF;font-size:13px;font-weight:800}
+.ev-agenda-top small{display:block;color:#65738B;font-size:11px;margin-top:3px}
+.ev-agenda-top h3{font-size:16px;line-height:1.35;margin:0;color:#0B1F3A}
+.ev-agenda-meta{font-size:12.5px!important;color:#65738B!important;margin:7px 0 0 136px!important}
+.ev-agenda-list article>p:last-child{font-size:13px;color:#65738B;line-height:1.55;margin:8px 0 0 136px}
+
+@media (max-width:760px){
+  .ce-programme-fields{padding:14px}
+  .ce-person{grid-template-columns:100px minmax(0,1fr);gap:14px}
+  .ce-person-photo{width:84px}
+  .ce-programme-head{align-items:flex-start;flex-direction:column}
+  .ce-programme-head .btn{width:100%}
+  .ev-people{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:520px){
+  .ce-programme-kind{grid-template-columns:1fr}
+  .ce-person{grid-template-columns:1fr}
+  .ce-person-media{align-items:flex-start;display:grid;grid-template-columns:78px minmax(0,1fr);grid-template-rows:auto auto}
+  .ce-person-photo{grid-row:1/3;width:78px}
+  .ce-person-fields{padding-right:0}
+  .ce-agenda-row{padding:48px 12px 14px}
+  .ce-programme-fields .two,.ce-programme-fields .three{grid-template-columns:1fr}
+  .ev-people{grid-template-columns:1fr 1fr;gap:20px 12px}
+  .ev-person-photo{width:100%;max-width:150px}
+  .ev-agenda-top{grid-template-columns:1fr;gap:5px}
+  .ev-agenda-meta,.ev-agenda-list article>p:last-child{margin-left:0!important}
+}
+@media (prefers-reduced-motion:reduce){.ev-person-photo img{transition:none}}

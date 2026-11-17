@@ -126,6 +126,22 @@
         <div class="inp ce-qx" hidden><label for="c-question">Your question</label><input id="c-question" name="attendee_question" type="text" maxlength="200" placeholder="What's your T-shirt size?"></div>
         <div class="inp"><label for="c-flyer">Flyer</label><input id="c-flyer" type="file" accept="image/*"></div>
         <p class="hint">Optional. Upload a JPG or PNG up to 5 MB, or publish with TICA's neutral event artwork.</p>
+        <section class="ce-programme" aria-labelledby="ce-programme-title">
+          <label class="ce-choice-row ce-programme-toggle" for="c-programme">
+            <input id="c-programme" name="programme_enabled" type="checkbox" aria-controls="ce-programme-fields" aria-expanded="false">
+            <span><b id="ce-programme-title">Add speakers or a line-up</b><small>Introduce the people appearing and publish a clear event agenda.</small></span>
+          </label>
+          <div class="ce-programme-fields" id="ce-programme-fields" hidden>
+            <div class="ce-programme-kind" role="radiogroup" aria-label="Programme type">
+              <label><input type="radio" name="c-programme-type" value="speaker" checked><span><b>Speakers</b><small>Talks, panels, hosts and moderators</small></span></label>
+              <label><input type="radio" name="c-programme-type" value="artist"><span><b>Line-up</b><small>Artists, DJs and performers</small></span></label>
+            </div>
+            <div class="ce-programme-head"><div><h2 id="ce-people-title">Featured speakers</h2><p>Add a portrait, role and the topic they will cover.</p></div><button class="btn btn-line" id="ce-add-person" type="button">+ Add speaker</button></div>
+            <div class="ce-people" id="ce-people"></div>
+            <div class="ce-programme-head ce-agenda-head"><div><h2>Agenda</h2><p>Optional. Give guests a simple running order for the day.</p></div><button class="btn btn-line" id="ce-add-agenda" type="button">+ Add agenda item</button></div>
+            <div class="ce-agenda-editor" id="ce-agenda-editor"></div>
+          </div>
+        </section>
         <div class="two">
           <div class="inp"><label for="c-seo">Search description</label><input id="c-seo" name="meta_description" type="text" maxlength="300" placeholder="One line for Google and link previews"></div>
           <div class="inp"><label for="c-keys">Search keywords</label><input id="c-keys" name="meta_keywords" type="text" maxlength="300" placeholder="afrobeats, owerri, concert"></div>

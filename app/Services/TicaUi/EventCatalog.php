@@ -4,6 +4,8 @@ namespace App\Services\TicaUi;
 
 use App\Models\BasicSettings\Basic;
 use App\Models\Event;
+use App\Models\EventAgendaItem;
+use App\Models\EventProgrammePerson;
 use App\Models\Event\EventCategory;
 use App\Models\Event\EventContent;
 use App\Models\Event\EventDates;
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Support\TicaCurrency;
+use App\Support\PublicImage;
 use Mews\Purifier\Facades\Purifier;
 
 /**
@@ -144,13 +147,19 @@ class EventCatalog
       ->whereIn('organizer_id', $organizers->keys())
       ->where('language_id', $this->language->id)
       ->pluck('name', 'organizer_id');
+    $programmePeople = Schema::hasTable('event_programme_people')
+      ? EventProgrammePerson::query()->whereIn('event_id', $eventIds)->where('is_visible', true)->orderBy('sort_order')->get()->groupBy('event_id')
+      : collect();
+    $agendaItems = Schema::hasTable('event_agenda_items')
+      ? EventAgendaItem::query()->with('person:id,name')->whereIn('event_id', $eventIds)->where('is_visible', true)->orderBy('starts_at')->orderBy('sort_order')->get()->groupBy('event_id')
+      : collect();
     $sponsored = Schema::hasTable('tica_promotion_campaigns')
       ? DB::table('tica_promotion_campaigns')->join('tica_promotion_plans', 'tica_promotion_plans.id', '=', 'tica_promotion_campaigns.plan_id')
         ->whereIn('tica_promotion_campaigns.event_id', $eventIds)->where('tica_promotion_campaigns.status', 'active')
         ->where('tica_promotion_plans.placement', 'sponsored_event')->pluck('tica_promotion_campaigns.id', 'tica_promotion_campaigns.event_id')
       : collect();
 
-    return $contents->map(function ($content) use ($tickets, $ticketContents, $dates, $sold, $categories, $organizers, $organizerNames, $sponsored) {
+    return $contents->map(function ($content) use ($tickets, $ticketContents, $dates, $sold, $categories, $organizers, $organizerNames, $programmePeople, $agendaItems, $sponsored) {
       $eventId = (int) $content->id;
       $category = $categories->get($content->event_category_id);
       $organizer = $organizers->get($content->organizer_id);
@@ -170,6 +179,8 @@ class EventCatalog
       $city = $online ? 'Online' : (trim((string) $content->city) ?: trim((string) $content->state) ?: (string) $content->country);
       $byName = $organizer ? ($organizerNames->get($organizer->id) ?: $organizer->username) : config('app.name', 'TICA');
       $time = $timeKnown ? $start->format('g:i A') : 'time to be confirmed';
+      $people = $programmePeople->get($eventId, collect());
+      $agenda = $agendaItems->get($eventId, collect());
 
       return [
         'id' => $eventId,
@@ -231,6 +242,26 @@ class EventCatalog
         'transfers' => !isset($content->allow_transfers) || (bool) $content->allow_transfers,
         'refundRule' => $content->refund_policy ? (str_contains((string) $content->refund_policy, '7 days') ? '7' : (str_contains((string) $content->refund_policy, '48 hours') ? '48' : 'custom')) : 'standard',
         'revealMinutes' => (int) ($content->join_reveal_minutes ?? 15),
+        'programme' => [
+          'type' => (string) ($people->first()?->kind ?: 'speaker'),
+          'people' => $people->map(fn (EventProgrammePerson $person) => [
+            'id' => (int) $person->id,
+            'name' => (string) $person->name,
+            'role' => (string) ($person->role ?? ''),
+            'topic' => (string) ($person->topic ?? ''),
+            'bio' => (string) ($person->bio ?? ''),
+            'image' => $person->image ? PublicImage::url('assets/admin/img/event/programme', $person->image, $person->updated_at) : null,
+          ])->values()->all(),
+          'agenda' => $agenda->map(fn (EventAgendaItem $item) => [
+            'title' => (string) $item->title,
+            'person' => (string) ($item->person?->name ?? ''),
+            'location' => (string) ($item->location ?? ''),
+            'description' => (string) ($item->description ?? ''),
+            'date' => optional($item->starts_at)?->format('D, j M'),
+            'time' => optional($item->starts_at)?->format('g:i A'),
+            'endTime' => optional($item->ends_at)?->format('g:i A'),
+          ])->values()->all(),
+        ],
       ];
     });
   }

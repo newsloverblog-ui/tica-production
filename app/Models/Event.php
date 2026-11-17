@@ -122,4 +122,14 @@ class Event extends Model
   {
     return $this->hasMany(EventDates::class);
   }
+
+  public function programmePeople()
+  {
+    return $this->hasMany(EventProgrammePerson::class)->orderBy('sort_order');
+  }
+
+  public function agendaItems()
+  {
+    return $this->hasMany(EventAgendaItem::class)->orderBy('sort_order');
+  }
 }
