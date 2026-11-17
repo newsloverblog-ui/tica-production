@@ -19,10 +19,10 @@ test.describe('edge cases (owner)', () => {
     });
     await page.goto('/create', { waitUntil: 'networkidle' });
     await page.fill('#c-name', name);
-    await page.fill('#c-date', date);
-    await page.fill('#c-time', '18:00');
     await page.click('#ce-next');
 
+    await page.fill('#c-date', date);
+    await page.fill('#c-time', '18:00');
     await page.fill('#c-venue', 'QA Test Hall');
     await page.fill('#c-city', 'Lagos');
     await page.click('#ce-next');
