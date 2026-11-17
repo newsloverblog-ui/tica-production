@@ -5223,6 +5223,21 @@ footer,footer.ft{--indigo-2:#0F4C9E}
 .tc-img{background:linear-gradient(135deg,#1A3A6B,#0B2447)}
 
 /* Organiser band picture: the TICA fan inside the rounded card, orange block behind. */
-.page[data-page=home] .da-girl{background:radial-gradient(120% 90% at 50% 100%,#3A5BE0 0%,#2E4FD8 38%,#1B3486 100%)}
+.page[data-page=home] .da-girl{background:radial-gradient(110% 85% at 50% 100%,#24448F 0%,#163566 45%,#0F2A52 100%);box-shadow:0 24px 56px rgba(5,14,32,.35),inset 0 0 0 1px rgba(255,255,255,.06)}
+/* Calm the frame: the orange block steps back so the picture leads. */
+.page[data-page=home] .org .duo-art::before{background:#F2A06B;opacity:.8}
 .page[data-page=home] .da-girl::after,.page[data-page=home] .da-girl::before{display:none}
-.page[data-page=home] .da-girl img{position:absolute;left:50%;bottom:0;width:92%;height:auto;max-height:100%;transform:translateX(-50%);object-fit:contain;object-position:bottom center;filter:none}
+.page[data-page=home] .da-girl img{position:absolute;left:50%;bottom:0;width:92%;height:auto;max-height:100%;transform:translateX(-50%);object-fit:contain;object-position:bottom center;filter:saturate(.88) brightness(.96);-webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent 100%);mask-image:linear-gradient(to bottom,#000 78%,transparent 100%)}
+
+/* Organiser band: TICA fan card, a small crowd photo on the corner, and a sale pill (same layout as the ticket section). */
+.page[data-page=home] .org .duo-art{padding:0 0 56px 48px!important}
+.page[data-page=home] .org .da-crowd{width:36%;aspect-ratio:4/5;border:6px solid #fff;border-radius:18px;box-shadow:0 18px 40px rgba(3,10,24,.35)}
+.page[data-page=home] .org .da-crowd img{object-position:center 35%;filter:saturate(.85) brightness(.95) contrast(1.02)}
+.page[data-page=home] .org .da-crowd::after{background:linear-gradient(180deg,rgba(11,36,71,0) 55%,rgba(11,36,71,.35) 100%);mix-blend-mode:normal}
+.page[data-page=home] .org .da-badge{right:14px;bottom:20px;padding:9px 16px 9px 9px;border:1px solid #E6EBF2;color:#0B2447;font-size:13.5px;font-weight:600;box-shadow:0 14px 30px rgba(3,10,24,.3)}
+.page[data-page=home] .org .da-badge svg{background:#F2A06B;stroke:#0B2447}
+@media (max-width:600px){
+  .page[data-page=home] .org .duo-art{padding:0 0 48px 22px!important}
+  .page[data-page=home] .org .da-crowd{width:40%;border-width:5px}
+  .page[data-page=home] .org .da-badge{right:6px;bottom:12px;font-size:12px}
+}
