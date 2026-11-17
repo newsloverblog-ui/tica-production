@@ -509,29 +509,38 @@ CREATE TABLE IF NOT EXISTS public.financial_ledger_entries (
 CREATE INDEX IF NOT EXISTS financial_ledger_entries_account_id_index ON public.financial_ledger_entries (financial_ledger_account_id, id);
 CREATE INDEX IF NOT EXISTS financial_ledger_entries_transaction_id_index ON public.financial_ledger_entries (financial_ledger_transaction_id);
 
-CREATE TABLE IF NOT EXISTS public.organizer_earning_releases (
-  id bigserial PRIMARY KEY,
-  public_id uuid NOT NULL UNIQUE,
-  organizer_id bigint NOT NULL REFERENCES public.organizers(id),
-  event_id bigint NULL REFERENCES public.events(id),
-  booking_id bigint NOT NULL UNIQUE,
-  financial_ledger_transaction_id bigint NOT NULL REFERENCES public.financial_ledger_transactions(id),
-  currency char(3) NOT NULL,
-  gross_amount_minor bigint NOT NULL,
-  platform_fee_minor bigint NOT NULL DEFAULT 0,
-  processor_fee_minor bigint NOT NULL DEFAULT 0,
-  organizer_amount_minor bigint NOT NULL,
-  status varchar(24) NOT NULL DEFAULT 'pending',
-  available_at timestamp(0) without time zone NULL,
-  released_at timestamp(0) without time zone NULL,
-  held_at timestamp(0) without time zone NULL,
-  hold_reason text NULL,
-  created_at timestamp(0) without time zone NULL,
-  updated_at timestamp(0) without time zone NULL
-);
-CREATE INDEX IF NOT EXISTS organizer_earning_releases_status_available_index ON public.organizer_earning_releases (status, available_at);
-CREATE INDEX IF NOT EXISTS organizer_earning_releases_owner_status_index ON public.organizer_earning_releases (organizer_id, currency, status);
-SELECT pg_temp.tica_mark_migration('2026_11_17_120000_create_financial_ledger');
+DO $$
+BEGIN
+  IF to_regclass('public.organizers') IS NOT NULL AND to_regclass('public.events') IS NOT NULL THEN
+    CREATE TABLE IF NOT EXISTS public.organizer_earning_releases (
+      id bigserial PRIMARY KEY,
+      public_id uuid NOT NULL UNIQUE,
+      organizer_id bigint NOT NULL REFERENCES public.organizers(id),
+      event_id bigint NULL REFERENCES public.events(id),
+      booking_id bigint NOT NULL UNIQUE,
+      financial_ledger_transaction_id bigint NOT NULL REFERENCES public.financial_ledger_transactions(id),
+      currency char(3) NOT NULL,
+      gross_amount_minor bigint NOT NULL,
+      platform_fee_minor bigint NOT NULL DEFAULT 0,
+      processor_fee_minor bigint NOT NULL DEFAULT 0,
+      organizer_amount_minor bigint NOT NULL,
+      status varchar(24) NOT NULL DEFAULT 'pending',
+      available_at timestamp(0) without time zone NULL,
+      released_at timestamp(0) without time zone NULL,
+      held_at timestamp(0) without time zone NULL,
+      hold_reason text NULL,
+      created_at timestamp(0) without time zone NULL,
+      updated_at timestamp(0) without time zone NULL
+    );
+    CREATE INDEX IF NOT EXISTS organizer_earning_releases_status_available_index
+      ON public.organizer_earning_releases (status, available_at);
+    CREATE INDEX IF NOT EXISTS organizer_earning_releases_owner_status_index
+      ON public.organizer_earning_releases (organizer_id, currency, status);
+    PERFORM pg_temp.tica_mark_migration('2026_11_17_120000_create_financial_ledger');
+  ELSE
+    RAISE NOTICE 'organizers or events does not exist yet: skipped organizer earning releases.';
+  END IF;
+END $$;
 
 -- 12. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
@@ -548,7 +557,12 @@ ALTER TABLE public.tica_organizer_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.organizer_earning_releases ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF to_regclass('public.organizer_earning_releases') IS NOT NULL THEN
+    ALTER TABLE public.organizer_earning_releases ENABLE ROW LEVEL SECURITY;
+  END IF;
+END $$;
 
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
