@@ -98,10 +98,8 @@
   <!-- Organisers -->
 @endverbatim
   <div class="org"{!! $tsOff('organisers') !!}><div class="wrap org-in">
-    <div class="org-art duo-art" aria-hidden="true">
-      <div class="da-main"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['organisers_images'][0] ?? '') }}" alt=""></div>
-      <div class="da-sub"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['organisers_images'][1] ?? '') }}" alt=""></div>
-      <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/></svg>Your event, live in minutes</span>
+    <div class="org-art duo-art">
+      <div class="da-main da-girl"><img src="{{ asset('assets/tica-ui/img/tica-girl-1100.webp') }}" srcset="{{ asset('assets/tica-ui/img/tica-girl-640.webp') }} 640w, {{ asset('assets/tica-ui/img/tica-girl-1100.webp') }} 1100w" sizes="(max-width: 900px) 80vw, 520px" width="1100" height="1269" loading="lazy" decoding="async" alt="A smiling TICA fan holding up her phone with a ticket QR code"></div>
     </div>
     <div>
       <h2 class="display">{{ $tsHome['organisers_title'] }}</h2>
