@@ -39,6 +39,7 @@ class AdminEventBuilderParityTest extends TestCase
         $this->assertStringContainsString("@if (\$adminShell)", $shell);
         $this->assertStringContainsString("if(!m||!topbar)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
         $this->assertStringContainsString("if(!m)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
+        $this->assertStringContainsString("if(!fab||!fk||!fv||!fb)return", file_get_contents(public_path('assets/tica-ui/js/tica.js')));
     }
 
     public function test_admin_and_organizer_share_the_event_type_decision_but_keep_separate_rights(): void

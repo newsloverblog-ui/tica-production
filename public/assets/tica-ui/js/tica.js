@@ -1052,6 +1052,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
 /* design script 07 */
 (function(){
 var fab=document.getElementById('fab'),fk=document.getElementById('fab-k'),fv=document.getElementById('fab-v'),fb=document.getElementById('fab-b'),tgt=null,mode='';
+if(!fab||!fk||!fv||!fb)return;
 function page(){var p=document.querySelector('.page:not([hidden])');return p?p.dataset.page:''}
 function pick(){
   var p=page();mode='';
