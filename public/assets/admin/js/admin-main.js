@@ -75,46 +75,105 @@ if (account_status == 1 || secret_login == 1) {
 
 $(function ($) {
 
-  // sidebar search start
-  $(".sidebar-search").on('input', function () {
-    let term = $(this).val().toLowerCase();
+  // Admin navigation search: show direct destinations without rearranging the sidebar.
+  (function () {
+    var $input = $('#tica-admin-section-search');
+    var $results = $('#tica-admin-search-results');
+    if (!$input.length || !$results.length) return;
 
-    if (term.length > 0) {
-      $(".sidebar ul li.nav-item").each(function (i) {
-        let menuName = $(this).find("p").text().toLowerCase();
-        let $mainMenu = $(this);
+    var destinations = [];
+    var seen = {};
+    $('.sidebar .nav-primary a[href]').each(function () {
+      var $link = $(this);
+      var href = String($link.attr('href') || '').trim();
+      if (!href || href.charAt(0) === '#') return;
 
-        // if any main menu is matched
-        if (menuName.indexOf(term) > -1) {
-          $mainMenu.removeClass('d-none');
-          $mainMenu.addClass('d-block');
-        } else {
-          let matched = 0;
-          let count = 0;
-          // search sub-items of the current main menu (which is not matched)
-          $mainMenu.find('span.sub-item').each(function (i) {
-            // if any sub-item is matched of the current main menu, set the flag
-            if ($(this).text().toLowerCase().indexOf(term) > -1) {
-              count++;
-              matched = 1;
-            }
-          });
+      var label = $.trim($link.find('.sub-item, p').first().text());
+      if (!label) return;
 
-          // if any sub-item is matched  of the current main menu (which is not matched)
-          if (matched == 1) {
-            $mainMenu.removeClass('d-none');
-            $mainMenu.addClass('d-block');
-          } else {
-            $mainMenu.removeClass('d-block');
-            $mainMenu.addClass('d-none');
-          }
-        }
-      });
-    } else {
-      $(".sidebar ul li.nav-item").addClass('d-block');
+      var parent = $.trim($link.closest('.nav-item').children('a').find('p').first().text());
+      var key = href + '|' + label;
+      if (seen[key]) return;
+      seen[key] = true;
+      destinations.push({ href: href, label: label, parent: parent !== label ? parent : '' });
+    });
+
+    var activeIndex = -1;
+    function closeResults() {
+      activeIndex = -1;
+      $results.prop('hidden', true).empty();
+      $input.attr('aria-expanded', 'false').removeAttr('aria-activedescendant');
     }
-  });
-  // sidebar search end
+
+    function setActive(index) {
+      var $items = $results.find('[role="option"]');
+      if (!$items.length) return;
+      activeIndex = Math.max(0, Math.min(index, $items.length - 1));
+      $items.removeClass('is-active').attr('aria-selected', 'false');
+      var $active = $items.eq(activeIndex).addClass('is-active').attr('aria-selected', 'true');
+      $input.attr('aria-activedescendant', $active.attr('id'));
+    }
+
+    function renderResults() {
+      var term = $.trim(String($input.val() || '')).toLowerCase();
+      $results.empty();
+      activeIndex = -1;
+      if (!term) {
+        closeResults();
+        return;
+      }
+
+      var matches = destinations.filter(function (item) {
+        return (item.label + ' ' + item.parent).toLowerCase().indexOf(term) !== -1;
+      }).slice(0, 8);
+
+      if (!matches.length) {
+        $('<p>', { class: 'tica-admin-sidebar-search-empty', text: 'No matching sections' }).appendTo($results);
+      } else {
+        matches.forEach(function (item, index) {
+          var $result = $('<a>', {
+            id: 'tica-admin-search-result-' + index,
+            class: 'tica-admin-sidebar-search-result',
+            href: item.href,
+            role: 'option',
+            'aria-selected': 'false'
+          });
+          $('<span>', { text: item.label }).appendTo($result);
+          if (item.parent) $('<small>', { text: item.parent }).appendTo($result);
+          $result.appendTo($results);
+        });
+      }
+
+      $results.prop('hidden', false);
+      $input.attr('aria-expanded', 'true');
+    }
+
+    $input.on('input', renderResults).on('focus', renderResults).on('keydown', function (event) {
+      var count = $results.find('[role="option"]').length;
+      if (event.key === 'Escape') {
+        closeResults();
+      } else if (event.key === 'ArrowDown' && count) {
+        event.preventDefault();
+        setActive(activeIndex + 1);
+      } else if (event.key === 'ArrowUp' && count) {
+        event.preventDefault();
+        setActive(activeIndex <= 0 ? count - 1 : activeIndex - 1);
+      } else if (event.key === 'Enter' && count) {
+        event.preventDefault();
+        $results.find('[role="option"]').eq(activeIndex >= 0 ? activeIndex : 0)[0].click();
+      }
+    });
+    $results.on('mousemove', '[role="option"]', function () {
+      setActive($(this).index());
+    });
+    $(document).on('click', function (event) {
+      if (!$(event.target).closest('.tica-admin-sidebar-search').length) closeResults();
+    });
+  })();
+
+  var $currentAdminLink = $('.sidebar .nav-collapse li.active > a').last();
+  if (!$currentAdminLink.length) $currentAdminLink = $('.sidebar .nav-primary > .nav-item.active > a').last();
+  $currentAdminLink.attr('aria-current', 'page');
 
 
   // disabling default behave of form submits start

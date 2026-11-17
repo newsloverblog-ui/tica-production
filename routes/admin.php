@@ -31,6 +31,7 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('/{key}/generate', 'BackEnd\IntegrationController@generate')->where('key', '[a-z_]+')->middleware('throttle:5,1')->name('admin.integrations.generate');
   });
   Route::middleware('permission:Basic Settings')->group(function () {
+    Route::get('/settings', 'BackEnd\AdminSettingsController@index')->name('admin.settings.index');
     Route::get('/platform-settings', 'BackEnd\TicaPlatformController@show')->name('admin.tica.platform');
     Route::post('/platform-settings', 'BackEnd\TicaPlatformController@update')->name('admin.tica.platform.update');
     Route::get('/website', 'BackEnd\TicaWebsiteController@show')->name('admin.tica.website');

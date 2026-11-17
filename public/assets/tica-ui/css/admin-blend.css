@@ -1064,3 +1064,66 @@ body.tica-admin .avatar-sm>.avatar-img,body.tica-admin .avatar-lg>.avatar-img{po
   }
 }
 
+/* Phase 1 navigation: destination search and a calmer, shallower hierarchy. */
+body.tica-admin .tica-admin-sidebar-search{z-index:30}
+body.tica-admin .tica-admin-sidebar-search-results{
+  position:absolute;z-index:40;top:46px;left:0;right:0;max-height:320px;overflow:auto;padding:6px;
+  border:1px solid var(--c-line);border-radius:12px;background:#fff;box-shadow:0 18px 40px rgba(18,33,58,.14)
+}
+body.tica-admin .tica-admin-sidebar-search-results[hidden]{display:none!important}
+body.tica-admin .tica-admin-sidebar-search-result{
+  min-height:44px;padding:7px 9px;display:grid;align-content:center;gap:2px;border-radius:8px;
+  color:var(--c-ink)!important;text-decoration:none!important
+}
+body.tica-admin .tica-admin-sidebar-search-result span{font-size:13.5px;font-weight:650;line-height:1.25}
+body.tica-admin .tica-admin-sidebar-search-result small{font-size:11.5px;line-height:1.25;color:var(--c-mute)}
+body.tica-admin .tica-admin-sidebar-search-result:hover,
+body.tica-admin .tica-admin-sidebar-search-result:focus-visible,
+body.tica-admin .tica-admin-sidebar-search-result.is-active{
+  background:var(--c-blue-soft);color:var(--c-blue)!important;outline:none
+}
+body.tica-admin .tica-admin-sidebar-search-empty{margin:0;padding:14px 10px;color:var(--c-mute);font-size:13px;text-align:center}
+body.tica-admin .sidebar .nav-section .text-section{
+  font-size:11.5px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;color:var(--c-faint)!important
+}
+body.tica-admin .sidebar .nav>.nav-item>a{border-radius:9px!important}
+body.tica-admin .sidebar .nav>.nav-item>a:focus-visible,
+body.tica-admin .sidebar .nav-collapse li>a:focus-visible{outline:2px solid var(--c-blue);outline-offset:-2px}
+body.tica-admin .sidebar .nav-collapse li a{padding-left:43px!important;border-radius:8px!important}
+body.tica-admin .sidebar .nav-collapse li.active>a{background:#f6f8ff!important}
+body.tica-admin .sidebar .nav-collapse li .sub-item{font-size:13px!important;line-height:1.3!important}
+body.tica-admin .sidebar .nav>.nav-item .badge{margin-left:auto}
+
+/* Consolidated settings overview. */
+body.tica-admin .as-page{width:min(1180px,100%);margin:0 auto;padding:4px 0 44px}
+body.tica-admin .as-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 30px}
+body.tica-admin .as-head>div{max-width:720px}
+body.tica-admin .as-head p{margin:0 0 6px;color:var(--c-blue);font-size:13px;font-weight:650}
+body.tica-admin .as-head h1{margin:0;color:var(--c-ink);font-size:clamp(28px,3vw,38px);font-weight:720;letter-spacing:-.035em;line-height:1.1}
+body.tica-admin .as-head span{display:block;margin-top:10px;color:var(--c-mute);font-size:15px;line-height:1.55}
+body.tica-admin .as-site{min-height:42px;padding:0 15px;display:inline-flex;align-items:center;gap:9px;border:1px solid var(--c-line);border-radius:10px;background:#fff;color:var(--c-text)!important;font-size:13.5px;font-weight:650;text-decoration:none!important;white-space:nowrap}
+body.tica-admin .as-site:hover,body.tica-admin .as-site:focus-visible{border-color:var(--c-blue-line);color:var(--c-blue)!important;outline:none}
+body.tica-admin .as-section{padding:24px 0;border-top:1px solid var(--c-line)}
+body.tica-admin .as-section-head{display:grid;grid-template-columns:minmax(190px,260px) 1fr;align-items:baseline;gap:20px;margin-bottom:14px}
+body.tica-admin .as-section-head h2{margin:0;color:var(--c-ink);font-size:17px;font-weight:700;letter-spacing:-.01em}
+body.tica-admin .as-section-head p{margin:0;color:var(--c-mute);font-size:13.5px}
+body.tica-admin .as-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body.tica-admin .as-card{min-height:94px;padding:17px 18px;display:grid;grid-template-columns:38px 1fr 18px;align-items:center;gap:14px;border:1px solid var(--c-line);border-radius:13px;background:#fff;color:var(--c-text)!important;text-decoration:none!important;box-shadow:0 1px 2px rgba(18,33,58,.025);transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+body.tica-admin .as-card>i:first-child{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--c-blue-line);border-radius:10px;background:var(--c-blue-soft);color:var(--c-blue);font-size:16px}
+body.tica-admin .as-card>i:last-child{color:var(--c-faint);font-size:12px;text-align:right}
+body.tica-admin .as-card span{min-width:0;display:grid;gap:4px}
+body.tica-admin .as-card b{color:var(--c-ink);font-size:14.5px;line-height:1.25}
+body.tica-admin .as-card small{color:var(--c-mute);font-size:12.5px;line-height:1.4}
+body.tica-admin .as-card:hover,body.tica-admin .as-card:focus-visible{border-color:var(--c-blue-line);box-shadow:0 9px 24px rgba(47,91,211,.07);transform:translateY(-1px);outline:none}
+body.tica-admin .as-card:hover>i:last-child{color:var(--c-blue)}
+body.tica-admin .as-card--attention>i:first-child{border-color:var(--accent-300);background:var(--accent-50);color:var(--accent-700)}
+@media(max-width:767px){
+  body.tica-admin .as-page{padding-bottom:28px}
+  body.tica-admin .as-head{align-items:flex-start;flex-direction:column;margin-bottom:22px}
+  body.tica-admin .as-section{padding:20px 0}
+  body.tica-admin .as-section-head{grid-template-columns:1fr;gap:4px}
+  body.tica-admin .as-grid{grid-template-columns:1fr}
+  body.tica-admin .as-card{min-height:82px;padding:14px}
+}
+@media(prefers-reduced-motion:reduce){body.tica-admin .as-card{transition:none!important}}
+
