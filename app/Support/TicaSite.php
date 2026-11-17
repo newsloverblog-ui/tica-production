@@ -32,11 +32,27 @@ final class TicaSite
     $img = fn (string $id, int $w = 1800) => "https://images.unsplash.com/photo-{$id}?auto=format&fit=crop&w={$w}&q=72";
 
     return [
+      'branding' => [
+        'site_name' => 'TICA',
+        'logo' => '/assets/tica-ui/img/tica-logo.png',
+        'logo_dark' => '/assets/tica-ui/img/tica-logo.png',
+        'favicon' => '',
+        'primary_color' => '#2F5BD8',
+        'secondary_color' => '#0B2447',
+        'accent_color' => '#F39A4A',
+      ],
+      'seo' => [
+        'title' => 'TICA — Events shape kulture',
+        'description' => 'Find concerts, campus nights, conferences and more. Buy tickets in minutes or sell tickets to your own event.',
+        'og_image' => '',
+        'index_site' => true,
+      ],
       'home' => [
         'hero_title' => "Events shape kulture.\nLet's build it together.",
         'hero_text' => 'Find concerts, campus nights, conferences and more across Nigeria.',
         'hero_images' => [$img('1647796310365-8741019c7ca9'), $img('1690013429722-87852aae164b'), $img('1615842046963-9eb6748cbb10'), $img('1778847195159-874f36cf4e3b')],
         'sections' => array_map(fn () => true, self::SECTIONS),
+        'section_order' => array_keys(self::SECTIONS),
         'organisers_title' => 'You bring the people. TICA handles the tickets.',
         'organisers_text' => 'For first-time hosts and seasoned KultureCreators: set your ticket types, promote your event, and follow every sale as it comes in.',
         'organisers_points' => [
@@ -107,6 +123,8 @@ final class TicaSite
       $site[$area] = array_is_list($value) ? $stored[$area] : array_replace($value, $stored[$area]);
     }
     $site['home']['sections'] = array_replace(array_map(fn () => true, self::SECTIONS), array_map('boolval', (array) $site['home']['sections']));
+    $order = array_values(array_unique(array_filter((array) ($site['home']['section_order'] ?? []), fn ($key) => isset(self::SECTIONS[$key]))));
+    $site['home']['section_order'] = array_values(array_merge($order, array_diff(array_keys(self::SECTIONS), $order)));
 
     return self::$cache = $site;
   }

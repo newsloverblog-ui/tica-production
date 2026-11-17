@@ -62,15 +62,20 @@ class TicaPromotionService
             $organizer = Organizer::query()->whereKey($organizerId)->lockForUpdate()->firstOrFail();
             $amount = round((float) $campaign->price, 2);
             $before = round((float) $organizer->amount, 2);
-            if ($amount <= 0 || $before < $amount) {
+            if ($amount <= 0) {
                 throw ValidationException::withMessages(['campaign' => ['Your available TICA balance is not enough for this promotion.']]);
             }
-            $organizer->forceFill(['amount' => round($before - $amount, 2)])->save();
+            try {
+                app(FinancialLedgerService::class)->spendAvailableOnPromotion($campaign, $organizerId);
+            } catch (\LogicException $exception) {
+                throw ValidationException::withMessages(['campaign' => ['Your available TICA balance is not enough for this promotion.']]);
+            }
+            $after = round((float) $organizer->fresh()->amount, 2);
             $transaction = Transaction::create([
                 'currency' => TicaCurrency::base(), 'transcation_id' => (string) Str::uuid(), 'booking_id' => null,
                 'transcation_type' => 5, 'customer_id' => null, 'organizer_id' => $organizer->id, 'payment_status' => 1,
                 'payment_method' => 'TICA promotion balance', 'grand_total' => $amount, 'pre_balance' => $before,
-                'after_balance' => (float) $organizer->amount, 'gateway_type' => null,
+                'after_balance' => $after, 'gateway_type' => null,
                 'currency_symbol' => TicaCurrency::symbol(TicaCurrency::base()), 'currency_symbol_position' => 'left',
             ]);
             $requiresApproval = (bool) $plan->approval_required;
@@ -81,7 +86,7 @@ class TicaPromotionService
             ])->save();
             AuditLogger::record('promotion.paid_from_organizer_balance', $campaign, ['status' => 'pending_payment', 'payment_status' => 'pending'], $campaign->only(['status', 'payment_status', 'payment_reference']), [
                 'organizer_id' => $organizerId, 'amount' => $amount, 'balance_before' => $before,
-                'balance_after' => (float) $organizer->amount, 'transaction_id' => $transaction->id,
+                'balance_after' => $after, 'transaction_id' => $transaction->id,
             ]);
             return $campaign->fresh();
         }, 3);
@@ -104,8 +109,8 @@ class TicaPromotionService
             $organizer = Organizer::query()->whereKey($campaign->organizer_id)->lockForUpdate()->firstOrFail();
             $before = round((float) $organizer->amount, 2);
             $amount = round((float) $campaign->price, 2);
-            $after = round($before + $amount, 2);
-            $organizer->forceFill(['amount' => $after])->save();
+            app(FinancialLedgerService::class)->refundPromotionToAvailable($campaign);
+            $after = round((float) $organizer->fresh()->amount, 2);
             $transaction = Transaction::create([
                 'currency' => $campaign->currency, 'transcation_id' => (string) Str::uuid(), 'booking_id' => null,
                 'transcation_type' => 4, 'customer_id' => null, 'organizer_id' => $organizer->id, 'payment_status' => 1,

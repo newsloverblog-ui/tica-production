@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/site.webmanifest', 'FrontEnd\ManifestController@web')->name('manifest.web');
 Route::get('/scanner.webmanifest', 'FrontEnd\ManifestController@scanner')->name('manifest.scanner');
+Route::get('/sitemap.xml', 'FrontEnd\TicaSeoController@sitemap')->name('tica.sitemap');
+Route::get('/robots.txt', 'FrontEnd\TicaSeoController@robots')->name('tica.robots');
 use Spatie\GoogleCalendar\Event;
 
 /*

@@ -3,7 +3,8 @@
 @php
   $tsHome = \App\Support\TicaSite::get('home');
   $tsOn = fn ($key) => $tsHome['sections'][$key] ?? true;
-  $tsOff = fn ($key) => ($tsHome['sections'][$key] ?? true) ? '' : ' style="display:none" data-off';
+  $tsOrder = array_flip($tsHome['section_order']);
+  $tsOff = fn ($key) => ' data-home-section="' . $key . '" style="order:' . ($tsOrder[$key] ?? 99) . ';' . (($tsHome['sections'][$key] ?? true) ? '' : 'display:none;') . '"' . (($tsHome['sections'][$key] ?? true) ? '' : ' data-off');
   $tsImg = fn ($path) => \App\Support\TicaSite::imageUrl($path);
 @endphp
 @verbatim
@@ -33,6 +34,8 @@
       </div>
     </div>
   </div>
+
+  <div class="home-sections">
 
   <!-- Spotlight overlaps the hero -->
 @endverbatim
@@ -132,6 +135,7 @@
   </div>
 
   <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p><div class="partner-marks" aria-label="TICA partners">@foreach ($tsHome['partners'] as $tsI => $tsPartner)@if (!empty($tsPartner['logo']))<span class="partner-logo has-img" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><img data-src="{{ $tsImg($tsPartner['logo']) }}" alt="" loading="lazy"></span>@else<span class="partner-logo {{ ['coh', 'ndfa'][$tsI % 2] }}" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><b>{{ $tsPartner['short'] }}</b><small>{!! nl2br(e($tsPartner['name']), false) !!}</small></span>@endif @endforeach</div></div></div>
+  </div>
 </section>
 @verbatim
 

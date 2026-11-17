@@ -27,7 +27,6 @@ class IntegrationTester
         'email' => self::email($adminEmail),
         'sms' => self::sms(),
         'push' => self::push(),
-        'onesignal' => self::oneSignal(),
         'google_login' => self::google(),
         'facebook_login' => self::facebook(),
         'recaptcha' => self::recaptcha(),
@@ -180,29 +179,6 @@ class IntegrationTester
     }
 
     return [true, 'The keys look right. Browsers that allowed notifications will receive them.'];
-  }
-
-  private static function oneSignal(): array
-  {
-    $appId = self::val('onesignal', 'app_id');
-    $apiKey = self::val('onesignal', 'rest_api_key');
-    if ($appId === '' || $apiKey === '') {
-      return [false, 'Add the App ID and REST API key first.'];
-    }
-    $response = self::http()
-      ->withHeaders(['Authorization' => 'Key ' . $apiKey])
-      ->get('https://api.onesignal.com/apps/' . rawurlencode($appId));
-    if ($response->status() === 401 || $response->status() === 403) {
-      return [false, 'OneSignal rejected the REST API key.'];
-    }
-    if ($response->status() === 404) {
-      return [false, 'OneSignal could not find this App ID.'];
-    }
-    if (!$response->successful()) {
-      return [false, 'OneSignal answered ' . $response->status() . '. Try the test again shortly.'];
-    }
-
-    return [true, 'OneSignal accepted the App ID and REST API key.'];
   }
 
   private static function google(): array

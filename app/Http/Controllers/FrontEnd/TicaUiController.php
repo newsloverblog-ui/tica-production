@@ -14,6 +14,7 @@ use App\Services\TicaUi\EventCatalog;
 use App\Services\TicaUi\TicaUiPayload;
 use App\Services\TicaPromotionAnalyticsService;
 use App\Services\TicaPromotionPlacementService;
+use App\Support\TicaSite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -274,10 +275,11 @@ class TicaUiController extends Controller
       }
     }
     $data = $payload->build($language, $path, $event, $extra);
+    $siteSeo = TicaSite::get('seo');
     $title = $event ? $event['name'] : (self::TITLES[$page] ?? 'TICA');
     $description = $event
       ? Str::limit(trim(strip_tags($event['desc'])) ?: $event['name'] . ', ' . $event['label'], 158)
-      : ($this->seo($page, $language->id) ?: 'Find events, buy tickets and sell tickets across Nigeria with TICA.');
+      : ($page === 'home' ? $siteSeo['description'] : ($this->seo($page, $language->id) ?: $siteSeo['description']));
 
     $meta = null;
     if (isset($view['meta'])) {
@@ -289,12 +291,12 @@ class TicaUiController extends Controller
       'payload' => $data,
       'assetVersion' => $this->assetVersion(),
       'meta' => $meta ?? [
-        'title' => $page === 'home' ? 'TICA — Events shape kulture' : $title . ' | TICA',
+        'title' => $page === 'home' ? $siteSeo['title'] : $title . ' | TICA',
         'description' => $description,
-        'ogTitle' => $event ? $event['name'] . ' | TICA' : 'TICA: find and sell event tickets in Nigeria',
-        'ogDescription' => $event ? $description : 'Concerts, campus nights, conferences and more. Buy tickets in minutes or sell tickets to your own event.',
-        'image' => $event['image'] ?? null,
-        'robots' => in_array($page, ['checkout', 'login', 'signup', 'forgot', 'account', 'tickets', 'dashboard', 'create', 'checkin', 'missing'], true) ? 'noindex,follow' : 'index,follow',
+        'ogTitle' => $event ? $event['name'] . ' | TICA' : $siteSeo['title'],
+        'ogDescription' => $description,
+        'image' => $event['image'] ?? (filled($siteSeo['og_image']) ? TicaSite::imageUrl($siteSeo['og_image']) : null),
+        'robots' => in_array($page, ['checkout', 'login', 'signup', 'forgot', 'account', 'tickets', 'dashboard', 'create', 'checkin', 'missing'], true) ? 'noindex,follow' : (($siteSeo['index_site'] ?? true) ? 'index,follow' : 'noindex,follow'),
       ],
       'structuredData' => $event ? $this->eventSchema($event) : null,
       'content' => $view['content'] ?? null,

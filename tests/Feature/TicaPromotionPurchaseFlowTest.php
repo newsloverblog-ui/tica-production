@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Organizer;
 use App\Models\TicaPromotionPlan;
 use App\Services\TicaPromotionService;
+use App\Services\FinancialLedgerService;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,12 @@ class TicaPromotionPurchaseFlowTest extends TestCase
         $this->assertSame($paid->payment_transaction_id, $retried->payment_transaction_id);
         $this->assertSame(1, DB::table('transactions')->count());
         $this->assertSame(900.0, (float) $organizer->fresh()->amount);
+        $this->assertSame(90000, app(FinancialLedgerService::class)->balances($organizer->id)['available_minor']);
+        $this->assertSame(2, DB::table('financial_ledger_transactions')->count(), 'One opening posting and one idempotent promotion purchase.');
+        $this->assertSame(
+            DB::table('financial_ledger_entries')->where('direction', 'debit')->sum('amount_minor'),
+            DB::table('financial_ledger_entries')->where('direction', 'credit')->sum('amount_minor')
+        );
 
         $this->expectException(ValidationException::class);
         $service->payFromBalance($second->id, $organizer->id);
@@ -81,6 +88,9 @@ class TicaPromotionPurchaseFlowTest extends TestCase
             $t->decimal('price', 12, 2); $t->string('currency', 3); $t->timestamp('paid_at')->nullable(); $t->timestamp('starts_at')->nullable(); $t->timestamp('ends_at')->nullable(); $t->timestamp('approved_at')->nullable(); $t->timestamp('paused_at')->nullable(); $t->timestamp('cancelled_at')->nullable(); $t->timestamp('refunded_at')->nullable(); $t->text('admin_notes')->nullable(); $t->text('change_request')->nullable(); $t->json('metadata')->nullable(); $t->timestamps();
         });
         Schema::create('transactions', function (Blueprint $t): void { $t->id(); $t->string('currency')->nullable(); $t->string('transcation_id'); $t->unsignedBigInteger('booking_id')->nullable(); $t->integer('transcation_type'); $t->unsignedBigInteger('customer_id')->nullable(); $t->unsignedBigInteger('organizer_id')->nullable(); $t->integer('payment_status'); $t->string('payment_method')->nullable(); $t->decimal('grand_total', 12, 2); $t->decimal('pre_balance', 12, 2)->nullable(); $t->decimal('after_balance', 12, 2)->nullable(); $t->string('gateway_type')->nullable(); $t->string('currency_symbol')->nullable(); $t->string('currency_symbol_position')->nullable(); $t->timestamps(); });
+        Schema::create('financial_ledger_accounts', function (Blueprint $t): void { $t->id(); $t->string('public_id')->unique(); $t->string('owner_type')->nullable(); $t->unsignedBigInteger('owner_id')->nullable(); $t->string('code'); $t->string('name'); $t->string('category'); $t->string('normal_balance'); $t->string('currency', 3); $t->boolean('is_active'); $t->timestamps(); $t->unique(['owner_type', 'owner_id', 'code', 'currency']); });
+        Schema::create('financial_ledger_transactions', function (Blueprint $t): void { $t->id(); $t->string('public_id')->unique(); $t->string('reference')->unique(); $t->string('kind'); $t->string('source_type')->nullable(); $t->unsignedBigInteger('source_id')->nullable(); $t->timestamp('occurred_at'); $t->json('metadata')->nullable(); $t->timestamps(); });
+        Schema::create('financial_ledger_entries', function (Blueprint $t): void { $t->id(); $t->unsignedBigInteger('financial_ledger_transaction_id'); $t->unsignedBigInteger('financial_ledger_account_id'); $t->string('direction'); $t->unsignedBigInteger('amount_minor'); $t->string('currency', 3); $t->timestamps(); });
         Schema::create('audit_logs', function (Blueprint $t): void { $t->id(); $t->string('actor_type'); $t->unsignedBigInteger('actor_id')->nullable(); $t->string('action'); $t->string('subject_type')->nullable(); $t->unsignedBigInteger('subject_id')->nullable(); $t->json('before')->nullable(); $t->json('after')->nullable(); $t->json('metadata')->nullable(); $t->string('request_id')->nullable(); $t->string('ip_address')->nullable(); $t->text('user_agent')->nullable(); $t->timestamp('created_at'); });
     }
 }

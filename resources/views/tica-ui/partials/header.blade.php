@@ -1,10 +1,11 @@
+@php($tsBrand = \App\Support\TicaSite::get('branding'))
 @verbatim
 <a class="skip" href="#main">Skip to content</a>
 
 <div class="topbar">
   <div class="wrap">
     <header class="nav site-nav">
-      <a class="logo" href="/" aria-label="TICA home"><img src="/assets/tica-ui/img/tica-logo.png" alt="TICA"></a>
+      <a class="logo" href="/" aria-label="TICA home">@endverbatim<img src="{{ \App\Support\TicaSite::imageUrl($tsBrand['logo']) }}" alt="{{ $tsBrand['site_name'] }}">@verbatim</a>
       <nav class="nav-links" aria-label="Main">
 @endverbatim
 @foreach (\App\Support\TicaSite::get('menu') as $tsLink)
@@ -35,7 +36,7 @@
     </header>
     <header class="nav workspace-nav" aria-label="Dashboard toolbar">
       <div class="workspace-brand-zone">
-        <a class="logo" href="/" aria-label="TICA home"><img src="/assets/tica-ui/img/tica-logo.png" alt="TICA"></a>
+        <a class="logo" href="/" aria-label="TICA home">@endverbatim<img src="{{ \App\Support\TicaSite::imageUrl($tsBrand['logo']) }}" alt="{{ $tsBrand['site_name'] }}">@verbatim</a>
         <button class="workspace-icon workspace-menu" id="workspace-menu" type="button" aria-label="Open dashboard menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       </div>
       <div class="workspace-context">

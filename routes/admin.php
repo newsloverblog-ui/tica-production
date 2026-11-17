@@ -35,7 +35,7 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('/platform-settings', 'BackEnd\TicaPlatformController@show')->name('admin.tica.platform');
     Route::post('/platform-settings', 'BackEnd\TicaPlatformController@update')->name('admin.tica.platform.update');
     Route::get('/website', 'BackEnd\TicaWebsiteController@show')->name('admin.tica.website');
-    Route::post('/website/{tab}', 'BackEnd\TicaWebsiteController@update')->whereIn('tab', ['home', 'menu', 'footer', 'contact'])->name('admin.tica.website.update');
+    Route::post('/website/{tab}', 'BackEnd\TicaWebsiteController@update')->whereIn('tab', ['branding', 'seo', 'home', 'menu', 'footer', 'contact'])->name('admin.tica.website.update');
   });
   Route::group(['middleware' => 'permission:Transaction'], function () {
     Route::get('/transcation', 'BackEnd\AdminController@transcation')->name('admin.transcation');

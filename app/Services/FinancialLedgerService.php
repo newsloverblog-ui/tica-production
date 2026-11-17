@@ -8,6 +8,7 @@ use App\Models\FinancialLedgerEntry;
 use App\Models\FinancialLedgerTransaction;
 use App\Models\Organizer;
 use App\Models\OrganizerEarningRelease;
+use App\Models\TicaPromotionCampaign;
 use App\Models\Transaction;
 use App\Models\Withdraw;
 use App\Support\Money;
@@ -33,6 +34,7 @@ class FinancialLedgerService
     public const CLEARING = 'platform_gateway_clearing';
     public const PLATFORM_FEES = 'platform_fee_revenue';
     public const PROCESSOR_FEES = 'gateway_processing_expense';
+    public const PROMOTION_REVENUE = 'platform_promotion_revenue';
 
     public function recordSale(object $booking, Transaction $legacy, ?int $processorFeeMinor = null): OrganizerEarningRelease
     {
@@ -157,6 +159,60 @@ class FinancialLedgerService
             $this->post('opening:organizer:' . $organizerId . ':' . $currency, 'opening_balance', [
                 [$clearing, 'debit', $amountMinor], [$available, 'credit', $amountMinor],
             ], Organizer::class, $organizerId, ['migration_boundary' => true]);
+        }, 3);
+    }
+
+    /** Spend an organiser's available earnings on a TICA promotion. */
+    public function spendAvailableOnPromotion(TicaPromotionCampaign $campaign, int $organizerId): FinancialLedgerTransaction
+    {
+        $currency = TicaCurrency::normalize($campaign->currency);
+        $amount = Money::toMinor($campaign->price);
+        if ($amount < 1) throw new LogicException('A promotion ledger payment needs a positive amount.');
+
+        return DB::transaction(function () use ($campaign, $organizerId, $currency, $amount): FinancialLedgerTransaction {
+            $organizer = Organizer::whereKey($organizerId)->lockForUpdate()->firstOrFail();
+            if (!$this->hasOrganizerLedger($organizerId, $currency)) {
+                $opening = Money::toMinor($organizer->amount);
+                if ($opening > 0) {
+                    $clearing = $this->account(null, null, self::CLEARING, 'Gateway clearing', 'asset', 'debit', $currency);
+                    $available = $this->account(Organizer::class, $organizerId, self::AVAILABLE, 'Available earnings', 'liability', 'credit', $currency);
+                    $this->post('opening:organizer:' . $organizerId . ':' . $currency, 'opening_balance', [
+                        [$clearing, 'debit', $opening], [$available, 'credit', $opening],
+                    ], Organizer::class, $organizerId, ['migration_boundary' => true]);
+                }
+            }
+
+            $available = $this->account(Organizer::class, $organizerId, self::AVAILABLE, 'Available earnings', 'liability', 'credit', $currency);
+            if ($this->accountBalance($organizerId, self::AVAILABLE, $currency) < $amount) {
+                throw new LogicException('The financial ledger has insufficient available balance.');
+            }
+            $revenue = $this->account(null, null, self::PROMOTION_REVENUE, 'Promotion revenue', 'revenue', 'credit', $currency);
+            $transaction = $this->post('promotion:spend:' . $campaign->reference, 'promotion_purchase', [
+                [$available, 'debit', $amount], [$revenue, 'credit', $amount],
+            ], TicaPromotionCampaign::class, $campaign->id, ['organizer_id' => $organizerId]);
+            $organizer->forceFill(['amount' => Money::fromMinor($this->accountBalance($organizerId, self::AVAILABLE, $currency))])->save();
+
+            return $transaction;
+        }, 3);
+    }
+
+    /** Return a balance-funded promotion payment to available earnings. */
+    public function refundPromotionToAvailable(TicaPromotionCampaign $campaign): FinancialLedgerTransaction
+    {
+        $currency = TicaCurrency::normalize($campaign->currency);
+        $amount = Money::toMinor($campaign->price);
+        if ($amount < 1) throw new LogicException('A promotion ledger refund needs a positive amount.');
+
+        return DB::transaction(function () use ($campaign, $currency, $amount): FinancialLedgerTransaction {
+            $organizer = Organizer::whereKey($campaign->organizer_id)->lockForUpdate()->firstOrFail();
+            $available = $this->account(Organizer::class, $organizer->id, self::AVAILABLE, 'Available earnings', 'liability', 'credit', $currency);
+            $revenue = $this->account(null, null, self::PROMOTION_REVENUE, 'Promotion revenue', 'revenue', 'credit', $currency);
+            $transaction = $this->post('promotion:refund:' . $campaign->reference, 'promotion_refund', [
+                [$revenue, 'debit', $amount], [$available, 'credit', $amount],
+            ], TicaPromotionCampaign::class, $campaign->id, ['organizer_id' => $organizer->id]);
+            $organizer->forceFill(['amount' => Money::fromMinor($this->accountBalance($organizer->id, self::AVAILABLE, $currency))])->save();
+
+            return $transaction;
         }, 3);
     }
 

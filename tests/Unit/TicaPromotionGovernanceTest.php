@@ -132,7 +132,7 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("->where('payment_status', 'paid')", $sync);
     }
 
-    public function test_organizer_promote_page_keeps_codes_and_links_without_paid_promotion(): void
+    public function test_organizer_promote_page_includes_paid_campaigns_codes_and_links(): void
     {
         $view = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
         $client = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
@@ -142,10 +142,12 @@ class TicaPromotionGovernanceTest extends TestCase
         foreach (['od-code-min', 'od-link-channel'] as $id) {
             $this->assertStringContainsString('id="' . $id . '"', $view);
         }
-        // Paid TICA promotion (packages, campaigns, promotion figures) was taken off the Promote page.
+        // Paid packages and campaign performance are part of the same calm Promote workspace.
         foreach (['od-promo-kpis', 'od-package-grid', 'od-campaigns', 'od-promo-f'] as $id) {
-            $this->assertStringNotContainsString('id="' . $id . '"', $view);
+            $this->assertStringContainsString('id="' . $id . '"', $view);
         }
+        $this->assertStringContainsString('id="pr-pay-dlg"', $view);
+        $this->assertStringNotContainsString('window.prompt', $client);
         // Every code and link row can be edited, paused, deleted; links also copy and show a QR.
         foreach (['data-predit', 'data-prpause', 'data-prdel', 'data-prqr', 'data-copy'] as $hook) {
             $this->assertStringContainsString($hook, $client);

@@ -5253,3 +5253,4 @@ footer,footer.ft{--indigo-2:#0F4C9E}
 .page[data-page=home] .tk .duo-art::before{background:#F2A06B!important;opacity:.8;box-shadow:none!important;left:-16px!important;right:auto!important;top:-16px!important}
 .page[data-page=home] .tk .da-main img{object-position:center 30%}
 @media (max-width:600px){.page[data-page=home] .tk .duo-art::before{left:-8px!important;top:-10px!important}}
+.home-sections{display:flex;min-width:0;flex-direction:column}

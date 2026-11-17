@@ -152,6 +152,26 @@
           </section>
         </div>
 
+        <section class="pr-card od-promo-market" aria-labelledby="od-packages-h">
+          <div class="pr-card__head"><div><h2 class="pr-card__title" id="od-packages-h">Promote on TICA</h2><p class="pr-card__sub">Choose a placement, schedule it and follow the results. Pricing and availability come directly from TICA.</p></div><div class="od-promo-balance"><span>Available balance</span><b id="od-promo-balance">—</b></div></div>
+          <div class="od-promo-kpis" id="od-promo-kpis" aria-label="Promotion performance"></div>
+          <div class="od-package-grid" id="od-package-grid"></div>
+        </section>
+
+        <section class="pr-card od-promo-studio" aria-labelledby="od-campaign-h">
+          <div class="pr-card__head"><div><h2 class="pr-card__title" id="od-campaign-h">Campaign studio</h2><p class="pr-card__sub">Campaigns go live only after verified payment and any required TICA review.</p></div></div>
+          <div class="od-empty-state" id="od-promo-empty" hidden><h3>No packages available</h3><p>TICA will publish new promotion packages here.</p></div>
+          <form class="od-form" id="od-promo-f" novalidate>
+            <div class="od-row3"><div class="inp"><label for="od-promo-plan">Placement</label><select id="od-promo-plan" required></select></div><div class="inp"><label for="od-promo-event">Event</label><select id="od-promo-event" required></select></div><div class="inp"><label for="od-promo-start">Start date</label><input id="od-promo-start" type="date" required></div></div>
+            <div class="od-package-summary" id="od-package-summary" aria-live="polite"></div>
+            <div class="od-row2"><div class="inp"><label for="od-promo-headline">Headline <small>(optional)</small></label><input id="od-promo-headline" maxlength="160"></div><div class="inp"><label for="od-promo-url">Destination URL <small>(optional)</small></label><input id="od-promo-url" type="url" placeholder="https://..."></div></div>
+            <div class="inp"><label for="od-promo-body">Promotion copy <small>(optional)</small></label><textarea id="od-promo-body" maxlength="1000" rows="3"></textarea></div>
+            <div class="inp od-upload"><label for="od-promo-creative">Campaign image <small>(optional)</small><span>Choose a JPG, PNG, WebP or GIF up to 3 MB</span></label><input id="od-promo-creative" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
+            <button class="t-btn t-btn--primary" type="submit">Create promotion</button><p class="pr-msg" id="od-promo-m" role="status"></p>
+          </form>
+          <div class="db-ch od-campaign-heading"><div><h2>My campaigns</h2><p class="od-fine">Payment, review, schedule and placement performance.</p></div></div><div class="od-campaigns" id="od-campaigns"></div>
+        </section>
+
         <details class="pr-card pr-more">
           <summary><span><b>Conversion tracking</b><small>Meta, TikTok and Google pixels</small></span><svg class="pr-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
           <div class="pr-more__body" aria-labelledby="od-pixel-h">
@@ -289,6 +309,14 @@
   <div class="sh-head"><div><h2 id="pr-qr-h">QR code</h2><p id="pr-qr-p"></p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <canvas id="pr-qr-c" width="320" height="320" role="img" aria-label="QR code for this tracking link"></canvas>
   <div class="pr-form__actions"><button class="t-btn t-btn--secondary" type="button" id="pr-qr-dl">Download PNG</button></div>
+</dialog>
+<dialog class="od-dlg pr-dlg" id="pr-pay-dlg" aria-labelledby="pr-pay-h">
+  <div class="sh-head"><div><h2 id="pr-pay-h">Use TICA balance</h2><p>Confirm this promotion payment with your organiser password.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="pr-form" id="od-promo-pay-f" novalidate>
+    <label class="pr-field"><span>Current password</span><input class="t-input" id="od-promo-password" type="password" autocomplete="current-password" required></label>
+    <p class="pr-msg" id="od-promo-pay-m" role="alert"></p>
+    <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit">Confirm payment</button></div>
+  </form>
 </dialog>
 <dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
 <dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>

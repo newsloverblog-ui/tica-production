@@ -23,7 +23,10 @@ use Illuminate\View\View;
 class TicaWebsiteController extends Controller
 {
   private const TABS = [
+    'branding' => ['Branding', 'Basic Settings'],
+    'seo' => ['SEO', 'Basic Settings'],
     'home' => ['Home page', 'Home Page'],
+    'pages' => ['Pages', 'Custom Pages'],
     'menu' => ['Menu', 'Menu Builder'],
     'footer' => ['Footer', 'Footer'],
     'contact' => ['Contact details', 'Contact Page'],
@@ -36,6 +39,9 @@ class TicaWebsiteController extends Controller
     $tab = array_key_exists($request->query('tab'), $tabs) ? $request->query('tab') : array_key_first($tabs);
     $admin = Auth::guard('admin')->user();
     $lang = \App\Models\Language::query()->where('is_default', 1)->first();
+    $pages = $tab === 'pages' && $lang
+      ? Page::query()->with(['content' => fn ($query) => $query->where('language_id', $lang->id)])->latest()->get()
+      : collect();
 
     return view('backend.tica.website', [
       'tab' => $tab,
@@ -48,6 +54,8 @@ class TicaWebsiteController extends Controller
         'blog' => $admin->hasPermission('Blog Management') ? Blog::query()->count() : null,
         'faq' => $admin->hasPermission('FAQ Management') ? FAQ::query()->where('language_id', $lang->id)->count() : null,
       ],
+      'pages' => $pages,
+      'defaultLanguage' => $lang,
     ]);
   }
 
@@ -62,6 +70,8 @@ class TicaWebsiteController extends Controller
     }
 
     $value = match ($tab) {
+      'branding' => $this->branding($request),
+      'seo' => $this->seo($request),
       'home' => $this->home($request),
       'menu' => $this->menu($request),
       'footer' => $this->footer($request),
@@ -88,6 +98,8 @@ class TicaWebsiteController extends Controller
       'hero_images.*' => ['nullable', 'string', 'max:500'],
       'hero_uploads.*' => ['nullable', 'file', 'max:4096', new ImageMimeTypeRule()],
       'sections' => ['nullable', 'array'],
+      'section_order' => ['required', 'array', 'size:' . count(TicaSite::SECTIONS)],
+      'section_order.*' => ['required', Rule::in(array_keys(TicaSite::SECTIONS))],
       'organisers_title' => ['required', 'string', 'max:120'],
       'organisers_text' => ['nullable', 'string', 'max:400'],
       'organisers_points.*.title' => ['nullable', 'string', 'max:60'],
@@ -135,12 +147,59 @@ class TicaWebsiteController extends Controller
       'hero_text' => trim((string) $request->input('hero_text')),
       'hero_images' => array_slice($images, 0, 6),
       'sections' => $sections,
+      'section_order' => array_values(array_unique($request->input('section_order'))),
       'organisers_title' => trim((string) $request->input('organisers_title')),
       'organisers_text' => trim((string) $request->input('organisers_text')),
       'organisers_points' => $pairs('organisers_points', 4),
       'eticket_title' => trim((string) $request->input('eticket_title')),
       'eticket_steps' => $pairs('eticket_steps', 4),
       'partners' => array_slice($partners, 0, 8),
+    ];
+  }
+
+  private function branding(Request $request): array
+  {
+    $request->validate([
+      'site_name' => ['required', 'string', 'max:60'],
+      'logo_upload' => ['nullable', 'file', 'max:4096', new ImageMimeTypeRule()],
+      'logo_dark_upload' => ['nullable', 'file', 'max:4096', new ImageMimeTypeRule()],
+      'favicon_upload' => ['nullable', 'file', 'max:1024', new ImageMimeTypeRule()],
+      'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+      'secondary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+      'accent_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+    ]);
+    $current = TicaSite::get('branding');
+    foreach (['logo', 'logo_dark', 'favicon'] as $key) {
+      $upload = $key . '_upload';
+      if ($request->hasFile($upload)) $current[$key] = $this->store($request->file($upload));
+    }
+
+    return [
+      'site_name' => trim((string) $request->input('site_name')),
+      'logo' => (string) ($current['logo'] ?? ''),
+      'logo_dark' => (string) ($current['logo_dark'] ?? ''),
+      'favicon' => (string) ($current['favicon'] ?? ''),
+      'primary_color' => strtoupper((string) $request->input('primary_color')),
+      'secondary_color' => strtoupper((string) $request->input('secondary_color')),
+      'accent_color' => strtoupper((string) $request->input('accent_color')),
+    ];
+  }
+
+  private function seo(Request $request): array
+  {
+    $request->validate([
+      'title' => ['required', 'string', 'max:70'],
+      'description' => ['required', 'string', 'max:180'],
+      'og_image_upload' => ['nullable', 'file', 'max:4096', new ImageMimeTypeRule()],
+    ]);
+    $current = TicaSite::get('seo');
+    if ($request->hasFile('og_image_upload')) $current['og_image'] = $this->store($request->file('og_image_upload'));
+
+    return [
+      'title' => trim((string) $request->input('title')),
+      'description' => trim((string) $request->input('description')),
+      'og_image' => (string) ($current['og_image'] ?? ''),
+      'index_site' => $request->boolean('index_site'),
     ];
   }
 

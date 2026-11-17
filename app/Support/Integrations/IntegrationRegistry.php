@@ -19,7 +19,7 @@ namespace App\Support\Integrations;
  */
 class IntegrationRegistry
 {
-  public const CORE = ['paystack', 'email', 'google_login', 'onesignal'];
+  public const CORE = ['paystack', 'email', 'google_login'];
 
   public const GROUPS = [
     'payments' => 'Payments',
@@ -109,25 +109,14 @@ class IntegrationRegistry
       ],
       'push' => [
         'group' => 'messaging', 'name' => 'Browser push (VAPID)',
-        'icon' => 'notifications', 'mode' => 'Legacy web push',
-        'summary' => 'The current direct browser-push service. It remains available while OneSignal delivery is introduced in the Audience phase.',
+        'icon' => 'notifications', 'mode' => 'Web push',
+        'summary' => 'Direct browser notifications for customers, organisers, subscribers and event audiences.',
         'enabled' => 'store', 'generate' => 'vapid',
         'fields' => [
           ['name' => 'public_key', 'label' => 'Public key (VAPID)', 'type' => 'text', 'source' => 'store', 'config' => 'webpush.vapid.public_key', 'env' => 'VAPID_PUBLIC_KEY', 'required' => true, 'min' => 40],
           ['name' => 'private_key', 'label' => 'Private key (VAPID)', 'type' => 'secret', 'source' => 'store', 'config' => 'webpush.vapid.private_key', 'env' => 'VAPID_PRIVATE_KEY', 'required' => true, 'min' => 40],
           ['name' => 'subject', 'label' => 'Contact', 'type' => 'text', 'source' => 'store', 'config' => 'webpush.vapid.subject', 'env' => 'VAPID_SUBJECT', 'required' => true, 'help' => 'mailto:you@tica.ng or https://tica.ng', 'pattern' => '/^(mailto:[^@\s]+@[^@\s]+|https:\/\/\S+)$/'],
         ],
-      ],
-      'onesignal' => [
-        'group' => 'messaging', 'name' => 'OneSignal',
-        'core' => true, 'icon' => 'notifications', 'mode' => 'Web push',
-        'summary' => 'Web push notifications for customers, organisers, subscribers and event audiences. Delivery stays off until Audience is enabled.',
-        'enabled' => 'store',
-        'fields' => [
-          ['name' => 'app_id', 'label' => 'App ID', 'type' => 'text', 'source' => 'store', 'config' => 'services.onesignal.app_id', 'env' => 'ONESIGNAL_APP_ID', 'required' => true, 'help' => 'OneSignal dashboard → Settings → Keys & IDs → OneSignal App ID.', 'pattern' => '/^[0-9a-fA-F-]{32,40}$/'],
-          ['name' => 'rest_api_key', 'label' => 'REST API key', 'type' => 'secret', 'source' => 'store', 'config' => 'services.onesignal.rest_api_key', 'env' => 'ONESIGNAL_REST_API_KEY', 'required' => true, 'help' => 'Server-only key from OneSignal dashboard → Settings → Keys & IDs.'],
-        ],
-        'enabled_config' => 'services.onesignal.enabled',
       ],
       'google_login' => [
         'group' => 'signin', 'name' => 'Sign in with Google',

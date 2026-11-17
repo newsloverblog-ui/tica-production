@@ -4,7 +4,10 @@
   $home = $site['home'];
   $img = fn ($path) => \App\Support\TicaSite::imageUrl($path);
   $intro = [
+    'branding' => __('Your public logo, site name and calm TICA colour system.'),
+    'seo' => __('The title, description and share image search engines and social networks use.'),
     'home' => __('The first page people see. Change the headline, photos and which sections show.'),
+    'pages' => __('Create useful public pages with the established editor. Published pages use the TICA shell automatically.'),
     'menu' => __('The links across the top of every page, and in the mobile menu.'),
     'footer' => __('The bottom of every page: your line, link columns and copyright.'),
     'contact' => __('Phone, emails and social links. They show on the Contact page and in the footer.'),
@@ -35,6 +38,60 @@
     <div class="tw-main">
       <p class="tw-intro">{{ $intro[$tab] }}</p>
 
+      @if ($tab === 'branding')
+        @php($branding = $site['branding'])
+        <form method="POST" action="{{ route('admin.tica.website.update', 'branding') }}" enctype="multipart/form-data" class="ta-forms">
+          @csrf
+          <section class="ta-card">
+            <div class="ta-card-h"><span class="ta-ic blue" aria-hidden="true"><i class="fal fa-palette"></i></span><div><h2>{{ __('Brand identity') }}</h2><p>{{ __('Keep the logo clear and use restrained colours across public pages.') }}</p></div></div>
+            <div class="ta-field"><label for="tw-site-name">{{ __('Site name') }}</label><input class="form-control" id="tw-site-name" name="site_name" maxlength="60" required value="{{ old('site_name', $branding['site_name']) }}"></div>
+            <div class="tw-two">
+              <div class="ta-field"><label for="tw-logo">{{ __('Logo for light backgrounds') }}</label>@if($branding['logo'])<img class="tw-brand-preview" src="{{ $img($branding['logo']) }}" alt="">@endif<input class="form-control" id="tw-logo" type="file" name="logo_upload" accept="image/png,image/jpeg,image/webp"></div>
+              <div class="ta-field"><label for="tw-logo-dark">{{ __('Logo for dark backgrounds') }}</label>@if($branding['logo_dark'])<img class="tw-brand-preview dark" src="{{ $img($branding['logo_dark']) }}" alt="">@endif<input class="form-control" id="tw-logo-dark" type="file" name="logo_dark_upload" accept="image/png,image/jpeg,image/webp"></div>
+            </div>
+            <div class="ta-field"><label for="tw-favicon">{{ __('Browser icon') }}</label>@if($branding['favicon'])<img class="tw-favicon-preview" src="{{ $img($branding['favicon']) }}" alt="">@endif<input class="form-control" id="tw-favicon" type="file" name="favicon_upload" accept="image/png,image/jpeg,image/webp"><small class="tw-hint">{{ __('A square PNG or WebP works best.') }}</small></div>
+          </section>
+          <section class="ta-card">
+            <div class="ta-card-h"><span class="ta-ic orange" aria-hidden="true"><i class="fal fa-swatchbook"></i></span><div><h2>{{ __('Brand colours') }}</h2><p>{{ __('Primary actions, deep text and a restrained accent. The interface keeps accessible contrast automatically.') }}</p></div></div>
+            <div class="tw-colours">
+              @foreach (['primary_color' => 'Primary', 'secondary_color' => 'Deep', 'accent_color' => 'Accent'] as $key => $label)
+                <label><span>{{ __($label) }}</span><input type="color" name="{{ $key }}" value="{{ old($key, $branding[$key]) }}"><code>{{ old($key, $branding[$key]) }}</code></label>
+              @endforeach
+            </div>
+          </section>
+          @include('backend.tica.partials.website-save', ['area' => 'branding'])
+        </form>
+      @endif
+
+      @if ($tab === 'seo')
+        @php($seo = $site['seo'])
+        <form method="POST" action="{{ route('admin.tica.website.update', 'seo') }}" enctype="multipart/form-data" class="ta-forms">
+          @csrf
+          <section class="ta-card">
+            <div class="ta-card-h"><span class="ta-ic green" aria-hidden="true"><i class="fal fa-search"></i></span><div><h2>{{ __('Search and sharing') }}</h2><p>{{ __('Defaults for the home page and any public page without its own SEO details.') }}</p></div></div>
+            <div class="ta-field"><label for="tw-seo-title">{{ __('Site title') }}</label><input class="form-control" id="tw-seo-title" name="title" maxlength="70" required value="{{ old('title', $seo['title']) }}"><small class="tw-hint">{{ __('Aim for 50–60 characters.') }}</small></div>
+            <div class="ta-field"><label for="tw-seo-description">{{ __('Description') }}</label><textarea class="form-control" id="tw-seo-description" name="description" rows="3" maxlength="180" required>{{ old('description', $seo['description']) }}</textarea><small class="tw-hint">{{ __('Aim for 140–160 characters.') }}</small></div>
+            <div class="ta-field"><label for="tw-og">{{ __('Social share image') }}</label>@if($seo['og_image'])<img class="tw-og-preview" src="{{ $img($seo['og_image']) }}" alt="">@endif<input class="form-control" id="tw-og" type="file" name="og_image_upload" accept="image/png,image/jpeg,image/webp"><small class="tw-hint">{{ __('Use a 1200 × 630 image.') }}</small></div>
+            <label class="tw-index"><input class="ta-sw" type="checkbox" name="index_site" value="1" @checked($seo['index_site'])><span><b>{{ __('Allow search engines to index the public site') }}</b><small>{{ __('Turn this off only while the whole public site is under maintenance.') }}</small></span></label>
+          </section>
+          @include('backend.tica.partials.website-save', ['area' => 'seo'])
+        </form>
+      @endif
+
+      @if ($tab === 'pages')
+        <section class="ta-card tw-pages-card">
+          <div class="ta-card-h"><span class="ta-ic purple" aria-hidden="true"><i class="fal fa-file-alt"></i></span><div><h2>{{ __('Public pages') }}</h2><p>{{ __('Content is purified on the server before it is stored and shown inside the TICA design.') }}</p></div><a class="btn btn-primary" href="{{ route('admin.custom_pages.create_page') }}"><i class="fal fa-plus" aria-hidden="true"></i>{{ __('New page') }}</a></div>
+          <div class="tw-page-list">
+            @forelse($pages as $page)
+              @php($content = $page->content->first())
+              <article><span><b>{{ $content?->title ?: __('Untitled page') }}</b><small>/{{ $content?->slug ?: 'page' }} · {{ $page->status ? __('Published') : __('Draft') }}</small></span><div><a class="btn btn-secondary btn-sm" href="{{ route('admin.custom_pages.edit_page', $page->id) }}">{{ __('Edit') }}</a>@if($page->status && $content)<a class="btn btn-secondary btn-sm" href="{{ url('/'.$content->slug) }}" target="_blank" rel="noopener">{{ __('View') }}</a>@endif</div></article>
+            @empty
+              <div class="tw-empty"><b>{{ __('No public pages yet') }}</b><p>{{ __('Create an About, Help, Terms or campaign page when you need one.') }}</p></div>
+            @endforelse
+          </div>
+        </section>
+      @endif
+
       @if ($tab === 'home')
         <form method="POST" action="{{ route('admin.tica.website.update', 'home') }}" enctype="multipart/form-data" class="ta-forms">
           @csrf
@@ -59,10 +116,10 @@
           </section>
 
           <section class="ta-card">
-            <div class="ta-card-h"><span class="ta-ic blue" aria-hidden="true"><i class="fal fa-layer-group"></i></span><div><h2>{{ __('Sections on the page') }}</h2><p>{{ __('Switch off a section to hide it. The order follows the design.') }}</p></div></div>
+            <div class="ta-card-h"><span class="ta-ic blue" aria-hidden="true"><i class="fal fa-layer-group"></i></span><div><h2>{{ __('Sections on the page') }}</h2><p>{{ __('Switch off a section to hide it. Use the arrows to change the order.') }}</p></div></div>
             <ul class="ta-list">
-              @foreach ($sections as $key => $label)
-                <li><div><label for="tw-s-{{ $key }}">{{ __($label) }}</label></div><input class="ta-sw" id="tw-s-{{ $key }}" type="checkbox" name="sections[{{ $key }}]" value="1" @checked($home['sections'][$key] ?? true)></li>
+              @foreach ($home['section_order'] as $key)
+                <li data-row><input type="hidden" name="section_order[]" value="{{ $key }}"><div><label for="tw-s-{{ $key }}">{{ __($sections[$key]) }}</label></div><span class="tw-order"><button type="button" data-up aria-label="{{ __('Move up') }}"><i class="fal fa-arrow-up"></i></button><button type="button" data-down aria-label="{{ __('Move down') }}"><i class="fal fa-arrow-down"></i></button></span><input class="ta-sw" id="tw-s-{{ $key }}" type="checkbox" name="sections[{{ $key }}]" value="1" @checked($home['sections'][$key] ?? true)></li>
               @endforeach
             </ul>
           </section>
@@ -239,6 +296,8 @@
         if (rm) { var row = rm.closest('[data-row]'), l = row.parentNode; row.remove(); if (l.dataset && l.dataset.rows) sync(l); return; }
         var up = ev.target.closest('[data-up]');
         if (up) { var r = up.closest('[data-row]'); if (r.previousElementSibling) r.parentNode.insertBefore(r, r.previousElementSibling); up.focus(); }
+        var down = ev.target.closest('[data-down]');
+        if (down) { var d = down.closest('[data-row]'); if (d.nextElementSibling) d.parentNode.insertBefore(d.nextElementSibling, d); down.focus(); }
       });
       var pick = document.querySelector('.tw-add-photo input');
       if (pick) pick.addEventListener('change', function () {

@@ -48,10 +48,10 @@ class IntegrationsTest extends TestCase
   public function test_covers_payments_payouts_email_sms_push_signin_and_storage(): void
   {
     $keys = array_keys(IntegrationRegistry::all());
-    foreach (['paystack', 'flutterwave', 'monnify', 'payouts', 'email', 'sms', 'push', 'onesignal', 'google_login', 'facebook_login', 'recaptcha', 'storage'] as $key) {
+    foreach (['paystack', 'flutterwave', 'monnify', 'payouts', 'email', 'sms', 'push', 'google_login', 'facebook_login', 'recaptcha', 'storage'] as $key) {
       $this->assertContains($key, $keys);
     }
-    $this->assertSame(['paystack', 'email', 'google_login', 'onesignal'], IntegrationRegistry::CORE);
+    $this->assertSame(['paystack', 'email', 'google_login'], IntegrationRegistry::CORE);
   }
 
   public function test_secrets_are_encrypted_masked_and_kept_when_left_blank(): void
@@ -172,32 +172,15 @@ class IntegrationsTest extends TestCase
   public function test_decryption_failure_becomes_needs_reconfiguration_instead_of_throwing(): void
   {
     DB::table('platform_integrations')->insert([
-      'key' => 'onesignal', 'enabled' => true, 'settings' => 'not-an-encrypted-payload',
+      'key' => 'sms', 'enabled' => true, 'settings' => 'not-an-encrypted-payload',
       'created_at' => now(), 'updated_at' => now(),
     ]);
     Integrations::reset();
 
-    $integration = Integrations::describe('onesignal');
+    $integration = Integrations::describe('sms');
 
     $this->assertSame('needs_reconfiguration', $integration['status']['code']);
     $this->assertSame('Needs reconfiguration', $integration['status']['label']);
-  }
-
-  public function test_onesignal_connection_test_is_read_only_and_reports_success(): void
-  {
-    Integrations::save('onesignal', [
-      'app_id' => '12345678-1234-1234-1234-123456789abc',
-      'rest_api_key' => 'os-rest-secret',
-    ], true, 1);
-    Http::fake([
-      'api.onesignal.com/apps/*' => Http::response(['name' => 'TICA'], 200),
-    ]);
-
-    [$ok, $message] = IntegrationTester::run('onesignal', 'admin@tica.ng');
-
-    $this->assertTrue($ok);
-    $this->assertStringContainsString('accepted', $message);
-    Http::assertSentCount(1);
   }
 
   public function test_core_provider_tests_use_mocked_transports(): void
