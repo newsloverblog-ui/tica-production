@@ -24,6 +24,7 @@ class AdminEventBuilderParityTest extends TestCase
         $shared = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaOrganizerController.php'));
         $controller = file_get_contents(app_path('Http/Controllers/BackEnd/Event/EventController.php'));
         $view = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
+        $shell = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
 
         $this->assertStringContainsString("'adminBuilder' => \$this->adminBuilder()", $ui);
         $this->assertStringContainsString("'endpoint' => route('admin.event_builder.store')", $ui);
@@ -33,6 +34,9 @@ class AdminEventBuilderParityTest extends TestCase
         $this->assertStringContainsString('name="organizer_id"', $view);
         $this->assertStringContainsString('id="c-featured"', $view);
         $this->assertStringContainsString('id="ce-admin"', $view);
+        $this->assertStringContainsString("@includeIf('backend.partials.side-navbar')", $shell);
+        $this->assertStringContainsString('tica-admin-event-builder', $shell);
+        $this->assertStringContainsString("@if (\$adminShell)", $shell);
     }
 
     public function test_admin_and_organizer_share_the_event_type_decision_but_keep_separate_rights(): void
