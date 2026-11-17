@@ -37,10 +37,12 @@ return new class extends Migration
 
         Schema::create('financial_ledger_entries', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('financial_ledger_transaction_id')
-                ->constrained('financial_ledger_transactions')->cascadeOnDelete();
-            $table->foreignId('financial_ledger_account_id')
-                ->constrained('financial_ledger_accounts')->restrictOnDelete();
+            $table->unsignedBigInteger('financial_ledger_transaction_id');
+            $table->unsignedBigInteger('financial_ledger_account_id');
+            $table->foreign('financial_ledger_transaction_id', 'ledger_entries_transaction_foreign')
+                ->references('id')->on('financial_ledger_transactions')->cascadeOnDelete();
+            $table->foreign('financial_ledger_account_id', 'ledger_entries_account_foreign')
+                ->references('id')->on('financial_ledger_accounts')->restrictOnDelete();
             $table->string('direction', 6);
             $table->unsignedBigInteger('amount_minor');
             $table->char('currency', 3);
@@ -54,8 +56,9 @@ return new class extends Migration
             $table->foreignId('organizer_id')->constrained('organizers')->cascadeOnDelete();
             $table->foreignId('event_id')->nullable()->constrained('events')->nullOnDelete();
             $table->unsignedBigInteger('booking_id')->unique();
-            $table->foreignId('financial_ledger_transaction_id')
-                ->constrained('financial_ledger_transactions')->restrictOnDelete();
+            $table->unsignedBigInteger('financial_ledger_transaction_id');
+            $table->foreign('financial_ledger_transaction_id', 'earning_releases_transaction_foreign')
+                ->references('id')->on('financial_ledger_transactions')->restrictOnDelete();
             $table->char('currency', 3);
             $table->unsignedBigInteger('gross_amount_minor');
             $table->unsignedBigInteger('platform_fee_minor')->default(0);
