@@ -6,11 +6,14 @@ use App\Http\Controllers\BackEnd\IntegrationController;
 use App\Models\Admin;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Integrations\Integrations;
+use App\Support\Integrations\IntegrationTester;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -45,9 +48,10 @@ class IntegrationsTest extends TestCase
   public function test_covers_payments_payouts_email_sms_push_signin_and_storage(): void
   {
     $keys = array_keys(IntegrationRegistry::all());
-    foreach (['paystack', 'flutterwave', 'monnify', 'payouts', 'email', 'sms', 'push', 'google_login', 'facebook_login', 'recaptcha', 'storage'] as $key) {
+    foreach (['paystack', 'flutterwave', 'monnify', 'payouts', 'email', 'sms', 'push', 'onesignal', 'google_login', 'facebook_login', 'recaptcha', 'storage'] as $key) {
       $this->assertContains($key, $keys);
     }
+    $this->assertSame(['paystack', 'email', 'google_login', 'onesignal'], IntegrationRegistry::CORE);
   }
 
   public function test_secrets_are_encrypted_masked_and_kept_when_left_blank(): void
@@ -146,6 +150,96 @@ class IntegrationsTest extends TestCase
     }
   }
 
+  public function test_paystack_keys_must_match_the_selected_mode(): void
+  {
+    $this->actingAsAdmin();
+    $request = Request::create('/admin/integrations/paystack', 'POST', [
+      'f_mode' => 'test',
+      'f_public_key' => 'pk_live_' . str_repeat('a', 24),
+      'f_secret_key' => 'sk_test_' . str_repeat('b', 24),
+      'current_password' => 'right-password',
+    ]);
+    app()->instance('request', $request);
+
+    try {
+      app(IntegrationController::class)->update($request, 'paystack');
+      $this->fail('Accepted a live public key in test mode.');
+    } catch (ValidationException $e) {
+      $this->assertStringContainsString('test mode', $e->errors()['f_public_key'][0]);
+    }
+  }
+
+  public function test_decryption_failure_becomes_needs_reconfiguration_instead_of_throwing(): void
+  {
+    DB::table('platform_integrations')->insert([
+      'key' => 'onesignal', 'enabled' => true, 'settings' => 'not-an-encrypted-payload',
+      'created_at' => now(), 'updated_at' => now(),
+    ]);
+    Integrations::reset();
+
+    $integration = Integrations::describe('onesignal');
+
+    $this->assertSame('needs_reconfiguration', $integration['status']['code']);
+    $this->assertSame('Needs reconfiguration', $integration['status']['label']);
+  }
+
+  public function test_onesignal_connection_test_is_read_only_and_reports_success(): void
+  {
+    Integrations::save('onesignal', [
+      'app_id' => '12345678-1234-1234-1234-123456789abc',
+      'rest_api_key' => 'os-rest-secret',
+    ], true, 1);
+    Http::fake([
+      'api.onesignal.com/apps/*' => Http::response(['name' => 'TICA'], 200),
+    ]);
+
+    [$ok, $message] = IntegrationTester::run('onesignal', 'admin@tica.ng');
+
+    $this->assertTrue($ok);
+    $this->assertStringContainsString('accepted', $message);
+    Http::assertSentCount(1);
+  }
+
+  public function test_core_provider_tests_use_mocked_transports(): void
+  {
+    Integrations::save('paystack', [
+      'mode' => 'test',
+      'public_key' => 'pk_test_' . str_repeat('a', 24),
+      'secret_key' => 'sk_test_' . str_repeat('b', 24),
+    ], true, 1);
+    Http::fake([
+      'api.paystack.co/balance' => Http::response(['status' => true, 'data' => []], 200),
+      'accounts.google.com/*' => Http::response('<html>Google sign in</html>', 200),
+    ]);
+
+    [$paystackOk] = IntegrationTester::run('paystack', 'admin@tica.ng');
+
+    Integrations::save('google_login', [
+      'client_id' => 'tica.apps.googleusercontent.com',
+      'client_secret' => 'google-secret',
+    ], true, 1);
+    [$googleOk] = IntegrationTester::run('google_login', 'admin@tica.ng');
+
+    $this->assertTrue($paystackOk);
+    $this->assertTrue($googleOk);
+  }
+
+  public function test_email_connection_test_uses_the_mailer_without_exposing_the_password(): void
+  {
+    Mail::fake();
+    Integrations::save('email', [
+      'host' => 'smtp.example.com', 'port' => '587', 'encryption' => 'tls',
+      'username' => 'mailer', 'password' => 'smtp-secret',
+      'from_mail' => 'hello@tica.ng', 'from_name' => 'TICA',
+    ], true, 1);
+
+    [$ok, $message] = IntegrationTester::run('email', 'admin@tica.ng');
+
+    $this->assertTrue($ok);
+    $this->assertStringContainsString('admin@tica.ng', $message);
+    $this->assertStringNotContainsString('smtp-secret', $message);
+  }
+
   protected function setUp(): void
   {
     parent::setUp();
@@ -168,6 +262,8 @@ class IntegrationsTest extends TestCase
     Schema::create('online_gateways', function (Blueprint $t) { $t->id(); $t->string('name')->nullable(); $t->string('keyword'); $t->text('information')->nullable(); $t->integer('status')->default(0); $t->timestamps(); });
     $monnify = new \App\Models\PaymentGateway\OnlineGateway();
     $monnify->forceFill(['name' => 'Monnify', 'keyword' => 'monnify', 'status' => 0, 'information' => json_encode(['api_key' => 'MK_OLD', 'secret_key' => 'old-secret'])])->save();
+    $paystack = new \App\Models\PaymentGateway\OnlineGateway();
+    $paystack->forceFill(['name' => 'Paystack', 'keyword' => 'paystack', 'status' => 0, 'information' => json_encode([])])->save();
     Schema::create('audit_logs', function (Blueprint $t) { $t->id(); foreach (['actor_type', 'actor_id', 'action', 'subject_type', 'subject_id', 'before', 'after', 'metadata', 'request_id', 'ip_address', 'user_agent'] as $c) { $t->text($c)->nullable(); } $t->timestamp('created_at')->nullable(); });
     (require base_path('database/migrations/2026_11_13_220000_create_platform_integrations_table.php'))->up();
     Integrations::reset();

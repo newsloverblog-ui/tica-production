@@ -87,6 +87,7 @@ class OnlineGatewayController extends Controller
       return redirect()->back()->withErrors($validator->errors());
     }
 
+    $information = json_decode((string) $paystackInfo->information, true) ?: [];
     $information['key'] = $request->paystack_key;
 
     $paystackInfo->update([

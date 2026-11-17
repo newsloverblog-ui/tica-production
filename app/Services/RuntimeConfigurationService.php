@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\PaymentGateway\OnlineGateway;
 use App\Models\BasicSettings\Basic;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RuntimeConfigurationService
 {
@@ -31,13 +33,13 @@ class RuntimeConfigurationService
             if (trim((string) $basic->website_title) !== '') {
                 Config::set('app.name', trim((string) $basic->website_title));
             }
-            Config::set('captcha.sitekey', (string) $basic->google_recaptcha_site_key);
-            Config::set('captcha.secret', (string) $basic->google_recaptcha_secret_key);
-            Config::set('services.facebook.client_id', (string) $basic->facebook_app_id);
-            Config::set('services.facebook.client_secret', (string) $basic->facebook_app_secret);
+            $this->setWhenFilled('captcha.sitekey', $basic->google_recaptcha_site_key);
+            $this->setWhenFilled('captcha.secret', $this->basicSecret($basic, 'google_recaptcha_secret_key'));
+            $this->setWhenFilled('services.facebook.client_id', $basic->facebook_app_id);
+            $this->setWhenFilled('services.facebook.client_secret', $this->basicSecret($basic, 'facebook_app_secret'));
             Config::set('services.facebook.redirect', $this->appUrl('login/facebook/callback'));
-            Config::set('services.google.client_id', (string) $basic->google_client_id);
-            Config::set('services.google.client_secret', (string) $basic->google_client_secret);
+            $this->setWhenFilled('services.google.client_id', $basic->google_client_id);
+            $this->setWhenFilled('services.google.client_secret', $this->basicSecret($basic, 'google_client_secret'));
             Config::set('services.google.redirect', $this->appUrl('login/google/callback'));
         }
 
@@ -101,5 +103,26 @@ class RuntimeConfigurationService
     private function appUrl(string $path): string
     {
         return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
+    }
+
+    private function setWhenFilled(string $key, mixed $value): void
+    {
+        if (trim((string) $value) !== '') {
+            Config::set($key, (string) $value);
+        }
+    }
+
+    private function basicSecret(Basic $basic, string $column): ?string
+    {
+        try {
+            return $basic->{$column};
+        } catch (Throwable $e) {
+            Log::warning('A saved integration secret needs reconfiguration.', [
+                'column' => $column,
+                'exception' => $e::class,
+            ]);
+
+            return null;
+        }
     }
 }

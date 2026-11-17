@@ -50,6 +50,12 @@ return [
     'campaigns_per_minute' => (int) env('PUSH_CAMPAIGNS_PER_MINUTE', 120),
   ],
 
+  'onesignal' => [
+    'enabled' => (bool) env('ONESIGNAL_ENABLED', false),
+    'app_id' => env('ONESIGNAL_APP_ID'),
+    'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
+  ],
+
   'paytm-wallet' => [
     'env' => env('PAYTM_ENVIRONMENT'),
     'merchant_id' => env('PAYTM_MERCHANT_ID'),

@@ -6,6 +6,7 @@ use App\Models\BasicSettings\Basic;
 use App\Models\PaymentGateway\OnlineGateway;
 use App\Support\TicaPlatform;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,8 +19,13 @@ use Throwable;
  */
 class Integrations
 {
+  private const CACHE_KEY = 'tica.integrations.rows.v2';
+
   /** @var array<string, object>|null */
   private static ?array $rows = null;
+
+  /** @var array<string, bool> */
+  private static array $decryptionFailures = [];
 
   public static function storeReady(): bool
   {
@@ -37,7 +43,9 @@ class Integrations
       return self::$rows;
     }
     try {
-      self::$rows = self::storeReady() ? DB::table('platform_integrations')->get()->keyBy('key')->all() : [];
+      self::$rows = self::storeReady()
+        ? Cache::remember(self::CACHE_KEY, now()->addMinutes(5), fn () => DB::table('platform_integrations')->get()->keyBy('key')->all())
+        : [];
     } catch (Throwable $e) {
       Log::warning('Integrations could not be read', ['error' => $e->getMessage()]);
       self::$rows = [];
@@ -62,6 +70,7 @@ class Integrations
       return json_decode(Crypt::decryptString($row->settings), true) ?: [];
     } catch (Throwable $e) {
       Log::warning('Integration settings could not be decrypted (APP_KEY changed?)', ['key' => $key]);
+      self::$decryptionFailures[$key] = true;
       return [];
     }
   }
@@ -69,19 +78,24 @@ class Integrations
   /** The current value of one field, from wherever it lives. */
   public static function value(string $key, array $field): mixed
   {
-    $source = (string) $field['source'];
-    if ($source === 'store') {
-      return self::stored($key)[$field['name']] ?? null;
-    }
-    if (str_starts_with($source, 'gateway:')) {
-      [$keyword, $info] = explode('.', substr($source, 8), 2);
-      return self::gatewayInfo($keyword)[$info] ?? null;
-    }
-    if (str_starts_with($source, 'basic.')) {
-      return self::basic()?->{substr($source, 6)};
-    }
-    if ($source === 'platform.payout_provider') {
-      return TicaPlatform::payoutProvider();
+    try {
+      $source = (string) $field['source'];
+      if ($source === 'store') {
+        return self::stored($key)[$field['name']] ?? null;
+      }
+      if (str_starts_with($source, 'gateway:')) {
+        [$keyword, $info] = explode('.', substr($source, 8), 2);
+        return self::gatewayInfo($keyword)[$info] ?? null;
+      }
+      if (str_starts_with($source, 'basic.')) {
+        return self::basic()?->{substr($source, 6)};
+      }
+      if ($source === 'platform.payout_provider') {
+        return TicaPlatform::payoutProvider();
+      }
+    } catch (Throwable $e) {
+      self::$decryptionFailures[$key] = true;
+      Log::warning('An integration credential needs reconfiguration.', ['key' => $key, 'exception' => $e::class]);
     }
 
     return null;
@@ -140,12 +154,13 @@ class Integrations
     $on = self::enabled($key);
     $needsStore = collect($def['fields'])->contains(fn ($f) => $f['source'] === 'store') || $def['enabled'] === 'store';
     $status = match (true) {
+      isset(self::$decryptionFailures[$key]) => ['needs_reconfiguration', 'Needs reconfiguration', 'orange'],
       $needsStore && !self::storeReady() && $fromEnv === 0 => ['needs_db', 'Needs the database update', ''],
-      $missing > 0 && $fromEnv === 0 && !self::anySet($fields) => ['not_set', 'Not set up', ''],
-      $missing > 0 => ['incomplete', 'Incomplete', 'orange'],
+      $missing > 0 && $fromEnv === 0 && !self::anySet($fields) => ['not_set', 'Not configured', ''],
+      $missing > 0 => ['incomplete', 'Needs reconfiguration', 'orange'],
       !$on => ['off', 'Off', ''],
-      $row && $row->test_ok === false => ['failing', 'Test failed', 'red'],
-      !empty($def['apply_after_test']) && !($row && $row->test_ok) => ['untested', 'Waiting for a test', 'orange'],
+      $row && $row->test_ok !== null && !(bool) $row->test_ok => ['failing', 'Error', 'red'],
+      !empty($def['apply_after_test']) && !($row && $row->test_ok) => ['untested', 'Ready to test', 'orange'],
       $fromEnv > 0 && !self::anySet($fields) => ['env', 'Set on the server', 'blue'],
       default => ['connected', 'Connected', 'green'],
     };
@@ -161,6 +176,9 @@ class Integrations
       'name' => $def['name'],
       'group' => $def['group'],
       'summary' => $def['summary'],
+      'icon' => $def['icon'] ?? 'link',
+      'core' => !empty($def['core']),
+      'mode' => self::mode($key, $def, $fields),
       'enabled' => $on,
       'toggleable' => $def['enabled'] !== 'always',
       'fields' => $fields,
@@ -179,6 +197,23 @@ class Integrations
   private static function anySet(array $fields): bool
   {
     return collect($fields)->contains(fn ($f) => $f['set']);
+  }
+
+  private static function mode(string $key, array $def, array $fields): string
+  {
+    if (!empty($def['mode'])) {
+      return (string) $def['mode'];
+    }
+    if ($key === 'paystack') {
+      $mode = collect($fields)->firstWhere('name', 'mode')['display'] ?? null;
+      if ($mode) {
+        return ucfirst((string) $mode);
+      }
+      $secret = self::value($key, collect($def['fields'])->firstWhere('name', 'secret_key'));
+      return str_starts_with((string) $secret, 'sk_live_') ? 'Live' : 'Test';
+    }
+
+    return 'Server';
   }
 
   /**
@@ -362,7 +397,9 @@ class Integrations
   /** For tests and after saving: forget per-request caches. */
   public static function reset(): void
   {
+    Cache::forget(self::CACHE_KEY);
     self::$rows = null;
     self::$basic = null;
+    self::$decryptionFailures = [];
   }
 }

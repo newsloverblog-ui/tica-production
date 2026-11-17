@@ -19,6 +19,8 @@ namespace App\Support\Integrations;
  */
 class IntegrationRegistry
 {
+  public const CORE = ['paystack', 'email', 'google_login', 'onesignal'];
+
   public const GROUPS = [
     'payments' => 'Payments',
     'payouts' => 'Payouts',
@@ -33,9 +35,12 @@ class IntegrationRegistry
     return [
       'paystack' => [
         'group' => 'payments', 'name' => 'Paystack',
+        'core' => true, 'icon' => 'payments',
         'summary' => 'Card, bank transfer and USSD payments at checkout. The same key sends organiser payouts when Paystack is the payout provider.',
         'enabled' => 'gateway:paystack',
         'fields' => [
+          ['name' => 'mode', 'label' => 'Mode', 'type' => 'select', 'source' => 'gateway:paystack.mode', 'options' => ['test' => 'Test', 'live' => 'Live'], 'required' => true, 'default' => 'test', 'help' => 'Use test mode until checkout and webhooks have been verified end to end.'],
+          ['name' => 'public_key', 'label' => 'Public key', 'type' => 'text', 'source' => 'gateway:paystack.public_key', 'required' => true, 'help' => 'Starts with pk_test_ or pk_live_ and must match the selected mode.', 'pattern' => '/^pk_(live|test)_[A-Za-z0-9]{20,}$/'],
           ['name' => 'secret_key', 'label' => 'Secret key', 'type' => 'secret', 'source' => 'gateway:paystack.key', 'required' => true, 'help' => 'Paystack dashboard → Settings → API Keys & Webhooks. Starts with sk_live_ (or sk_test_ while testing).', 'pattern' => '/^sk_(live|test)_[A-Za-z0-9]{20,}$/'],
         ],
         'urls' => [['label' => 'Webhook URL (paste into Paystack → Settings → API Keys & Webhooks)', 'route' => 'paystack.webhook']],
@@ -77,6 +82,7 @@ class IntegrationRegistry
       ],
       'email' => [
         'group' => 'messaging', 'name' => 'Email (SMTP)',
+        'core' => true, 'icon' => 'email', 'mode' => 'SMTP',
         'summary' => 'Tickets, receipts, sign-in codes, payout and account emails. Any SMTP service works: Zoho, Google Workspace, Brevo, Mailgun, Resend, SES.',
         'enabled' => 'basic.smtp_status', 'apply_after_test' => true,
         'fields' => [
@@ -102,8 +108,9 @@ class IntegrationRegistry
         'enabled_config' => 'ticket_delivery.sms.enabled',
       ],
       'push' => [
-        'group' => 'messaging', 'name' => 'Web push notifications',
-        'summary' => 'Browser notifications to visitors who allow them (Admin → Push notifications).',
+        'group' => 'messaging', 'name' => 'Browser push (VAPID)',
+        'icon' => 'notifications', 'mode' => 'Legacy web push',
+        'summary' => 'The current direct browser-push service. It remains available while OneSignal delivery is introduced in the Audience phase.',
         'enabled' => 'store', 'generate' => 'vapid',
         'fields' => [
           ['name' => 'public_key', 'label' => 'Public key (VAPID)', 'type' => 'text', 'source' => 'store', 'config' => 'webpush.vapid.public_key', 'env' => 'VAPID_PUBLIC_KEY', 'required' => true, 'min' => 40],
@@ -111,8 +118,20 @@ class IntegrationRegistry
           ['name' => 'subject', 'label' => 'Contact', 'type' => 'text', 'source' => 'store', 'config' => 'webpush.vapid.subject', 'env' => 'VAPID_SUBJECT', 'required' => true, 'help' => 'mailto:you@tica.ng or https://tica.ng', 'pattern' => '/^(mailto:[^@\s]+@[^@\s]+|https:\/\/\S+)$/'],
         ],
       ],
+      'onesignal' => [
+        'group' => 'messaging', 'name' => 'OneSignal',
+        'core' => true, 'icon' => 'notifications', 'mode' => 'Web push',
+        'summary' => 'Web push notifications for customers, organisers, subscribers and event audiences. Delivery stays off until Audience is enabled.',
+        'enabled' => 'store',
+        'fields' => [
+          ['name' => 'app_id', 'label' => 'App ID', 'type' => 'text', 'source' => 'store', 'config' => 'services.onesignal.app_id', 'env' => 'ONESIGNAL_APP_ID', 'required' => true, 'help' => 'OneSignal dashboard → Settings → Keys & IDs → OneSignal App ID.', 'pattern' => '/^[0-9a-fA-F-]{32,40}$/'],
+          ['name' => 'rest_api_key', 'label' => 'REST API key', 'type' => 'secret', 'source' => 'store', 'config' => 'services.onesignal.rest_api_key', 'env' => 'ONESIGNAL_REST_API_KEY', 'required' => true, 'help' => 'Server-only key from OneSignal dashboard → Settings → Keys & IDs.'],
+        ],
+        'enabled_config' => 'services.onesignal.enabled',
+      ],
       'google_login' => [
         'group' => 'signin', 'name' => 'Sign in with Google',
+        'core' => true, 'icon' => 'google', 'mode' => 'OAuth 2.0',
         'summary' => 'A "Continue with Google" button for attendees and organisers on the log-in and sign-up pages.',
         'enabled' => 'basic.google_login_status',
         'fields' => [

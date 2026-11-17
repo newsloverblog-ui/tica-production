@@ -128,11 +128,14 @@ class SocialSignInController extends Controller
   public static function googleReady(): bool
   {
     try {
-      $basic = \App\Models\BasicSettings\Basic::query()->select('google_login_status', 'google_client_id', 'google_client_secret')->first();
+      $basic = \App\Models\BasicSettings\Basic::query()->select('google_login_status')->first();
     } catch (Throwable) {
       return false;
     }
 
-    return $basic && (int) $basic->google_login_status === 1 && filled($basic->google_client_id) && filled($basic->google_client_secret);
+    return $basic
+      && (int) $basic->google_login_status === 1
+      && filled(config('services.google.client_id'))
+      && filled(config('services.google.client_secret'));
   }
 }

@@ -25,9 +25,10 @@ class IntegrationController extends Controller
 
     return view('backend.integrations.index', [
       'groups' => IntegrationRegistry::GROUPS,
-      'integrations' => $all->groupBy('group'),
+      'coreIntegrations' => $all->whereIn('key', IntegrationRegistry::CORE)->sortBy(fn ($item) => array_search($item['key'], IntegrationRegistry::CORE, true))->values(),
+      'integrations' => $all->whereNotIn('key', IntegrationRegistry::CORE)->groupBy('group'),
       'storeReady' => Integrations::storeReady(),
-      'counts' => $all->countBy(fn ($i) => in_array($i['status']['code'], ['connected', 'env'], true) ? 'ok' : (in_array($i['status']['code'], ['failing', 'incomplete', 'untested'], true) ? 'attention' : 'other')),
+      'counts' => $all->countBy(fn ($i) => in_array($i['status']['code'], ['connected', 'env'], true) ? 'ok' : (in_array($i['status']['code'], ['failing', 'incomplete', 'untested', 'needs_reconfiguration'], true) ? 'attention' : 'other')),
     ]);
   }
 
@@ -88,6 +89,7 @@ class IntegrationController extends Controller
       'regex' => 'The :attribute doesn\'t look right. Check the help text under it.',
       'url' => 'The :attribute must be a full https:// address.',
     ], $labels);
+    $this->validateProviderMode($key, $input);
 
     if ($changesSecret || $request->filled('current_password')) {
       $this->requirePassword($request);
@@ -150,6 +152,28 @@ class IntegrationController extends Controller
     }
 
     return true;
+  }
+
+  private function validateProviderMode(string $key, array $input): void
+  {
+    if ($key !== 'paystack') {
+      return;
+    }
+    $def = IntegrationRegistry::get('paystack');
+    $field = fn (string $name) => collect($def['fields'])->firstWhere('name', $name);
+    $secret = trim((string) ($input['secret_key'] ?? Integrations::value('paystack', $field('secret_key'))));
+    $public = trim((string) ($input['public_key'] ?? Integrations::value('paystack', $field('public_key'))));
+    $mode = (string) ($input['mode'] ?? Integrations::value('paystack', $field('mode')) ?: (str_starts_with($secret, 'sk_live_') ? 'live' : 'test'));
+    $errors = [];
+    if ($secret !== '' && !str_starts_with($secret, 'sk_' . $mode . '_')) {
+      $errors['f_secret_key'] = 'The secret key must match the selected ' . $mode . ' mode.';
+    }
+    if ($public !== '' && !str_starts_with($public, 'pk_' . $mode . '_')) {
+      $errors['f_public_key'] = 'The public key must match the selected ' . $mode . ' mode.';
+    }
+    if ($errors !== []) {
+      throw ValidationException::withMessages($errors);
+    }
   }
 
   private function superAdminOnly(): void

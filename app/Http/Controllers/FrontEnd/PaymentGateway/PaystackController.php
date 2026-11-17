@@ -46,6 +46,13 @@ class PaystackController extends Controller
             return;
         }
 
+        $serverSecret = trim((string) config('services.paystack.secret'));
+        if ($serverSecret !== '') {
+            $this->api_key = $serverSecret;
+            $this->secret_key = $serverSecret;
+            return;
+        }
+
         $gateway = OnlineGateway::whereKeyword('paystack')->first();
         $paystackData = $gateway ? json_decode($gateway->information, true) : null;
 

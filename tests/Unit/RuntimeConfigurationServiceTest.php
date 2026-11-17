@@ -90,6 +90,24 @@ class RuntimeConfigurationServiceTest extends TestCase
         $this->assertSame('UTC', date_default_timezone_get());
     }
 
+    public function test_blank_database_credentials_do_not_overwrite_environment_fallbacks(): void
+    {
+        config()->set('services.google.client_id', 'env-google-id');
+        config()->set('services.google.client_secret', 'env-google-secret');
+        config()->set('captcha.sitekey', 'env-captcha-key');
+        DB::table('basic_settings')->insert([
+            'website_title' => 'Tica', 'timezone' => 'UTC',
+            'google_client_id' => null, 'google_client_secret' => null,
+            'google_recaptcha_site_key' => null, 'google_recaptcha_secret_key' => null,
+        ]);
+
+        (new RuntimeConfigurationService())->hydrate();
+
+        $this->assertSame('env-google-id', config('services.google.client_id'));
+        $this->assertSame('env-google-secret', config('services.google.client_secret'));
+        $this->assertSame('env-captcha-key', config('captcha.sitekey'));
+    }
+
     public function test_active_application_controllers_cannot_rewrite_environment_files(): void
     {
         $controllerFiles = glob(app_path('Http/Controllers/**/*.php')) ?: [];

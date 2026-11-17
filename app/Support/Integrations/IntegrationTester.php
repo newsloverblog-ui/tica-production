@@ -27,6 +27,7 @@ class IntegrationTester
         'email' => self::email($adminEmail),
         'sms' => self::sms(),
         'push' => self::push(),
+        'onesignal' => self::oneSignal(),
         'google_login' => self::google(),
         'facebook_login' => self::facebook(),
         'recaptcha' => self::recaptcha(),
@@ -57,8 +58,16 @@ class IntegrationTester
   private static function paystack(): array
   {
     $secret = self::val('paystack', 'secret_key');
+    $public = self::val('paystack', 'public_key');
+    $mode = self::val('paystack', 'mode') ?: (str_starts_with($secret, 'sk_live_') ? 'live' : 'test');
     if ($secret === '') {
       return [false, 'Add the secret key first.'];
+    }
+    if ($public === '') {
+      return [false, 'Add the public key first.'];
+    }
+    if (!str_starts_with($secret, 'sk_' . $mode . '_') || !str_starts_with($public, 'pk_' . $mode . '_')) {
+      return [false, 'The public and secret keys must both match the selected ' . $mode . ' mode.'];
     }
     $r = self::http()->withToken($secret)->get('https://api.paystack.co/balance');
     if ($r->status() === 401) {
@@ -171,6 +180,29 @@ class IntegrationTester
     }
 
     return [true, 'The keys look right. Browsers that allowed notifications will receive them.'];
+  }
+
+  private static function oneSignal(): array
+  {
+    $appId = self::val('onesignal', 'app_id');
+    $apiKey = self::val('onesignal', 'rest_api_key');
+    if ($appId === '' || $apiKey === '') {
+      return [false, 'Add the App ID and REST API key first.'];
+    }
+    $response = self::http()
+      ->withHeaders(['Authorization' => 'Key ' . $apiKey])
+      ->get('https://api.onesignal.com/apps/' . rawurlencode($appId));
+    if ($response->status() === 401 || $response->status() === 403) {
+      return [false, 'OneSignal rejected the REST API key.'];
+    }
+    if ($response->status() === 404) {
+      return [false, 'OneSignal could not find this App ID.'];
+    }
+    if (!$response->successful()) {
+      return [false, 'OneSignal answered ' . $response->status() . '. Try the test again shortly.'];
+    }
+
+    return [true, 'OneSignal accepted the App ID and REST API key.'];
   }
 
   private static function google(): array

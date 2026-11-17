@@ -2,13 +2,16 @@
 
 @section('content')
   @php $tone = $i['status']['tone']; @endphp
-  <div class="t-page-head">
-    <div>
+  <div class="t-page-head in-detail-head">
+    <div class="in-detail-head__identity">
+      @include('backend.integrations._icon', ['icon' => $i['icon']])
+      <div>
       <p class="in-crumb"><a href="{{ route('admin.integrations.index') }}">{{ __('Integrations') }}</a></p>
       <h1 class="page-title">{{ $i['name'] }}</h1>
       <p>{{ __($i['summary']) }}</p>
+      </div>
     </div>
-    <span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }} in-status">{{ __($i['status']['label']) }}</span>
+    <div class="in-detail-state"><span>{{ $i['mode'] }}</span><span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }} in-status">{{ __($i['status']['label']) }}</span></div>
   </div>
 
   @foreach (['success' => 'green', 'warning' => 'orange'] as $flash => $flashTone)
@@ -30,7 +33,7 @@
         <label class="in-switch">
           <input type="hidden" name="enabled" value="0">
           <input class="t-switch" type="checkbox" name="enabled" value="1" @checked(old('enabled', $i['enabled']))>
-          <span><b>{{ __('Turned on') }}</b><small>{{ __('When off, TICA doesn\'t use this service.') }}</small></span>
+          <span><b>{{ __('Enable this integration') }}</b><small>{{ __('When disabled, TICA will not use this provider.') }}</small></span>
         </label>
         @error('enabled')<p class="t-error">{{ $message }}</p>@enderror
       @endif
@@ -103,6 +106,11 @@
             <button class="t-btn t-btn--ghost t-btn--block" type="submit">{{ __('Generate new keys') }}</button>
           </form>
         @endif
+      </section>
+
+      <section class="t-card in-security-note">
+        <span class="in-security-note__icon" aria-hidden="true">✓</span>
+        <div><h2 class="t-card__title">{{ __('Credentials stay private') }}</h2><p class="t-help">{{ __('Secrets are encrypted with APP_KEY, masked after saving and excluded from audit logs. Back up APP_KEY; changing it requires every saved secret to be configured again.') }}</p></div>
       </section>
 
       @if ($i['urls'])
