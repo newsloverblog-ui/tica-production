@@ -913,7 +913,7 @@ function route(){
   try{window.dispatchEvent(new Event('tica:navigate'))}catch(err){}
 }
 function fromUrl(){cur=pathOf(location);route()}
-window.addEventListener('scroll',function(){document.querySelector('.topbar').classList.toggle('scrolled',window.scrollY>8)},{passive:true});
+window.addEventListener('scroll',function(){var topbar=document.querySelector('.topbar');if(topbar)topbar.classList.toggle('scrolled',window.scrollY>8)},{passive:true});
 document.addEventListener('click',function(ev){var m=document.querySelector('.menu[open]');if(m&&!m.contains(ev.target))m.removeAttribute('open')});
 document.addEventListener('click',function(ev){var b=ev.target.closest('#workspace-menu');if(b){var mobile=window.matchMedia('(max-width:860px)').matches,open;if(mobile){open=!document.body.classList.contains('dashnav-open');document.body.classList.toggle('dashnav-open',open)}else{document.body.classList.remove('dashnav-open');document.body.classList.toggle('dashnav-collapsed');open=!document.body.classList.contains('dashnav-collapsed')}b.setAttribute('aria-expanded',open?'true':'false');b.setAttribute('aria-label',open?'Close dashboard menu':'Open dashboard menu');return}if(document.body.classList.contains('dashnav-open')&&(!ev.target.closest('.db-side,.acd-side')||ev.target.closest('.db-side button,.db-side a,.acd-side button,.acd-side a'))){document.body.classList.remove('dashnav-open');var mb=document.getElementById('workspace-menu');if(mb)mb.setAttribute('aria-expanded','false')}});
 document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var m=document.querySelector('.menu[open]');if(m){m.removeAttribute('open');m.querySelector('summary').focus()}}});
@@ -1048,7 +1048,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
 /* design script 05 */
 (function(){var q=document.getElementById('c-qty'),o=document.getElementById('p-left');function u(){var n=parseInt(q.value,10);o.textContent=n>0?n.toLocaleString('en-NG')+' tickets left':''}q.addEventListener('input',u);u()})();
 /* design script 06 */
-(function(){var m=document.querySelector('.menu');function s(){document.documentElement.style.setProperty('--menu-top',Math.round(document.querySelector('.topbar').getBoundingClientRect().bottom)+'px')}m.addEventListener('toggle',s);window.addEventListener('scroll',function(){if(m.open)s()},{passive:true});window.addEventListener('resize',function(){if(m.open)s()})})();
+(function(){var m=document.querySelector('.menu'),topbar=document.querySelector('.topbar');if(!m||!topbar)return;function s(){document.documentElement.style.setProperty('--menu-top',Math.round(topbar.getBoundingClientRect().bottom)+'px')}m.addEventListener('toggle',s);window.addEventListener('scroll',function(){if(m.open)s()},{passive:true});window.addEventListener('resize',function(){if(m.open)s()})})();
 /* design script 07 */
 (function(){
 var fab=document.getElementById('fab'),fk=document.getElementById('fab-k'),fv=document.getElementById('fab-v'),fb=document.getElementById('fab-b'),tgt=null,mode='';
@@ -1095,6 +1095,7 @@ upd();
 /* design script 09 */
 (function(){
 var m=document.querySelector('.menu');
+if(!m)return;
 m.addEventListener('toggle',function(){document.documentElement.classList.toggle('menu-open',m.open&&innerWidth<=1040)});
 addEventListener('tica:navigate',function(){m.removeAttribute('open');document.documentElement.classList.remove('menu-open')});
 [].forEach.call(document.querySelectorAll('.h-chips button'),function(b){b.addEventListener('click',function(){
