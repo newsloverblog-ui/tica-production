@@ -51,7 +51,7 @@ final class TicaSite
           ['title' => 'Pay securely', 'text' => 'Complete your payment in a few steps.'],
           ['title' => 'Show it at the gate', 'text' => 'Your e-ticket is ready with a QR code.'],
         ],
-        'eticket_images' => [$img('1739271933163-8dcc7c8e8a3e', 1200), $img('1758611974001-2e7ad7b83432', 800)],
+        'eticket_images' => [$img('1676151216180-730ba55119f5', 1200), $img('1758611974001-2e7ad7b83432', 800)],
         'partners' => [
           ['short' => 'COH', 'name' => "Creative\nOpen House", 'logo' => ''],
           ['short' => 'NDFA', 'name' => "Nollywood DIC\nFilm Academy", 'logo' => ''],

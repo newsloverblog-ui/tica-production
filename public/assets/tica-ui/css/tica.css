@@ -5241,3 +5241,8 @@ footer,footer.ft{--indigo-2:#0F4C9E}
   .page[data-page=home] .org .da-crowd{width:40%;border-width:5px}
   .page[data-page=home] .org .da-badge{right:6px;bottom:12px;font-size:12px}
 }
+
+/* Ticket section: calm orange block on the left, same tone as the organiser band. */
+.page[data-page=home] .tk .duo-art::before{background:#F2A06B!important;opacity:.8;box-shadow:none!important;left:-16px!important;right:auto!important;top:-16px!important}
+.page[data-page=home] .tk .da-main img{object-position:center 30%}
+@media (max-width:600px){.page[data-page=home] .tk .duo-art::before{left:-8px!important;top:-10px!important}}
