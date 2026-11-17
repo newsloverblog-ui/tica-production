@@ -12,6 +12,7 @@ class WorkspaceWidthConsistencyTest extends TestCase
 
         $this->assertStringContainsString('--t-page-max:1720px', $css);
         $this->assertStringContainsString('body.orgshell .ov,body.orgshell .ov-wrap,body.orgshell .creategrid', $css);
+        $this->assertStringContainsString('body.tica-organizer .tsc,body.tica-organizer .kv', $css);
         $this->assertStringContainsString('body.orgshell-legacy .page-inner', $css);
         $this->assertStringContainsString('max-width:var(--t-page-max)!important', $css);
     }
@@ -28,5 +29,20 @@ class WorkspaceWidthConsistencyTest extends TestCase
         $this->assertStringContainsString('.dashboard-page .shell', $reactCss);
         $this->assertStringContainsString('width:min(100%,1760px)', $reactCss);
         $this->assertStringContainsString("'dashboard-page min-h-[70vh] bg-background'", $dashboard);
+    }
+
+    public function test_gate_setup_keeps_operational_hooks_inside_the_responsive_layout(): void
+    {
+        $page = file_get_contents(resource_path('views/organizer/pwa/dashboard.blade.php'));
+        $panels = file_get_contents(resource_path('views/organizer/pwa/partials/panels.blade.php'));
+        $css = file_get_contents(public_path('assets/tica-ui/css/ds.css'));
+
+        $this->assertStringContainsString('class="tsc tsc-setup"', $page);
+        $this->assertStringContainsString('id="scanner-device"', $panels);
+        $this->assertStringContainsString('id="scanner-staff-form"', $panels);
+        $this->assertStringContainsString('id="scanner-offline"', $panels);
+        $this->assertStringContainsString('id="scanner-conflicts-card"', $panels);
+        $this->assertStringContainsString('body.tica-organizer .tsc-setup>.row', $css);
+        $this->assertStringContainsString('grid-template-columns:minmax(300px,.82fr) minmax(500px,1.18fr)', $css);
     }
 }

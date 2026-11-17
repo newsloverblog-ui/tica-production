@@ -7,22 +7,28 @@
 @section('content')
   <div class="tsc tsc-setup">
     <div class="tsc-head">
-      <div>
+      <div class="tsc-head__copy">
         <p class="tsc-kicker">{{ __('Gate') }}</p>
         <h1>{{ __('Gate staff and devices') }}</h1>
-        <p>{{ __('Approve the phones and tablets used at your gates, give your gate team their own logins, and prepare events for offline check-in. Scanning tickets happens in Gate check-in.') }}</p>
+        <p>{{ __('Set up trusted devices and individual staff access before doors open. Ticket scanning stays in Gate check-in.') }}</p>
       </div>
       <div class="tsc-actions">
-        <a class="btn btn-primary" href="{{ url('/checkin') }}">{{ __('Open gate check-in') }}</a>
-        <a class="btn btn-secondary" href="{{ route('organizer.check_in_ledger_exports.index') }}">{{ __('Check-in ledger') }}</a>
+        <a class="btn btn-secondary" href="{{ route('organizer.check_in_ledger_exports.index') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 12h6M9 16h6"/></svg>
+          {{ __('Check-in ledger') }}
+        </a>
+        <a class="btn btn-primary" href="{{ url('/checkin') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2M20 14v3M14 20h6M17 17h3"/></svg>
+          {{ __('Open gate check-in') }}
+        </a>
       </div>
     </div>
 
-    <nav class="tsc-tabs" aria-label="{{ __('Scanner sections') }}">
-      <a href="#scanner-device">{{ __('This device') }}</a>
-      <a href="#scanner-staff">{{ __('Gate staff') }}</a>
-      <a href="#scanner-offline">{{ __('Offline and live counts') }}</a>
-      <a href="#scanner-conflicts-card">{{ __('Gate conflicts') }}</a>
+    <nav class="tsc-tabs" aria-label="{{ __('Gate setup sections') }}">
+      <a href="#scanner-device"><span>1</span>{{ __('Devices') }}</a>
+      <a href="#scanner-staff"><span>2</span>{{ __('Staff access') }}</a>
+      <a href="#scanner-offline"><span>3</span>{{ __('Offline readiness') }}</a>
+      <a href="#scanner-conflicts-card">{{ __('Conflicts') }}</a>
     </nav>
 
     @include('organizer.pwa.partials.panels')

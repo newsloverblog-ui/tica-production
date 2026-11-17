@@ -88,6 +88,16 @@ body.tica-organizer .footer{background:transparent!important;border-top:1px soli
 .tica-scanner-page .scanner-jump-links a{border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--soft);font-weight:600}
 .tica-scanner-page .scanner-intro h1{color:#fff!important}
 .tica-scanner-page .scanner-intro p:not(.scanner-eyebrow){color:#C9D5E8!important}
+.tica-scanner-page .scanner-panel-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;margin-bottom:18px}
+.tica-scanner-page .scanner-panel-copy{min-width:0}
+.tica-scanner-page .scanner-panel-copy h1,.tica-scanner-page .scanner-panel-copy h2{margin:1px 0 3px!important;font-size:18px!important;font-weight:700!important}
+.tica-scanner-page .scanner-panel-copy p{margin:0!important;font-size:13px}
+.tica-scanner-page .scanner-panel-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#EAF0FA;color:var(--indigo-2)}
+.tica-scanner-page .scanner-panel-icon--orange{background:var(--peach);color:#9A3412}
+.tica-scanner-page .scanner-panel-icon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tica-scanner-page .scanner-status-line{margin:0 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--tint);color:var(--soft);font-size:13px}
+.tica-scanner-page .scanner-sync-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+@media (max-width:575.98px){.tica-scanner-page .scanner-panel-head{grid-template-columns:auto minmax(0,1fr)}.tica-scanner-page .scanner-panel-head>.badge,.tica-scanner-page .scanner-panel-head>.btn{grid-column:2;justify-self:start}.tica-scanner-page .scanner-sync-row{align-items:stretch;flex-direction:column}}
 
 /* scanners and gate staff, inside the organiser dashboard */
 .tsc{max-width:980px}
