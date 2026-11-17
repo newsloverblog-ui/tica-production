@@ -5223,6 +5223,8 @@ footer,footer.ft{--indigo-2:#0F4C9E}
 .tc-img{background:linear-gradient(135deg,#1A3A6B,#0B2447)}
 
 /* Organiser band picture: the TICA fan inside the rounded card, orange block behind. */
-.page[data-page=home] .da-girl{background:radial-gradient(120% 90% at 50% 100%,#3A5BE0 0%,#2E4FD8 38%,#1B3486 100%)}
+.page[data-page=home] .da-girl{background:radial-gradient(110% 85% at 50% 100%,#24448F 0%,#163566 45%,#0F2A52 100%);box-shadow:0 24px 56px rgba(5,14,32,.35),inset 0 0 0 1px rgba(255,255,255,.06)}
+/* Calm the frame: the orange block steps back so the picture leads. */
+.page[data-page=home] .org .duo-art::before{background:#F2A06B;opacity:.8}
 .page[data-page=home] .da-girl::after,.page[data-page=home] .da-girl::before{display:none}
-.page[data-page=home] .da-girl img{position:absolute;left:50%;bottom:0;width:92%;height:auto;max-height:100%;transform:translateX(-50%);object-fit:contain;object-position:bottom center;filter:none}
+.page[data-page=home] .da-girl img{position:absolute;left:50%;bottom:0;width:92%;height:auto;max-height:100%;transform:translateX(-50%);object-fit:contain;object-position:bottom center;filter:saturate(.88) brightness(.96);-webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent 100%);mask-image:linear-gradient(to bottom,#000 78%,transparent 100%)}
