@@ -1182,7 +1182,7 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
    Page frame: one width, one gutter and one header for every organiser
    page, old and new. Loaded last on purpose so it settles older rules.
    ===================================================================== */
-:root{--t-page-max:1280px;--t-page-pad:32px;--t-page-pad-b:64px}
+:root{--t-page-max:1720px;--t-page-pad:clamp(24px,2.2vw,40px);--t-page-pad-b:64px}
 @media (max-width:1180px){:root{--t-page-pad:24px}}
 @media (max-width:767px){:root{--t-page-pad:16px;--t-page-pad-b:48px}}
 
@@ -1191,7 +1191,8 @@ body.orgshell-legacy .page-inner,body.tica-organizer.orgshell-legacy .page-inner
   width:100%!important;max-width:var(--t-page-max)!important;margin:0 auto!important;
   padding:var(--t-page-pad) var(--t-page-pad) var(--t-page-pad-b)!important;box-sizing:border-box}
 /* Pages no longer set their own widths. */
-body.orgshell .pr,body.orgshell .ov-wrap,.gl,.rf-page,body.tica-organizer .tsc{max-width:none!important}
+body.orgshell .pr,body.orgshell .ov,body.orgshell .ov-wrap,body.orgshell .creategrid,
+.gl,.rf-page,body.tica-organizer .tsc{max-width:none!important}
 
 /* The page title lives in the page, not twice: the top bar keeps it only on phones. */
 @media (min-width:1024px){body.orgshell .tsh-title,body.orgshell-legacy .tsh-title{visibility:hidden}}

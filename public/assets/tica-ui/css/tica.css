@@ -3713,8 +3713,8 @@ button.od-tile:hover,a.od-tile:hover{border-color:var(--c-blue-line)!important;b
 .acd-find{margin-top:12px;background:var(--c-blue);color:#fff;border-radius:10px;min-height:44px}
 .acd-find:hover{background:var(--c-blue-2)}
 .acd-out{margin-top:auto}
-.acd-main{padding:clamp(20px,3vw,40px);min-width:0;display:grid;align-content:start;gap:18px}
-.acd-p{display:grid;gap:18px}
+.acd-main{width:100%;max-width:1720px;margin-inline:auto;padding:clamp(20px,2.2vw,40px);min-width:0;display:grid;align-content:start;gap:18px}
+.acd-p{display:grid;min-width:0;gap:18px}
 .acd-p[hidden]{display:none}
 .acd-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px}
 .acd-crumb{margin:0 0 6px;font-size:13px;color:var(--c-faint)}

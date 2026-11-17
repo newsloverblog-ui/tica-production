@@ -34,6 +34,8 @@ button,a { -webkit-tap-highlight-color:transparent; }
 img { display:block; max-width:100%; }
 ::selection { color:#12213a; background:#cad5fa; }
 .shell { width:min(100%,1440px); margin-inline:auto; padding-inline:clamp(16px,4vw,64px); }
+.dashboard-page .shell,[data-tica-react="account-settings"] .shell,[data-tica-react="support"] .shell { width:min(100%,1760px); padding-inline:clamp(16px,3vw,48px); }
+.dashboard-page .section,[data-tica-react="account-settings"] .section,[data-tica-react="support"] .section { padding-block:clamp(32px,4vw,56px); }
 .section { padding-block:clamp(64px,8vw,112px); }
 .display { font-weight:850; letter-spacing:-.035em; line-height:1.02; }
 .focus-ring:focus-visible { outline:3px solid #2f5bd3; outline-offset:3px; }
