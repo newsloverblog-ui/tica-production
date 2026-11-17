@@ -39,7 +39,7 @@ class AdminSidebarPresentationTest extends TestCase
         $this->assertStringNotContainsString('class="fas ', $sidebar);
         $this->assertStringNotContainsString('class="fab ', $sidebar);
         $this->assertStringContainsString("{{ __('Audience') }}", $sidebar);
-        $this->assertStringContainsString("{{ __('System updates') }}", $sidebar);
+        $this->assertStringNotContainsString("{{ __('System updates') }}", $sidebar);
     }
 
     public function test_sidebar_search_returns_direct_keyboard_accessible_destinations(): void
@@ -67,5 +67,8 @@ class AdminSidebarPresentationTest extends TestCase
         $this->assertStringContainsString("{{ __('Platform and website') }}", $view);
         $this->assertStringContainsString("{{ __('Services and communication') }}", $view);
         $this->assertStringContainsString("{{ __('Access and operations') }}", $view);
+        $this->assertNull(app('router')->getRoutes()->getByName('admin.database.index'));
+        $this->assertNull(app('router')->getRoutes()->getByName('admin.database.apply'));
+        $this->assertStringNotContainsString('System updates', $view);
     }
 }

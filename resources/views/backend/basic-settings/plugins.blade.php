@@ -3,7 +3,6 @@
 @php($secretPlaceholder = __('Leave blank to keep the saved secret, or enter a new value to rotate it.'))
 
 @section('content')
-  @include('backend.integrations._moved')
   <div class="page-header">
     <h4 class="page-title">{{ __('Plugins') }}</h4>
     <ul class="breadcrumbs">

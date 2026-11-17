@@ -24,7 +24,7 @@
     @if($errors->any())<div class="at-alert error" role="alert"><i class="fas fa-exclamation-circle" aria-hidden="true"></i><div><strong>{{ __('The ticket change was not completed.') }}</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>@endif
 
     @if(!$schemaReady)
-      <section class="at-empty"><i class="fal fa-database" aria-hidden="true"></i><h2>{{ __('Ticketing database update required') }}</h2><p>{{ __('Apply the advanced ticketing database update before using this page. No data was changed.') }}</p><a class="at-btn primary" href="{{ route('admin.database.index') }}">{{ __('Open database updates') }}</a></section>
+      <section class="at-empty"><i class="fal fa-database" aria-hidden="true"></i><h2>{{ __('Ticketing is temporarily unavailable') }}</h2><p>{{ __('Please try again later or contact support if this continues.') }}</p></section>
     @else
       <section class="at-stats" aria-label="{{ __('Ticket status summary') }}">
         <article><span>{{ __('Issued') }}</span><strong>{{ number_format($summary['issued']) }}</strong><small>{{ __('Valid, unused credentials') }}</small></article>

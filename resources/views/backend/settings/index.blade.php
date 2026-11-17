@@ -114,13 +114,6 @@
             <i class="fal fa-chevron-right" aria-hidden="true"></i>
           </a>
         @endif
-        @if ($isSuperAdmin)
-          <a class="as-card as-card--attention" href="{{ route('admin.database.index') }}">
-            <i class="fal fa-server" aria-hidden="true"></i>
-            <span><b>{{ __('System updates') }}</b><small>{{ __('Temporary cPanel database recovery until deploy automation replaces it') }}</small></span>
-            <i class="fal fa-chevron-right" aria-hidden="true"></i>
-          </a>
-        @endif
       </div>
     </section>
   </div>

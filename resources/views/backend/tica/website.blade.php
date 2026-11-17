@@ -269,7 +269,6 @@
       @if (!is_null($counts['faq']))
         <a class="tw-doc" href="{{ route('admin.faq_management', ['language' => $defaultLang->code]) }}"><span class="ta-ic green" aria-hidden="true"><i class="fal fa-question-circle"></i></span><span><b>{{ __('Questions (FAQ)') }}</b><small>{{ trans_choice(':count question|:count questions', $counts['faq'], ['count' => $counts['faq']]) }} · {{ __('on How TICA works and /faq') }}</small></span></a>
       @endif
-      <p class="tw-side-note">{{ __('All of these use the TICA design on the site.') }}</p>
     </aside>
   </div>
 @endsection

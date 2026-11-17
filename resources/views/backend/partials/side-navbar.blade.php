@@ -559,14 +559,6 @@
                             <p>{{ __('Integrations') }}</p>
                         </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('admin.database.*') ? 'active' : '' }}">
-                        <a href="{{ route('admin.database.index') }}">
-                            <i class="fal fa-server" aria-hidden="true"></i>
-                            <p>{{ __('System updates') }}</p>
-                            @php $dbPending = \App\Support\DatabaseUpdates::pendingCount(); @endphp
-                            @if ($dbPending)<span class="badge badge-warning">{{ $dbPending }}</span>@endif
-                        </a>
-                    </li>
                 @endif
                 {{-- payment gateway --}}
                 @if (!is_null($roleInfo) && !empty($rolePermissions) && in_array('Payment Gateways', $rolePermissions))

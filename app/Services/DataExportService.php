@@ -15,6 +15,7 @@ use App\Jobs\GenerateReconciliationExport;
 use App\Jobs\GenerateOperationsEvidenceExport;
 use App\Jobs\GenerateEventCancellationCaseExport;
 use App\Jobs\GenerateCheckInLedgerExport;
+use App\Jobs\GenerateAdminDirectoryExport;
 use App\Models\DataExport;
 use App\Models\Event;
 use App\Models\EventRegistrationSubmission;
@@ -22,6 +23,7 @@ use App\Models\EventGuestInvitation;
 use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
 use App\Models\Customer;
+use App\Models\Organizer;
 use App\Models\ShopManagement\ProductOrder;
 use App\Models\Withdraw;
 use App\Models\Transaction;
@@ -45,6 +47,93 @@ use Throwable;
 class DataExportService
 {
     public const FORMATS = ['csv', 'xlsx', 'pdf'];
+
+    public function queueAdminDirectory(
+        int $adminId,
+        string $directory,
+        array $filters,
+        string $format
+    ): DataExport {
+        if ($adminId < 1 || !in_array($directory, ['organizers', 'customers'], true)) {
+            throw new DomainException('The directory export request is invalid.');
+        }
+        if (!in_array($format, ['csv', 'xlsx'], true)) {
+            throw new DomainException('Directory exports support CSV or XLSX only.');
+        }
+
+        $clean = [];
+        $search = trim(strip_tags((string) ($filters['search'] ?? '')));
+        if ($search !== '') {
+            $clean['search'] = mb_substr($search, 0, 120);
+        }
+        foreach (['status', 'verified'] as $key) {
+            if (($filters[$key] ?? '') === '' || ($filters[$key] ?? null) === null) {
+                continue;
+            }
+            $value = filter_var($filters[$key], FILTER_VALIDATE_INT);
+            if ($value === false || !in_array($value, [0, 1], true)) {
+                throw new DomainException('The selected directory filter is invalid.');
+            }
+            $clean[$key] = $value;
+        }
+
+        $query = $directory === 'organizers' ? Organizer::query() : Customer::query();
+        $clean['max_id'] = (int) (clone $query)->max('id');
+        $clean['snapshot_at'] = now()->toIso8601String();
+        $query
+            ->when($search !== '', function ($builder) use ($directory, $search): void {
+                $builder->where(function ($nested) use ($directory, $search): void {
+                    $nested->where('email', 'like', '%'.$search.'%')
+                        ->orWhere('username', 'like', '%'.$search.'%');
+                    if ($directory === 'customers') {
+                        $nested->orWhere('fname', 'like', '%'.$search.'%')
+                            ->orWhere('lname', 'like', '%'.$search.'%');
+                    }
+                });
+            })
+            ->when(array_key_exists('status', $clean), fn ($builder) => $builder->where('status', $clean['status']))
+            ->when(array_key_exists('verified', $clean), fn ($builder) => $clean['verified']
+                ? $builder->whereNotNull('email_verified_at')
+                : $builder->whereNull('email_verified_at'))
+            ->where('id', '<=', $clean['max_id']);
+        $rowCount = (clone $query)->count();
+        if ($rowCount < 1) {
+            throw new DomainException('There are no '.$directory.' matching these filters.');
+        }
+        if ($rowCount > max(1, (int) config('exports.max_rows', 250000))) {
+            throw new DomainException('This directory export is too large for one file. Narrow the filters.');
+        }
+
+        return DB::transaction(function () use ($adminId, $directory, $format, $clean, $rowCount): DataExport {
+            $publicId = (string) Str::uuid();
+            $export = DataExport::create([
+                'public_id' => $publicId,
+                'requested_by_type' => 'admin',
+                'requested_by_id' => $adminId,
+                'organizer_id' => null,
+                'export_type' => $directory,
+                'format' => $format,
+                'status' => 'queued',
+                'filters' => $clean,
+                'disk' => (string) config('exports.disk', 'local'),
+                'path' => 'exports/directories/'.$publicId.'.'.$format,
+                'filename' => sprintf('tica_%s_%s_%s.%s', $directory, now()->format('Y-m-d'), Str::lower(Str::random(6)), $format),
+                'row_count' => $rowCount,
+                'expires_at' => now()->addDays(max(1, (int) config('exports.retention_days', 7))),
+            ]);
+            AuditLogger::record('data_export.queued', $export, [], $export->only([
+                'export_type', 'format', 'status', 'row_count', 'expires_at',
+            ]), [
+                'has_search' => isset($clean['search']),
+                'status_filter' => $clean['status'] ?? null,
+                'verified_filter' => $clean['verified'] ?? null,
+                'snapshot_max_id' => $clean['max_id'],
+            ]);
+            DB::afterCommit(fn () => $this->dispatchQueued($export->id));
+
+            return $export;
+        });
+    }
 
     public function queueCheckInLedger(
         string $actorType,
@@ -1262,6 +1351,7 @@ class DataExportService
     protected function generationJob(string $type): string
     {
         return match ($type) {
+            'organizers', 'customers' => GenerateAdminDirectoryExport::class,
             'check_in_ledger' => GenerateCheckInLedgerExport::class,
             'event_cancellation_cases' => GenerateEventCancellationCaseExport::class,
             'operational_incidents', 'webhook_receipts' => GenerateOperationsEvidenceExport::class,

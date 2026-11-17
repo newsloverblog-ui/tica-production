@@ -47,10 +47,6 @@
                         <p id="editErr_photo" class="mb-0 text-danger em field-error"></p>
                     </div>
 
-                    <div class="identity-note">
-                        <i class="fas fa-star" aria-hidden="true"></i>
-                        <span>{{ __('A consistent profile helps admins identify organizer activity at a glance.') }}</span>
-                    </div>
                 </div>
             </aside>
 

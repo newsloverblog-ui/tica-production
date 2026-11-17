@@ -86,31 +86,13 @@
                                 <select id="in_events" class="select2" name="events[]" multiple="multiple"
                                     placeholder="Select Events">
                                     @foreach ($events as $event)
-                                        @php
-                                            $eventInfo = App\Models\Event\EventContent::where('event_id', $event->id)
-                                                ->where('language_id', $deLang->id)
-                                                ->select('title', 'id')
-                                                ->first();
-                                            $id = $event->id;
-                                            $event = App\Models\Event::where('id', $id)
-                                                ->with('organizer')
-                                                ->select('organizer_id')
-                                                ->first();
-                                        @endphp
-                                        <option value="{{ $id }}">
-                                            @if ($eventInfo)
-                                                {{ $title = $eventInfo->title }}
-                                                @if ($event && $event->organizer != null)
-                                                    ({{ optional($event->organizer)->username }})
-                                                @else
-                                                    ({{ 'Admin' }})
-                                                @endif
-                                            @endif
+                                        <option value="{{ $event->id }}">
+                                            {{ optional($event->information)->title ?: __('Event #:id', ['id' => $event->id]) }}
+                                            ({{ $event->organizer?->username ?: __('TICA') }})
                                         </option>
                                     @endforeach
                                 </select>
-                                <p class="text-warning">
-                                    {{ __('Please leave this field blank to make it applicable for all events') }}</p>
+                                <p class="text-muted small mt-2">{{ __('Leave blank to apply this coupon to every event.') }}</p>
                                 <p id="editErr_events" class="mt-1 mb-0 text-danger em"></p>
                             </div>
                         </div>

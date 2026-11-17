@@ -33,21 +33,40 @@ class CustomerManagementController extends Controller
 
   public function index(Request $request)
   {
-    $searchKey = null;
+    $filters = $request->validate([
+      'info' => ['nullable', 'string', 'max:120'],
+      'status' => ['nullable', Rule::in(['0', '1'])],
+      'verified' => ['nullable', Rule::in(['0', '1'])],
+    ]);
+    $searchKey = trim((string) ($filters['info'] ?? ''));
+    $status = $filters['status'] ?? null;
+    $verified = $filters['verified'] ?? null;
 
-    if ($request->filled('info')) {
-      $searchKey = $request['info'];
-    }
-
-    $customers = Customer::when($searchKey, function ($query, $searchKey) {
-      return $query->where('fname', 'like', '%' . $searchKey . '%')
-        ->orWhere('lname', 'like', '%' . $searchKey . '%')
-        ->orWhere('email', 'like', '%' . $searchKey . '%');
-    })
+    $customers = Customer::query()
+      ->when($searchKey !== '', function ($query) use ($searchKey) {
+        $query->where(function ($nested) use ($searchKey) {
+          $nested->where('fname', 'like', '%' . $searchKey . '%')
+            ->orWhere('lname', 'like', '%' . $searchKey . '%')
+            ->orWhere('username', 'like', '%' . $searchKey . '%')
+            ->orWhere('email', 'like', '%' . $searchKey . '%');
+        });
+      })
+      ->when($status !== null, fn ($query) => $query->where('status', (int) $status))
+      ->when($verified !== null, fn ($query) => (int) $verified === 1
+        ? $query->whereNotNull('email_verified_at')
+        : $query->whereNull('email_verified_at'))
       ->orderBy('id', 'desc')
-      ->paginate(10);
+      ->paginate(15)
+      ->withQueryString();
 
-    return view('backend.end-user.customer.index', compact('customers'));
+    $summary = [
+      'total' => Customer::query()->count(),
+      'active' => Customer::query()->where('status', 1)->count(),
+      'verified' => Customer::query()->whereNotNull('email_verified_at')->count(),
+      'with_orders' => Customer::query()->whereHas('bookings')->count(),
+    ];
+
+    return view('backend.end-user.customer.index', compact('customers', 'summary'));
   }
 
 

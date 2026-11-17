@@ -131,6 +131,7 @@ class DataExportReadyNotificationService
         }
         if ($export->requested_by_type === 'admin') {
             return match ($export->export_type) {
+                'organizers', 'customers' => 'admin.directory_exports.download',
                 'bookings' => 'admin.data_exports.download',
                 'withdrawals' => 'admin.withdraw_exports.download',
                 'transactions' => 'admin.transaction_exports.download',

@@ -14,7 +14,17 @@ const ORGANISER = [
   '/organizer/event-booking/report', '/organizer/event/guest-list', '/organizer/event/registrations', '/organizer/forms',
   '/organizer/withdraw/exports', '/organizer/event-booking/exports', '/organizer/check-in-ledger/exports', '/organizer/pwa',
 ];
-const ADMIN = ['/admin/dashboard', '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email', '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage', '/admin/organizer-management/kyc', '/admin/payout-accounts', '/admin/withdraw/withdraw-request', '/admin/advertise/tica-promotions', '/admin/support/tickets'];
+const ADMIN = [
+  '/admin/dashboard',
+  '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email',
+  '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage',
+  '/admin/coupons',
+  '/admin/organizer-management/registered-organizers', '/admin/organizer-management/add-organzer',
+  '/admin/customer-management/registered-customer', '/admin/directory-exports',
+  '/admin/organizer-management/kyc', '/admin/payout-accounts',
+  '/admin/withdraw/payment-methods', '/admin/withdraw/withdraw-request',
+  '/admin/advertise/tica-promotions', '/admin/support/tickets',
+];
 const PUBLIC = ['/', '/discover', '/login', '/pricing'];
 
 const plan: Record<Role, string[]> = {

@@ -15,11 +15,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
   // admin redirect to dashboard route
   Route::get('/dashboard', 'BackEnd\AdminController@redirectToDashboard')->name('admin.dashboard');
 
-  // Database updates (migrations) applied from the admin: cPanel has no deploy step.
-  Route::prefix('/database-updates')->middleware('permission:Basic Settings')->group(function () {
-    Route::get('/', 'BackEnd\DatabaseHealthController@index')->name('admin.database.index');
-    Route::post('/apply', 'BackEnd\DatabaseHealthController@apply')->middleware('throttle:5,1')->name('admin.database.apply');
-  });
+  Route::get('/directory-exports', 'BackEnd\AdminDirectoryExportController@index')
+    ->name('admin.directory_exports.index');
+  Route::get('/directory-exports/{export}/download', 'BackEnd\AdminDirectoryExportController@download')
+    ->middleware('signed')->name('admin.directory_exports.download');
 
   // Integrations: payment, payout, email, SMS, push, sign-in and storage keys.
   // The permission middleware is the route boundary; the controller also requires a super admin.
@@ -311,6 +310,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('/save-organzer', 'BackEnd\Organizer\OrganizerManagementController@create')->name('admin.organizer_management.save-organizer');
 
     Route::get('/registered-organizers', 'BackEnd\Organizer\OrganizerManagementController@index')->name('admin.organizer_management.registered_organizer');
+    Route::post('/registered-organizers/export', 'BackEnd\AdminDirectoryExportController@store')
+      ->defaults('directory', 'organizers')->middleware('throttle:5,1')->name('admin.organizer_management.export');
 
 
 
@@ -336,7 +337,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
       Route::post('/delete', 'BackEnd\Organizer\OrganizerManagementController@destroy')->name('admin.organizer_management.organizer.delete');
 
-      Route::post('/secret-login', 'BackEnd\Organizer\OrganizerManagementController@secret_login')->name('admin.organizer_management.organizer.secret_login');
+      Route::post('/secret-login', 'BackEnd\Organizer\OrganizerManagementController@secret_login')
+        ->middleware('throttle:10,1')->name('admin.organizer_management.organizer.secret_login');
     });
 
     Route::post('/bulk-delete-user', 'BackEnd\Organizer\OrganizerManagementController@bulkDestroy')->name('admin.organizer_management.bulk_delete_organizer');
@@ -352,6 +354,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
   Route::prefix('/customer-management')->middleware('permission:Customer Management')->group(function () {
 
     Route::get('/registered-customer', 'BackEnd\CustomerManagementController@index')->name('admin.organizer_management.registered_customer');
+    Route::post('/registered-customer/export', 'BackEnd\AdminDirectoryExportController@store')
+      ->defaults('directory', 'customers')->middleware('throttle:5,1')->name('admin.customer_management.export');
 
     Route::get('/add-customer', 'BackEnd\CustomerManagementController@create')->name('admin.organizer_management.add_customer');
 

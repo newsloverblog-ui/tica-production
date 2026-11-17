@@ -1,160 +1,71 @@
 @extends('backend.layout')
 
+@section('style')
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-coupons.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/admin-coupons.css')) }}">
+@endsection
+
 @section('content')
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Coupons') }}</h4>
-    <ul class="breadcrumbs">
-      <li class="nav-home">
-        <a href="{{ route('admin.dashboard') }}">
-          <i class="flaticon-home"></i>
-        </a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Event Bookings') }}</a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Settings') }}</a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Coupons') }}</a>
-      </li>
-    </ul>
-  </div>
+  <div class="tica-coupons-page">
+    <header class="coupon-page-header">
+      <div><span class="coupon-eyebrow">{{ __('Sales tools') }}</span><h1>{{ __('Coupons') }}</h1><p>{{ __('Create controlled discounts, choose where they apply and see their lifecycle at a glance.') }}</p></div>
+      <button type="button" class="coupon-btn coupon-btn--primary" data-toggle="modal" data-target="#createModal"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Create coupon') }}</button>
+    </header>
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <div class="row">
-            <div class="col-lg-8">
-              <div class="card-title d-inline-block">{{ __('Coupons') }}</div>
-            </div>
-
-            <div class="col-lg-4 mt-2 mt-lg-0">
-              <a href="#" data-toggle="modal" data-target="#createModal"
-                class="btn btn-primary btn-sm float-lg-right float-left"><i class="fas fa-plus"></i>
-                {{ __('Add Coupon') }}</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="row">
-            <div class="col-lg-12">
-              @if (count($coupons) == 0)
-                <h3 class="text-center">{{ __('NO COUPON FOUND') . '!' }}</h3>
-              @else
-                <div class="table-responsive">
-                  <table class="table table-striped mt-3" id="basic-datatables">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">{{ __('Name') }}</th>
-                        <th scope="col">{{ __('Code') }}</th>
-                        <th scope="col">{{ __('Discount') }}</th>
-                        <th scope="col">{{ __('Created') }}</th>
-                        <th scope="col">{{ __('Status') }}</th>
-                        <th scope="col">{{ __('Actions') }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @foreach ($coupons as $coupon)
-                        @php
-                          $todayDate = Carbon\Carbon::now();
-                          $date1 = Carbon\Carbon::parse($coupon->start_date);
-                          $date2 = Carbon\Carbon::parse($coupon->end_date);
-                        @endphp
-
-                        <tr>
-                          <td>{{ $loop->iteration }}</td>
-                          <td>
-                            {{ strlen($coupon->name) > 30 ? mb_substr($coupon->name, 0, 30, 'UTF-8') . '...' : $coupon->name }}
-                          </td>
-                          <td>{{ $coupon->code }}</td>
-                          <td>
-                            @if ($coupon->type == 'fixed')
-                              {{ $currencyInfo->base_currency_symbol_position == 'left' ? $currencyInfo->base_currency_symbol : '' }}
-                              {{ $coupon->value }}
-                              {{ $currencyInfo->base_currency_symbol_position == 'right' ? $currencyInfo->base_currency_symbol : '' }}
-                            @else
-                              {{ $coupon->value . '%' }}
-                            @endif
-                          </td>
-                          <td>
-                            @php
-                              $createDate = $coupon->created_at;
-                              
-                              // first, get the difference of create-date & today-date
-                              $diff = $createDate->diffInDays($todayDate);
-                            @endphp
-
-                            {{-- then, get the human read-able value from those dates --}}
-                            {{ $createDate->subDays($diff)->diffForHumans() }}
-                          </td>
-
-                          <td>
-                            @if ($date1->greaterThan($todayDate))
-                              <h2 class="d-inline-block"><span class="badge badge-warning">{{ __('Pending') }}</span>
-                              </h2>
-                            @elseif ($todayDate->between($date1, $date2))
-                              <h2 class="d-inline-block"><span class="badge badge-success">{{ __('Active') }}</span>
-                              </h2>
-                            @elseif ($date2->lessThan($todayDate))
-                              <h2 class="d-inline-block"><span class="badge badge-danger">{{ __('Expired') }}</span></h2>
-                            @endif
-                          </td>
-
-                          <td>
-                            <a class="btn btn-secondary mt-1 btn-xs mr-1 editBtn" href="#" data-toggle="modal"
-                              data-target="#editModal" data-id="{{ $coupon->id }}" data-name="{{ $coupon->name }}"
-                              data-code="{{ $coupon->code }}" data-type="{{ $coupon->type }}"
-                              data-events="{{ $coupon->events }}" data-value="{{ $coupon->value }}"
-                              data-start_date="{{ date_format($date1, 'm/d/Y') }}"
-                              data-end_date="{{ date_format($date2, 'm/d/Y') }}">
-                              <span class="btn-label">
-                                <i class="fas fa-edit"></i>
-                              </span>
-                            </a>
-
-                            <form class="deleteForm d-inline-block"
-                              action="{{ route('admin.event_management.delete_coupon', ['id' => $coupon->id]) }}"
-                              method="post">
-
-                              @csrf
-                              <button type="submit" class="btn btn-danger mt-1 btn-xs deleteBtn">
-                                <span class="btn-label">
-                                  <i class="fas fa-trash"></i>
-                                </span>
-                              </button>
-                            </form>
-                          </td>
-                        </tr>
-                      @endforeach
-                    </tbody>
-                  </table>
-                </div>
-              @endif
-            </div>
-          </div>
-        </div>
-
-        <div class="card-footer"></div>
-      </div>
+    <div class="coupon-stats" aria-label="{{ __('Coupon summary') }}">
+      <article><span>{{ __('All coupons') }}</span><strong>{{ number_format($summary['total']) }}</strong><i class="fas fa-ticket-alt" aria-hidden="true"></i></article>
+      <article><span>{{ __('Active now') }}</span><strong>{{ number_format($summary['active']) }}</strong><i class="fas fa-check-circle" aria-hidden="true"></i></article>
+      <article><span>{{ __('Scheduled') }}</span><strong>{{ number_format($summary['scheduled']) }}</strong><i class="fas fa-clock" aria-hidden="true"></i></article>
+      <article><span>{{ __('Total redemptions') }}</span><strong>{{ number_format($summary['uses']) }}</strong><i class="fas fa-chart-line" aria-hidden="true"></i></article>
     </div>
+
+    <section class="coupon-surface">
+      <form class="coupon-toolbar" method="GET" action="{{ route('admin.event_management.coupons') }}">
+        <label class="coupon-search"><i class="fas fa-search" aria-hidden="true"></i><input type="search" name="search" value="{{ request('search') }}" placeholder="{{ __('Search name or code') }}"></label>
+        <select name="status" aria-label="{{ __('Coupon status') }}"><option value="">{{ __('All statuses') }}</option><option value="active" @selected(request('status')==='active')>{{ __('Active') }}</option><option value="pending" @selected(request('status')==='pending')>{{ __('Scheduled') }}</option><option value="expired" @selected(request('status')==='expired')>{{ __('Expired') }}</option><option value="paused" @selected(request('status')==='paused')>{{ __('Paused') }}</option></select>
+        <button class="coupon-btn coupon-btn--quiet" type="submit">{{ __('Apply filters') }}</button>
+        @if(request()->hasAny(['search','status']))<a class="coupon-clear" href="{{ route('admin.event_management.coupons') }}">{{ __('Clear') }}</a>@endif
+      </form>
+
+      <div class="coupon-list">
+        @forelse($coupons as $coupon)
+          @php
+            $today = now()->startOfDay(); $start = \Carbon\Carbon::parse($coupon->start_date)->startOfDay(); $end = \Carbon\Carbon::parse($coupon->end_date)->endOfDay();
+            $state = !$coupon->is_active ? 'paused' : ($start->gt($today) ? 'scheduled' : ($end->lt($today) ? 'expired' : 'active'));
+            $eventIds = array_values(array_filter((array) json_decode((string)$coupon->events, true)));
+          @endphp
+          <article class="coupon-row">
+            <div class="coupon-code-block"><span>{{ __('Code') }}</span><strong>{{ $coupon->code }}</strong><button type="button" class="coupon-copy" data-copy="{{ $coupon->code }}" aria-label="{{ __('Copy :code', ['code'=>$coupon->code]) }}"><i class="far fa-copy" aria-hidden="true"></i></button></div>
+            <div class="coupon-primary"><strong>{{ $coupon->name }}</strong><span>{{ count($eventIds) ? trans_choice(':count selected event|:count selected events', count($eventIds), ['count'=>count($eventIds)]) : __('All events') }}</span></div>
+            <div class="coupon-discount"><span>{{ __('Discount') }}</span><strong>@if($coupon->type==='fixed'){{ $currencyInfo->base_currency_symbol_position === 'left' ? $currencyInfo->base_currency_symbol : '' }}{{ number_format((float)$coupon->value, 2) }}{{ $currencyInfo->base_currency_symbol_position === 'right' ? $currencyInfo->base_currency_symbol : '' }}@else{{ rtrim(rtrim(number_format((float)$coupon->value, 2), '0'), '.') }}%@endif</strong></div>
+            <div class="coupon-period"><span>{{ __('Valid period') }}</span><strong>{{ $start->format('j M') }} – {{ $end->format('j M Y') }}</strong></div>
+            <div class="coupon-usage"><span>{{ __('Used') }}</span><strong>{{ number_format((int)$coupon->used_count) }}@if($coupon->max_uses)<small>/ {{ number_format((int)$coupon->max_uses) }}</small>@endif</strong></div>
+            <span class="coupon-status coupon-status--{{ $state }}">{{ __(ucfirst($state)) }}</span>
+            <div class="dropdown coupon-actions"><button type="button" class="coupon-more" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="{{ __('Actions for :coupon',['coupon'=>$coupon->name]) }}"><i class="fas fa-ellipsis-h" aria-hidden="true"></i></button><div class="dropdown-menu dropdown-menu-right">
+              <button class="dropdown-item editBtn" type="button" data-toggle="modal" data-target="#editModal" data-id="{{ $coupon->id }}" data-name="{{ $coupon->name }}" data-code="{{ $coupon->code }}" data-type="{{ $coupon->type }}" data-events='@json($eventIds)' data-value="{{ $coupon->value }}" data-start_date="{{ $start->format('m/d/Y') }}" data-end_date="{{ $end->format('m/d/Y') }}"><i class="fas fa-pen mr-2" aria-hidden="true"></i>{{ __('Edit coupon') }}</button>
+              <div class="dropdown-divider"></div><form class="deleteForm" action="{{ route('admin.event_management.delete_coupon',['id'=>$coupon->id]) }}" method="post">@csrf<button type="submit" class="dropdown-item text-danger deleteBtn"><i class="fas fa-trash mr-2" aria-hidden="true"></i>{{ __('Delete coupon') }}</button></form>
+            </div></div>
+          </article>
+        @empty
+          <div class="coupon-empty"><span><i class="fas fa-ticket-alt" aria-hidden="true"></i></span><strong>{{ __('No coupons match these filters') }}</strong><p>{{ __('Create a coupon or change the filters to see more results.') }}</p><button type="button" class="coupon-btn coupon-btn--primary" data-toggle="modal" data-target="#createModal">{{ __('Create coupon') }}</button></div>
+        @endforelse
+      </div>
+      <div class="coupon-pagination">{{ $coupons->links() }}</div>
+    </section>
   </div>
 
-  {{-- create modal --}}
   @include('backend.event.coupon.create')
-
-  {{-- edit modal --}}
   @include('backend.event.coupon.edit')
+@endsection
+
+@section('script')
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        navigator.clipboard.writeText(button.dataset.copy).then(function () {
+          button.classList.add('is-copied');
+          window.setTimeout(function () { button.classList.remove('is-copied'); }, 1200);
+        });
+      });
+    });
+  </script>
 @endsection

@@ -60,6 +60,8 @@ Route::prefix('/organizer')->group(function () {
 
   Route::post('/logout', 'BackEnd\Organizer\OrganizerController@logout')
     ->middleware('auth:organizer')->name('organizer.logout');
+  Route::post('/impersonation/return', 'BackEnd\Organizer\AdminImpersonationController@destroy')
+    ->middleware(['auth:organizer', 'throttle:10,1'])->name('organizer.impersonation.return');
   Route::get('/change-password', 'BackEnd\Organizer\OrganizerWorkspaceRedirectController@settings')
     ->middleware(['auth:organizer', 'Deactive:organizer', 'EmailStatus:organizer', 'tica.team'])
     ->name('organizer.change.password');

@@ -72,20 +72,40 @@ class OrganizerManagementController extends Controller
 
   public function index(Request $request)
   {
-    $searchKey = null;
+    $filters = $request->validate([
+      'info' => ['nullable', 'string', 'max:120'],
+      'status' => ['nullable', Rule::in(['0', '1'])],
+      'verified' => ['nullable', Rule::in(['0', '1'])],
+    ]);
+    $searchKey = trim((string) ($filters['info'] ?? ''));
+    $status = $filters['status'] ?? null;
+    $verified = $filters['verified'] ?? null;
 
-    if ($request->filled('info')) {
-      $searchKey = $request['info'];
-    }
-
-    $organizers = Organizer::when($searchKey, function ($query, $searchKey) {
-      return $query->where('username', 'like', '%' . $searchKey . '%')
-        ->orWhere('email', 'like', '%' . $searchKey . '%');
-    })
+    $organizers = Organizer::query()
+      ->when($searchKey !== '', function ($query) use ($searchKey) {
+        $query->where(function ($nested) use ($searchKey) {
+          $nested->where('username', 'like', '%' . $searchKey . '%')
+            ->orWhere('email', 'like', '%' . $searchKey . '%');
+        });
+      })
+      ->when($status !== null, fn ($query) => $query->where('status', (int) $status))
+      ->when($verified !== null, fn ($query) => (int) $verified === 1
+        ? $query->whereNotNull('email_verified_at')
+        : $query->whereNull('email_verified_at'))
       ->orderBy('id', 'desc')
-      ->paginate(10);
+      ->paginate(15)
+      ->withQueryString();
 
-    return view('backend.end-user.organizer.index', compact('organizers'));
+    $summary = [
+      'total' => Organizer::query()->count(),
+      'active' => Organizer::query()->where('status', 1)->count(),
+      'verified' => Organizer::query()->whereNotNull('email_verified_at')->count(),
+      'kyc_pending' => Organizer::query()->where(function ($query) {
+        $query->whereNull('kyc_status')->orWhereNotIn('kyc_status', ['verified', 'rejected']);
+      })->count(),
+    ];
+
+    return view('backend.end-user.organizer.index', compact('organizers', 'summary'));
   }
 
   //add
@@ -436,11 +456,15 @@ class OrganizerManagementController extends Controller
   {
     $organizer = Organizer::findOrFail($id);
     $adminId = (int) Auth::guard('admin')->id();
+    abort_if($request->session()->get('secret_login'), 409, 'Finish the current impersonation session first.');
+    abort_unless($adminId > 0, 403);
     AuditLogger::record('organizer.impersonation_started', $organizer, [], [], [
       'admin_id' => $adminId,
       'target_email' => $organizer->email,
     ]);
-    Session::put([
+    Auth::guard('organizer')->logout();
+    $request->session()->regenerate();
+    $request->session()->put([
       'secret_login' => 1,
       'impersonator_admin_id' => $adminId,
       'impersonation_started_at' => now()->toIso8601String(),

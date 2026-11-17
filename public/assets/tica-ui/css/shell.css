@@ -70,6 +70,12 @@
 
 /* ---- top bar ------------------------------------------------------------ */
 #tica-shell .tsh-top{position:fixed;top:0;right:0;left:var(--tsh-side);z-index:1030;height:var(--tsh-top);display:flex;align-items:center;gap:12px;padding:0 24px;background:#fff;border-bottom:1px solid #E3E7ED}
+#tica-shell .tsh-impersonation{display:flex;align-items:center;gap:9px;margin-left:auto;padding:5px 6px 5px 10px;border:1px solid #f0d2b5;border-radius:10px;background:#fff8ef;color:#7a4a1f;font-size:12px;font-weight:650}
+#tica-shell .tsh-impersonation>span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+#tica-shell .tsh-impersonation i{width:7px;height:7px;border-radius:50%;background:#dc7d2c;box-shadow:0 0 0 3px rgba(220,125,44,.13)}
+#tica-shell .tsh-impersonation form{margin:0}
+#tica-shell .tsh-impersonation button{min-height:29px;padding:0 10px;border:1px solid #e6bd96;border-radius:7px;background:#fff;color:#7a4a1f;font-size:11px;font-weight:700;cursor:pointer}
+#tica-shell .tsh-impersonation button:hover{border-color:#cd8b4e;background:#fef3e8}
 #tica-shell .tsh-title{flex:1;min-width:0;font-size:16px;line-height:24px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tica-shell .tsh-iconbtn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:8px;color:#3F4A5A;transition:background-color 150ms ease}
 #tica-shell .tsh-iconbtn:hover{background:#F1F3F6}

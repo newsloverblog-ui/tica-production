@@ -7,7 +7,7 @@
   --org-orange-soft: var(--c-orange-soft, #fef7ee);
   --org-line: var(--c-line, #e3e8f1);
   --org-muted: var(--c-mute, #667085);
-  max-width: 1320px;
+  max-width: 1480px;
   margin: 0 auto;
   color: var(--org-navy);
   animation: organizer-create-enter .36s ease-out both;
@@ -83,7 +83,7 @@
 
 .organizer-create-shell {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid var(--org-line);
   border-radius: 18px;
@@ -220,23 +220,7 @@
 }
 
 .upload-meta i,
-.identity-note i,
 .action-note i { color: var(--org-orange); }
-
-.identity-note {
-  display: flex;
-  gap: 10px;
-  margin-top: 22px;
-  padding: 13px 14px;
-  border: 1px solid #f1dcc8;
-  border-radius: 12px;
-  background: var(--org-orange-soft);
-  color: #725133;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.identity-note i { margin-top: 2px; }
 
 .organizer-form-area {
   min-width: 0;
