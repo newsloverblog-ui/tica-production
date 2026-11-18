@@ -23,6 +23,7 @@ const ADMIN = [
   '/admin/customer-management/registered-customer', '/admin/directory-exports',
   '/admin/organizer-management/kyc', '/admin/payout-accounts',
   '/admin/withdraw/payment-methods', '/admin/withdraw/withdraw-request',
+  '/admin/basic-settings/mail-templates',
   '/admin/advertise/tica-promotions', '/admin/support/tickets',
 ];
 const PUBLIC = ['/', '/discover', '/login', '/pricing'];
