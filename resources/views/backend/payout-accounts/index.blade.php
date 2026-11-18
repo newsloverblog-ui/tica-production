@@ -59,6 +59,7 @@
         <h1>Payout accounts</h1>
         <p>Bank accounts organisers get paid into. Accounts whose bank name didn't match the verified identity wait here for a decision.</p>
       </div>
+      <a class="tpa-btn" href="{{ route('admin.withdraw.payment_method', ['language' => $defaultLang->code]) }}">Payout rules</a>
     </div>
 
     <section class="tpa-card tpa-prov" aria-labelledby="tpa-prov-h">

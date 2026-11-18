@@ -71,4 +71,27 @@ class AdminSidebarPresentationTest extends TestCase
         $this->assertNull(app('router')->getRoutes()->getByName('admin.database.apply'));
         $this->assertStringNotContainsString('System updates', $view);
     }
+
+    public function test_duplicate_admin_destinations_are_consolidated_into_management_hubs(): void
+    {
+        $sidebar = file_get_contents(resource_path('views/backend/partials/side-navbar.blade.php'));
+        $bookings = file_get_contents(resource_path('views/backend/event/booking/index.blade.php'));
+        $support = file_get_contents(resource_path('views/backend/support_ticket/index.blade.php'));
+        $organizers = file_get_contents(resource_path('views/backend/end-user/organizer/index.blade.php'));
+        $customers = file_get_contents(resource_path('views/backend/end-user/customer/index.blade.php'));
+
+        $this->assertStringNotContainsString("route('admin.event.booking', ['status' =>", $sidebar);
+        $this->assertStringNotContainsString("route('admin.support_tickets', ['status' =>", $sidebar);
+        $this->assertStringNotContainsString("<span class=\"sub-item\">{{ __('Add Organizer') }}", $sidebar);
+        $this->assertStringNotContainsString("<span class=\"sub-item\">{{ __('Add Customer') }}", $sidebar);
+        $this->assertStringNotContainsString("<p>{{ __('Integrations') }}</p>", $sidebar);
+
+        $this->assertStringContainsString('name="status"', $bookings);
+        $this->assertStringContainsString("route('admin.event_booking.report')", $bookings);
+        $this->assertStringContainsString('id="support-status"', $support);
+        $this->assertStringContainsString("route('admin.support_ticket.setting')", $support);
+        $this->assertStringContainsString("route('admin.organizer_management.settings')", $organizers);
+        $this->assertStringContainsString("route('admin.organizer_management.add_organizer')", $organizers);
+        $this->assertStringContainsString("route('admin.organizer_management.add_customer')", $customers);
+    }
 }

@@ -25,16 +25,8 @@ class OrganizerWorkspaceRedirectController extends Controller
 
   public function create(Request $request)
   {
-    if ($request->routeIs('choose-event-type')) {
-      return view('organizer.event.event_type');
-    }
-
     $type = $request->input('type');
-    if (!in_array($type, ['online', 'venue'], true)) {
-      return redirect()->route('choose-event-type');
-    }
-
-    return redirect('/create?type=' . $type);
+    return redirect('/create' . (in_array($type, ['online', 'venue'], true) ? '?type=' . $type : ''));
   }
 
   public function orders(): RedirectResponse

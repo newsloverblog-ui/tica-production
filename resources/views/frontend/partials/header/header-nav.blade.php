@@ -3,7 +3,7 @@
   $organizer = Auth::guard('organizer')->user();
   $createEventUrl = $organizer ? route('organizer.add.event.event') : route('organizer.signup');
   $organizerUrl = $organizer ? route('organizer.dashboard') : route('organizer.login');
-  $ticketUrl = $customer ? route('customer.booking.my_booking') : route('customer.login');
+  $ticketUrl = $customer ? url('/account#tickets') : route('customer.login');
 @endphp
 <header class="topbar">
   <div class="wrap nav">

@@ -82,7 +82,8 @@
                     </select>
                     <button class="btn btn-primary btn-sm ml-1" type="submit">{{ __('Export') }}</button>
                   </form>
-                  <a class="btn btn-link btn-sm" href="{{ route('admin.data_exports.index') }}">{{ __('History') }}</a>
+                  <a class="btn btn-link btn-sm" href="{{ route('admin.event_booking.report') }}">{{ __('Report') }}</a>
+                  <a class="btn btn-link btn-sm" href="{{ route('admin.data_exports.index') }}">{{ __('Export history') }}</a>
                 </div>
                 <div class="col-lg-3">
                   <form class="ml-3" action="{{ route('admin.event.booking') }}" method="GET">

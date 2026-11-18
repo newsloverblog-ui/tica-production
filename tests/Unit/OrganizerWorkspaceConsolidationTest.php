@@ -68,6 +68,11 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
         $this->assertStringContainsString("'/dashboard/settings'", $sidebar);
+        $this->assertStringNotContainsString("['Booking report',", $sidebar);
+        $this->assertStringNotContainsString("['Transactions',", $sidebar);
+        $this->assertStringNotContainsString("['Payout exports',", $sidebar);
+        $this->assertStringNotContainsString("['Check-in ledger',", $sidebar);
+        $this->assertStringNotContainsString("['Identity and bank',", $sidebar);
 
         $this->assertStringContainsString('class="tica-report-filters"', $report);
         $this->assertStringContainsString('class="table tica-report-table"', $report);
@@ -99,6 +104,29 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringNotContainsString('slot.appendChild(side)', $script);
         $this->assertStringContainsString('body.isorg.appmode footer{display:none}', $css);
         $this->assertStringContainsString('body.isorg.appmode #workspace-role{display:none}', $css);
+
+        $redirect = file_get_contents(app_path('Http/Controllers/BackEnd/Organizer/OrganizerWorkspaceRedirectController.php'));
+        $this->assertStringNotContainsString("view('organizer.event.event_type')", $redirect);
+        $this->assertStringContainsString("return redirect('/create'", $redirect);
+    }
+
+    public function test_reports_exports_and_account_tools_are_reached_from_their_parent_pages(): void
+    {
+        $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
+        $checkin = file_get_contents(resource_path('views/tica-ui/pages/checkin.blade.php'));
+
+        foreach ([
+            '/organizer/event-booking/report',
+            '/organizer/event-booking/exports',
+            '/organizer/transaction',
+            '/organizer/finance',
+            '/organizer/withdraw/exports',
+            '/organizer/kyc',
+        ] as $url) {
+            $this->assertStringContainsString($url, $dashboard);
+        }
+        $this->assertStringContainsString('/organizer/check-in-ledger/exports', $checkin);
+        $this->assertStringContainsString('/organizer/pwa', $checkin);
     }
 
     public function test_create_event_has_five_responsive_stages_with_tickets_and_fees_together(): void

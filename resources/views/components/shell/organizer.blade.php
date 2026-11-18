@@ -22,6 +22,7 @@
     'checkin' => '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/>',
     'promote' => '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/>',
     'payouts' => '<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+    'transactions' => '<path d="M4 19V9M10 19V5M16 19v-7M3 19h18M15 7l3-3 3 3"/>',
     'team' => '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>',
     'forms' => '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
     'settings' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
@@ -39,7 +40,10 @@
     'Growth' => [
       ['promote', 'Promote', '/dashboard/promote', 'promote.manage'],
     ],
-    'Finance' => [['payouts', 'Payouts', '/dashboard/payouts', 'payouts.view']],
+    'Finance' => [
+      ['payouts', 'Payouts', '/dashboard/payouts', 'payouts.view'],
+      ['transactions', 'Transactions', '/organizer/transaction', 'reports.view'],
+    ],
     'Account' => [
       ['team', 'Team', '/dashboard/team', 'team.manage'],
       ['settings', 'Settings', '/dashboard/settings', 'settings.manage'],
@@ -50,19 +54,7 @@
       ['Registration forms', '/organizer/forms', 'events.manage'],
       ['Guest lists and RSVPs', '/organizer/event/guest-list', 'events.manage'],
     ],
-    'Reports' => [
-      ['Booking report', '/organizer/event-booking/report', 'reports.view'],
-      ['Transactions', '/organizer/transaction', 'reports.view'],
-      ['Finance statement', '/organizer/finance', 'reports.view'],
-    ],
-    'Exports and access' => [
-      ['Payout exports', '/organizer/withdraw/exports', 'orders.export'],
-      ['Data exports', '/organizer/event-booking/exports', 'orders.export'],
-      ['Check-in ledger', '/organizer/check-in-ledger/exports', 'orders.export'],
-      ['Gate staff and devices', '/organizer/pwa', 'team.manage'],
-    ],
     'Account help' => [
-      ['Identity and bank', '/organizer/kyc', 'bank.manage'],
       ['Support', '/organizer/support-tikcet/tickets', 'support.use'],
     ],
   ];
@@ -75,6 +67,11 @@
     $toolHit = collect($tools)->first(fn ($tool) => str_starts_with($path, $tool[1]));
     $active = match (true) {
       str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'forms',
+      str_starts_with($path, '/organizer/event-booking/report'), str_starts_with($path, '/organizer/event-booking/exports') => 'orders',
+      str_starts_with($path, '/organizer/transaction'), str_starts_with($path, '/organizer/finance'), str_starts_with($path, '/organizer/monthly-income') => 'transactions',
+      str_starts_with($path, '/organizer/withdraw/exports') => 'payouts',
+      str_starts_with($path, '/organizer/check-in-ledger'), str_starts_with($path, '/organizer/pwa'), str_starts_with($path, '/organizer/scanner') => 'checkin',
+      str_starts_with($path, '/organizer/kyc') => 'settings',
       $toolHit !== null => 'tools',
       request()->routeIs('organizer.withdraw*', 'organizer.payout*') => 'payouts',
       request()->routeIs('organizer.event_booking.index', 'organizer.event_booking.details') => 'orders',
@@ -84,7 +81,7 @@
   }
   $toolsActive = in_array($active, ['tools', 'forms'], true);
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
-  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
+  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'transactions' => 'Transactions', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
 
 <div id="tica-shell" class="tsh">
@@ -109,7 +106,7 @@
       @if ($visible)
         <p class="tsh-group">{{ $group }}</p>
         @foreach ($visible as [$key, $label, $href, $permission])
-          <a class="tsh-link os-link {{ $active === $key ? 'is-active' : '' }}" href="{{ $href }}" @if ($spa && !in_array($key, ['checkin', 'forms'], true)) data-panel="{{ $key }}" @endif @if ($active === $key) aria-current="page" @endif>
+          <a class="tsh-link os-link {{ $active === $key ? 'is-active' : '' }}" href="{{ $href }}" @if ($spa && in_array($key, ['overview', 'events', 'tickets', 'orders', 'promote', 'payouts', 'team', 'settings'], true)) data-panel="{{ $key }}" @endif @if ($active === $key) aria-current="page" @endif>
             <svg viewBox="0 0 24 24" aria-hidden="true">{!! $icons[$key] !!}</svg><span class="tsh-link__label">{{ $label }}</span>
             @if ($key === 'payouts' && $payoutAction)<span class="tsh-dot" id="od-paydot" role="img" aria-label="Action needed"></span>@endif
           </a>

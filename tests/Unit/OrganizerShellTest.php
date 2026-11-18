@@ -66,8 +66,11 @@ class OrganizerShellTest extends TestCase
     $this->assertStringContainsString('Workspace', $html);
     $this->assertStringContainsString('Growth', $html);
     $this->assertStringContainsString('Finance', $html);
-    foreach (['Event setup', 'Reports', 'Exports and access', 'Account help'] as $group) {
+    foreach (['Event setup', 'Account help'] as $group) {
       $this->assertStringContainsString('class="tsh-subgroup">'.$group, $html);
+    }
+    foreach (['Reports', 'Exports and access'] as $retiredGroup) {
+      $this->assertStringNotContainsString('class="tsh-subgroup">'.$retiredGroup, $html);
     }
   }
 

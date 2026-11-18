@@ -88,7 +88,7 @@
       <!-- ORDERS -->
       <div class="od-p" data-p="orders" hidden>
         <header class="t-page-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
-          <div class="or-actions"><button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button></div></header>
+          <div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/event-booking/report">Report</a><a class="t-btn t-btn--secondary" href="/organizer/event-booking/exports">Export history</a><button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button></div></header>
         <div class="t-toolbar">
           <label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search attendees</span><input class="t-input" id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
           <select class="t-select" id="od-fe" aria-label="Event"><option value="">All events</option></select>
@@ -103,7 +103,7 @@
 
       <!-- PAYOUTS -->
       <div class="od-p" data-p="payouts" hidden>
-        <header class="t-page-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><button class="t-btn t-btn--primary" type="button" id="od-wd-btn">Withdraw</button></header>
+        <header class="t-page-head"><div><h1>Payouts</h1><p>Your ticket money, sent straight to your bank.</p></div><div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/transaction">Transactions</a><a class="t-btn t-btn--secondary" href="/organizer/finance">Statement</a><a class="t-btn t-btn--secondary" href="/organizer/withdraw/exports">Export history</a><button class="t-btn t-btn--primary" type="button" id="od-wd-btn">Withdraw</button></div></header>
         <div class="pay-bal" id="od-bal">
           <div class="t-card t-stat"><span class="t-stat__label">Available</span><b class="t-stat__value" id="od-avail">₦0</b><span class="t-stat__note">Ready to withdraw now</span></div>
           <div class="t-card t-stat"><span class="t-stat__label">Pending</span><b class="t-stat__value" id="od-pend">₦0</b><span class="t-stat__note">Requested and on its way to your bank</span></div>
@@ -210,7 +210,7 @@
 
       <!-- SETTINGS -->
       <div class="od-p" data-p="settings" hidden>
-        <div class="db-head"><div><h1>Settings</h1></div></div>
+        <div class="db-head"><div><h1>Settings</h1></div><div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/kyc">Identity and bank account</a></div></div>
         <div class="od-settings-layout">
           <section class="db-card od-settings-profile"><div class="db-ch"><h2>Profile and account</h2></div>
             <form class="od-form" id="od-prof" novalidate>

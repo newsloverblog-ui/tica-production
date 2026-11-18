@@ -392,7 +392,8 @@ class CustomerController extends Controller
   //change_password
   public function change_password()
   {
-    return view('frontend.customer.dashboard.change-password');
+    session()->reflash();
+    return redirect('/account#profile');
   }
   //update_password
   public function updated_password(Request $request)
@@ -440,7 +441,8 @@ class CustomerController extends Controller
   //edit_profile
   public function edit_profile()
   {
-    return view('frontend.customer.dashboard.edit-profile');
+    session()->reflash();
+    return redirect('/account#profile');
   }
   //update_profile
   public function update_profile(Request $request, CustomerEmailVerificationService $verifications)
@@ -554,11 +556,8 @@ class CustomerController extends Controller
   //wishlist
   public function wishlist()
   {
-    $language = $this->getLanguage();
-    $customer_id = Auth::guard('customer')->user()->id;
-    $wishlist = Wishlist::where('customer_id', $customer_id)
-      ->get();
-    return view('frontend.customer.dashboard.wishlist', compact('wishlist'));
+    session()->reflash();
+    return redirect('/account#saved');
   }
   //remove_wishlist
   //add_to_wishlist

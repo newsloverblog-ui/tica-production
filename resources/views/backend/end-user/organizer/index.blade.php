@@ -13,6 +13,7 @@
         <p>{{ __('Review account access, verification and event ownership from one calm workspace.') }}</p>
       </div>
       <div class="directory-header-actions">
+        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.organizer_management.settings') }}"><i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Organizer settings') }}</a>
         <a class="directory-btn directory-btn--quiet" href="{{ route('admin.organizer_kyc.index') }}"><i class="fas fa-user-check" aria-hidden="true"></i>{{ __('KYC reviews') }}</a>
         <a class="directory-btn directory-btn--quiet" href="{{ route('admin.directory_exports.index', ['directory' => 'organizers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
         <a class="directory-btn directory-btn--primary" href="{{ route('admin.organizer_management.add_organizer') }}"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Add organizer') }}</a>

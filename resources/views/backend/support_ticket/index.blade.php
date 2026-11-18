@@ -61,6 +61,7 @@
               <div class="card-title d-inline-block">
                 {{ __('Support Tickets') }}
               </div>
+              <a class="btn btn-link btn-sm" href="{{ route('admin.support_ticket.setting') }}">{{ __('Settings') }}</a>
             </div>
 
             <div class="col-lg-8 mt-2 mt-lg-0">
@@ -68,7 +69,14 @@
                 data-href="{{ route('admin.support_tickets.bulk_delete') }}"><i class="flaticon-interface-5"></i>
                 {{ __('Delete') }}</button>
 
-              <form action="" class="float-lg-right float-none" method="GET">
+              <form action="{{ route('admin.support_tickets') }}" class="float-lg-right float-none d-flex" method="GET">
+                <label class="sr-only" for="support-status">{{ __('Status') }}</label>
+                <select class="form-control mr-2" id="support-status" name="status" onchange="this.form.submit()">
+                  <option value="">{{ __('All statuses') }}</option>
+                  <option value="1" @selected((string) request('status') === '1')>{{ __('Pending') }}</option>
+                  <option value="2" @selected((string) request('status') === '2')>{{ __('Open') }}</option>
+                  <option value="3" @selected((string) request('status') === '3')>{{ __('Closed') }}</option>
+                </select>
                 <input type="text" name="ticket_id" class="form-control min-w-250" placeholder="Search by Ticket ID"
                   value="{{ !empty(request()->input('ticket_id')) ? request()->input('ticket_id') : '' }}">
               </form>

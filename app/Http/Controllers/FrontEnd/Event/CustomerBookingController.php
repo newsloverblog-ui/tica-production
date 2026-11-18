@@ -23,14 +23,8 @@ class CustomerBookingController extends Controller
 {
   public function my_booking()
   {
-    $bookings = Booking::where('customer_id', Auth::guard('customer')->user()->id)->orderBy('created_at', 'desc')->paginate(20);
-    $heldTickets = BookingTicket::query()
-      ->with(['booking.event', 'pendingTransfer'])
-      ->where('holder_customer_id', Auth::guard('customer')->id())
-      ->where('status', 'issued')
-      ->latest()
-      ->get();
-    return view('frontend.customer.dashboard.booking.my_booking', compact('bookings', 'heldTickets'));
+    session()->reflash();
+    return redirect('/account#orders');
   }
   //details
   public function details($id)

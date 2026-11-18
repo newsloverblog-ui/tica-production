@@ -2,7 +2,7 @@
 <section class="page" data-page="checkin">
   <div class="ck">
     <div class="wrap ck-wrap">
-      <header class="t-page-head ck-head"><div><h1>Gate check-in</h1><p>Scan tickets at the door. Results stay live, and it keeps working offline.</p></div></header>
+      <header class="t-page-head ck-head"><div><h1>Gate check-in</h1><p>Scan tickets at the door. Results stay live, and it keeps working offline.</p></div><div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/check-in-ledger/exports">Check-in ledger</a><a class="t-btn t-btn--secondary" href="/organizer/pwa">Gate staff and devices</a></div></header>
       <div class="ck-top">
         <div class="ck-ev"><label for="ck-event">Checking in for</label><select id="ck-event"></select></div>
         <p class="ck-sync"><i aria-hidden="true"></i>Works offline. Synced just now.</p>
@@ -17,7 +17,7 @@
         <div class="ck-side">
           <div class="ck-stat"><div><span>Checked in</span><b><span id="ck-in">0</span> <small>of <span id="ck-total">0</span></small></b></div><div class="ck-bar" aria-hidden="true"><i id="ck-bar"></i></div><p id="ck-left"></p></div>
           <div class="ck-log"><h2>Recent check-ins</h2><ul id="ck-log"></ul></div>
-          <a class="ck-setup" id="ck-setup" href="/organizer/pwa" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><rect x="15" y="9" width="6" height="10" rx="1.5"/></svg><span><b>Gate staff and devices</b><small>Approve phones, add gate staff, prepare offline</small></span></a><a class="ck-back" href="/dashboard">Back to dashboard</a>
+          <a class="ck-back" href="/dashboard">Back to dashboard</a>
         </div>
       </div>
     </div>
