@@ -295,6 +295,25 @@ class PaymentRefundService
                 'booking_id' => $booking->id,
             ]);
 
+            $refundId = (int) $refund->id;
+            DB::afterCommit(function () use ($refundId): void {
+                if (!Schema::hasTable('application_mail_deliveries')) return;
+                $queued = PaymentRefund::with('booking')->find($refundId);
+                $booking = $queued?->booking;
+                if (!$queued || !$booking) return;
+                $eventTitle = Schema::hasTable('event_contents')
+                    ? (string) (DB::table('event_contents')->where('event_id', $booking->event_id)->value('title') ?: 'your event')
+                    : 'your event';
+                app(MailTemplateService::class)->queueSafely('refund_initiated', $booking->email, [
+                    'customer_name' => trim((string) $booking->fname.' '.(string) $booking->lname) ?: 'there',
+                    'event_title' => $eventTitle,
+                    'amount' => strtoupper((string) $queued->currency).' '.number_format((float) $queued->amount, 2),
+                    'reference' => $queued->public_id,
+                    'reason' => $queued->reason,
+                    'dashboard_link' => url('/customer/booking/details/'.$booking->id),
+                ], $queued, 'refund-initiated:'.$queued->public_id);
+            });
+
             return $refund;
         }, 3);
     }

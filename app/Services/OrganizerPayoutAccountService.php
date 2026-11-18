@@ -223,6 +223,7 @@ class OrganizerPayoutAccountService
                 LifecycleMailCatalog::ORGANIZER_PAYOUT_ACCOUNT_CHANGED,
                 $organizer->email,
                 [
+                    'organizer_name' => $organizer->username,
                     'bank_name' => $account->bank_name,
                     'account_last4' => $account->maskedNumber(),
                     'changed_at' => now()->format('D, j M Y g:i A'),
@@ -462,6 +463,7 @@ class OrganizerPayoutAccountService
             LifecycleMailCatalog::ORGANIZER_PAYOUT_ACCOUNT_CHANGED,
             $organizer->email,
             [
+                'organizer_name' => $organizer->username,
                 'bank_name' => $account->bank_name,
                 'account_last4' => $account->maskedNumber(),
                 'changed_at' => $account->created_at?->format('D, j M Y g:i A'),

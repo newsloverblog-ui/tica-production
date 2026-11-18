@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BasicSettings\Basic;
 use App\Models\ContactPage;
 use App\Services\ApplicationMailService;
+use App\Services\MailTemplateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -64,13 +65,15 @@ class ContactController extends Controller
     $to = $info->to_mail;
     $subject = $request->subject;
 
-    $message = '<p>Message: ' . nl2br(e((string) $request->message)) . '</p>'
-      . '<p><strong>Enquirer Name:</strong> ' . e((string) $name)
-      . '<br><strong>Enquirer Email:</strong> ' . e((string) $request->email) . '</p>';
-
     try {
+      $rendered = app(MailTemplateService::class)->render('admin_contact_form', [
+        'customer_name' => $name,
+        'customer_email' => $request->email,
+        'message_subject' => $subject,
+        'message_body' => $request->message,
+      ]);
       app(ApplicationMailService::class)->queueHtml(
-        'contact_enquiry', $to, $subject, $message, [], $request->email
+        'template.admin_contact_form', $to, $rendered['subject'], $rendered['html'], [], $request->email
       );
 
       Session::flash('success', 'Your message has been accepted for delivery.');

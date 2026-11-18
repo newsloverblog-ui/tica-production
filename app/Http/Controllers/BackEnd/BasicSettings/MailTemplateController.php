@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BackEnd\BasicSettings;
 
 use App\Http\Controllers\Controller;
 use App\Models\BasicSettings\MailTemplate;
+use App\Support\MailTemplateCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Mews\Purifier\Facades\Purifier;
@@ -20,8 +21,10 @@ class MailTemplateController extends Controller
   public function edit($id)
   {
     $templateInfo = MailTemplate::where('id', $id)->firstOrFail();
+    $placeholderLabels = MailTemplateCatalog::labels();
+    $availablePlaceholders = MailTemplateCatalog::placeholders((string) $templateInfo->mail_type);
 
-    return view('backend.basic-settings.email.edit-template', compact('templateInfo'));
+    return view('backend.basic-settings.email.edit-template', compact('templateInfo', 'placeholderLabels', 'availablePlaceholders'));
   }
 
   public function update(Request $request, $id)

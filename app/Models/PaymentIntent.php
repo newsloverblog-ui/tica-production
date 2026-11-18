@@ -5,8 +5,11 @@ namespace App\Models;
 use App\Casts\PrefixedEncryptedString;
 use App\Models\Event\Booking;
 use App\Services\FunnelAnalyticsService;
+use App\Services\MailTemplateService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Throwable;
 
 class PaymentIntent extends Model
@@ -43,6 +46,27 @@ class PaymentIntent extends Model
             }
 
             self::recordStatusAnalytics($intent);
+
+            if ((string) $intent->status === 'failed') {
+                $payload = (array) ($intent->payload ?: []);
+                DB::afterCommit(function () use ($intent, $payload): void {
+                    if (!Schema::hasTable('application_mail_deliveries')) return;
+                    $eventTitle = Schema::hasTable('event_contents')
+                        ? (string) (\App\Models\Event\EventContent::query()
+                            ->where('event_id', $intent->event_id)->value('title') ?: 'your event')
+                        : 'your event';
+                    app(MailTemplateService::class)->queueSafely('payment_failed', $intent->email, [
+                        'customer_name' => trim(($payload['fname'] ?? '').' '.($payload['lname'] ?? '')) ?: 'there',
+                        'event_title' => $eventTitle,
+                        'amount' => strtoupper((string) $intent->currency).' '.number_format((float) $intent->amount, 2),
+                        'reference' => $intent->reference,
+                        'reason' => $intent->last_error ?: 'The payment provider did not complete the transaction.',
+                        'checkout_link' => URL::temporarySignedRoute(
+                            'event_booking.paystack.recovery', now()->addHours(24), ['reference' => $intent->reference]
+                        ),
+                    ], $intent, 'failed:'.$intent->reference);
+                });
+            }
         });
     }
 

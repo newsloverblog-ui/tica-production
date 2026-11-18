@@ -30,6 +30,8 @@ class EventCancellationNoticeMail extends Mailable
             'reason' => $this->customerMessage ?: $this->reason,
             'order_reference' => $this->bookingReference,
             'refund_timing' => $this->refundMessage,
+            'refund_info' => $this->refundMessage,
+            'dashboard_link' => url('/customer/orders'),
         ]);
 
         return $this->subject($rendered['subject'])->html($rendered['html']);

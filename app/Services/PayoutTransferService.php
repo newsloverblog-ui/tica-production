@@ -522,20 +522,32 @@ class PayoutTransferService
             } elseif ($status === 'reversed' && (int) $withdrawal->status === Withdraw::STATUS_PAID) {
                 if (Schema::hasTable('financial_ledger_accounts')) {
                     app(FinancialLedgerService::class)->reversePaidWithdrawal($withdrawal, $transfer->currency);
+                    app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, $transfer->currency);
                 }
+                $organizer = Organizer::whereKey($withdrawal->organizer_id)->lockForUpdate()->firstOrFail();
+                $organizer->amount = round((float) $organizer->amount + (float) $withdrawal->amount, 2);
+                $organizer->save();
                 $withdrawal->forceFill([
-                    'status' => Withdraw::STATUS_HELD,
-                    'decision_reason' => 'The provider reversed this payout; finance review is required.',
+                    'status' => Withdraw::STATUS_REJECTED,
+                    'decision_reason' => 'The provider reversed this payout; funds were returned to the available balance.',
                     'paid_at' => null,
                 ])->save();
-                $withdrawalTransaction->payment_status = 0;
+                $withdrawalTransaction->payment_status = 2;
                 $withdrawalTransaction->save();
             } elseif (in_array($status, ['failed', 'reversed'], true)
                 && (int) $withdrawal->status === Withdraw::STATUS_PROCESSING) {
+                if (Schema::hasTable('financial_ledger_accounts')) {
+                    app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, $transfer->currency);
+                }
+                $organizer = Organizer::whereKey($withdrawal->organizer_id)->lockForUpdate()->firstOrFail();
+                $organizer->amount = round((float) $organizer->amount + (float) $withdrawal->amount, 2);
+                $organizer->save();
                 $withdrawal->forceFill([
-                    'status' => Withdraw::STATUS_HELD,
-                    'decision_reason' => 'Paystack transfer ' . $status . '; finance review is required.',
+                    'status' => Withdraw::STATUS_REJECTED,
+                    'decision_reason' => 'Paystack transfer ' . $status . '; funds were returned to the available balance.',
                 ])->save();
+                $withdrawalTransaction->payment_status = 2;
+                $withdrawalTransaction->save();
             }
 
             AuditLogger::record('payout.transfer_status_changed', $transfer, [], [

@@ -22,6 +22,7 @@ use App\Services\PayoutTransferService;
 use App\Services\ProductPaystackPaymentService;
 use App\Services\ProductGatewayRefundService;
 use App\Services\TicaPromotionPaystackService;
+use App\Services\MailTemplateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
@@ -276,6 +277,23 @@ class PaystackController extends Controller
             return response()->json(['status' => 'accepted'], 200);
         }
 
+        if ($eventName === 'charge.failed') {
+            $reference = trim((string) ($event->data->reference ?? ''));
+            $intent = $reference !== ''
+                ? PaymentIntent::query()->where('gateway', 'paystack')->where('reference', $reference)->first()
+                : null;
+            if ($intent && $intent->status !== 'completed') {
+                $intent->forceFill([
+                    'status' => 'failed',
+                    'last_error' => (string) ($event->data->gateway_response ?? 'Paystack reported an unsuccessful charge.'),
+                ])->save();
+                if ($token = data_get((array) $intent->payload, 'reservation_token')) {
+                    (new TicketReservationService())->release((string) $token, 'payment_failed');
+                }
+            }
+            return response()->json(['status' => 'accepted'], 200);
+        }
+
         if ($eventName !== 'charge.success') {
             return response()->json(['status' => 'ignored'], 200);
         }
@@ -345,6 +363,7 @@ class PaystackController extends Controller
             if ($intent) {
                 $intent->update(['status' => 'failed', 'last_error' => implode(',', $verificationErrors)]);
             }
+            $this->queueWebhookFailure($eventName, (string) $reference, implode(', ', $verificationErrors));
             return response()->json(['status' => 'payment verification mismatch'], 422);
         }
 
@@ -366,8 +385,20 @@ class PaystackController extends Controller
                 'exception_code' => $e->getCode(),
                 'request_id' => $request->attributes->get('request_id'),
             ]);
+            $this->queueWebhookFailure($eventName, (string) $reference, 'The verified payment could not be fulfilled safely.');
             return response()->json(['status' => 'error'], 500);
         }
+    }
+
+    private function queueWebhookFailure(string $eventName, string $reference, string $reason): void
+    {
+        app(MailTemplateService::class)->queueAdminSafely('admin_payment_webhook_failure', [
+            'provider' => 'Paystack',
+            'webhook_event' => $eventName,
+            'reference' => $reference,
+            'reason' => $reason,
+            'admin_link' => url('/admin/payment-operations'),
+        ], null, hash('sha256', $eventName.'|'.$reference.'|'.$reason));
     }
 
     // =========================================================================

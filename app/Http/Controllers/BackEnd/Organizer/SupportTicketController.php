@@ -82,7 +82,8 @@ class SupportTicketController extends Controller
         }
         $in['user_id'] = Auth::guard('organizer')->user()->id;
         $in['user_type'] = 'organizer';
-        SupportTicket::create($in);
+        $created = SupportTicket::create($in);
+        app(\App\Services\SupportTicketMailService::class)->created($created);
 
         Session::flash('success', 'Added Successfully');
         return back();

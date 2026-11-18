@@ -50,6 +50,24 @@ class Customer extends Model implements AuthenticatableContract
     'two_factor_secret' => 'encrypted',
     'two_factor_recovery_codes' => 'encrypted:array',
   ];
+
+  protected static function booted(): void
+  {
+    static::updated(function (self $customer): void {
+      $type = $customer->wasChanged('password') ? 'password_changed'
+        : ($customer->wasChanged('status') && (int) $customer->status === 0 ? 'account_suspended' : null);
+      if (!$type) return;
+      \Illuminate\Support\Facades\DB::afterCommit(function () use ($customer, $type): void {
+        app(\App\Services\MailTemplateService::class)->queueSafely($type, $customer->email, [
+          'account_name' => trim((string) $customer->fname.' '.(string) $customer->lname) ?: $customer->username ?: 'there',
+          'changed_at' => now()->format('D, j M Y g:i A'),
+          'reason' => $type === 'account_suspended' ? 'Your account was disabled by TICA administration.' : null,
+          'dashboard_link' => url('/login'),
+          'support_link' => url('/contact'),
+        ], $customer, $type.':'.$customer->updated_at?->getTimestamp());
+      });
+    });
+  }
   /**
    * The accessors to append to the model's array form.
    *

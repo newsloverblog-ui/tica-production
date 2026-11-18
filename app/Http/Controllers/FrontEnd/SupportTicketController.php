@@ -47,6 +47,7 @@ class SupportTicketController extends Controller
       $in['attachment'] = $fileName;
     }
     $save = SupportTicket::create($in);
+    app(\App\Services\SupportTicketMailService::class)->created($save);
     Session::flash('success', 'Ticket has been submitted successfully..!');
     return back();
   }
@@ -104,6 +105,7 @@ class SupportTicketController extends Controller
     $ticket->update([
       'last_message' => Carbon::now()
     ]);
+    // Customer replies are visible to support; only staff replies notify the requester.
 
     Session::flash('success', 'Message Sent Successfully');
     return back();

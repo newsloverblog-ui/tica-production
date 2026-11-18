@@ -595,6 +595,52 @@ CREATE INDEX IF NOT EXISTS event_agenda_items_programme_person_id_index ON publi
 CREATE INDEX IF NOT EXISTS event_agenda_items_event_order_idx ON public.event_agenda_items (event_id, is_visible, starts_at, sort_order);
 SELECT pg_temp.tica_mark_migration('2026_11_17_180000_create_event_programme_tables');
 
+-- 13. Admin-editable transactional email templates ----------------------
+-- Existing custom templates are never overwritten. The Laravel migration
+-- and seeder contain the same defaults and the application provides the
+-- full placeholder reference on each edit screen.
+DO $$
+BEGIN
+  IF to_regclass('public.mail_templates') IS NOT NULL THEN
+    INSERT INTO public.mail_templates (mail_type, mail_subject, mail_body)
+    SELECT v.mail_type, v.mail_subject, v.mail_body
+      FROM (VALUES
+        ('payment_failed', 'Payment unsuccessful for {event_title}', '<p>Hi {customer_name},</p><p>We could not complete your payment for <strong>{event_title}</strong>.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Reason: {reason}</p><p><a href="{checkout_link}">Try payment again</a></p><p>Regards,<br>{website_title}</p>'),
+        ('payment_pending_reminder', 'Complete your booking for {event_title}', '<p>Hi {customer_name},</p><p>Your checkout for <strong>{event_title}</strong> is still waiting for payment.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}</p><p><a href="{checkout_link}">Complete checkout</a></p><p>Regards,<br>{website_title}</p>'),
+        ('refund_initiated', 'Your refund for {event_title} has started', '<p>Hi {customer_name},</p><p>We have started your refund for <strong>{event_title}</strong>.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Reason: {reason}</p><p><a href="{dashboard_link}">View refund status</a></p><p>Regards,<br>{website_title}</p>'),
+        ('refund_completed', 'Your refund for {event_title} is complete', '<p>Hi {customer_name},</p><p>Your refund for <strong>{event_title}</strong> has been completed.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}</p><p><a href="{dashboard_link}">View order</a></p><p>Regards,<br>{website_title}</p>'),
+        ('withdraw_request_received', 'Withdrawal request {reference} received', '<p>Hi {organizer_name},</p><p>We received your withdrawal request.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Bank: {bank_name}<br>Account: {masked_account_number}</p><p><a href="{dashboard_link}">View payout</a></p><p>Regards,<br>{website_title}</p>'),
+        ('payout_successful', 'Your payout of {amount} was sent', '<p>Hi {organizer_name},</p><p>Your payout was sent to your verified bank account.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Bank: {bank_name}<br>Account: {masked_account_number}</p><p><a href="{dashboard_link}">View finance statement</a></p><p>Regards,<br>{website_title}</p>'),
+        ('payout_failed', 'Action needed: payout {reference} was not completed', '<p>Hi {organizer_name},</p><p>We could not complete your payout. The funds have been returned to your available balance where applicable.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Reason: {reason}</p><p><a href="{dashboard_link}">Review payout details</a></p><p>Regards,<br>{website_title}</p>'),
+        ('bank_account_changed', 'Security alert: your payout account changed', '<p>Hi {organizer_name},</p><p>Your payout account was changed.</p><p>Bank: {bank_name}<br>Account: {masked_account_number}<br>Changed at: {changed_at}</p><p><a href="{dashboard_link}">Review payout account</a></p><p>Regards,<br>{website_title}</p>'),
+        ('new_ticket_sale', 'New ticket sale for {event_title}', '<p>Hi {organizer_name},</p><p>You received a new order for <strong>{event_title}</strong>.</p><p>Tickets: {ticket_quantity}<br>Gross amount: <strong>{amount}</strong><br>Reference: {reference}</p><p><a href="{dashboard_link}">View order</a></p><p>Regards,<br>{website_title}</p>'),
+        ('event_updated', 'Important update for {event_title}', '<p>Hi {customer_name},</p><p>The details for <strong>{event_title}</strong> have changed.</p><p>Date: {event_date}<br>Venue: {event_venue}<br>Update: {change_summary}</p><p><a href="{event_link}">View updated event</a></p><p>Regards,<br>{website_title}</p>'),
+        ('event_cancelled', '{event_title} has been cancelled', '<p>Hi {customer_name},</p><p><strong>{event_title}</strong> has been cancelled.</p><p>Reason: {reason}<br>Refund information: {refund_info}</p><p><a href="{dashboard_link}">View refund status</a></p><p>Regards,<br>{website_title}</p>'),
+        ('event_reminder', 'Tomorrow: {event_title}', '<p>Hi {customer_name},</p><p><strong>{event_title}</strong> starts in about 24 hours.</p><p>Date: {event_date}<br>Venue: {event_venue}</p><p><a href="{ticket_link}">Open ticket and QR</a></p><p>Regards,<br>{website_title}</p>'),
+        ('event_sold_out', '{event_title} is sold out', '<p>Hi {organizer_name},</p><p>Every available ticket for <strong>{event_title}</strong> has been sold.</p><p>Tickets sold: {ticket_quantity}<br>Gross sales: {amount}</p><p><a href="{dashboard_link}">View analytics</a></p><p>Regards,<br>{website_title}</p>'),
+        ('welcome_customer', 'Welcome to {website_title}', '<p>Hi {customer_name},</p><p>Welcome to {website_title}. Your account is ready.</p><p><a href="{dashboard_link}">Open your dashboard</a></p><p>Regards,<br>{website_title}</p>'),
+        ('welcome_organizer', 'Welcome to {website_title} — confirm your email', '<p>Hi {organizer_name},</p><p>Welcome to {website_title}. Confirm your email to start creating events.</p><p><a href="{verification_link}">Confirm email</a></p><p>Regards,<br>{website_title}</p>'),
+        ('organizer_account_approved', 'Your organizer account is approved', '<p>Hi {organizer_name},</p><p>Your organizer account has been approved.</p><p><a href="{dashboard_link}">Open your dashboard</a></p><p>Regards,<br>{website_title}</p>'),
+        ('organizer_account_rejected', 'Update about your organizer account', '<p>Hi {organizer_name},</p><p>We could not approve your organizer account.</p><p>Reason: {reason}</p><p><a href="{dashboard_link}">Review account details</a></p><p>Regards,<br>{website_title}</p>'),
+        ('password_changed', 'Security alert: your password changed', '<p>Hi {account_name},</p><p>Your password was changed at {changed_at}.</p><p>If this was not you, secure your account immediately.</p><p><a href="{dashboard_link}">Secure my account</a></p><p>Regards,<br>{website_title}</p>'),
+        ('account_suspended', 'Your {website_title} account has been suspended', '<p>Hi {account_name},</p><p>Your account has been suspended.</p><p>Reason: {reason}</p><p><a href="{support_link}">Contact support</a></p><p>Regards,<br>{website_title}</p>'),
+        ('admin_new_organizer', 'New organizer: {organizer_name}', '<p>A new organizer account has been created.</p><p>Name: {organizer_name}<br>Email: {organizer_email}</p><p><a href="{admin_link}">Review organizer</a></p><p>Regards,<br>{website_title}</p>'),
+        ('admin_new_withdrawal_request', 'New withdrawal request {reference}', '<p>{organizer_name} requested a withdrawal.</p><p>Amount: <strong>{amount}</strong><br>Reference: {reference}<br>Bank: {bank_name}<br>Account: {masked_account_number}</p><p><a href="{admin_link}">Review withdrawal</a></p><p>Regards,<br>{website_title}</p>'),
+        ('admin_payment_webhook_failure', 'Payment webhook needs attention', '<p>A payment webhook could not be processed safely.</p><p>Provider: {provider}<br>Event: {webhook_event}<br>Reference: {reference}<br>Reason: {reason}</p><p><a href="{admin_link}">Open payment operations</a></p><p>Regards,<br>{website_title}</p>'),
+        ('support_ticket_created', 'Support request #{ticket_id} received', '<p>Hi {account_name},</p><p>We received your support request: <strong>{ticket_subject}</strong>.</p><p><a href="{ticket_link}">View request</a></p><p>Regards,<br>{website_title}</p>'),
+        ('support_ticket_reply', 'New reply to support request #{ticket_id}', '<p>Hi {account_name},</p><p>There is a new reply to <strong>{ticket_subject}</strong>.</p><p>{reply_excerpt}</p><p><a href="{ticket_link}">Read and reply</a></p><p>Regards,<br>{website_title}</p>'),
+        ('support_ticket_closed', 'Support request #{ticket_id} closed', '<p>Hi {account_name},</p><p>Your support request <strong>{ticket_subject}</strong> has been closed.</p><p><a href="{ticket_link}">View request</a></p><p>Regards,<br>{website_title}</p>'),
+        ('admin_contact_form', 'New contact message from {customer_name}', '<p>A new contact form message was received.</p><p>Name: {customer_name}<br>Email: {customer_email}<br>Subject: {message_subject}</p><p>{message_body}</p>')
+      ) AS v(mail_type, mail_subject, mail_body)
+     WHERE NOT EXISTS (
+       SELECT 1 FROM public.mail_templates m WHERE m.mail_type = v.mail_type
+     );
+    PERFORM pg_temp.tica_mark_migration('2026_11_18_120000_add_transactional_mail_templates');
+  ELSE
+    RAISE NOTICE 'mail_templates does not exist yet: skipped transactional templates.';
+  END IF;
+END $$;
+
 -- 13. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
@@ -960,6 +1006,7 @@ SELECT 'update not recorded', m.name
   ('2026_11_17_100000_add_timezone_to_events')
   ,('2026_11_17_120000_create_financial_ledger')
   ,('2026_11_17_180000_create_event_programme_tables')
+  ,('2026_11_18_120000_add_transactional_mail_templates')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

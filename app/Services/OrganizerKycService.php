@@ -120,9 +120,19 @@ class OrganizerKycService
                     app(LifecycleMailService::class)->queueSafely(
                         LifecycleMailCatalog::ORGANIZER_VERIFICATION_APPROVED,
                         $approved?->email,
-                        ['payout_account_url' => url('/organizer/kyc')],
+                        ['organizer_name' => $approved?->username ?: 'there', 'payout_account_url' => url('/organizer/kyc')],
                         $submission
                     );
+                });
+            } else {
+                $organizerId = (int) $organizer->id;
+                DB::afterCommit(function () use ($organizerId, $submission): void {
+                    $rejected = Organizer::find($organizerId);
+                    app(MailTemplateService::class)->queueSafely('organizer_account_rejected', $rejected?->email, [
+                        'organizer_name' => $rejected?->username ?: 'there',
+                        'reason' => $submission->rejection_reason,
+                        'dashboard_link' => url('/organizer/kyc'),
+                    ], $submission, 'organizer-kyc-rejected:'.$submission->id);
                 });
             }
             return $submission->fresh();

@@ -38,6 +38,33 @@ class Organizer extends Model implements AuthenticatableContract
 
   protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
 
+  protected static function booted(): void
+  {
+    static::created(function (self $organizer): void {
+      \Illuminate\Support\Facades\DB::afterCommit(function () use ($organizer): void {
+        app(\App\Services\MailTemplateService::class)->queueAdminSafely('admin_new_organizer', [
+          'organizer_name' => $organizer->username ?: 'New organizer',
+          'organizer_email' => $organizer->email,
+          'admin_link' => url('/admin/organizer-management'),
+        ], $organizer, 'admin-new-organizer:'.$organizer->id);
+      });
+    });
+    static::updated(function (self $organizer): void {
+      $type = $organizer->wasChanged('password') ? 'password_changed'
+        : ($organizer->wasChanged('status') && (int) $organizer->status === 0 ? 'account_suspended' : null);
+      if (!$type) return;
+      \Illuminate\Support\Facades\DB::afterCommit(function () use ($organizer, $type): void {
+        app(\App\Services\MailTemplateService::class)->queueSafely($type, $organizer->email, [
+          'account_name' => $organizer->username ?: 'there',
+          'changed_at' => now()->format('D, j M Y g:i A'),
+          'reason' => $type === 'account_suspended' ? 'Your account was disabled by TICA administration.' : null,
+          'dashboard_link' => url('/login?role=org'),
+          'support_link' => url('/contact'),
+        ], $organizer, $type.':'.$organizer->updated_at?->getTimestamp());
+      });
+    });
+  }
+
   /**
    * The one place an organiser's photo URL is built. The ?v= stamp changes
    * whenever the account is saved, so a new photo shows without a hard refresh.

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ApplicationMailDelivery;
 use App\Support\LifecycleMailCatalog;
+use App\Support\MailTemplateCatalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,15 @@ class LifecycleMailService
     public function render(string $kind, array $data = []): array
     {
         $message = LifecycleMailCatalog::compose($kind, $data);
+
+        if ($templateType = MailTemplateCatalog::lifecycleTemplate($kind, $data)) {
+            $rendered = app(MailTemplateService::class)->render($templateType, $data);
+            return [
+                'subject' => $rendered['subject'],
+                'html' => $rendered['html'],
+                'message' => $message,
+            ];
+        }
 
         return [
             'subject' => $message['subject'],

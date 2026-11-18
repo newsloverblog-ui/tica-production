@@ -5,11 +5,14 @@ namespace App\Console\Commands;
 use App\Models\Event;
 use App\Models\Event\Booking;
 use App\Models\Organizer;
+use App\Models\PaymentIntent;
 use App\Services\EventLifecycleNotificationService;
 use App\Services\LifecycleMailService;
+use App\Services\MailTemplateService;
 use App\Support\LifecycleMailCatalog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Schema;
 
 class DispatchLifecycleNotifications extends Command
@@ -37,7 +40,7 @@ class DispatchLifecycleNotifications extends Command
 
     private function dispatchHourly(): int
     {
-        $count = 0;
+        $count = $this->dispatchPendingPaymentReminders();
         Event::query()->with(['information', 'organizer', 'tickets'])
             ->where('status', 1)->where(function ($query) {
                 $query->whereNull('lifecycle_status')->orWhere('lifecycle_status', 'scheduled');
@@ -60,7 +63,7 @@ class DispatchLifecycleNotifications extends Command
                         ], '24h:' . $start->toIso8601String());
                     }
                     if (($event->event_type === 'online' || !empty($event->is_hybrid)) && $event->online_join_url && $minutes >= 15 && $minutes <= 75) {
-                        $count += $this->queueBuyerNotice($event, LifecycleMailCatalog::BUYER_ONLINE_JOIN_LINK, [
+                        $count += $this->queueBuyerNotice($event, LifecycleMailCatalog::BUYER_ONLINE_JOIN, [
                             'event_name' => $event->information->title ?? 'Your online event',
                             'event_date' => $start->format('D, j M Y · g:i A'),
                             'join_url' => $event->online_join_url,
@@ -74,6 +77,33 @@ class DispatchLifecycleNotifications extends Command
         return $count;
     }
 
+    private function dispatchPendingPaymentReminders(): int
+    {
+        $count = 0;
+        PaymentIntent::query()
+            ->whereIn('status', ['initialized', 'pending', 'verification_required'])
+            ->where('created_at', '<=', now()->subHour())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->chunkById(100, function ($intents) use (&$count): void {
+                foreach ($intents as $intent) {
+                    $payload = (array) ($intent->payload ?: []);
+                    $event = Event::with('information')->find($intent->event_id);
+                    if (app(MailTemplateService::class)->queueSafely('payment_pending_reminder', $intent->email, [
+                        'customer_name' => trim(($payload['fname'] ?? '').' '.($payload['lname'] ?? '')) ?: 'there',
+                        'event_title' => $event?->information?->title ?: 'your event',
+                        'amount' => strtoupper((string) $intent->currency).' '.number_format((float) $intent->amount, 2),
+                        'reference' => $intent->reference,
+                        'checkout_link' => URL::temporarySignedRoute(
+                            'event_booking.paystack.recovery', now()->addHours(24), ['reference' => $intent->reference]
+                        ),
+                    ], $intent, 'pending-reminder:'.$intent->reference)) $count++;
+                }
+            });
+        return $count;
+    }
+
     private function queueBuyerNotice(Event $event, string $kind, array $data, string $dedupe): int
     {
         $queued = 0;
@@ -83,6 +113,8 @@ class DispatchLifecycleNotifications extends Command
                 foreach ($bookings as $booking) {
                     $payload = $data;
                     $payload['order_url'] = url('/customer/booking/details/' . $booking->id);
+                    $payload['ticket_link'] = $payload['order_url'];
+                    $payload['customer_name'] = trim((string) $booking->fname.' '.(string) $booking->lname) ?: 'there';
                     if (app(LifecycleMailService::class)->queueSafely($kind, $booking->email, $payload, $booking, [], $dedupe)) $queued++;
                 }
             });
@@ -103,8 +135,12 @@ class DispatchLifecycleNotifications extends Command
             $event->organizer->email,
             [
                 'event_name' => $event->information->title ?? 'Your event',
+                'organizer_name' => $event->organizer->username ?: 'there',
                 'sold_out' => $soldOut,
                 'tickets_sold' => $sold,
+                'ticket_quantity' => $sold,
+                'amount' => 'NGN '.number_format((float) Booking::where('event_id', $event->id)
+                    ->whereIn('paymentStatus', ['completed', 'free', '1'])->sum(DB::raw('price + tax')), 2),
                 'tickets_remaining' => $remaining,
                 'tickets_manage_url' => route('organizer.event.ticket'),
             ],

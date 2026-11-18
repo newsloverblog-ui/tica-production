@@ -44,7 +44,7 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
 
     public function handle(): void
     {
-        $transfer = PayoutTransfer::with('withdrawal.organizer')->findOrFail($this->transferId);
+        $transfer = PayoutTransfer::with(['withdrawal.organizer', 'payoutAccount'])->findOrFail($this->transferId);
         if ($transfer->status !== $this->expectedStatus) {
             return;
         }
@@ -91,7 +91,10 @@ class SendPayoutStatusNotification implements ShouldQueue, ShouldBeEncrypted, Sh
             (string) $transfer->withdrawal->withdraw_id,
             number_format((float) $transfer->amount, 2, '.', ','),
             strtoupper($transfer->currency),
-            $audience === 'finance' ? $transfer->last_error : null
+            $transfer->last_error,
+            (string) ($transfer->withdrawal?->organizer?->username ?: 'there'),
+            (string) ($transfer->payoutAccount?->bank_name ?: ''),
+            \App\Services\MailTemplateService::maskAccount($transfer->payoutAccount?->account_number)
         );
     }
 

@@ -146,6 +146,9 @@ class SupportTicketController extends Controller
     if ($ticket && $ticket->user_type === 'organizer') {
       \App\Support\OrganizerInbox::send((int) $ticket->user_id, 'support.reply', __('TICA replied to your request'), (string) $ticket->subject, route('organizer.support_tickets.message', $ticket->id));
     }
+    if ($ticket) {
+      app(\App\Services\SupportTicketMailService::class)->replied($ticket->fresh(), (string) $input['reply']);
+    }
 
     Session::flash('success', 'Message Sent Successfully');
     return back();
@@ -156,6 +159,9 @@ class SupportTicketController extends Controller
     SupportTicket::where('id', $id)->update([
       'status' => 3,
     ]);
+    if ($ticket = SupportTicket::find($id)) {
+      app(\App\Services\SupportTicketMailService::class)->closed($ticket);
+    }
     Session::flash('success', 'Support Ticket close successfully!');
     return back();
   }

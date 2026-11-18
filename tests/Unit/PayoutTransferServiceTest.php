@@ -288,7 +288,7 @@ class PayoutTransferServiceTest extends TestCase
         );
     }
 
-    public function test_failed_webhook_holds_withdrawal_without_restoring_reserved_balance(): void
+    public function test_failed_webhook_returns_reserved_balance_and_rejects_withdrawal(): void
     {
         [$transfer, $withdrawal, $organizer] = $this->submittedTransfer();
 
@@ -300,9 +300,9 @@ class PayoutTransferServiceTest extends TestCase
         ]);
 
         $this->assertSame('failed', $transfer->fresh()->status);
-        $this->assertSame(Withdraw::STATUS_HELD, (int) $withdrawal->fresh()->status);
-        $this->assertSame(1000.0, (float) $organizer->fresh()->amount);
-        $this->assertSame('0', (string) Transaction::firstOrFail()->payment_status);
+        $this->assertSame(Withdraw::STATUS_REJECTED, (int) $withdrawal->fresh()->status);
+        $this->assertSame(11000.0, (float) $organizer->fresh()->amount);
+        $this->assertSame('2', (string) Transaction::firstOrFail()->payment_status);
     }
 
     public function test_unknown_submission_outcome_is_audited_and_reconciled_not_marked_failed(): void

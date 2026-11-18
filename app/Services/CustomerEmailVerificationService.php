@@ -114,6 +114,14 @@ class CustomerEmailVerificationService
 
             if (!$customer->email_verified_at) {
                 $customer->forceFill(['email_verified_at' => now(), 'status' => 1, 'verification_token' => null])->save();
+                $customerId = (int) $customer->id;
+                DB::afterCommit(function () use ($customerId): void {
+                    $verified = Customer::find($customerId);
+                    app(MailTemplateService::class)->queueSafely('welcome_customer', $verified?->email, [
+                        'customer_name' => trim((string) $verified?->fname.' '.(string) $verified?->lname) ?: 'there',
+                        'dashboard_link' => url('/account'),
+                    ], $verified, 'welcome-customer:'.$customerId);
+                });
             }
 
             $delivery->forceFill(['status' => 'verified', 'verified_at' => now()])->save();

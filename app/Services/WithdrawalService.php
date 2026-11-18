@@ -124,6 +124,30 @@ class WithdrawalService
                 'payout_account_last4' => $payoutAccount->account_last4,
             ]);
 
+            $withdrawId = (int) $withdraw->id;
+            DB::afterCommit(function () use ($withdrawId): void {
+                $requested = Withdraw::with(['organizer', 'payoutAccount'])->find($withdrawId);
+                if (!$requested || !$requested->organizer) return;
+                $account = $requested->payoutAccount;
+                $data = [
+                    'organizer_name' => $requested->organizer->username,
+                    'amount' => 'NGN '.number_format((float) $requested->payable_amount, 2),
+                    'reference' => $requested->withdraw_id,
+                    'bank_name' => $account?->bank_name ?: 'Bank account',
+                    'masked_account_number' => $account?->maskedNumber() ?: 'Not provided',
+                    'dashboard_link' => url('/dashboard/payouts'),
+                    'admin_link' => url('/admin/withdraw'),
+                ];
+                app(MailTemplateService::class)->queueSafely(
+                    'withdraw_request_received', $requested->organizer->email, $data, $requested,
+                    'withdraw-request:'.$requested->withdraw_id
+                );
+                app(MailTemplateService::class)->queueAdminSafely(
+                    'admin_new_withdrawal_request', $data, $requested,
+                    'admin-withdraw-request:'.$requested->withdraw_id
+                );
+            });
+
             return $withdraw;
         }, 3);
     }

@@ -44,6 +44,20 @@ class Admin extends Model implements AuthenticatableContract
     'two_factor_recovery_codes' => 'encrypted:array',
   ];
 
+  protected static function booted(): void
+  {
+    static::updated(function (self $admin): void {
+      if (!$admin->wasChanged('password')) return;
+      \Illuminate\Support\Facades\DB::afterCommit(function () use ($admin): void {
+        app(\App\Services\MailTemplateService::class)->queueSafely('password_changed', $admin->email, [
+          'account_name' => trim((string) $admin->first_name.' '.(string) $admin->last_name) ?: $admin->username ?: 'there',
+          'changed_at' => now()->format('D, j M Y g:i A'),
+          'dashboard_link' => url('/admin'),
+        ], $admin, 'password-changed:'.$admin->updated_at?->getTimestamp());
+      });
+    });
+  }
+
   public function role()
   {
     return $this->belongsTo(RolePermission::class, 'role_id', 'id');
