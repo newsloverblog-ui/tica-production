@@ -8,7 +8,7 @@
   <div class="tica-coupons-page">
     <header class="coupon-page-header">
       <div><h1>{{ __('Coupons') }}</h1><p>{{ __('Create and manage event discount codes.') }}</p></div>
-      <button type="button" class="coupon-btn coupon-btn--primary" data-toggle="modal" data-target="#createModal"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Create coupon') }}</button>
+      <button type="button" class="coupon-btn coupon-btn--primary" data-toggle="modal" data-target="#createModal"><span class="coupon-btn-mark" aria-hidden="true">+</span>{{ __('Create coupon') }}</button>
     </header>
 
     <div class="coupon-stats" aria-label="{{ __('Coupon summary') }}">
@@ -20,7 +20,7 @@
 
     <section class="coupon-surface">
       <form class="coupon-toolbar" method="GET" action="{{ route('admin.event_management.coupons') }}">
-        <label class="coupon-search"><span class="sr-only">{{ __('Search coupons') }}</span><i class="fas fa-search" aria-hidden="true"></i><input type="search" name="search" value="{{ request('search') }}" placeholder="{{ __('Search name or code') }}"></label>
+        <label class="coupon-search"><span class="sr-only">{{ __('Search coupons') }}</span><input type="search" name="search" value="{{ request('search') }}" placeholder="{{ __('Search name or code') }}"></label>
         <select name="status" aria-label="{{ __('Coupon status') }}"><option value="">{{ __('All statuses') }}</option><option value="active" @selected(request('status')==='active')>{{ __('Active') }}</option><option value="pending" @selected(request('status')==='pending')>{{ __('Scheduled') }}</option><option value="expired" @selected(request('status')==='expired')>{{ __('Expired') }}</option><option value="paused" @selected(request('status')==='paused')>{{ __('Paused') }}</option></select>
         <button class="coupon-btn coupon-btn--quiet" type="submit">{{ __('Filter') }}</button>
         @if(request()->hasAny(['search','status']))<a class="coupon-clear" href="{{ route('admin.event_management.coupons') }}">{{ __('Clear') }}</a>@endif
