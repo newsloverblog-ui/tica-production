@@ -628,6 +628,10 @@ function prev(){
 ['c-name','c-date','c-time','c-venue','c-city','c-price'].forEach(function(i){$(i).addEventListener('input',prev)});
 $('c-flyer').addEventListener('change',function(){
   var f=this.files[0];if(!f)return;
+  var feedback=$('c-msg'),message=function(text,state){if(!feedback)return;feedback.textContent=text||'';feedback.className='ce-feedback'+(state?' is-'+state:'')};
+  if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)){this.value='';message('Use a JPG, PNG, WebP or GIF flyer.','error');return}
+  if(f.size>25*1024*1024){this.value='';message('Use a flyer smaller than 25 MB.','error');return}
+  if(f.size>2*1024*1024)message('Large flyer selected. TICA will optimize it before upload.','working');
   $('p-flyer').innerHTML='';var img=new Image();img.alt='Your flyer';img.src=URL.createObjectURL(f);$('p-flyer').appendChild(img);
 });
 
@@ -1984,7 +1988,7 @@ $('c-programme').addEventListener('change',function(){var on=this.checked;this.s
 $('ce-add-person').addEventListener('click',function(){personRow().querySelector('.ce-person-name').focus()});
 $('ce-add-agenda').addEventListener('click',function(){var row=agendaRow({starts_at:$('c-date').value&&$('c-time').value?$('c-date').value+'T'+$('c-time').value:''});row.querySelector('.ce-agenda-title').focus()});
 $('ce-people').addEventListener('input',function(e){if(e.target.classList.contains('ce-person-name')){var row=e.target.closest('.ce-person'),ph=row.querySelector('.ce-person-photo');if(ph&&!ph.querySelector('img'))ph.innerHTML='<span>'+esc(personInitials(e.target.value))+'</span>';refreshProgrammePeople()}});
-$('ce-people').addEventListener('change',function(e){if(!e.target.classList.contains('ce-person-image')||!e.target.files[0])return;var row=e.target.closest('.ce-person'),file=e.target.files[0];if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>3*1024*1024){e.target.value='';setCreateMessage(file.size>3*1024*1024?'Use a portrait smaller than 3 MB.':'Use a JPG, PNG, WebP or GIF portrait.','error');return}var reader=new FileReader();reader.onload=function(){row.querySelector('.ce-person-photo').innerHTML='<img src="'+esc(reader.result)+'" alt="">';row.querySelector('.ce-clear-photo').hidden=false;row.dataset.removeImage='0'};reader.readAsDataURL(file)});
+$('ce-people').addEventListener('change',function(e){if(!e.target.classList.contains('ce-person-image')||!e.target.files[0])return;var row=e.target.closest('.ce-person'),file=e.target.files[0];if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>25*1024*1024){e.target.value='';setCreateMessage(file.size>25*1024*1024?'Use a portrait smaller than 25 MB.':'Use a JPG, PNG, WebP or GIF portrait.','error');return}if(file.size>1024*1024)setCreateMessage('Large portrait selected. TICA will optimize it before upload.','working');var reader=new FileReader();reader.onload=function(){row.querySelector('.ce-person-photo').innerHTML='<img src="'+esc(reader.result)+'" alt="">';row.querySelector('.ce-clear-photo').hidden=false;row.dataset.removeImage='0'};reader.readAsDataURL(file)});
 $('ce-people').addEventListener('click',function(e){var row=e.target.closest('.ce-person');if(!row)return;if(e.target.closest('.ce-person-remove')){row.remove();refreshProgrammePeople();return}if(e.target.closest('.ce-clear-photo')){row.querySelector('.ce-person-image').value='';row.querySelector('.ce-person-photo').innerHTML='<span>'+esc(personInitials(row.querySelector('.ce-person-name').value))+'</span>';row.dataset.removeImage='1';e.target.hidden=true}});
 $('ce-agenda-editor').addEventListener('click',function(e){var b=e.target.closest('.ce-agenda-remove');if(b)b.closest('.ce-agenda-row').remove()});
 
@@ -2110,6 +2114,36 @@ function payload(draft){
   if(ADMIN){fd.append('organizer_id',$('c-owner').value);fd.append('is_featured',$('c-featured').checked?'1':'0');if(EDIT)fd.append('status',$('c-status').value)}
   return fd;
 }
+var EVENT_UPLOAD_LIMIT=3.75*1024*1024;
+function eventImageName(name){return String(name||'event-image').replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'')+'.webp'}
+function optimizeEventImage(file,maxDimension,targetBytes){
+  return new Promise(function(resolve,reject){
+    if(!file||!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){reject(new Error('Use JPG, PNG, WebP or GIF images for your event.'));return}
+    var url=URL.createObjectURL(file),img=new Image();
+    function done(){URL.revokeObjectURL(url)}
+    img.onerror=function(){done();reject(new Error('We could not read one of the event images. Choose another image and try again.'))};
+    img.onload=function(){
+      var scale=Math.min(1,maxDimension/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height)),w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale)),h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale)),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+      if(!ctx){done();reject(new Error('Your browser could not optimize the event images. Use a smaller image and try again.'));return}
+      canvas.width=w;canvas.height=h;ctx.drawImage(img,0,0,w,h);done();
+      var qualities=[.86,.74,.62,.5],attempt=0;
+      function encode(){canvas.toBlob(function(blob){
+        if(!blob){reject(new Error('Your browser could not optimize the event images. Use a smaller image and try again.'));return}
+        if(blob.size<=targetBytes||attempt===qualities.length-1){resolve(blob);return}
+        attempt++;encode();
+      },'image/webp',qualities[attempt])}
+      encode();
+    };
+    img.src=url;
+  });
+}
+function eventPayloadSize(fd){var total=0;fd.forEach(function(value,key){total+=String(key).length+80;if(value instanceof Blob)total+=value.size;else total+=String(value).length});return total}
+function prepareEventPayload(draft){
+  var fd=payload(draft),jobs=[],flyer=$('c-flyer').files[0];
+  if(flyer)jobs.push(optimizeEventImage(flyer,1600,1400*1024).then(function(blob){fd.set('flyer',blob,eventImageName(flyer.name))}));
+  if($('c-programme').checked)[].forEach.call($('ce-people').querySelectorAll('.ce-person'),function(row,i){var input=row.querySelector('.ce-person-image'),file=input&&input.files[0];if(file)jobs.push(optimizeEventImage(file,900,350*1024).then(function(blob){fd.set('programme_people['+i+'][image]',blob,eventImageName(file.name))}))});
+  return Promise.all(jobs).then(function(){if(eventPayloadSize(fd)>EVENT_UPLOAD_LIMIT)throw new Error('Your event images are still too large to upload together. Use fewer or smaller images, then try again.');return fd});
+}
 /* step by step */
 var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review'],at=0,reached=0;
 var STEPNAME=['Details','Type & location','Tickets & fees','Line-up & media','Preview'];
@@ -2162,9 +2196,11 @@ function showCreateSuccess(r,draft){
 function save(draft){
   var msg=$('c-msg'),btns=f.querySelectorAll('.ce-go .btn');setCreateMessage(draft?'Saving your draft…':'Publishing your event…','working');
   [].forEach.call(btns,function(b){b.disabled=true});
-  var req={method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:payload(draft)};
-  (EDIT?fetch(EDIT.endpoint,req):fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',req))
-  .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.message||'We couldn\'t save your event. Try again.');e.data=j;throw e}return j})})
+  prepareEventPayload(draft).then(function(fd){
+    var req={method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd};
+    return EDIT?fetch(EDIT.endpoint,req):fetch(ADMIN?ADMIN.endpoint:'/tica-api/events',req);
+  })
+  .then(function(r){return r.text().then(function(text){var j={};if(text)try{j=JSON.parse(text)}catch(ignore){}if(!r.ok){var message=r.status===413?'Your event images are too large to upload together. Use fewer or smaller images, then try again.':j.message||'We couldn\'t save your event. Try again.';var e=new Error(message);e.data=j;e.status=r.status;throw e}return j})})
   .then(function(r){
     if(!r||!r.event_id||!r.name){var incomplete=new Error('Your session may have expired. Sign in again, then publish the event.');incomplete.data=r||{};throw incomplete}
     window.TICA_NEW={name:r.name,status:r.status};

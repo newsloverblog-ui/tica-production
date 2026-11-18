@@ -59,8 +59,8 @@ test.describe('edge cases (owner)', () => {
     const responsePromise = page.waitForResponse((response) => response.url().endsWith('/tica-api/events') && response.request().method() === 'POST');
     await page.click('#ce-publish');
     const response = await responsePromise;
-    expect(response.status()).toBe(200);
     const body = await response.json();
+    expect(response.status(), JSON.stringify(body)).toBe(200);
     expect(body.event_id).toBeTruthy();
     expect(body.name).toBe(name);
     await expect(page.locator('#ce-success')).toBeVisible();
@@ -73,6 +73,37 @@ test.describe('edge cases (owner)', () => {
     await expect(page.getByRole('heading', { name: 'Opening keynote' })).toBeVisible();
     await noSidewaysScroll(page);
     expect(problems).toEqual([]);
+  });
+
+  test('large event artwork is optimized before the request reaches hosting', async ({ page }) => {
+    const sourceFlyer = fs.readFileSync(path.resolve('public/assets/front/images/favicon.png'));
+    const largeFlyer = Buffer.concat([sourceFlyer, Buffer.alloc(6 * 1024 * 1024)]);
+    let requestBytes = Number.POSITIVE_INFINITY;
+
+    await page.addInitScript(() => {
+      localStorage.setItem('tica_consent_v1', JSON.stringify({ v: 1, at: new Date().toISOString(), p: false, a: false, m: false }));
+    });
+
+    await page.route('**/tica-api/events', async (route) => {
+      requestBytes = route.request().postDataBuffer()?.length ?? Number.POSITIVE_INFINITY;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ event_id: 999999, name: 'QA large flyer', status: 'draft', redirect_url: '/dashboard/events' }),
+      });
+    });
+
+    await page.goto('/create', { waitUntil: 'networkidle' });
+    await page.fill('#c-name', 'QA large flyer');
+    await page.locator('#c-flyer').setInputFiles({
+      name: 'large-event-flyer.png',
+      mimeType: 'image/png',
+      buffer: largeFlyer,
+    });
+    await page.click('#ce-draft');
+
+    await expect(page.locator('#ce-success')).toBeVisible();
+    expect(requestBytes).toBeLessThan(4 * 1024 * 1024);
   });
 
   test('event action menu escapes the scrolling event card and stays on screen', async ({ page }) => {
