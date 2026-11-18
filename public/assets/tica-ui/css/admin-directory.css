@@ -169,6 +169,10 @@
 }
 
 .tica-directory-page--organizers .directory-btn:hover { transform: none; }
+.tica-directory-page--organizers .directory-btn--primary,
+.tica-directory-page--organizers .directory-btn--primary:hover,
+.tica-directory-page--organizers .directory-btn--primary:focus,
+.tica-directory-page--organizers .directory-btn--primary i { color: #fff !important; }
 
 .directory-shortcuts {
   display: flex;
