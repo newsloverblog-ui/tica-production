@@ -179,3 +179,23 @@ npx playwright test --reporter=line
 ```
 
 The QA run used fake Paystack responses and a disposable local database. Exact credentials and connection strings are intentionally omitted.
+
+## 8. Extended breakage sweep
+
+The post-fix release candidate received an additional build-system and framework sweep on 18 November 2026:
+
+| Check | Result |
+|---|---|
+| `composer validate --strict` | ✅ Valid dependency manifest and lock metadata |
+| Strict authoritative Composer autoload | ✅ No PSR-4 or ambiguous-class failures; package discovery completed |
+| First-party PHP syntax scan | ✅ All PHP files in `app`, `bootstrap`, `config`, `database`, `routes`, and `tests` passed |
+| First-party browser-script syntax scan | ✅ Service worker, checkout, cart, scanner, PWA, event, withdrawal, and notification scripts passed |
+| Laravel production optimization | ✅ Configuration, events, routes, and Blade views cached successfully, then caches were cleared |
+| Scheduler discovery | ✅ All scheduled commands registered successfully |
+| TypeScript and production frontend build | ✅ Both frontend entries built |
+| Composer security and abandoned-package audit | ✅ No advisories or abandoned-package failure |
+| npm security audit | ✅ 0 vulnerabilities |
+| Full PHPUnit regression after the lock fix | ✅ 1,046 passed, 1 environment-dependent smoke skipped, 12,014 assertions |
+| Existing remote `main` CI baseline | ✅ Platform verification, organiser settings, database script, cPanel package, and browser QA were green on base commit `a8b8059` |
+
+No additional reproducible application defect was found in this sweep. The payment-fix commits require their own CI run after push; the older green baseline above is supporting evidence only.
