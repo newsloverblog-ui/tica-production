@@ -5,19 +5,31 @@
     <form id="create-form" class="panel ce" novalidate>
       <h1 class="display">Create your event</h1>
       <p class="lead">Fill this in and watch your event card build itself. You can change anything later.</p>
-      <section class="ce-admin" id="ce-admin" hidden aria-labelledby="ce-admin-title">
-        <div class="ce-admin-head"><span class="ce-admin-kicker">Admin controls</span><div><h2 id="ce-admin-title">Event ownership</h2><p>Create for TICA or assign the event to an organizer.</p></div></div>
-        <div class="ce-admin-grid">
-          <div class="inp"><label for="c-owner-search">Event owner</label><input id="c-owner-search" type="search" autocomplete="off" placeholder="Search organizer name or email"><select id="c-owner" name="organizer_id" aria-label="Event owner"><option value="">TICA · platform-managed event</option></select><small id="c-owner-note">The selected organizer will manage tickets, attendees and payouts.</small></div>
-          <label class="ce-admin-feature" for="c-featured"><span><b>Feature this event</b><small>Give it priority in approved featured placements.</small></span><input class="ck-sw" type="checkbox" id="c-featured" name="is_featured"></label>
-          <div class="inp ce-admin-edit" hidden><label for="c-status">Status</label><select id="c-status"><option value="live">Live, people can buy tickets</option><option value="draft">Hidden, saved as a draft</option></select></div>
-        </div>
-        <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
-      </section>
       <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Details</a></li><li><a href="#ce-where" data-ce="ce-where">2. Type &amp; location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Media &amp; settings</a></li><li><a href="#ce-review" data-ce="ce-review">5. Preview</a></li></ol>
       <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 5: Details</p>
 
       <fieldset id="ce-basics"><legend>The basics</legend>
+        <section class="ce-admin" id="ce-admin" hidden aria-labelledby="ce-admin-title">
+          <div class="ce-admin-head"><h2 id="ce-admin-title">Admin options</h2></div>
+          <div class="ce-admin-grid">
+            <div class="ce-admin-owner">
+              <label class="ce-admin-choice" for="c-assign-owner">
+                <input class="ce-admin-check" type="checkbox" id="c-assign-owner" aria-controls="c-owner-picker" aria-expanded="false">
+                <span><b>Assign to an organizer</b><small>They manage tickets, attendees and payouts.</small></span>
+              </label>
+              <div class="inp ce-owner-picker" id="c-owner-picker" hidden>
+                <label for="c-owner">Organizer</label>
+                <select id="c-owner" name="organizer_id" aria-label="Organizer"><option value="">Choose an organizer</option></select>
+              </div>
+            </div>
+            <label class="ce-admin-choice" for="c-featured">
+              <input class="ce-admin-check" type="checkbox" id="c-featured" name="is_featured">
+              <span><b>Feature this event</b><small>Show it in approved featured placements.</small></span>
+            </label>
+            <div class="inp ce-admin-edit" hidden><label for="c-status">Status</label><select id="c-status"><option value="live">Live, people can buy tickets</option><option value="draft">Hidden, saved as a draft</option></select></div>
+          </div>
+          <div class="ce-admin-danger ce-admin-edit" hidden><span><b>Delete this event</b><small>Removes the event, its tickets and its page for good.</small></span><button class="btn btn-line ce-del" type="button" id="ce-delete">Delete event</button></div>
+        </section>
         <div class="inp"><label for="c-name">Event name</label><input id="c-name" name="name" type="text" maxlength="255" placeholder="Give it a name people will remember"></div>
         <div class="two">
           <div class="inp"><label for="c-cat">Category</label><select id="c-cat" name="category_id"><option>Party and nightlife</option><option>Concert or show</option><option>Campus</option><option>Conference or class</option><option>Faith</option><option>Sport and fitness</option><option>Art and food</option></select></div>

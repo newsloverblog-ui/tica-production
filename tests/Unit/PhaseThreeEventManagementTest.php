@@ -32,14 +32,17 @@ class PhaseThreeEventManagementTest extends TestCase
         $this->assertStringContainsString("window.location.reload()", $view);
     }
 
-    public function test_shared_builder_supports_timezone_searchable_ownership_and_drafts_at_every_step(): void
+    public function test_shared_builder_supports_timezone_explicit_ownership_and_drafts_at_every_step(): void
     {
         $view = file_get_contents(resource_path('views/tica-ui/pages/create.blade.php'));
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $controller = file_get_contents(app_path('Http/Controllers/FrontEnd/TicaOrganizerController.php'));
 
         $this->assertStringContainsString('id="c-timezone"', $view);
-        $this->assertStringContainsString('id="c-owner-search"', $view);
+        $this->assertStringContainsString('id="c-assign-owner"', $view);
+        $this->assertStringContainsString('aria-controls="c-owner-picker"', $view);
+        $this->assertStringContainsString('id="c-owner"', $view);
+        $this->assertStringNotContainsString('id="c-owner-search"', $view);
         $this->assertStringContainsString("fd.append('timezone',\$('c-timezone').value)", $script);
         $this->assertStringContainsString("\$('ce-draft').hidden=false", $script);
         $this->assertStringContainsString("'timezone' => ['required', 'timezone']", $controller);

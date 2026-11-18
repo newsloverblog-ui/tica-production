@@ -15,7 +15,7 @@ const ORGANISER = [
   '/organizer/withdraw/exports', '/organizer/event-booking/exports', '/organizer/check-in-ledger/exports', '/organizer/pwa',
 ];
 const ADMIN = [
-  '/admin/dashboard',
+  '/admin/dashboard', '/admin/event-builder',
   '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email',
   '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage',
   '/admin/coupons',

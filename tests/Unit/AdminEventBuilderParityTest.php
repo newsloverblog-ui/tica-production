@@ -32,6 +32,8 @@ class AdminEventBuilderParityTest extends TestCase
         $this->assertStringContainsString("return \$this->createEvent(\n      \$request,", $shared);
         $this->assertStringContainsString("return view('backend.event.event_type')", $controller);
         $this->assertStringContainsString('name="organizer_id"', $view);
+        $this->assertStringContainsString('id="c-assign-owner"', $view);
+        $this->assertStringNotContainsString('id="c-owner-search"', $view);
         $this->assertStringContainsString('id="c-featured"', $view);
         $this->assertStringContainsString('id="ce-admin"', $view);
         $this->assertStringContainsString("@includeIf('backend.partials.side-navbar')", $shell);
