@@ -5,7 +5,7 @@
     <form id="create-form" class="panel ce" novalidate>
       <h1 class="display">Create your event</h1>
       <p class="lead">Fill this in and watch your event card build itself. You can change anything later.</p>
-      <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Details</a></li><li><a href="#ce-where" data-ce="ce-where">2. Type &amp; location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Media &amp; settings</a></li><li><a href="#ce-review" data-ce="ce-review">5. Preview</a></li></ol>
+      <ol class="ce-steps" aria-label="Event setup steps"><li><a href="#ce-basics" data-ce="ce-basics">1. Details</a></li><li><a href="#ce-where" data-ce="ce-where">2. Type &amp; location</a></li><li><a href="#ce-tix" data-ce="ce-tix">3. Tickets &amp; fees</a></li><li><a href="#ce-more" data-ce="ce-more">4. Line-up &amp; media</a></li><li><a href="#ce-review" data-ce="ce-review">5. Preview</a></li></ol>
       <p class="ce-progress" id="ce-progress" aria-live="polite">Step 1 of 5: Details</p>
 
       <fieldset id="ce-basics"><legend>The basics</legend>
@@ -123,7 +123,7 @@
         </section>
       </fieldset>
 
-      <fieldset id="ce-more"><legend>Media &amp; settings</legend>
+      <fieldset id="ce-more"><legend>Line-up &amp; media</legend>
         <div class="two">
           <div class="inp"><label for="c-vis">Who can find it</label><select id="c-vis" name="visibility"><option value="public">Public, on Discover</option><option value="unlisted">Link only</option><option value="private">Private, by invite</option></select></div>
           <div class="inp"><label for="c-ref">Refunds</label><select id="c-ref" name="refund_policy"><option value="">TICA standard</option><option>Up to 7 days before</option><option>Up to 48 hours before</option></select></div>

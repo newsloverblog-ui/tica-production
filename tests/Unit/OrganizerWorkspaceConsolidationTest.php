@@ -111,7 +111,7 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString('Step 1 of 5: Details', $create);
         $this->assertStringContainsString('class="ce-subsection" id="ce-fee"', $create);
         $this->assertStringContainsString("var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review']", $script);
-        $this->assertStringContainsString("var STEPNAME=['Details','Type & location','Tickets & fees','Media & settings','Preview']", $script);
+        $this->assertStringContainsString("var STEPNAME=['Details','Type & location','Tickets & fees','Line-up & media','Preview']", $script);
         $this->assertStringNotContainsString("'ce-tix','ce-fee','ce-more'", $script);
         $this->assertStringContainsString('.page[data-page=create] .creategrid>.preview{order:-1;display:grid', $css);
         $this->assertStringContainsString('.page[data-page=create] .preview{position:static', $css);

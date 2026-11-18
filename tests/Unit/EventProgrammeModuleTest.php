@@ -27,6 +27,7 @@ class EventProgrammeModuleTest extends TestCase
         $script = file_get_contents($root . '/public/assets/tica-ui/js/tica.js');
 
         $this->assertStringContainsString('id="c-programme"', $view);
+        $this->assertStringContainsString('4. Line-up &amp; media', $view);
         $this->assertStringContainsString('value="speaker"', $view);
         $this->assertStringContainsString('value="artist"', $view);
         $this->assertStringContainsString('id="ce-agenda-editor"', $view);

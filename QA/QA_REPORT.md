@@ -127,6 +127,18 @@ The browser sweep executed public, owner, manager, finance, gate, rich-organizer
 
 **Tests:** the CI supply-chain policy test passes; the pushed workflows provide the final integration check.
 
+### FIX-04 — Event line-up existed in code but not in production storage
+
+**Severity:** High (published event content was silently unavailable)
+
+**Affected:** Admin and organizer event create/edit flows, public featured speakers/artist line-up, and event agenda.
+
+**Root cause:** the production deployment contained the event programme UI, validation, edit prefill, public rendering, and tests, but Supabase did not contain `event_programme_people` or `event_agenda_items`. The service correctly avoided querying missing tables, so programme data could not persist or appear publicly.
+
+**Fix:** applied only the two additive programme tables, their lookup/order indexes, and RLS to production Supabase. Renamed the fourth builder step from the generic “Media & settings” to “Line-up & media” so the optional feature is discoverable in both admin and organizer flows.
+
+**Verification:** both production tables now exist with RLS enabled; the programme unit suite and organizer workspace suite pass (12 tests, 173 assertions), and the frontend production build succeeds.
+
 ## 4. Security review
 
 | Control | Finding |

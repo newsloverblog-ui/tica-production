@@ -2112,7 +2112,7 @@ function payload(draft){
 }
 /* step by step */
 var STAGES=['ce-basics','ce-where','ce-tix','ce-more','ce-review'],at=0,reached=0;
-var STEPNAME=['Details','Type & location','Tickets & fees','Media & settings','Preview'];
+var STEPNAME=['Details','Type & location','Tickets & fees','Line-up & media','Preview'];
 function stageOf(id){var el=$(id);if(!el)return 0;var fs=el.closest('fieldset');var i=fs?STAGES.indexOf(fs.id):0;return i<0?0:i}
 function stage(i,focus){
   at=Math.max(0,Math.min(STAGES.length-1,i));reached=Math.max(reached,at);
