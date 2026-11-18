@@ -134,3 +134,234 @@
   .directory-stats { grid-template-columns: 1fr; }
   .directory-page-header h1 { font-size: 28px; }
 }
+
+/* Organizer directory: restrained, flat management workspace. */
+.tica-directory-page--organizers {
+  --dir-ink: #152238;
+  --dir-muted: #78849a;
+  --dir-line: #e1e7ef;
+  max-width: 1500px;
+}
+
+.tica-directory-page--organizers .directory-page-header {
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.tica-directory-page--organizers .directory-page-header h1 {
+  margin: 0 0 5px;
+  font-size: clamp(28px, 2.3vw, 34px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+
+.tica-directory-page--organizers .directory-page-header p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tica-directory-page--organizers .directory-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.tica-directory-page--organizers .directory-btn:hover { transform: none; }
+
+.directory-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--dir-line);
+}
+
+.directory-shortcuts a {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 7px;
+  color: #536178;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.directory-shortcuts a:hover,
+.directory-shortcuts a:focus {
+  background: #f4f6fa;
+  color: var(--dir-blue);
+  text-decoration: none;
+}
+
+.directory-shortcuts i {
+  width: 14px;
+  color: #8793a6;
+  text-align: center;
+}
+
+.directory-shortcuts a:hover i,
+.directory-shortcuts a:focus i { color: currentColor; }
+
+.directory-shortcuts span {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff1e4;
+  color: #9a5b25;
+  font-size: 10px;
+}
+
+.tica-directory-page--organizers .directory-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  margin-bottom: 18px;
+  border: 1px solid var(--dir-line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tica-directory-page--organizers .directory-stats article {
+  min-height: 86px;
+  padding: 17px 20px;
+  border: 0;
+  border-left: 1px solid var(--dir-line);
+  border-radius: 0;
+}
+
+.tica-directory-page--organizers .directory-stats article:first-child { border-left: 0; }
+.tica-directory-page--organizers .directory-stats article::after { display: none; }
+.tica-directory-page--organizers .directory-stats span { color: var(--dir-muted); font-weight: 500; }
+.tica-directory-page--organizers .directory-stats strong { margin-top: 8px; font-size: 23px; font-weight: 600; letter-spacing: -.02em; }
+
+.tica-directory-page--organizers .directory-surface {
+  overflow: visible;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.tica-directory-page--organizers .directory-toolbar {
+  padding: 15px 18px;
+  border-radius: 10px 10px 0 0;
+  border-bottom-color: var(--dir-line);
+}
+
+.tica-directory-page--organizers .directory-search { max-width: 420px; }
+.tica-directory-page--organizers .directory-search input,
+.tica-directory-page--organizers .directory-filter select,
+.tica-directory-page--organizers .directory-export select {
+  height: 42px;
+  border-color: #d3dbe7;
+  border-radius: 8px;
+  color: #46546b;
+}
+
+.tica-directory-page--organizers .directory-clear { font-weight: 500; }
+.tica-directory-page--organizers .directory-table-wrap { overflow: visible; }
+.tica-directory-page--organizers .directory-table th {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--dir-line);
+  background: #fff;
+  color: var(--dir-muted);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tica-directory-page--organizers .directory-table td {
+  padding: 16px 20px;
+  color: #46546b;
+}
+
+.tica-directory-page--organizers .directory-table td strong { font-weight: 600; }
+.tica-directory-page--organizers .directory-avatar { border-radius: 9px; font-weight: 600; }
+.tica-directory-page--organizers .directory-state-select {
+  height: 36px;
+  border-color: #d3dbe7;
+  border-radius: 7px;
+  color: #46546b;
+  font-weight: 500;
+}
+
+.tica-directory-page--organizers .directory-status { font-weight: 500; }
+.tica-directory-page--organizers .directory-more {
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dir-muted);
+}
+
+.tica-directory-page--organizers .directory-more:hover,
+.tica-directory-page--organizers .dropdown.show .directory-more {
+  border-color: var(--dir-line);
+  background: #fff;
+  color: var(--dir-ink);
+}
+
+.tica-directory-page--organizers .directory-table .dropdown-menu {
+  z-index: 1080;
+  border-radius: 8px;
+}
+
+@media (max-width: 1050px) {
+  .tica-directory-page--organizers .directory-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tica-directory-page--organizers .directory-filter,
+  .tica-directory-page--organizers .directory-export {
+    width: 100%;
+  }
+
+  .tica-directory-page--organizers .directory-export { justify-content: flex-end; }
+}
+
+@media (max-width: 900px) {
+  .tica-directory-page--organizers .directory-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tica-directory-page--organizers .directory-stats article:nth-child(3) { border-left: 0; }
+  .tica-directory-page--organizers .directory-stats article:nth-child(n+3) { border-top: 1px solid var(--dir-line); }
+  .tica-directory-page--organizers .directory-table thead { display: none; }
+  .tica-directory-page--organizers .directory-table,
+  .tica-directory-page--organizers .directory-table tbody,
+  .tica-directory-page--organizers .directory-table tr,
+  .tica-directory-page--organizers .directory-table td { display: block; width: 100%; }
+  .tica-directory-page--organizers .directory-table tr { position: relative; padding: 18px; border-top: 1px solid var(--dir-line); }
+  .tica-directory-page--organizers .directory-table tr:first-child { border-top: 0; }
+  .tica-directory-page--organizers .directory-table td { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 7px 0; border: 0; text-align: right; }
+  .tica-directory-page--organizers .directory-table td::before { color: var(--dir-muted); content: attr(data-label); font-size: 11px; font-weight: 500; text-align: left; text-transform: none; }
+  .tica-directory-page--organizers .directory-table--people td:first-child { display: none; }
+  .tica-directory-page--organizers .directory-person { justify-content: flex-end; text-align: left; }
+  .tica-directory-page--organizers .directory-table-action { justify-content: flex-end; }
+  .tica-directory-page--organizers .directory-table-action::before { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  .tica-directory-page--organizers .directory-page-header { align-items: stretch; }
+  .tica-directory-page--organizers .directory-header-actions .directory-btn { width: 100%; }
+  .directory-shortcuts { overflow-x: auto; padding-bottom: 10px; }
+  .directory-shortcuts a { flex: 0 0 auto; }
+  .tica-directory-page--organizers .directory-filter,
+  .tica-directory-page--organizers .directory-export { align-items: stretch; flex-direction: column; }
+  .tica-directory-page--organizers .directory-search { width: 100%; max-width: none; }
+  .tica-directory-page--organizers .directory-export select { width: 100%; }
+}
+
+@media (max-width: 430px) {
+  .tica-directory-page--organizers .directory-stats { grid-template-columns: 1fr; }
+  .tica-directory-page--organizers .directory-stats article,
+  .tica-directory-page--organizers .directory-stats article:nth-child(3) { border-top: 1px solid var(--dir-line); border-left: 0; }
+  .tica-directory-page--organizers .directory-stats article:first-child { border-top: 0; }
+  .tica-directory-page--organizers .directory-table td { align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tica-directory-page--organizers .directory-btn { transition: none; }
+}

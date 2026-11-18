@@ -5,20 +5,22 @@
 @endsection
 
 @section('content')
-  <div class="tica-directory-page">
+  <div class="tica-directory-page tica-directory-page--organizers">
     <header class="directory-page-header">
       <div>
-        <span class="directory-eyebrow">{{ __('People') }}</span>
         <h1>{{ __('Organizers') }}</h1>
-        <p>{{ __('Review account access, verification and event ownership from one calm workspace.') }}</p>
+        <p>{{ __('Manage organizer access, verification and event ownership.') }}</p>
       </div>
       <div class="directory-header-actions">
-        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.organizer_management.settings') }}"><i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Organizer settings') }}</a>
-        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.organizer_kyc.index') }}"><i class="fas fa-user-check" aria-hidden="true"></i>{{ __('KYC reviews') }}</a>
-        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.directory_exports.index', ['directory' => 'organizers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
         <a class="directory-btn directory-btn--primary" href="{{ route('admin.organizer_management.add_organizer') }}"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Add organizer') }}</a>
       </div>
     </header>
+
+    <nav class="directory-shortcuts" aria-label="{{ __('Organizer tools') }}">
+      <a href="{{ route('admin.organizer_management.settings') }}"><i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Settings') }}</a>
+      <a href="{{ route('admin.organizer_kyc.index') }}"><i class="fas fa-user-check" aria-hidden="true"></i>{{ __('KYC reviews') }}@if($summary['kyc_pending'])<span>{{ number_format($summary['kyc_pending']) }}</span>@endif</a>
+      <a href="{{ route('admin.directory_exports.index', ['directory' => 'organizers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
+    </nav>
 
     <div class="directory-stats" aria-label="{{ __('Organizer summary') }}">
       <article><span>{{ __('All organizers') }}</span><strong>{{ number_format($summary['total']) }}</strong></article>
@@ -30,17 +32,17 @@
     <section class="directory-surface">
       <div class="directory-toolbar">
         <form class="directory-filter" action="{{ route('admin.organizer_management.registered_organizer') }}" method="GET">
-          <label class="directory-search"><i class="fas fa-search" aria-hidden="true"></i><input name="info" type="search" value="{{ request('info') }}" placeholder="{{ __('Search name or email') }}"></label>
+          <label class="directory-search"><span class="sr-only">{{ __('Search organizers') }}</span><i class="fas fa-search" aria-hidden="true"></i><input name="info" type="search" value="{{ request('info') }}" placeholder="{{ __('Search name or email') }}"></label>
           <select name="status" aria-label="{{ __('Account status') }}"><option value="">{{ __('All accounts') }}</option><option value="1" @selected(request('status') === '1')>{{ __('Active') }}</option><option value="0" @selected(request('status') === '0')>{{ __('Inactive') }}</option></select>
           <select name="verified" aria-label="{{ __('Email verification') }}"><option value="">{{ __('Any verification') }}</option><option value="1" @selected(request('verified') === '1')>{{ __('Email verified') }}</option><option value="0" @selected(request('verified') === '0')>{{ __('Not verified') }}</option></select>
-          <button class="directory-btn directory-btn--primary" type="submit">{{ __('Apply') }}</button>
+          <button class="directory-btn directory-btn--quiet" type="submit">{{ __('Filter') }}</button>
           @if(request()->hasAny(['info','status','verified']))<a class="directory-clear" href="{{ route('admin.organizer_management.registered_organizer') }}">{{ __('Clear') }}</a>@endif
         </form>
         <form class="directory-export" method="POST" action="{{ route('admin.organizer_management.export') }}">
           @csrf
           <input type="hidden" name="search" value="{{ request('info') }}"><input type="hidden" name="status" value="{{ request('status') }}"><input type="hidden" name="verified" value="{{ request('verified') }}">
           <select name="format" aria-label="{{ __('Export format') }}"><option value="csv">CSV</option><option value="xlsx">Excel</option></select>
-          <button class="directory-btn directory-btn--quiet" type="submit"><i class="fas fa-file-export" aria-hidden="true"></i>{{ __('Export organizers') }}</button>
+          <button class="directory-btn directory-btn--quiet" type="submit"><i class="fas fa-file-export" aria-hidden="true"></i>{{ __('Export') }}</button>
         </form>
       </div>
 
