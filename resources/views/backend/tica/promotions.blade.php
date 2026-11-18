@@ -33,14 +33,12 @@
   <div class="tica-promotion-center" data-active-section="{{ $activeSection }}">
     <header class="promotion-page-header">
       <div>
-        <p class="promotion-breadcrumb"><span>{{ __('Admin control center') }}</span><i class="fas fa-chevron-right" aria-hidden="true"></i>{{ __('Promotions') }}</p>
-        <h1>{{ __('Promotion control center') }}</h1>
-        <p class="promotion-intro">{{ __('Set placement prices, review organizer campaigns, control live promotion inventory and approve conversion tracking.') }}</p>
+        <h1>{{ __('Promotions') }}</h1>
+        <p class="promotion-intro">{{ __('Review campaigns, manage placements and track performance.') }}</p>
       </div>
-      <div class="promotion-header-note">
-        <i class="fas fa-shield-alt" aria-hidden="true"></i>
-        <span><strong>{{ __('Admin governed') }}</strong>{{ __('Every paid placement is reviewed before it appears on TICA.') }}</span>
-      </div>
+      <button type="button" class="promotion-header-action" data-show-section="plans">
+        <i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Manage plans') }}
+      </button>
     </header>
 
     @if ($errors->any())
@@ -61,43 +59,43 @@
       <div class="pulse-item is-attention">
         <span>{{ __('Needs review') }}</span>
         <strong>{{ number_format($stats['review']) }}</strong>
-        <small>{{ __('Paid requests waiting') }}</small>
+        <small>{{ __('Awaiting a decision') }}</small>
       </div>
       <div class="pulse-item is-live">
         <span>{{ __('Live now') }}</span>
         <strong>{{ number_format($stats['live']) }}</strong>
-        <small>{{ __('Visible placements') }}</small>
+        <small>{{ __('Active placements') }}</small>
       </div>
       <div class="pulse-item">
         <span>{{ __('Scheduled') }}</span>
         <strong>{{ number_format($stats['scheduled']) }}</strong>
-        <small>{{ __('Approved to start') }}</small>
+        <small>{{ __('Starts later') }}</small>
       </div>
       <div class="pulse-item">
         <span>{{ __('Promotion revenue') }}</span>
         <strong>{{ \App\Support\TicaCurrency::base() }} {{ number_format($stats['revenue'], 0) }}</strong>
-        <small>{{ __('Recorded balance payments') }}</small>
+        <small>{{ __('Paid campaigns') }}</small>
       </div>
       <div class="pulse-item {{ $stats['cancellations'] ? 'is-attention' : '' }}">
         <span>{{ __('Cancellation requests') }}</span>
         <strong>{{ number_format($stats['cancellations']) }}</strong>
-        <small>{{ __('Organizer requests') }}</small>
+        <small>{{ __('Awaiting review') }}</small>
       </div>
       <div class="pulse-item">
         <span>{{ __('Attributed tickets') }}</span>
         <strong>{{ number_format($stats['tickets']) }}</strong>
-        <small>{{ number_format($stats['impressions']) }} {{ __('tracked impressions') }}</small>
+        <small>{{ __('From promotions') }}</small>
       </div>
     </section>
 
     <section class="placement-rail" aria-labelledby="placement-rail-title">
       <div class="placement-rail-heading">
         <div>
-          <h2 id="placement-rail-title">{{ __('Live placement catalogue') }}</h2>
-          <p>{{ __('These are the promotion products organizers can choose in their dashboard.') }}</p>
+          <h2 id="placement-rail-title">{{ __('Promotion placements') }}</h2>
+          <p>{{ __('Packages available to organizers.') }}</p>
         </div>
         <button type="button" class="placement-edit-link" data-show-section="plans">
-          <i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Edit plans') }}
+          {{ __('Edit plans') }}
         </button>
       </div>
       <div class="placement-track">
@@ -119,28 +117,28 @@
 
     <nav class="promotion-tabs" role="tablist" aria-label="{{ __('Promotion management sections') }}">
       <button type="button" id="promotion-tab-campaigns" data-promotion-tab="campaigns" aria-controls="promotion-panel-campaigns" class="{{ $activeSection === 'campaigns' ? 'is-active' : '' }}">
-        <i class="fas fa-layer-group" aria-hidden="true"></i><span>{{ __('Campaign queue') }}</span>
+        <i class="fas fa-layer-group" aria-hidden="true"></i><span>{{ __('Campaigns') }}</span>
         @if ($stats['review'])<b>{{ $stats['review'] }}</b>@endif
       </button>
       <button type="button" id="promotion-tab-plans" data-promotion-tab="plans" aria-controls="promotion-panel-plans" class="{{ $activeSection === 'plans' ? 'is-active' : '' }}">
-        <i class="fas fa-tags" aria-hidden="true"></i><span>{{ __('Plans and pricing') }}</span>
+        <i class="fas fa-tags" aria-hidden="true"></i><span>{{ __('Plans') }}</span>
       </button>
       <button type="button" id="promotion-tab-analytics" data-promotion-tab="analytics" aria-controls="promotion-panel-analytics" class="{{ $activeSection === 'analytics' ? 'is-active' : '' }}">
-        <i class="fas fa-chart-bar" aria-hidden="true"></i><span>{{ __('Analytics') }}</span>
+        <i class="fas fa-chart-bar" aria-hidden="true"></i><span>{{ __('Performance') }}</span>
       </button>
       <button type="button" id="promotion-tab-tracking" data-promotion-tab="tracking" aria-controls="promotion-panel-tracking" class="{{ $activeSection === 'tracking' ? 'is-active' : '' }}">
-        <i class="fas fa-chart-line" aria-hidden="true"></i><span>{{ __('Tracking approvals') }}</span>
+        <i class="fas fa-chart-line" aria-hidden="true"></i><span>{{ __('Tracking') }}</span>
       </button>
       <button type="button" id="promotion-tab-tools" data-promotion-tab="tools" aria-controls="promotion-panel-tools" class="{{ $activeSection === 'tools' ? 'is-active' : '' }}">
-        <i class="fas fa-toolbox" aria-hidden="true"></i><span>{{ __('Organizer tools') }}</span>
+        <i class="fas fa-link" aria-hidden="true"></i><span>{{ __('Codes and links') }}</span>
       </button>
     </nav>
 
     <section class="promotion-panel" id="promotion-panel-campaigns" role="tabpanel" aria-labelledby="promotion-tab-campaigns" data-promotion-panel="campaigns" @if ($activeSection !== 'campaigns') hidden @endif>
       <div class="panel-heading">
         <div>
-          <h2>{{ __('Organizer campaign queue') }}</h2>
-          <p>{{ __('Review payment, creative, dates and placement before deciding what goes live.') }}</p>
+          <h2>{{ __('Campaigns') }}</h2>
+          <p>{{ __('Review submissions before they appear on TICA.') }}</p>
         </div>
         <span class="panel-result-count">{{ trans_choice(':count campaign|:count campaigns', $campaigns->total(), ['count' => number_format($campaigns->total())]) }}</span>
       </div>
@@ -289,7 +287,7 @@
 
     <section class="promotion-panel" id="promotion-panel-plans" role="tabpanel" aria-labelledby="promotion-tab-plans" data-promotion-panel="plans" @if ($activeSection !== 'plans') hidden @endif>
       <div class="panel-heading">
-        <div><h2>{{ __('Plans and placement pricing') }}</h2><p>{{ __('Changes here appear in the organizer promotion studio immediately. Hidden plans remain attached to historical campaigns.') }}</p></div>
+        <div><h2>{{ __('Plans and pricing') }}</h2><p>{{ __('Set placement availability, duration and price.') }}</p></div>
         <span class="panel-result-count">{{ trans_choice(':count plan|:count plans', $plans->count(), ['count' => $plans->count()]) }}</span>
       </div>
       <details class="package-create">
@@ -363,7 +361,7 @@
     </section>
 
     <section class="promotion-panel" id="promotion-panel-analytics" role="tabpanel" aria-labelledby="promotion-tab-analytics" data-promotion-panel="analytics" @if ($activeSection !== 'analytics') hidden @endif>
-      <div class="panel-heading"><div><h2>{{ __('Promotion analytics') }}</h2><p>{{ __('Promotion spend is kept separate from ticket revenue. Every figure below comes from recorded payments or tracked events.') }}</p></div></div>
+      <div class="panel-heading"><div><h2>{{ __('Performance') }}</h2><p>{{ __('Paid campaigns and attributed ticket activity.') }}</p></div></div>
       <div class="analytics-summary">
         <article><span>{{ __('Promotion revenue') }}</span><strong>{{ \App\Support\TicaCurrency::base() }} {{ number_format($stats['revenue'], 0) }}</strong></article>
         <article><span>{{ __('Package purchases') }}</span><strong>{{ number_format($stats['purchases']) }}</strong></article>
@@ -380,7 +378,7 @@
 
     <section class="promotion-panel" id="promotion-panel-tracking" role="tabpanel" aria-labelledby="promotion-tab-tracking" data-promotion-panel="tracking" @if ($activeSection !== 'tracking') hidden @endif>
       <div class="panel-heading">
-        <div><h2>{{ __('Conversion tracking approvals') }}</h2><p>{{ __('Organizers submit provider IDs only. TICA never accepts executable scripts from organizers.') }}</p></div>
+        <div><h2>{{ __('Tracking approvals') }}</h2><p>{{ __('Review organizer tracking IDs.') }}</p></div>
         <span class="panel-result-count">{{ trans_choice(':count submission|:count submissions', $pixels->count(), ['count' => $pixels->count()]) }}</span>
       </div>
       <div class="promotion-table-wrap">
@@ -416,12 +414,11 @@
 
     <section class="promotion-panel" id="promotion-panel-tools" role="tabpanel" aria-labelledby="promotion-tab-tools" data-promotion-panel="tools" @if ($activeSection !== 'tools') hidden @endif>
       <div class="panel-heading">
-        <div><h2>{{ __('Organizer promotion tools') }}</h2><p>{{ __('Operational visibility into discount codes and channel links created by organizers.') }}</p></div>
-        <span class="oversight-label"><i class="fas fa-eye" aria-hidden="true"></i>{{ __('Oversight view') }}</span>
+        <div><h2>{{ __('Codes and links') }}</h2><p>{{ __('Recent organizer discount codes and tracking links.') }}</p></div>
       </div>
       <div class="organizer-tools-grid">
         <section class="tool-ledger" aria-labelledby="discount-ledger-title">
-          <header><div><h3 id="discount-ledger-title">{{ __('Recent discount codes') }}</h3><p>{{ __('Codes organizers use to drive ticket sales.') }}</p></div><i class="fas fa-ticket-alt" aria-hidden="true"></i></header>
+          <header><div><h3 id="discount-ledger-title">{{ __('Discount codes') }}</h3></div><i class="fas fa-ticket-alt" aria-hidden="true"></i></header>
           <ul>
             @forelse ($coupons as $coupon)
               <li><code>{{ $coupon->code }}</code><span><strong>{{ $coupon->organizer->username ?? __('Organizer') }}</strong><small>{{ $coupon->type === 'percentage' ? number_format((float) $coupon->value) . '%' : \App\Support\TicaCurrency::base() . ' ' . number_format((float) $coupon->value) }} {{ __('off') }}</small></span><em>{{ number_format((int) ($coupon->used_count ?? 0)) }} / {{ $coupon->max_uses ? number_format((int) $coupon->max_uses) : '∞' }}</em></li>
@@ -431,7 +428,7 @@
           </ul>
         </section>
         <section class="tool-ledger" aria-labelledby="tracking-ledger-title">
-          <header><div><h3 id="tracking-ledger-title">{{ __('Recent tracking links') }}</h3><p>{{ __('Channel attribution links created in organizer dashboards.') }}</p></div><i class="fas fa-link" aria-hidden="true"></i></header>
+          <header><div><h3 id="tracking-ledger-title">{{ __('Tracking links') }}</h3></div><i class="fas fa-link" aria-hidden="true"></i></header>
           <ul>
             @forelse ($trackingLinks as $link)
               <li><code>{{ $link->code }}</code><span><strong>{{ $link->name }}</strong><small>{{ $link->organizer->username ?? __('Organizer') }}@if(optional($link->event)->information) · {{ optional($link->event->information)->title }}@endif</small></span><em>{{ trans_choice(':count click|:count clicks', (int) $link->clicks, ['count' => number_format((int) $link->clicks)]) }}</em></li>
@@ -441,7 +438,6 @@
           </ul>
         </section>
       </div>
-      <div class="tool-policy-note"><i class="fas fa-info-circle" aria-hidden="true"></i><p><strong>{{ __('Why this section is read-only') }}</strong>{{ __('Organizers own their codes and channel links. Admin control stays focused on paid placement governance, safety and platform inventory.') }}</p></div>
     </section>
   </div>
 @endsection
