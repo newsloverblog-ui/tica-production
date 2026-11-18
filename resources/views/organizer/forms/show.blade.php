@@ -1,4 +1,4 @@
-@extends('organizer.layout')
+@extends($layout ?? 'organizer.layout')
 
 @section('style')
   @include('organizer.forms._styles')
@@ -19,18 +19,20 @@
     $available = $events->reject(fn ($event) => in_array($event->id, $usedOn, true));
     $copyStatus = ['published' => ['green', __('Live')], 'draft' => ['orange', __('Draft')]];
     $f = $editing;
+    $formRoute = fn (string $action, $parameters = []) => route((($adminMode ?? false) ? 'admin.registration_forms.' : 'organizer.forms.') . $action, $parameters);
+    $questionRoute = fn (string $action, $parameters = []) => route((($adminMode ?? false) ? 'admin.registration_forms.questions.' : 'organizer.event.registrations.questions.') . $action, $parameters);
   @endphp
 
   <div class="rf-page">
   <div class="t-page-head rf-head">
     <div>
-      <p class="t-help" style="margin:0 0 4px"><a href="{{ route('organizer.forms.index') }}">← {{ __('All forms') }}</a></p>
+      <p class="t-help" style="margin:0 0 4px"><a href="{{ $formRoute('index', ($adminMode ?? false) ? ['organizer_id' => $form->organizer_id] : []) }}">← {{ __('All forms') }}</a></p>
       <h1 class="page-title" data-rf-name>{{ $form->name }}</h1>
       <p><span data-rf-summary>{{ trans_choice(':count field|:count fields', $form->questions->count(), ['count' => $form->questions->count()]) }}</span> · {{ trans_choice('Used on :count event|Used on :count events', $form->copies->count(), ['count' => $form->copies->count()]) }}</p>
     </div>
     <div class="rf-actions">
-      <form method="POST" action="{{ route('organizer.forms.duplicate', $form) }}">@csrf<button class="t-btn t-btn--secondary t-btn--sm" type="submit">{{ __('Duplicate') }}</button></form>
-      <form method="POST" action="{{ route('organizer.forms.delete', $form) }}" data-rf-confirm="{{ __('Delete form?') }}">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Delete form') }}</button></form>
+      <form method="POST" action="{{ $formRoute('duplicate', $form) }}">@csrf<button class="t-btn t-btn--secondary t-btn--sm" type="submit">{{ __('Duplicate') }}</button></form>
+      <form method="POST" action="{{ $formRoute('delete', $form) }}" data-rf-confirm="{{ __('Delete form?') }}">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Delete form') }}</button></form>
     </div>
   </div>
 
@@ -63,7 +65,7 @@
               <p class="rf-palette__label">{{ __($group) }}</p>
               <div class="rf-palette__items">
                 @foreach ($items as [$type, $label])
-                  <form method="POST" action="{{ route('organizer.event.registrations.questions.store', $form) }}" class="rf-chip-form">
+                  <form method="POST" action="{{ $questionRoute('store', $form) }}" class="rf-chip-form">
                     @csrf
                     <input type="hidden" name="quick" value="1">
                     <input type="hidden" name="type" value="{{ $type }}">
@@ -86,7 +88,7 @@
       <section class="t-card" aria-labelledby="rf-fields-h">
         <div class="t-card__head"><h2 class="t-card__title" id="rf-fields-h">{{ __('Fields in this form') }}</h2><span class="t-badge"><span data-rf-count>{{ $form->questions->count() }}</span> / {{ $max }}</span></div>
                 <p class="t-help">{{ __('Click a field to edit it. Drag the handle to move it. Name and email are always asked first.') }}</p>
-        <ul class="rf-fields" data-rf-list data-reorder="{{ route('organizer.event.registrations.questions.reorder', $form) }}" data-add="{{ route('organizer.event.registrations.questions.store', $form) }}">
+        <ul class="rf-fields" data-rf-list data-reorder="{{ $questionRoute('reorder', $form) }}" data-add="{{ $questionRoute('store', $form) }}">
           <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="rf-field__body"><div class="rf-field__label">{{ __('Full name') }} <span class="rf-req" aria-label="{{ __('required') }}">*</span></div><div class="rf-field__type">{{ __('Short answer') }}</div></div><span class="rf-pill">{{ __('Always asked') }}</span></li>
           <li class="rf-field rf-fixed"><span class="rf-handle is-off" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="rf-field__body"><div class="rf-field__label">{{ __('Email') }} <span class="rf-req" aria-label="{{ __('required') }}">*</span></div><div class="rf-field__type">{{ __('Short answer') }}</div></div><span class="rf-pill">{{ __('Always asked') }}</span></li>
           @include('organizer.forms._fields')
@@ -108,13 +110,13 @@
                 <span class="rf-linked__text"><b>{{ $eventTitle($copy->event) }}</b> <span class="t-badge{{ $tone ? ' t-badge--' . $tone : '' }}">{{ $label }}</span>
                   <span class="rf-meta">{{ trans_choice(':count registration|:count registrations', $copy->submissions_count, ['count' => $copy->submissions_count]) }}</span></span>
                 <span class="rf-actions">
-                  <a class="t-btn t-btn--ghost t-btn--sm" href="{{ route('organizer.event.registrations.index', ['event_id' => $copy->event_id]) }}">{{ __('Manage') }}</a>
-                  <form method="POST" action="{{ route('organizer.forms.stop', $copy) }}" data-rf-confirm="{{ __('Stop? Back to tickets') }}">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Stop') }}</button></form>
+                  <a class="t-btn t-btn--ghost t-btn--sm" href="{{ ($adminMode ?? false) ? route('admin.event_builder.edit', ['id' => $copy->event_id]) : route('organizer.event.registrations.index', ['event_id' => $copy->event_id]) }}">{{ __('Manage') }}</a>
+                  <form method="POST" action="{{ $formRoute('stop', $copy) }}" data-rf-confirm="{{ __('Stop? Back to tickets') }}">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Stop') }}</button></form>
                 </span>
               </li>
             @endforeach
           </ul>
-          <form method="POST" action="{{ route('organizer.forms.push', $form) }}" class="rf-push">
+          <form method="POST" action="{{ $formRoute('push', $form) }}" class="rf-push">
             @csrf
             <button class="t-btn t-btn--secondary t-btn--block" type="submit">{{ __('Update events with my changes') }}</button>
             <p class="t-help">{{ __('Sends the current fields and settings to every event above. Past registrations keep the answers they gave.') }}</p>
@@ -127,7 +129,7 @@
         @if ($available->isEmpty())
           <p class="t-help">{{ $events->isEmpty() ? __('Create an event first.') : __('Every one of your events already uses this form.') }}</p>
         @else
-          <form method="POST" action="{{ route('organizer.forms.events', $form) }}">
+          <form method="POST" action="{{ $formRoute('events', $form) }}">
             @csrf
             <ul class="rf-events">
               @foreach ($available as $event)
@@ -157,7 +159,7 @@
       {{-- Settings --}}
       <section class="t-card" aria-labelledby="rf-set-h">
         <div class="t-card__head"><h2 class="t-card__title" id="rf-set-h">{{ __('Form settings') }}</h2></div>
-        <form method="POST" action="{{ route('organizer.forms.settings', $form) }}" data-rf-live>
+        <form method="POST" action="{{ $formRoute('settings', $form) }}" data-rf-live>
           @csrf
           <label class="t-field"><span class="t-label">{{ __('Name') }}</span><input class="t-input" name="name" maxlength="150" required value="{{ old('name', $form->name) }}"></label>
           <label class="t-field"><span class="t-label">{{ __('New registrations') }}</span>

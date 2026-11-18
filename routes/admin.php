@@ -158,6 +158,21 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('event-builder/{id}/edit', 'FrontEnd\TicaUiController@adminEdit')->whereNumber('id')->name('admin.event_builder.edit');
     Route::post('event-builder/{id}', 'FrontEnd\TicaOrganizerController@updateAdminEvent')->whereNumber('id')
       ->middleware('throttle:20,1')->name('admin.event_builder.update');
+    Route::get('registration-forms', 'BackEnd\Organizer\RegistrationFormController@index')->name('admin.registration_forms.index');
+    Route::post('registration-forms', 'BackEnd\Organizer\RegistrationFormController@store')->middleware('throttle:30,1')->name('admin.registration_forms.store');
+    Route::get('registration-forms/{form}', 'BackEnd\Organizer\RegistrationFormController@show')->name('admin.registration_forms.show');
+    Route::post('registration-forms/{form}/settings', 'BackEnd\Organizer\RegistrationFormController@settings')->name('admin.registration_forms.settings');
+    Route::post('registration-forms/{form}/events', 'BackEnd\Organizer\RegistrationFormController@useOnEvents')->middleware('throttle:20,1')->name('admin.registration_forms.events');
+    Route::post('registration-forms/{form}/push', 'BackEnd\Organizer\RegistrationFormController@pushChanges')->middleware('throttle:20,1')->name('admin.registration_forms.push');
+    Route::post('registration-forms/{form}/duplicate', 'BackEnd\Organizer\RegistrationFormController@duplicate')->middleware('throttle:20,1')->name('admin.registration_forms.duplicate');
+    Route::post('registration-forms/{form}/delete', 'BackEnd\Organizer\RegistrationFormController@destroy')->name('admin.registration_forms.delete');
+    Route::post('registration-forms/{form}/keep', 'BackEnd\Organizer\RegistrationFormController@adopt')->name('admin.registration_forms.adopt');
+    Route::post('registration-forms/{form}/stop', 'BackEnd\Organizer\RegistrationFormController@stop')->name('admin.registration_forms.stop');
+    Route::post('registration-forms/{form}/questions', 'BackEnd\Organizer\EventRegistrationController@addQuestion')->name('admin.registration_forms.questions.store');
+    Route::post('registration-forms/{form}/questions/reorder', 'BackEnd\Organizer\EventRegistrationController@reorderQuestions')->name('admin.registration_forms.questions.reorder');
+    Route::post('registration-form-questions/{question}/update', 'BackEnd\Organizer\EventRegistrationController@updateQuestion')->name('admin.registration_forms.questions.update');
+    Route::post('registration-form-questions/{question}/move', 'BackEnd\Organizer\EventRegistrationController@moveQuestion')->name('admin.registration_forms.questions.move');
+    Route::post('registration-form-questions/{question}/delete', 'BackEnd\Organizer\EventRegistrationController@deleteQuestion')->name('admin.registration_forms.questions.delete');
     Route::get('add-event/', 'BackEnd\Event\EventController@add_event')->name('add.event.event');
     Route::get('choose-event-type/', 'BackEnd\Event\EventController@choose_event_type')->name('admin.choose-event-type');
     Route::post('event-imagesstore', 'BackEnd\Event\EventController@gallerystore')->name('admin.event.imagesstore');

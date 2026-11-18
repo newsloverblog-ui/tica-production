@@ -61,7 +61,8 @@ class RegistrationFormEditorViewTest extends TestCase
         $controller = file_get_contents(app_path('Http/Controllers/BackEnd/Organizer/EventRegistrationController.php'));
 
         $this->assertStringContainsString('return $request->expectsJson() && $form->event_id === null;', $controller);
-        $this->assertStringContainsString("view('organizer.forms._fields', ['form' => \$form])->render()", $controller);
+        $this->assertStringContainsString("view('organizer.forms._fields'", $controller);
+        $this->assertStringContainsString("'adminMode' => Auth::guard('admin')->check()", $controller);
         $this->assertSame(5, substr_count($controller, '$this->liveFields('));
     }
 }

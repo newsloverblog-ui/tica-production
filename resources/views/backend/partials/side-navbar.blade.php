@@ -102,6 +102,7 @@
                             'admin.event.ticket',
                             'admin.event.add.ticket',
                             'admin.event.edit.ticket',
+                            'admin.registration_forms.*',
                             'admin.choose-event-type',
                             'add.event.event'
                         );
@@ -122,6 +123,11 @@
                                 <li class="{{ request()->routeIs('admin.event_management.event', 'admin.event_management.edit_event', 'admin.event_builder.edit', 'admin.event.ticket', 'admin.event.add.ticket', 'admin.event.edit.ticket') ? 'active' : '' }}">
                                     <a href="{{ route('admin.event_management.event', ['language' => $defaultLang->code]) }}">
                                         <span class="sub-item">{{ __('All events') }}</span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('admin.registration_forms.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.registration_forms.index') }}">
+                                        <span class="sub-item">{{ __('Registration forms') }}</span>
                                     </a>
                                 </li>
                                 <li class="{{ request()->routeIs('admin.event_management.categories') ? 'active' : '' }}">

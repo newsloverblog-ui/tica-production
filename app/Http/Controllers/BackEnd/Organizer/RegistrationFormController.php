@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventRegistrationForm;
 use App\Models\EventRegistrationQuestion;
+use App\Models\Organizer;
 use App\Services\RegistrationFormLibrary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,12 +19,21 @@ class RegistrationFormController extends Controller
 {
   public function index(Request $request, RegistrationFormLibrary $library)
   {
-    $organizerId = $this->organizerId();
+    $organizers = collect();
+    if ($this->adminMode()) {
+      $organizers = Organizer::query()->where('status', 1)->orderBy('username')->get(['id', 'username', 'email']);
+      $organizerId = (int) ($request->integer('organizer_id') ?: ($organizers->first()?->id ?? 0));
+      abort_unless($organizers->contains('id', $organizerId) || $organizerId === 0, 404);
+    } else {
+      $organizerId = $this->organizerId();
+    }
     $forms = $library->forms($organizerId);
     $standalone = $library->standalone($organizerId);
     $events = $this->events($organizerId);
+    $adminMode = $this->adminMode();
+    $layout = $adminMode ? 'backend.layout' : 'organizer.layout';
 
-    return view('organizer.forms.index', compact('forms', 'standalone', 'events'));
+    return view('organizer.forms.index', compact('forms', 'standalone', 'events', 'organizers', 'organizerId', 'adminMode', 'layout'));
   }
 
   public function store(Request $request, RegistrationFormLibrary $library)
@@ -32,11 +42,15 @@ class RegistrationFormController extends Controller
       'name' => ['required', 'string', 'max:150'],
       'approval_mode' => ['nullable', 'in:automatic,manual'],
       'event_id' => ['nullable', 'integer'],
+      'organizer_id' => [$this->adminMode() ? 'required' : 'nullable', 'integer'],
     ]);
-    $form = $library->create($this->organizerId(), $data['name'], $data['approval_mode'] ?? 'manual');
+    $organizerId = $this->adminMode()
+      ? (int) Organizer::query()->where('status', 1)->findOrFail((int) $data['organizer_id'])->id
+      : $this->organizerId();
+    $form = $library->create($organizerId, $data['name'], $data['approval_mode'] ?? 'manual');
     $query = !empty($data['event_id']) ? ['event' => (int) $data['event_id']] : [];
 
-    return redirect()->route('organizer.forms.show', ['form' => $form] + $query)
+    return redirect()->route($this->routeName('show'), ['form' => $form] + $query)
       ->with('success', 'Form created. Add your fields, then choose the events that use it.');
   }
 
@@ -45,7 +59,9 @@ class RegistrationFormController extends Controller
     $organizerId = $this->owned($form);
     if (!$form->isLibrary()) {
       // Event forms are managed on the event's registration page.
-      return redirect()->route('organizer.event.registrations.index', ['event_id' => $form->event_id]);
+      return $this->adminMode()
+        ? redirect()->route('admin.event_builder.edit', ['id' => $form->event_id])
+        : redirect()->route('organizer.event.registrations.index', ['event_id' => $form->event_id]);
     }
     $form->load('questions');
     $form->load(['copies' => fn ($q) => $q->whereNull('archived_at')->with('event.information')->withCount('submissions')]);
@@ -57,8 +73,10 @@ class RegistrationFormController extends Controller
     $events = $this->events($organizerId);
     $usedOn = $form->copies->pluck('event_id')->map(fn ($id) => (int) $id)->all();
     $preselect = (int) $request->query('event', 0);
+    $adminMode = $this->adminMode();
+    $layout = $adminMode ? 'backend.layout' : 'organizer.layout';
 
-    return view('organizer.forms.show', compact('form', 'editing', 'events', 'usedOn', 'preselect'));
+    return view('organizer.forms.show', compact('form', 'editing', 'events', 'usedOn', 'preselect', 'adminMode', 'layout'));
   }
 
   public function settings(Request $request, EventRegistrationForm $form, RegistrationFormLibrary $library)
@@ -110,21 +128,22 @@ class RegistrationFormController extends Controller
   {
     $copy = $library->duplicate($form, $this->owned($form));
 
-    return redirect()->route('organizer.forms.show', $copy)->with('success', 'Form copied. Rename it and adjust the fields.');
+    return redirect()->route($this->routeName('show'), $copy)->with('success', 'Form copied. Rename it and adjust the fields.');
   }
 
   public function adopt(EventRegistrationForm $form, RegistrationFormLibrary $library)
   {
     $kept = $library->adopt($form, $this->owned($form));
 
-    return redirect()->route('organizer.forms.show', $kept)->with('success', 'Saved to your forms. You can now use it on other events too.');
+    return redirect()->route($this->routeName('show'), $kept)->with('success', 'Saved to the forms library. You can now use it on other events too.');
   }
 
   public function destroy(EventRegistrationForm $form, RegistrationFormLibrary $library)
   {
     $library->delete($form, $this->owned($form));
 
-    return redirect()->route('organizer.forms.index')->with('success', 'Form deleted. Events that used it keep their own copy.');
+    return redirect()->route($this->routeName('index'), $this->adminMode() ? ['organizer_id' => $form->organizer_id] : [])
+      ->with('success', 'Form deleted. Events that used it keep their own copy.');
   }
 
   public function stop(EventRegistrationForm $form, RegistrationFormLibrary $library)
@@ -154,8 +173,21 @@ class RegistrationFormController extends Controller
     return (int) Auth::guard('organizer')->id();
   }
 
+  private function adminMode(): bool
+  {
+    return Auth::guard('admin')->check();
+  }
+
+  private function routeName(string $action): string
+  {
+    return ($this->adminMode() ? 'admin.registration_forms.' : 'organizer.forms.') . $action;
+  }
+
   private function owned(EventRegistrationForm $form): int
   {
+    if ($this->adminMode()) {
+      return (int) $form->organizer_id;
+    }
     $id = $this->organizerId();
     abort_unless((int) $form->organizer_id === $id, 404);
 

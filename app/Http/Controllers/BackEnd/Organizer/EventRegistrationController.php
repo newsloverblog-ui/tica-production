@@ -127,7 +127,7 @@ class EventRegistrationController extends Controller
             'position' => ['nullable', 'integer', 'min:1', 'max:500'],
             'quick' => ['nullable', 'boolean'],
         ]);
-        $organizerId = (int) Auth::guard('organizer')->id();
+        $organizerId = $this->formOrganizerId($form);
         if ($request->boolean('quick') && empty($validated['question_key'])) {
             // One-click fields from the field picker: give each its own data key.
             $base = trim((string) preg_replace('/[^a-z0-9_]+/', '_', strtolower(\Illuminate\Support\Str::snake($validated['label']))), '_') ?: 'field';
@@ -155,7 +155,8 @@ class EventRegistrationController extends Controller
             return $this->liveFields($form, 'Field added.', $question->public_id);
         }
         if ($request->boolean('quick') && $form->event_id === null) {
-            return redirect()->route('organizer.forms.show', ['form' => $form, 'field' => $question->public_id])->withFragment('rf-editor')
+            $route = Auth::guard('admin')->check() ? 'admin.registration_forms.show' : 'organizer.forms.show';
+            return redirect()->route($route, ['form' => $form, 'field' => $question->public_id])->withFragment('rf-editor')
                 ->with('success', 'Field added. Name it below.');
         }
 
@@ -165,7 +166,7 @@ class EventRegistrationController extends Controller
     public function deleteQuestion(Request $request, EventRegistrationQuestion $question, EventRegistrationService $registrations)
     {
         $form = $question->form;
-        $registrations->deleteQuestion($question, (int) Auth::guard('organizer')->id());
+        $registrations->deleteQuestion($question, $this->formOrganizerId($form));
         if ($form && $this->wantsLiveFields($request, $form)) {
             return $this->liveFields($form, 'Field removed.');
         }
@@ -193,7 +194,7 @@ class EventRegistrationController extends Controller
         ]);
         $updated = $registrations->updateQuestion(
             $question,
-            (int) Auth::guard('organizer')->id(),
+            $this->formOrganizerId($question->form),
             $validated
         );
 
@@ -201,7 +202,8 @@ class EventRegistrationController extends Controller
             return $this->liveFields($updated->form, 'Field saved.', $updated->public_id);
         }
         if ($updated->form->event_id === null) {
-            return redirect()->route('organizer.forms.show', $updated->form)
+            $route = Auth::guard('admin')->check() ? 'admin.registration_forms.show' : 'organizer.forms.show';
+            return redirect()->route($route, $updated->form)
                 ->with('success', 'Field saved. Use “Update events” to send the change to events using this form.');
         }
 
@@ -217,7 +219,7 @@ class EventRegistrationController extends Controller
         ]);
         $registrations->reorderQuestions(
             $form,
-            (int) Auth::guard('organizer')->id(),
+            $this->formOrganizerId($form),
             $validated['ordered_questions']
         );
         if ($this->wantsLiveFields($request, $form)) {
@@ -232,7 +234,7 @@ class EventRegistrationController extends Controller
         $validated = $request->validate(['direction' => ['required', 'in:up,down']]);
         $registrations->moveQuestion(
             $question,
-            (int) Auth::guard('organizer')->id(),
+            $this->formOrganizerId($question->form),
             $validated['direction']
         );
         if ($question->form && $this->wantsLiveFields($request, $question->form)) {
@@ -511,7 +513,23 @@ class EventRegistrationController extends Controller
             'message' => $message,
             'count' => $form->questions->count(),
             'focus' => $focus,
-            'html' => view('organizer.forms._fields', ['form' => $form])->render(),
+            'html' => view('organizer.forms._fields', [
+                'form' => $form,
+                'adminMode' => Auth::guard('admin')->check(),
+            ])->render(),
         ]);
+    }
+
+    private function formOrganizerId(?EventRegistrationForm $form): int
+    {
+        abort_unless($form, 404);
+        if (Auth::guard('admin')->check()) {
+            return (int) $form->organizer_id;
+        }
+
+        $organizerId = (int) Auth::guard('organizer')->id();
+        abort_unless((int) $form->organizer_id === $organizerId, 404);
+
+        return $organizerId;
     }
 }

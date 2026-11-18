@@ -2,6 +2,9 @@
   /* Registration forms. TICA tokens: white cards on light grey, light lines,
      navy headings, calm grey-blue text, TICA blue for actions only. */
   .rf-start{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:20px}
+  .rf-owner{margin-bottom:16px}
+  .rf-owner form{max-width:620px}
+  .rf-owner .t-field{margin:0}
   .rf-start form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
   .rf-start .t-field{flex:1 1 220px;margin:0}
   .rf-steps{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:rf}

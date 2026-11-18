@@ -25,8 +25,8 @@
       'condKey' => $question->condition['question_key'] ?? '',
       'condOp' => $question->condition['operator'] ?? 'equals',
       'condValue' => $question->condition['value'] ?? '',
-      'update' => route('organizer.event.registrations.questions.update', $question),
-      'delete' => route('organizer.event.registrations.questions.delete', $question),
+      'update' => route(($adminMode ?? false) ? 'admin.registration_forms.questions.update' : 'organizer.event.registrations.questions.update', $question),
+      'delete' => route(($adminMode ?? false) ? 'admin.registration_forms.questions.delete' : 'organizer.event.registrations.questions.delete', $question),
     ];
   @endphp
   <li class="rf-field" draggable="true" data-rf-item data-id="{{ $question->public_id }}" data-q='@json($data)'>
