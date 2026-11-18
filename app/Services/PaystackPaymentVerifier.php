@@ -7,6 +7,13 @@ class PaystackPaymentVerifier
     public static function errors(array $payment, array $expected): array
     {
         $errors = [];
+
+        $expectedReference = trim((string) ($expected['reference'] ?? ''));
+        $actualReference = trim((string) ($payment['reference'] ?? ''));
+        if ($expectedReference !== '' && $actualReference !== $expectedReference) {
+            $errors[] = 'reference_mismatch';
+        }
+
         $expectedAmount = (int) round(((float) ($expected['price'] ?? 0) + (float) ($expected['tax'] ?? 0)) * 100);
         $actualAmount = (int) ($payment['amount'] ?? -1);
 

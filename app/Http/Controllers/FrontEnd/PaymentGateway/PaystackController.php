@@ -10,6 +10,7 @@ use App\Models\PaymentIntent;
 use App\Models\ProductPaymentIntent;
 use App\Models\Transaction;
 use App\Services\AuditLogger;
+use App\Services\DatabaseAdvisoryLock;
 use App\Services\EventSaleAccountingService;
 use App\Services\IncidentAlertService;
 use App\Services\PaystackPaymentVerifier;
@@ -350,7 +351,7 @@ class PaystackController extends Controller
 
         $verificationErrors = PaystackPaymentVerifier::errors(
             json_decode(json_encode($event->data), true),
-            $arrData
+            array_merge($arrData, ['reference' => (string) $reference])
         );
         if ($verificationErrors) {
             app(IncidentAlertService::class)->alert(
@@ -501,15 +502,16 @@ class PaystackController extends Controller
     {
         $lockName = 'paystack_ref_' . hash('sha256', (string) $reference);
 
-        $lockResult = DB::select("SELECT GET_LOCK(?, 0) AS acquired", [$lockName]);
-        $acquired   = $lockResult[0]->acquired ?? 0;
+        $advisoryLock = app(DatabaseAdvisoryLock::class);
+        $acquired = $advisoryLock->acquire($lockName);
 
         if (!$acquired) {
-            Log::warning('processPayment: MySQL lock already held — duplicate blocked for: ' . $reference);
+            Log::warning('processPayment: Advisory lock already held — duplicate blocked for: ' . $reference);
             return ['status' => 'duplicate', 'bookingInfo' => null];
         }
+        $lockHeld = true;
 
-        Log::info('processPayment: MySQL lock acquired for: ' . $reference);
+        Log::info('processPayment: Advisory lock acquired for: ' . $reference);
 
         try {
             $intent = PaymentIntent::where('gateway', 'paystack')->where('reference', $reference)->first();
@@ -604,8 +606,9 @@ class PaystackController extends Controller
             // Release the request-scoped event date before asynchronous fulfilment.
             Session::forget('event_date');
 
-            DB::select("SELECT RELEASE_LOCK(?)", [$lockName]);
-            Log::info('processPayment: MySQL lock released for: ' . $reference);
+            $advisoryLock->release($lockName);
+            $lockHeld = false;
+            Log::info('processPayment: Advisory lock released for: ' . $reference);
 
             Log::info('processPayment: Completed successfully for: ' . $reference);
 
@@ -633,8 +636,9 @@ class PaystackController extends Controller
             throw $e;
 
         } finally {
-            // Safety net — no-op if lock already released above
-            DB::select("SELECT RELEASE_LOCK(?)", [$lockName]);
+            if ($lockHeld) {
+                $advisoryLock->release($lockName);
+            }
         }
     }
 

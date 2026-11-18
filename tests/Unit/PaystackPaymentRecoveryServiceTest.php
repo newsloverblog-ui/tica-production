@@ -170,6 +170,7 @@ class PaystackPaymentRecoveryServiceTest extends TestCase
     private function successfulGatewayPayment(): array
     {
         return [
+            'reference' => 'success-ref',
             'status' => 'success',
             'amount' => 10000,
             'currency' => 'NGN',

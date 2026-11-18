@@ -23,7 +23,10 @@ class PaystackPaymentRecoveryService
         $intent->forceFill(['last_verified_at' => now()])->save();
 
         if ($gatewayStatus === 'success') {
-            $errors = PaystackPaymentVerifier::errors($data, $intent->payload ?: []);
+            $errors = PaystackPaymentVerifier::errors($data, array_merge(
+                $intent->payload ?: [],
+                ['reference' => $intent->reference]
+            ));
             if ($errors) {
                 $message = 'Payment verification mismatch: ' . implode(', ', $errors);
                 $intent->update(['status' => 'failed', 'last_error' => $message]);

@@ -406,8 +406,8 @@ class FlutterwaveController extends Controller
     private function processPayment(PaymentIntent $intent): int
     {
         $lockName = 'flutterwave_ref_' . hash('sha256', $intent->reference);
-        $lock = DB::select('SELECT GET_LOCK(?, 5) AS acquired', [$lockName]);
-        if (!(int) ($lock[0]->acquired ?? 0)) {
+        $advisoryLock = app(\App\Services\DatabaseAdvisoryLock::class);
+        if (!$advisoryLock->acquire($lockName, 5)) {
             throw new RuntimeException('The Flutterwave payment is already being processed.');
         }
 
@@ -492,7 +492,7 @@ class FlutterwaveController extends Controller
             }
             throw $exception;
         } finally {
-            DB::select('SELECT RELEASE_LOCK(?)', [$lockName]);
+            $advisoryLock->release($lockName);
         }
     }
 

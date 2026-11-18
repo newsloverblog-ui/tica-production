@@ -38,5 +38,24 @@ class PaystackPaymentVerifierTest extends TestCase
             'customer' => ['email' => 'attacker@example.com'],
         ], $this->expected));
     }
+
+    public function test_provider_reference_must_match_the_local_payment_intent(): void
+    {
+        $errors = PaystackPaymentVerifier::errors([
+            'reference' => 'provider-reference',
+            'status' => 'success',
+            'amount' => 10000,
+            'currency' => 'NGN',
+            'customer' => ['email' => 'buyer@example.com'],
+        ], [
+            'reference' => 'local-reference',
+            'price' => 90,
+            'tax' => 10,
+            'currencyText' => 'NGN',
+            'email' => 'buyer@example.com',
+        ]);
+
+        $this->assertSame(['reference_mismatch'], $errors);
+    }
 }
 

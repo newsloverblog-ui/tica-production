@@ -6,6 +6,7 @@ use App\Http\Controllers\FrontEnd\Event\BookingController;
 use App\Models\PaymentIntent;
 use App\Models\Transaction;
 use App\Services\AuditLogger;
+use App\Services\DatabaseAdvisoryLock;
 use App\Services\EventSaleAccountingService;
 use App\Services\PaidBookingFulfillmentService;
 use Illuminate\Http\Request;
@@ -26,10 +27,12 @@ trait FulfilsVerifiedPayment
     protected function processVerifiedPayment(string $gateway, $reference, $arrData)
     {
         $lockName = $gateway . '_ref_' . hash('sha256', (string) $reference);
-        $acquired = DB::select('SELECT GET_LOCK(?, 0) AS acquired', [$lockName])[0]->acquired ?? 0;
+        $advisoryLock = app(DatabaseAdvisoryLock::class);
+        $acquired = $advisoryLock->acquire($lockName);
         if (!$acquired) {
             return ['status' => 'duplicate', 'bookingInfo' => null];
         }
+        $lockHeld = true;
 
         try {
             $existingRow = Transaction::query()->where('gateway', $gateway)->where('gateway_reference', $reference)->first();
@@ -86,7 +89,8 @@ trait FulfilsVerifiedPayment
             }
 
             Session::forget('event_date');
-            DB::select('SELECT RELEASE_LOCK(?)', [$lockName]);
+            $advisoryLock->release($lockName);
+            $lockHeld = false;
 
             $bookingInfo = $bookingInfo->fresh();
             app(PaidBookingFulfillmentService::class)->dispatch($bookingInfo->id);
@@ -102,7 +106,9 @@ trait FulfilsVerifiedPayment
                 ->update(['status' => 'failed', 'last_error' => 'Payment processing failed; inspect the correlated exception report.']);
             throw $e;
         } finally {
-            DB::select('SELECT RELEASE_LOCK(?)', [$lockName]);
+            if ($lockHeld) {
+                $advisoryLock->release($lockName);
+            }
         }
     }
 
