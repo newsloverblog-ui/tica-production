@@ -115,6 +115,18 @@ The browser sweep executed public, owner, manager, finance, gate, rich-organizer
 
 **Tests:** `PaystackPaymentVerifierTest` adds the mismatch regression; the recovery and full payment suites remain green.
 
+### FIX-03 — Artifact upload action used a deprecated runtime
+
+**Severity:** Medium (future CI reliability)
+
+**Affected:** Browser QA screenshots/report and cPanel package artifact uploads
+
+**Root cause:** the workflows referenced `actions/upload-artifact@v4`, which still targeted the deprecated Node.js 20 action runtime. GitHub was temporarily forcing it onto Node.js 24 and emitted a deprecation warning.
+
+**Fix:** upgraded all three artifact-upload steps to the official Node.js 24-compatible `v7.0.2` release, pinned to immutable commit `cf430e030ddbb5b0abf93d22962f4752f3646cd9`.
+
+**Tests:** the CI supply-chain policy test passes; the pushed workflows provide the final integration check.
+
 ## 4. Security review
 
 | Control | Finding |
@@ -197,5 +209,6 @@ The post-fix release candidate received an additional build-system and framework
 | npm security audit | ✅ 0 vulnerabilities |
 | Full PHPUnit regression after the lock fix | ✅ 1,046 passed, 1 environment-dependent smoke skipped, 12,014 assertions |
 | Existing remote `main` CI baseline | ✅ Platform verification, organiser settings, database script, cPanel package, and browser QA were green on base commit `a8b8059` |
+| GitHub Actions runtime compatibility | 🔧 Artifact uploads upgraded from the deprecated Node.js 20 action runtime to pinned `upload-artifact` v7.0.2 |
 
-No additional reproducible application defect was found in this sweep. The payment-fix commits require their own CI run after push; the older green baseline above is supporting evidence only.
+No additional application defect was reproduced. One CI deprecation was fixed before it could become a release-pipeline failure. The payment and workflow-fix commits require their own CI run after push; the older green baseline above is supporting evidence only.
