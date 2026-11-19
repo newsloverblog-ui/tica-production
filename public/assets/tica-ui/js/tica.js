@@ -655,9 +655,9 @@ function acAvatar(el,name,photo){
   el.textContent=acInitials(name);el.classList.remove('has-photo');
   if(!photo)return;
   var image=new Image();image.alt='';image.decoding='async';
-  image.onerror=function(){image.remove();el.classList.remove('has-photo')};
-  image.onload=function(){el.classList.add('has-photo')};
-  image.src=photo;el.appendChild(image);
+  image.onerror=function(){el.classList.remove('has-photo')};
+  image.onload=function(){el.replaceChildren(image);el.classList.add('has-photo')};
+  image.src=photo;
 }
 function evAny(s){return bySlug(s)||(ACC.events||[]).filter(function(e){return e.slug===s})[0]}
 var acPanel='overview';

@@ -5402,6 +5402,8 @@ footer,footer.ft{--indigo-2:#0F4C9E}
   box-shadow: inset 0 0 0 1px #d7e0f7 !important;
 }
 
+body.isuser.appmode .workspace-badge { display: none !important; }
+
 .page[data-page=account] .acd-nav button,
 .page[data-page=account] .acd-out {
   border-radius: 8px;

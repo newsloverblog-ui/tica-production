@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
 use Tests\TestCase;
 
@@ -184,6 +186,7 @@ class CustomerProfileMutationBoundaryTest extends TestCase
     {
         $view = file_get_contents(resource_path('views/tica-ui/pages/account.blade.php'));
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
         $this->assertStringContainsString('name="photo"', $view);
         $this->assertStringContainsString('id="pf-photo-preview"', $view);
@@ -191,6 +194,52 @@ class CustomerProfileMutationBoundaryTest extends TestCase
         $this->assertStringNotContainsString('Member since', $script);
         $this->assertStringNotContainsString("p==='account'?'Customer account'", $script);
         $this->assertStringContainsString("workspaceRole.hidden=p==='account'", $script);
+        $this->assertStringContainsString('body.isuser.appmode .workspace-badge { display: none !important; }', $styles);
+        $this->assertStringContainsString('el.replaceChildren(image)', $script);
+    }
+
+    public function test_google_sign_in_replaces_a_numeric_provider_username_with_the_display_name(): void
+    {
+        $customer = Customer::create([
+            'provider' => 'google',
+            'provider_id' => '113399463427326085310',
+            'fname' => 'Wp FingerFix',
+            'lname' => '',
+            'username' => '113399463427326085310',
+            'email' => 'fingerfix@example.com',
+            'password' => Hash::make('Original-password-123!'),
+            'status' => 1,
+            'email_verified_at' => now(),
+        ]);
+        Customer::create([
+            'provider' => 'local',
+            'fname' => 'Existing',
+            'lname' => 'Customer',
+            'username' => 'WpFingerFix',
+            'email' => 'existing@example.com',
+            'password' => Hash::make('Original-password-123!'),
+            'status' => 1,
+            'email_verified_at' => now(),
+        ]);
+
+        $googleUser = (new SocialiteUser())->map([
+            'id' => '113399463427326085310',
+            'name' => 'Wp FingerFix',
+            'email' => 'fingerfix@example.com',
+        ]);
+        $googleUser->setRaw(['email_verified' => true]);
+        $provider = Mockery::mock();
+        $provider->shouldReceive('user')->once()->andReturn($googleUser);
+        Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
+
+        $request = Request::create('/login/google/callback', 'GET');
+        $request->setLaravelSession(app('session')->driver());
+        $this->app->instance('request', $request);
+
+        (new CustomerController())->authenticationViaProvider('google');
+
+        $this->assertSame('WpFingerFix2', $customer->fresh()->username);
+        $this->assertTrue(Auth::guard('customer')->check());
     }
 
     public function test_email_change_requires_password_and_revokes_verification(): void

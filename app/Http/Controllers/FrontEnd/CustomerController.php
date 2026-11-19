@@ -628,6 +628,19 @@ class CustomerController extends Controller
             ->with('alert', 'Sorry, your account has been deactivated!');
         }
 
+        // Older Google accounts used the provider's numeric subject ID as the
+        // public username. Replace that implementation detail with a readable,
+        // unique username the next time the customer signs in with Google.
+        if ($driver === 'google' && $this->hasProviderGeneratedUsername($isUser)) {
+          $isUser->forceFill([
+            'username' => $this->uniqueCustomerUsername(
+              (string) ($user->getName() ?: $isUser->fname),
+              (string) ($user->getEmail() ?: $isUser->email),
+              (int) $isUser->id
+            ),
+          ])->save();
+        }
+
         $redirectURL = $this->safeCustomerRedirect(request()->session()->pull('redirectTo'));
         if (app(AccountMfaService::class)->enabled($isUser)) {
           Auth::guard('customer')->login($isUser);
@@ -658,11 +671,12 @@ class CustomerController extends Controller
           return $name;
         }, null, false);
 
+        $displayName = trim((string) ($user->getName() ?: Str::before((string) $user->getEmail(), '@')));
         $createUser = Customer::create([
           'photo' => $avatarName,
-          'fname' => $user->name,
+          'fname' => $displayName,
           'email' => $user->email,
-          'username' => $user->id,
+          'username' => $this->uniqueCustomerUsername($displayName, (string) $user->getEmail()),
           'provider' => $driver,
           'provider_id' => $user->id,
           'password' => Hash::make(Str::random(40)),
@@ -705,5 +719,42 @@ class CustomerController extends Controller
     }
 
     return $url;
+  }
+
+  private function hasProviderGeneratedUsername(Customer $customer): bool
+  {
+    $username = trim((string) $customer->username);
+
+    return $username === ''
+      || ctype_digit($username)
+      || ($customer->provider_id !== null && hash_equals((string) $customer->provider_id, $username));
+  }
+
+  private function uniqueCustomerUsername(string $displayName, string $email, ?int $ignoreCustomerId = null): string
+  {
+    $seed = Str::studly(Str::ascii(trim($displayName)));
+    if ($seed === '') {
+      $seed = Str::studly(Str::ascii(Str::before($email, '@')));
+    }
+    $base = mb_substr(preg_replace('/[^A-Za-z0-9_-]/', '', $seed) ?: 'TicaGuest', 0, 30);
+    $candidate = $base;
+
+    for ($suffix = 2; $this->customerUsernameExists($candidate, $ignoreCustomerId); $suffix++) {
+      $suffixText = (string) $suffix;
+      $candidate = mb_substr($base, 0, 30 - strlen($suffixText)) . $suffixText;
+    }
+
+    return $candidate;
+  }
+
+  private function customerUsernameExists(string $username, ?int $ignoreCustomerId): bool
+  {
+    $query = Customer::query()->whereRaw('LOWER(username) = ?', [mb_strtolower($username)]);
+    if ($ignoreCustomerId !== null) {
+      $query->where('id', '!=', $ignoreCustomerId);
+    }
+
+    return $query->exists()
+      || ($this->admin_user_name !== null && strcasecmp((string) $this->admin_user_name, $username) === 0);
   }
 }
