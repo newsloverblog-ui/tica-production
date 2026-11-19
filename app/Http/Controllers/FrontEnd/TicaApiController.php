@@ -27,6 +27,7 @@ use App\Services\BookingCompletionUrlService;
 use App\Models\PaymentGateway\OnlineGateway;
 use App\Services\CustomerLoginCodeService;
 use App\Services\EventCouponService;
+use App\Services\EventTicketPurchaseLimitService;
 use App\Services\EventPublicVisibility;
 use App\Services\EventWaitlistService;
 use App\Services\SeatReservationService;

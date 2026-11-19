@@ -4,9 +4,15 @@ if (!function_exists('tica_asset_version')) {
   function tica_asset_version(?string $relativePath = null): string
   {
     $path = $relativePath ? ltrim($relativePath, '/') : null;
-    $modifiedAt = $path ? @filemtime(public_path($path)) : false;
+    $absolutePath = $path ? public_path($path) : null;
+    $fingerprint = $absolutePath && is_file($absolutePath)
+      ? (@hash_file('sha1', $absolutePath) ?: @filemtime($absolutePath))
+      : ($absolutePath ? @filemtime($absolutePath) : false);
     $release = (string) config('app.asset_version', '');
-    $version = $release !== '' ? $release : ($modifiedAt ?: 'tica-assets');
+    // Include the file fingerprint even when a release ID is configured. This
+    // prevents a browser from retaining an older checkout bundle when the
+    // hosting environment reuses the same release-level asset version.
+    $version = ($release !== '' ? $release : 'tica-assets') . '|' . ($fingerprint ?: 'shared');
 
     return substr(sha1($version . '|' . ($path ?? 'shared')), 0, 12);
   }

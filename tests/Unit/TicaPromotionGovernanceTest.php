@@ -116,6 +116,17 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertNotSame($first, $second);
         $this->assertSame(12, strlen($second));
 
+        $fixture = public_path('asset-version-test.txt');
+        file_put_contents($fixture, 'first');
+        config(['app.asset_version' => 'release-fixed']);
+        $beforeContentChange = tica_asset_version('asset-version-test.txt');
+        file_put_contents($fixture, 'second');
+        clearstatcache(true, $fixture);
+        $afterContentChange = tica_asset_version('asset-version-test.txt');
+        @unlink($fixture);
+
+        $this->assertNotSame($beforeContentChange, $afterContentChange);
+
         foreach ([
             'views/backend/tica/promotions.blade.php',
             'views/backend/event/coupon/index.blade.php',
