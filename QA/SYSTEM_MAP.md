@@ -15,22 +15,22 @@
 
 | Item | Count |
 |---|---:|
-| Application routes | 860 |
-| Controllers | 175 |
+| Application routes | 864 |
+| Controllers | 174 |
 | Form requests | 44 |
 | Models | 164 |
 | Jobs | 41 |
 | Mailables | 10 |
 | Notifications | 1 |
 | Middleware | 29 |
-| Console commands | 57 |
-| Services | 176 |
+| Console commands | 58 |
+| Services | 177 |
 | Providers | 5 |
 | Rules | 5 |
 | Exports | 20 |
 | Migrations | 144 |
 | Seeders | 5 |
-| Unit tests | 240 |
+| Unit tests | 251 |
 | Feature tests | 3 |
 | Form/network submission call sites | 473 |
 | Paystack-related source occurrences | 1008 |
@@ -39,10 +39,10 @@
 
 | URI area | Routes |
 |---|---:|
-| `admin` | 447 |
-| `organizer` | 145 |
+| `admin` | 449 |
+| `organizer` | 147 |
 | `tica-api` | 49 |
-| `customer` | 44 |
+| `customer` | 46 |
 | `event-booking` | 31 |
 | `product-order` | 22 |
 | `scanner` | 17 |
@@ -64,7 +64,6 @@
 | `myfatoorah` | 2 |
 | `promotion` | 2 |
 | `registration-allocation` | 2 |
-| `system` | 2 |
 | `ticket-transfer` | 2 |
 | `/` | 1 |
 | `about` | 1 |
@@ -1067,8 +1066,6 @@ Editable `MailTemplate` records are rendered through the application mail delive
 | 798 | `GET\|HEAD` | `sitemap.xml` | `tica.sitemap` | `App\Http\Controllers\FrontEnd\TicaSeoController@sitemap` | `web` |
 | 799 | `POST` | `store-subscriber` | `store_subscriber` | `App\Http\Controllers\Controller@storeSubscriber` | `web, throttle:public-form` |
 | 800 | `POST` | `stripe/webhook` | `stripe.webhook` | `App\Http\Controllers\FrontEnd\PaymentGateway\StripeController@webhook` | `web, payment.gateway:event,stripe, webhook.receipt:stripe, throttle:120,1` |
-| 801 | `GET\|HEAD` | `system/update` | `system.database.show` | `App\Http\Controllers\SystemUpdateController@show` | `web, throttle:30,1` |
-| 802 | `POST` | `system/update` | `system.database.apply` | `App\Http\Controllers\SystemUpdateController@apply` | `web, throttle:10,1` |
 | 803 | `GET\|HEAD` | `team/accept/{token}` | `tica.team.accept` | `App\Http\Controllers\FrontEnd\TicaUiController@teamAccept` | `web, change.lang` |
 | 804 | `POST` | `tica-api/checkin/code` | `tica.api.checkin.code` | `App\Http\Controllers\FrontEnd\TicaApiController@checkinCode` | `web, change.lang, throttle:scanner` |
 | 805 | `POST` | `tica-api/checkout` | `tica.api.checkout` | `App\Http\Controllers\FrontEnd\TicaApiController@checkout` | `web, change.lang, throttle:checkout` |
@@ -1305,7 +1302,6 @@ Editable `MailTemplate` records are rendered through the application mail delive
 | `app/Http/Controllers/FrontEnd/TicaUiController.php` | page, adminCreate, adminEdit, organizerEdit, event, checkout, order, teamAccept, missing, blog, blogPost, customPage |
 | `app/Http/Controllers/FrontEnd/TicaWorkspaceController.php` | updateEvent, changeDate, cancel, attendees, attendeesCsv, resend, refund, message, guest, banks, resolveBank, saveBank, payoutSchedule, withdraw, storeCode, updateCode, deleteCode, storeLink, updateLink, deleteLink, storePromotion, payPromotion, checkoutPromotion, cancelPromotion, storePixel, invite, changeMemberRole, removeMember, profile, password, prefs, notifications, readNotifications |
 | `app/Http/Controllers/OperationalHealthController.php` | ready |
-| `app/Http/Controllers/SystemUpdateController.php` | show, apply |
 | `app/Http/Controllers/VercelCronController.php` | __invoke |
 
 ## Form requests

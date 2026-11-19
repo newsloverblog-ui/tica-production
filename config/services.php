@@ -13,6 +13,7 @@ return [
         'secret_key' => env('SUPABASE_SECRET_KEY'),
         'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
         'public_asset_bucket' => env('SUPABASE_PUBLIC_ASSET_BUCKET', 'tica-public'),
+        'support_attachment_bucket' => env('SUPABASE_SUPPORT_ATTACHMENT_BUCKET', 'tica-private-support'),
         'public_asset_max_bytes' => (int) env('SUPABASE_PUBLIC_ASSET_MAX_BYTES', 52428800),
         'storage_timeout' => (int) env('SUPABASE_STORAGE_TIMEOUT', 15),
     ],

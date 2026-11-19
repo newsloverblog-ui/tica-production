@@ -465,41 +465,51 @@ class EventController extends Controller
     $event = Event::where('id', $event->id)->first();
 
     if ($request->date_type == 'multiple') {
-      $i = 1;
-      foreach ($request->m_start_date as $key => $date) {
-        $start = Carbon::parse($date . $request->m_start_time[$key]);
-        $end =  Carbon::parse($request->m_end_date[$key] . $request->m_end_time[$key]);
-        $diffent = DurationCalulate($start, $end);
+      DB::transaction(function () use ($request, $event) {
+        $i = 1;
 
-        if (!empty($request->date_ids[$key])) {
-          $event_date = EventDates::where('id', $request->date_ids[$key])->first();
-          $event_date->start_date = $date;
-          $event_date->start_time = $request->m_start_time[$key];
-          $event_date->end_date = $request->m_end_date[$key];
-          $event_date->end_time = $request->m_end_time[$key];
-          $event_date->duration = $diffent;
-          $event_date->start_date_time = $start;
-          $event_date->end_date_time = $end;
-          $event_date->save();
-        } else {
-          EventDates::create([
-            'event_id' => $event->id,
-            'start_date' => $date,
-            'start_time' => $request->m_start_time[$key],
-            'end_date' => $request->m_end_date[$key],
-            'end_time' => $request->m_end_time[$key],
-            'duration' => $diffent,
-            'start_date_time' => $start,
-            'end_date_time' => $end,
-          ]);
+        foreach ($request->m_start_date as $key => $date) {
+          $start = Carbon::parse($date . $request->m_start_time[$key]);
+          $end = Carbon::parse($request->m_end_date[$key] . $request->m_end_time[$key]);
+          $diffent = DurationCalulate($start, $end);
+
+          if (!empty($request->date_ids[$key])) {
+            // Never trust a client-supplied date ID by itself. It must belong
+            // to the event that already passed the organizer ownership check.
+            $event_date = EventDates::query()
+              ->whereKey($request->date_ids[$key])
+              ->where('event_id', $event->id)
+              ->lockForUpdate()
+              ->firstOrFail();
+
+            $event_date->start_date = $date;
+            $event_date->start_time = $request->m_start_time[$key];
+            $event_date->end_date = $request->m_end_date[$key];
+            $event_date->end_time = $request->m_end_time[$key];
+            $event_date->duration = $diffent;
+            $event_date->start_date_time = $start;
+            $event_date->end_date_time = $end;
+            $event_date->save();
+          } else {
+            EventDates::create([
+              'event_id' => $event->id,
+              'start_date' => $date,
+              'start_time' => $request->m_start_time[$key],
+              'end_date' => $request->m_end_date[$key],
+              'end_time' => $request->m_end_time[$key],
+              'duration' => $diffent,
+              'start_date_time' => $start,
+              'end_date_time' => $end,
+            ]);
+          }
+
+          if ($i == 1) {
+            $event->update(['duration' => $diffent]);
+          }
+
+          $i++;
         }
-        if ($i == 1) {
-          $event->update([
-            'duration' => $diffent
-          ]);
-        }
-        $i++;
-      }
+      }, 3);
     }
 
     if ($request->date_type == 'single') {

@@ -26,10 +26,17 @@ final class BookingCompletionUrlService
             $parameters['via'] = $via;
         }
 
-        return URL::temporarySignedRoute(
+        // Sign the path rather than the deployment host. TICA runs behind Vercel's
+        // proxy, where the public scheme/host can differ from Laravel's request
+        // context during the Paystack return. The route remains tamper-evident,
+        // while the resulting link can safely survive that proxy boundary.
+        $relativeUrl = URL::temporarySignedRoute(
             'event_booking.complete',
             now()->addHours(24),
-            $parameters
+            $parameters,
+            false
         );
+
+        return URL::to($relativeUrl);
     }
 }

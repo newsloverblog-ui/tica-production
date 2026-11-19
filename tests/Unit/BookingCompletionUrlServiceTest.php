@@ -41,10 +41,11 @@ class BookingCompletionUrlServiceTest extends TestCase
     {
         $url = app(BookingCompletionUrlService::class)->make(42, 91, 'offline');
 
-        $this->assertTrue(Request::create($url)->hasValidSignature());
+        $this->assertStringStartsWith('http', $url);
+        $this->assertTrue(Request::create($url)->hasValidRelativeSignature());
         $this->assertStringContainsString('via=offline', $url);
-        $this->assertFalse(Request::create(str_replace('id=42', 'id=43', $url))->hasValidSignature());
-        $this->assertFalse(Request::create(str_replace('booking_id=91', 'booking_id=92', $url))->hasValidSignature());
+        $this->assertFalse(Request::create(str_replace('id=42', 'id=43', $url))->hasValidRelativeSignature());
+        $this->assertFalse(Request::create(str_replace('booking_id=91', 'booking_id=92', $url))->hasValidRelativeSignature());
     }
 
     public function test_completion_route_requires_a_valid_signature(): void
@@ -52,7 +53,16 @@ class BookingCompletionUrlServiceTest extends TestCase
         $route = Route::getRoutes()->getByName('event_booking.complete');
 
         $this->assertNotNull($route);
-        $this->assertContains('signed', $route->gatherMiddleware());
+        $this->assertContains('signed:relative', $route->gatherMiddleware());
+    }
+
+    public function test_completion_signature_survives_a_proxy_host_change(): void
+    {
+        $url = app(BookingCompletionUrlService::class)->make(42, 91);
+        $parts = parse_url($url);
+        $proxyUrl = 'https://tica-production.vercel.app'.($parts['path'] ?? '/').'?'.($parts['query'] ?? '');
+
+        $this->assertTrue(Request::create($proxyUrl)->hasValidRelativeSignature());
     }
 
     public function test_completion_booking_is_bound_to_the_signed_event(): void

@@ -30,6 +30,9 @@ return [
   // PII and are served only through owner-authorized download endpoints.
   'event_registration_upload_disk' => env('EVENT_REGISTRATION_UPLOAD_DISK', 'local'),
 
+  // Support attachments may contain private customer or organizer information.
+  'support_ticket_attachments_disk' => env('SUPPORT_TICKET_ATTACHMENT_DISK', 'local'),
+
   /*
   |--------------------------------------------------------------------------
   | Filesystem Disks

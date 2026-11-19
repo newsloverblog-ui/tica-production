@@ -5347,3 +5347,190 @@ footer,footer.ft{--indigo-2:#0F4C9E}
   .ev-agenda-meta,.ev-agenda-list article>p:last-child{margin-left:0!important}
 }
 @media (prefers-reduced-motion:reduce){.ev-person-photo img{transition:none}}
+
+/* Customer account: restrained, flat workspace. */
+.page[data-page=account] .acd {
+  background: #f5f7fa !important;
+  background-image: none !important;
+}
+
+.page[data-page=account] .acd-main {
+  max-width: 1560px;
+  padding: clamp(22px, 2.4vw, 40px);
+  gap: 20px;
+}
+
+.page[data-page=account] .acd-head {
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.page[data-page=account] .acd-head h1 {
+  font-size: clamp(27px, 2.5vw, 36px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+
+.page[data-page=account] .acd-head p { font-size: 14px; }
+.page[data-page=account] .acd-crumb { display: none; }
+
+.page[data-page=account] .acd-side {
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.page[data-page=account] .acd-me {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.page[data-page=account] .acd-av {
+  border-radius: 9px;
+  background: #eef2ff !important;
+  color: #2f5bd3 !important;
+  box-shadow: inset 0 0 0 1px #d7e0f7 !important;
+}
+
+.page[data-page=account] .acd-nav button,
+.page[data-page=account] .acd-out {
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.page[data-page=account] .acd-nav button.on {
+  background: #eef2ff !important;
+  color: #2f5bd3 !important;
+  box-shadow: none !important;
+}
+
+.page[data-page=account] .acd-nav button.on::before { display: none; }
+.page[data-page=account] .acd-nav-label { letter-spacing: .08em; }
+
+.page[data-page=account] .acd-next {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  padding: 22px;
+  border: 1px solid #dfe5ed !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.page[data-page=account] .acd-next::before,
+.page[data-page=account] .acd-next::after,
+.page[data-page=account] .acd-next-b::after { display: none !important; }
+
+.page[data-page=account] .acd-next-empty {
+  display: flex;
+  min-height: 112px;
+  align-items: center;
+  gap: 18px;
+  padding: 4px;
+}
+
+.page[data-page=account] .acd-next-empty h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.page[data-page=account] .acd-next-empty p { flex: 1; margin: 0; font-size: 14px; }
+.page[data-page=account] .acd-next-empty .btn { flex: none; }
+
+.page[data-page=account] .acd-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #dfe5ed;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.page[data-page=account] .acd-stat {
+  min-height: 78px;
+  padding: 14px 16px;
+  border: 0 !important;
+  border-left: 1px solid #e6eaf0 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  transition: background-color .15s ease;
+}
+
+.page[data-page=account] .acd-stat:first-child { border-left: 0 !important; }
+.page[data-page=account] .acd-stat:hover { transform: none; background: #f8faff !important; }
+.page[data-page=account] .acd-stat .acd-ic {
+  width: 34px;
+  height: 34px;
+  border: 0 !important;
+  border-radius: 8px;
+  background: #eef2ff !important;
+  background-image: none !important;
+  color: #2f5bd3 !important;
+}
+
+.page[data-page=account] .acd-stat b { font-size: 20px; font-weight: 600; }
+.page[data-page=account] .acd-two { grid-template-columns: minmax(0, 1.3fr) minmax(330px, .7fr); gap: 16px; }
+.page[data-page=account] .acd-card {
+  border: 1px solid #dfe5ed !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.page[data-page=account] .acd-qa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.page[data-page=account] .acd-qa a,
+.page[data-page=account] .acd-qa button {
+  min-height: 54px;
+  border-color: #e5e9ef;
+  border-radius: 8px;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.page[data-page=account] .acd-qa a:hover,
+.page[data-page=account] .acd-qa button:hover {
+  transform: none;
+  border-color: #cbd6ec;
+  background: #f8faff;
+  box-shadow: none;
+}
+
+.page[data-page=account] .acd-qa i,
+.page[data-page=account] .acd-help i {
+  width: 32px;
+  height: 32px;
+  border: 0 !important;
+  border-radius: 7px;
+  background: #eef2ff !important;
+  background-image: none !important;
+  color: #2f5bd3 !important;
+}
+
+.page[data-page=account] .acd-recs .card {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.page[data-page=account] .acd-recs .card:hover {
+  transform: none;
+  border-color: #cbd6ec;
+  box-shadow: none;
+}
+
+@media (max-width: 1100px) {
+  .page[data-page=account] .acd-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page[data-page=account] .acd-stat:nth-child(3) { border-left: 0 !important; }
+  .page[data-page=account] .acd-stat:nth-child(n+3) { border-top: 1px solid #e6eaf0 !important; }
+  .page[data-page=account] .acd-two { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .page[data-page=account] .acd-main { padding: 18px 14px 32px; }
+  .page[data-page=account] .acd-next-empty { align-items: flex-start; flex-direction: column; }
+  .page[data-page=account] .acd-next-empty p { flex: none; }
+  .page[data-page=account] .acd-next-empty .btn { width: 100%; }
+  .page[data-page=account] .acd-stats { grid-template-columns: 1fr 1fr; }
+  .page[data-page=account] .acd-qa { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 430px) {
+  .page[data-page=account] .acd-head .btn { width: 100%; }
+  .page[data-page=account] .acd-qa { grid-template-columns: 1fr; }
+}

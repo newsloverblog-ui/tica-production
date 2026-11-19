@@ -208,6 +208,10 @@ Route::prefix('/customer')->middleware('auth:customer', 'Deactive:customer', 'ch
   Route::get('/support-ticket/create', 'FrontEnd\SupportTicketController@create')->name('customer.support_tickert.create');
   Route::post('/support-ticket/store', 'FrontEnd\SupportTicketController@store')->name('customer.support_ticket.store');
   Route::get('/support-ticket/message/{id}', 'FrontEnd\SupportTicketController@message')->name('customer.support_ticket.message');
+  Route::get('/support-ticket/{id}/attachment', 'FrontEnd\SupportTicketController@downloadAttachment')
+    ->middleware('throttle:6,1')->name('customer.support_ticket.attachment');
+  Route::get('/support-ticket/reply/{conversation}/attachment', 'FrontEnd\SupportTicketController@downloadReplyAttachment')
+    ->middleware('throttle:6,1')->name('customer.support_ticket.reply_attachment');
   Route::post('/support-ticket/reply/{id}', 'FrontEnd\SupportTicketController@reply')->name('customer-reply');
 
   Route::get('/my-orders', 'FrontEnd\Shop\CustomerOrderController@index')->middleware('tica.no-shop')->name('customer.my_orders');
@@ -233,7 +237,7 @@ Route::middleware('change.lang')->group(function () {
     ->middleware('signed')
     ->name('event_booking.cancel');
   Route::get('/event-booking-complete', 'FrontEnd\Event\BookingController@complete')
-    ->middleware('signed')
+    ->middleware('signed:relative')
     ->name('event_booking.complete');
 });
 
@@ -661,9 +665,3 @@ Route::get('/{slug}', 'FrontEnd\TicaUiController@customPage')->name('dynamic_pag
 
 // fallback route
 Route::fallback('FrontEnd\TicaUiController@missing')->middleware('change.lang');
-
-// Database updates without a terminal (cPanel). Off unless DB_UPDATE_TOKEN is set; no session or cache needed.
-Route::get('/system/update', 'SystemUpdateController@show')->name('system.database.show')->middleware('throttle:30,1')
-  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);
-Route::post('/system/update', 'SystemUpdateController@apply')->name('system.database.apply')->middleware('throttle:10,1')
-  ->withoutMiddleware([\App\Http\Middleware\EncryptCookies::class, \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, \Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \App\Http\Middleware\VerifyCsrfToken::class]);

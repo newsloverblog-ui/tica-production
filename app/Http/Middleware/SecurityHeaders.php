@@ -26,6 +26,14 @@ class SecurityHeaders
         );
 
         $policy = trim((string) config('security.content_security_policy'));
+        $routeName = (string) optional($request->route())->getName();
+        if (in_array($routeName, (array) config('security.legacy_vue_compiler_routes', []), true)
+            && preg_match('/(?:^|;)\s*script-src\s+[^;]*/i', $policy, $matches)) {
+            $scriptDirective = rtrim((string) $matches[0]);
+            if (!str_contains($scriptDirective, "'unsafe-eval'")) {
+                $policy = str_replace($matches[0], $scriptDirective . " 'unsafe-eval'", $policy);
+            }
+        }
         if (is_array($frameAncestors) && $frameAncestors !== []) {
             $directive = "frame-ancestors 'self' ".implode(' ', $frameAncestors);
             if (preg_match('/(?:^|;)\s*frame-ancestors\s+[^;]*/i', $policy)) {

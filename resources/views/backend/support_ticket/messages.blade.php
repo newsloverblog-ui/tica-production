@@ -74,15 +74,9 @@
                 <div class="col-lg-8 offset-lg-2">
                   <p class="font-16">{{ $ticket->description }}</p>
                   @if ($ticket->attachment)
-                    @if ($ticket->user_type == 'customer')
-                      <a href="{{ asset('assets/admin/img/support-ticket/' . $ticket->attachment) }}"
-                        download="{{ __('support_file') }}" class="btn btn-primary"><i class="fas fa-download"></i>
-                        {{ __('Download Attachment') }}</a>
-                    @else
-                      <a href="{{ asset('assets/admin/img/support-ticket/attachment/' . $ticket->attachment) }}"
-                        download="{{ __('support_file') }}" class="btn btn-primary"><i class="fas fa-download"></i>
-                        {{ __('Download Attachment') }}</a>
-                    @endif
+                    <a href="{{ route('admin.support_ticket.attachment', $ticket->id) }}"
+                      download="{{ __('support_file') }}" class="btn btn-primary"><i class="fas fa-download"></i>
+                      {{ __('Download Attachment') }}</a>
                   @endif
                 </div>
               </div>
@@ -115,7 +109,7 @@
                         <div class="status">{{ $admin->id == 1 ? __('Super Admin') : $admin->role->name }}</div>
                         <p>{!! $reply->reply !!}</p>
                         @if ($reply->file)
-                          <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                          <a href="{{ route('admin.support_ticket.reply_attachment', $reply->id) }}"
                             download="support_file" class="btn btn-rounded btn-info btn-sm">{{ __('Download') }}</a>
                         @endif
                       </div>
@@ -140,7 +134,7 @@
                           <div class="status">{{ __('Customer') }}</div>
                           <p>{!! $reply->reply !!}</p>
                           @if ($reply->file)
-                            <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                            <a href="{{ route('admin.support_ticket.reply_attachment', $reply->id) }}"
                               download="support_file" class="btn btn-rounded btn-info btn-sm">{{ __('Download') }}</a>
                           @endif
                         </div>
@@ -172,7 +166,7 @@
                           <div class="status">{{ __('Organizer') }}</div>
                           <p>{!! $reply->reply !!}</p>
                           @if ($reply->file)
-                            <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                            <a href="{{ route('admin.support_ticket.reply_attachment', $reply->id) }}"
                               download="support_file" class="btn btn-rounded btn-info btn-sm">{{ __('Download') }}</a>
                           @endif
                         </div>

@@ -83,7 +83,7 @@
                       <p>{{ $ticket->description }}</p>
                     </div>
                     @if ($ticket->attachment != null)
-                      <a href="{{ asset('assets/admin/img/support-ticket/' . $ticket->attachment) }}"
+                      <a href="{{ route('customer.support_ticket.attachment', $ticket->id) }}"
                         download="support.zip" class="btn btn-primary"><i class="fas fa-download"></i>
                         {{ __('Download') }}</a>
                     @endif
@@ -113,7 +113,7 @@
                                         <span
                                           class="badge badge-secondary">{{ date_format($reply->created_at, 'd-m-Y h:i a') }}</span>
                                         @if ($reply->file != null)
-                                          <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                                          <a href="{{ route('customer.support_ticket.reply_attachment', $reply->id) }}"
                                             download="support.zip" class="reply-download-btn"><i
                                               class="fas fa-download"></i>
                                             {{ __('Download') }}</a>
@@ -148,7 +148,7 @@
                                         <span
                                           class="badge badge-secondary">{{ date_format($reply->created_at, 'd-m-Y h:i a') }}</span>
                                         @if ($reply->file != null)
-                                          <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                                          <a href="{{ route('customer.support_ticket.reply_attachment', $reply->id) }}"
                                             download="support.zip" class="reply-download-btn"><i
                                               class="fas fa-download"></i>
                                             {{ __('Download') }}</a>

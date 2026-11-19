@@ -5,15 +5,24 @@
 @endsection
 
 @section('content')
-  <div class="tica-directory-page">
+  <div class="tica-directory-page tica-directory-page--customers">
     <header class="directory-page-header">
-      <div><span class="directory-eyebrow">{{ __('Audience') }}</span><h1>{{ __('Customers') }}</h1><p>{{ __('Find registered customers, review access status and prepare private operational exports.') }}</p></div>
+      <div>
+        <h1>{{ __('Customers') }}</h1>
+        <p>{{ __('Manage customer accounts, verification and booking access.') }}</p>
+      </div>
       <div class="directory-header-actions">
-        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.customer_privacy_requests.index') }}"><i class="fas fa-user-shield" aria-hidden="true"></i>{{ __('Privacy requests') }}</a>
-        <a class="directory-btn directory-btn--quiet" href="{{ route('admin.directory_exports.index', ['directory'=>'customers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
-        <a class="directory-btn directory-btn--primary" href="{{ route('admin.organizer_management.add_customer') }}"><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Add customer') }}</a>
+        <a class="directory-btn directory-btn--primary customer-add-action" href="{{ route('admin.organizer_management.add_customer') }}">
+          <i class="fas fa-plus" aria-hidden="true"></i>
+          <span class="directory-btn__label">{{ __('Add customer') }}</span>
+        </a>
       </div>
     </header>
+
+    <nav class="directory-shortcuts customer-directory-shortcuts" aria-label="{{ __('Customer tools') }}">
+      <a href="{{ route('admin.customer_privacy_requests.index') }}"><i class="fas fa-user-shield" aria-hidden="true"></i>{{ __('Privacy requests') }}</a>
+      <a href="{{ route('admin.directory_exports.index', ['directory'=>'customers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
+    </nav>
 
     <div class="directory-stats" aria-label="{{ __('Customer summary') }}">
       <article><span>{{ __('All customers') }}</span><strong>{{ number_format($summary['total']) }}</strong></article>
@@ -39,7 +48,7 @@
         @php $customerName = trim($customer->fname.' '.$customer->lname) ?: $customer->username; $initials = mb_strtoupper(mb_substr($customer->fname ?: $customer->username ?: 'C',0,1).mb_substr($customer->lname ?: '',0,1)); @endphp
         <tr>
           <td data-label=""><input type="checkbox" class="bulk-check" data-val="{{ $customer->id }}" aria-label="{{ __('Select :name',['name'=>$customerName]) }}"></td>
-          <td data-label="{{ __('Customer') }}"><div class="directory-person"><span class="directory-avatar directory-avatar--customer"><span>{{ $initials }}</span></span><span><strong>{{ $customerName }}</strong><small>{{ '@'.$customer->username }}</small></span></div></td>
+          <td data-label="{{ __('Customer') }}"><div class="directory-person"><span class="directory-avatar directory-avatar--customer"><span>{{ $initials }}</span>@if($customer->photo)<img src="{{ asset('assets/admin/img/customer-profile/'.$customer->photo) }}" alt="">@endif</span><span><strong>{{ $customerName }}</strong><small>{{ '@'.$customer->username }}</small></span></div></td>
           <td data-label="{{ __('Contact') }}"><strong>{{ $customer->email }}</strong><small>{{ $customer->phone ?: __('No phone added') }}</small></td>
           <td data-label="{{ __('Account') }}"><form action="{{ route('admin.customer_management.customer.update_account_status',['id'=>$customer->id]) }}" method="post">@csrf<select class="directory-state-select" name="account_status" onchange="this.form.submit()"><option value="1" @selected((int)$customer->status===1)>{{ __('Active') }}</option><option value="0" @selected((int)$customer->status===0)>{{ __('Inactive') }}</option></select></form></td>
           <td data-label="{{ __('Verification') }}"><form action="{{ route('admin.customer_management.customer.update_email_status',['id'=>$customer->id]) }}" method="post">@csrf<select class="directory-state-select" name="email_status" onchange="this.form.submit()"><option value="1" @selected($customer->email_verified_at)>{{ __('Verified') }}</option><option value="0" @selected(!$customer->email_verified_at)>{{ __('Not verified') }}</option></select></form></td>

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\FrontEnd;
 
 use App\Http\Controllers\Controller;
-use App\Http\Helpers\UploadFile;
 use App\Models\Conversation;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketStatus;
+use App\Services\SupportTicketAttachmentStorage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,23 +28,26 @@ class SupportTicketController extends Controller
   //store
   public function store(Request $request)
   {
-    $request->validate([
-      'subject' => 'required',
-      'email' => 'required',
-      'description' => 'required',
+    $validated = $request->validate([
+      'subject' => ['required', 'string', 'max:255'],
+      'email' => ['required', 'email', 'max:255'],
+      'description' => ['required', 'string', 'max:10000'],
       'attachment' => ['nullable', 'file', 'mimes:zip', 'mimetypes:application/zip,application/x-zip-compressed', 'max:5000']
     ]);
 
-    $in = $request->all();
-    $in['user_id'] = Auth::guard('customer')->user()->id;
-    $in['user_type'] = 'customer';
+    $in = [
+      'subject' => $validated['subject'],
+      'email' => $validated['email'],
+      'description' => Purifier::clean($validated['description'], 'youtube'),
+      'user_id' => Auth::guard('customer')->id(),
+      'user_type' => 'customer',
+      'status' => 1,
+      'last_message' => Carbon::now(),
+    ];
+
     $file = $request->file('attachment');
     if ($file) {
-      $extension = $file->getClientOriginalExtension();
-      $directory = public_path('assets/admin/img/support-ticket/');
-      $fileName = uniqid() . '.' . $extension;
-      UploadFile::storeAs($directory, $file, $fileName);
-      $in['attachment'] = $fileName;
+      $in['attachment'] = app(SupportTicketAttachmentStorage::class)->store($file, 'attachments');
     }
     $save = SupportTicket::create($in);
     app(\App\Services\SupportTicketMailService::class)->created($save);
@@ -86,17 +89,15 @@ class SupportTicketController extends Controller
     ];
 
     $request->validate($rules, $messages);
-    $input = $request->all();
+    $input = [
+      'reply' => Purifier::clean($request->reply, 'youtube'),
+      'type' => 1,
+      'user_id' => Auth::guard('customer')->id(),
+      'support_ticket_id' => $ticket->id,
+    ];
 
-    $input['reply'] = Purifier::clean($request->reply, 'youtube');
-    $input['type'] = 1;
-    $input['user_id'] = Auth::guard('customer')->user()->id;
-    $input['support_ticket_id'] = $ticket->id;
     if ($request->hasFile('file')) {
-      $file = $request->file('file');
-      $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-      UploadFile::storeAs(public_path('assets/admin/img/support-ticket/'), $file, $filename);
-      $input['file'] = $filename;
+      $input['file'] = app(SupportTicketAttachmentStorage::class)->store($request->file('file'), 'replies');
     }
 
     $data = new Conversation();
@@ -109,5 +110,55 @@ class SupportTicketController extends Controller
 
     Session::flash('success', 'Message Sent Successfully');
     return back();
+  }
+
+  public function downloadAttachment($id, SupportTicketAttachmentStorage $storage)
+  {
+    $ticket = SupportTicket::query()
+      ->whereKey($id)
+      ->where('user_id', Auth::guard('customer')->id())
+      ->where('user_type', 'customer')
+      ->whereNotNull('attachment')
+      ->firstOrFail();
+
+    if (!$storage->isManagedPath($ticket->attachment)) {
+      $legacyPath = 'assets/admin/img/support-ticket/' . $ticket->attachment;
+      $migrated = $storage->migrateLegacy(
+        $ticket->attachment,
+        $legacyPath,
+        'attachments'
+      );
+      abort_unless($migrated, 404);
+      $ticket->forceFill(['attachment' => $migrated])->save();
+      $storage->deleteLegacy($legacyPath);
+    }
+
+    return $storage->download($ticket->attachment, 'support-ticket-' . $ticket->id . '.zip');
+  }
+
+  public function downloadReplyAttachment($conversation, SupportTicketAttachmentStorage $storage)
+  {
+    $reply = Conversation::query()
+      ->whereKey($conversation)
+      ->whereNotNull('file')
+      ->whereHas('ticket', function ($query) {
+        $query->where('user_id', Auth::guard('customer')->id())
+          ->where('user_type', 'customer');
+      })
+      ->firstOrFail();
+
+    if (!$storage->isManagedPath($reply->file)) {
+      $legacyPath = 'assets/admin/img/support-ticket/' . $reply->file;
+      $migrated = $storage->migrateLegacy(
+        $reply->file,
+        $legacyPath,
+        'replies'
+      );
+      abort_unless($migrated, 404);
+      $reply->forceFill(['file' => $migrated])->save();
+      $storage->deleteLegacy($legacyPath);
+    }
+
+    return $storage->download($reply->file, 'support-reply-' . $reply->id . '.zip');
   }
 }

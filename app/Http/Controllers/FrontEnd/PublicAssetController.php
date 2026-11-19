@@ -13,6 +13,7 @@ class PublicAssetController extends Controller
         abort_unless($storage->enabled(), 404);
         abort_if(
             $path === '' || str_contains($path, '..') || str_contains($path, "\0")
+                || str_starts_with($path, 'admin/img/support-ticket/')
                 || !preg_match('/^[A-Za-z0-9._\/-]+$/', $path),
             404
         );

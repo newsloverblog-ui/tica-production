@@ -81,28 +81,16 @@ jobs:
           sed -i 's#^APP_URL=.*#APP_URL=http://127.0.0.1:8000#; s#^DB_DATABASE=.*#DB_DATABASE=tica#; s#^DB_USERNAME=.*#DB_USERNAME=root#; s#^DB_PASSWORD=.*#DB_PASSWORD=root#; s#^SESSION_SECURE_COOKIE=.*#SESSION_SECURE_COOKIE=false#' .env
           php artisan key:generate --force
           for k in TICKET_SIGNING_KEY TICKET_BUYER_IDENTITY_HASH_KEY CRON_SECRET; do sed -i "s#^$k=.*#$k=$(openssl rand -hex 32)#" .env; done
-          echo "DB_UPDATE_TOKEN=$(openssl rand -hex 24)" >> .env
           mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs bootstrap/cache
 
-      - name: Upgrade the database without a terminal (/system/update)
+      - name: Upgrade the database through the trusted CLI
         run: |
-          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
-          for i in $(seq 1 30); do curl -sS -o /dev/null http://127.0.0.1:8000/system/update && break; sleep 1; done
-          code=$(curl -s -o /tmp/first.html -w '%{http_code}' http://127.0.0.1:8000/system/update)
-          if [ "$code" != 200 ]; then
-            echo "First page answered $code. Details:"; cat /tmp/serve.log | tail -40
-            pkill -f "artisan serve" || true; sleep 1
-            APP_DEBUG=true php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
-            sleep 3; curl -s http://127.0.0.1:8000/system/update | sed 's/<[^>]*>/ /g' | grep -E "Exception|SQLSTATE|Error|at /|\.php" | head -30
-            exit 1
-          fi
-          grep -q "database update(s) waiting" /tmp/first.html
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -d token=wrong http://127.0.0.1:8000/system/update)" = 403
-          TOKEN=$(grep ^DB_UPDATE_TOKEN= .env | cut -d= -f2)
-          curl -fsS -X POST --data-urlencode "token=$TOKEN" --max-time 600 http://127.0.0.1:8000/system/update > /tmp/update.html
-          grep -q "The database is up to date" /tmp/update.html || { sed 's/<[^>]*>/ /g' /tmp/update.html | tail -40; exit 1; }
+          php artisan migrate --force
           php artisan migrate --force | tee /tmp/second.txt
           grep -q "Nothing to migrate" /tmp/second.txt
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/system/update)" = 404
 
       - name: The site answers on MariaDB
         run: |
@@ -110,14 +98,6 @@ jobs:
             code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$path")
             echo "$path $code"; test "$code" -lt 500
           done
-
-      - name: Turn the update page off again and check it is gone
-        run: |
-          sed -i '/^DB_UPDATE_TOKEN=/d' .env
-          pkill -f "artisan serve" || true
-          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/serve.log 2>&1 &
-          for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/system/update)" = 404
 
       - name: Server errors
         if: always()

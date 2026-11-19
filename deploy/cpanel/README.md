@@ -33,12 +33,17 @@ cd ~/tica
 php artisan migrate --force
 ```
 
-**Without a terminal:**
-1. In `.env` add a line `DB_UPDATE_TOKEN=` followed by 32+ random characters.
-2. Open `https://your-domain/system/update`, paste that key, press **Apply updates**.
-3. When it says the database is up to date, **delete the DB_UPDATE_TOKEN line**.
+If upgrading a site that previously accepted ZIP attachments on support tickets,
+move those legacy files into private storage after the database update:
+```
+php artisan support:secure-attachments --dry-run
+php artisan support:secure-attachments
+```
+The second command exits with an error if a database reference points to a file
+that cannot be found, and it does not overwrite that reference.
 
-Later versions: upload the new files, then Admin → **Database updates** → Apply.
+If the hosting plan has no terminal, ask the host to run the same command from the
+application directory. TICA deliberately does not expose database updates over HTTP.
 
 ## 6. Folders that must be writable
 `storage/` and `bootstrap/cache/` (755 is usually enough on cPanel).

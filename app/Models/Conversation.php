@@ -15,4 +15,9 @@ class Conversation extends Model
     'reply',
     'file',
   ];
+
+  public function ticket()
+  {
+    return $this->belongsTo(SupportTicket::class, 'support_ticket_id');
+  }
 }

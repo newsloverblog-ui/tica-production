@@ -228,6 +228,10 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
     Route::post('/store', 'BackEnd\Organizer\SupportTicketController@store')->name('organizer.support_ticket.store');
     Route::get('tickets', 'BackEnd\Organizer\SupportTicketController@index')->name('organizer.support_tickets');
     Route::get('/message/{id}', 'BackEnd\Organizer\SupportTicketController@message')->name('organizer.support_tickets.message');
+    Route::get('/ticket/{id}/attachment', 'BackEnd\Organizer\SupportTicketController@downloadAttachment')
+      ->middleware('throttle:6,1')->name('organizer.support_ticket.attachment');
+    Route::get('/reply/{conversation}/attachment', 'BackEnd\Organizer\SupportTicketController@downloadReplyAttachment')
+      ->middleware('throttle:6,1')->name('organizer.support_ticket.reply_attachment');
     Route::post('/zip-upload', 'BackEnd\Organizer\SupportTicketController@zip_file_upload')->name('organizer.support_ticket.zip_file.upload');
     Route::post('/reply/{id}', 'BackEnd\Organizer\SupportTicketController@ticketreply')->name('organizer.support_ticket.reply');
 

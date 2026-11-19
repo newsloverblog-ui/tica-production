@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\BackEnd;
 
 use App\Http\Controllers\Controller;
-use App\Http\Helpers\UploadFile;
 use App\Models\Conversation;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketStatus;
+use App\Services\SupportTicketAttachmentStorage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,18 +60,8 @@ class SupportTicketController extends Controller
   }
   public function zip_file_upload(Request $request)
   {
-    $file = $request->file('file');
-    $allowedExts = array('zip');
     $rules = [
-      'file' => [
-        function ($attribute, $value, $fail) use ($file, $allowedExts) {
-          $ext = $file->getClientOriginalExtension();
-          if (!in_array($ext, $allowedExts)) {
-            return $fail("Only zip file supported");
-          }
-        },
-        'max:5000'
-      ],
+      'file' => ['required', 'file', 'mimes:zip', 'mimetypes:application/zip,application/x-zip-compressed', 'max:5000'],
     ];
 
     $messages = [
@@ -83,31 +73,13 @@ class SupportTicketController extends Controller
       return response()->json(array('errors' => $validator->getMessageBag()->toArray()));
     }
 
-    if ($request->hasFile('file')) {
-      $file = $request->file('file');
-      $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-      UploadFile::storeAs(public_path('assets/front/temp/'), $file, $filename);
-      $input['file'] = $filename;
-    }
-
     return response()->json(['data' => 1]);
   }
   public function ticketreply(Request $request, $id)
   {
-    $file = $request->file('file');
-    $allowedExts = array('zip');
     $rules = [
-      'reply' => 'required',
-      'file' => [
-        function ($attribute, $value, $fail) use ($file, $allowedExts) {
-
-          $ext = $file->getClientOriginalExtension();
-          if (!in_array($ext, $allowedExts)) {
-            return $fail("Only zip file supported");
-          }
-        },
-        'max:5000'
-      ],
+      'reply' => ['required', 'string', 'max:5000'],
+      'file' => ['nullable', 'file', 'mimes:zip', 'mimetypes:application/zip,application/x-zip-compressed', 'max:5000'],
     ];
 
     $messages = [
@@ -115,34 +87,28 @@ class SupportTicketController extends Controller
     ];
 
     $request->validate($rules, $messages);
-    $input = $request->all();
+    $ticket = SupportTicket::query()->findOrFail($id);
+    $input = [
+      'reply' => Purifier::clean((string) $request->reply, 'youtube'),
+      'user_id' => Auth::guard('admin')->id(),
+      'support_ticket_id' => $ticket->id,
+      'type' => 2,
+    ];
 
-    $reply = $request->reply;
-    $input['reply'] = Purifier::clean($reply, 'youtube');
-    $input['user_id'] = Auth::guard('admin')->user()->id;
-    $input['support_ticket_id'] = $id;
     if ($request->hasFile('file')) {
-      $file = $request->file('file');
-      $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-      UploadFile::storeAs(public_path('assets/admin/img/support-ticket/'), $file, $filename);
-      $input['file'] = $filename;
+      $input['file'] = app(SupportTicketAttachmentStorage::class)
+        ->store($request->file('file'), 'replies');
     }
 
     $data = new Conversation();
-    $input['type'] = 2;
     $data->create($input);
-
-    $files = glob('assets/front/temp/*');
-    foreach ($files as $file) {
-      unlink($file);
-    }
 
     SupportTicket::where('id', $id)->update([
       'last_message' => Carbon::now(),
       'status' => 2,
     ]);
     \App\Support\AdminQueues::forget();
-    $ticket = SupportTicket::query()->find($id);
+    $ticket = $ticket->fresh();
     if ($ticket && $ticket->user_type === 'organizer') {
       \App\Support\OrganizerInbox::send((int) $ticket->user_id, 'support.reply', __('TICA replied to your request'), (string) $ticket->subject, route('organizer.support_tickets.message', $ticket->id));
     }
@@ -210,11 +176,21 @@ class SupportTicketController extends Controller
     if ($support_ticket) {
       //delete conversation 
       $messages = $support_ticket->messages()->get();
+      $storage = app(SupportTicketAttachmentStorage::class);
       foreach ($messages as $message) {
-        @unlink(public_path('assets/admin/img/support-ticket/' . $message->file));
+        $storage->deleteStoredOrLegacy(
+          $message->file,
+          'assets/admin/img/support-ticket/' . $message->file
+        );
         $message->delete();
       }
-      @unlink(public_path('assets/admin/img/support-ticket/attachment/') . $support_ticket->attachment);
+      $legacyDirectory = $support_ticket->user_type === 'organizer'
+        ? 'assets/admin/img/support-ticket/attachment/'
+        : 'assets/admin/img/support-ticket/';
+      $storage->deleteStoredOrLegacy(
+        $support_ticket->attachment,
+        $legacyDirectory . $support_ticket->attachment
+      );
       $support_ticket->delete();
     }
     Session::flash('success', 'Deleted Successfully');
@@ -223,21 +199,83 @@ class SupportTicketController extends Controller
 
   public function bulk_delete(Request $request)
   {
-    $ids = $request->ids;
+    $validated = $request->validate([
+      'ids' => ['required', 'array', 'max:100'],
+      'ids.*' => ['required', 'integer', 'distinct'],
+    ]);
+
+    $ids = $validated['ids'];
     foreach ($ids as $id) {
       $support_ticket = SupportTicket::find($id);
       if ($support_ticket) {
         //delete conversation 
         $messages = $support_ticket->messages()->get();
+        $storage = app(SupportTicketAttachmentStorage::class);
         foreach ($messages as $message) {
-          @unlink(public_path('assets/admin/img/support-ticket/' . $message->file));
+          $storage->deleteStoredOrLegacy(
+            $message->file,
+            'assets/admin/img/support-ticket/' . $message->file
+          );
           $message->delete();
         }
-        @unlink(public_path('assets/admin/img/support-ticket/attachment/') . $support_ticket->attachment);
+        $legacyDirectory = $support_ticket->user_type === 'organizer'
+          ? 'assets/admin/img/support-ticket/attachment/'
+          : 'assets/admin/img/support-ticket/';
+        $storage->deleteStoredOrLegacy(
+          $support_ticket->attachment,
+          $legacyDirectory . $support_ticket->attachment
+        );
         $support_ticket->delete();
       }
     }
     Session::flash('success', 'Deleted Successfully');
     return Response::json(['status' => 'success'], 200);
+  }
+
+  public function downloadAttachment($id, SupportTicketAttachmentStorage $storage)
+  {
+    $ticket = SupportTicket::query()
+      ->whereKey($id)
+      ->whereNotNull('attachment')
+      ->firstOrFail();
+
+    if (!$storage->isManagedPath($ticket->attachment)) {
+      $legacyDirectory = $ticket->user_type === 'organizer'
+        ? 'assets/admin/img/support-ticket/attachment/'
+        : 'assets/admin/img/support-ticket/';
+      $legacyPath = $legacyDirectory . $ticket->attachment;
+      $migrated = $storage->migrateLegacy(
+        $ticket->attachment,
+        $legacyPath,
+        'attachments'
+      );
+      abort_unless($migrated, 404);
+      $ticket->forceFill(['attachment' => $migrated])->save();
+      $storage->deleteLegacy($legacyPath);
+    }
+
+    return $storage->download($ticket->attachment, 'support-ticket-' . $ticket->id . '.zip');
+  }
+
+  public function downloadReplyAttachment($conversation, SupportTicketAttachmentStorage $storage)
+  {
+    $reply = Conversation::query()
+      ->whereKey($conversation)
+      ->whereNotNull('file')
+      ->firstOrFail();
+
+    if (!$storage->isManagedPath($reply->file)) {
+      $legacyPath = 'assets/admin/img/support-ticket/' . $reply->file;
+      $migrated = $storage->migrateLegacy(
+        $reply->file,
+        $legacyPath,
+        'replies'
+      );
+      abort_unless($migrated, 404);
+      $reply->forceFill(['file' => $migrated])->save();
+      $storage->deleteLegacy($legacyPath);
+    }
+
+    return $storage->download($reply->file, 'support-reply-' . $reply->id . '.zip');
   }
 }

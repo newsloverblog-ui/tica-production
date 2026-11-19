@@ -44,6 +44,8 @@ $ruleArray = [
     }
 
     if ($this->date_type == 'multiple') {
+      $ruleArray['date_ids'] = ['nullable', 'array'];
+      $ruleArray['date_ids.*'] = ['nullable', 'integer', 'distinct'];
       $ruleArray['m_start_date.**'] = 'required';
       $ruleArray['m_start_time.**'] = 'required';
       $ruleArray['m_end_date.**'] = 'required';

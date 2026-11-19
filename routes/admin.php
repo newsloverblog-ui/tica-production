@@ -414,6 +414,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('ticket/setting/update', 'BackEnd\SupportTicketController@update_setting')->name('admin.support_ticket.update_setting');
     Route::get('support/tickets', 'BackEnd\SupportTicketController@index')->name('admin.support_tickets');
     Route::get('support/message/{id}', 'BackEnd\SupportTicketController@message')->name('admin.support_tickets.message');
+    Route::get('support/ticket/{id}/attachment', 'BackEnd\SupportTicketController@downloadAttachment')
+      ->middleware('throttle:6,1')->name('admin.support_ticket.attachment');
+    Route::get('support/reply/{conversation}/attachment', 'BackEnd\SupportTicketController@downloadReplyAttachment')
+      ->middleware('throttle:6,1')->name('admin.support_ticket.reply_attachment');
     Route::post('support-ticket/zip-upload', 'BackEnd\SupportTicketController@zip_file_upload')->name('admin.support_ticket.zip_file.upload');
     Route::post('support-ticket/reply/{id}', 'BackEnd\SupportTicketController@ticketreply')->name('admin.support_ticket.reply');
     Route::post('support-ticket/closed/{id}', 'BackEnd\SupportTicketController@ticket_closed')->name('admin.support_ticket.close');

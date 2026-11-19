@@ -12,7 +12,7 @@
         </div>
         <p class="lg-ticket__body">{{ $ticket->description }}</p>
         @if ($ticket->attachment)
-          <a href="{{ asset('assets/admin/img/support-ticket/attachment/' . $ticket->attachment) }}" download="support_file" class="t-btn t-btn--secondary t-btn--sm">{{ __('Download attachment') }}</a>
+          <a href="{{ route('organizer.support_ticket.attachment', $ticket->id) }}" download="support_file" class="t-btn t-btn--secondary t-btn--sm">{{ __('Download attachment') }}</a>
         @endif
       </section>
       </div>
@@ -41,7 +41,7 @@
                         <div class="status">{{ $admin && $admin->id != 1 ? optional($admin->role)->name : __('TICA') }}</div>
                         <p>{!! $reply->reply !!}</p>
                         @if ($reply->file)
-                          <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                          <a href="{{ route('organizer.support_ticket.reply_attachment', $reply->id) }}"
                             download="support_file" class="btn btn-rounded btn-info btn-sm">{{ __('Download') }}</a>
                         @endif
                       </div>
@@ -67,7 +67,7 @@
                           <div class="status">{{ __('Organizer') }}</div>
                           <p>{!! $reply->reply !!}</p>
                           @if ($reply->file)
-                            <a href="{{ asset('assets/admin/img/support-ticket/' . $reply->file) }}"
+                            <a href="{{ route('organizer.support_ticket.reply_attachment', $reply->id) }}"
                               download="support_file" class="btn btn-rounded btn-info btn-sm">{{ __('Download') }}</a>
                           @endif
                         </div>

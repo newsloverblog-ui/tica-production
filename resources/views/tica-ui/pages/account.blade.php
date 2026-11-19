@@ -5,9 +5,8 @@
       <div class="acd-me"><i class="acd-av" id="acd-av" aria-hidden="true"></i><div><b id="acd-name"></b><span id="acd-since"></span></div></div>
       <a class="btn acd-find" href="/discover">Find events</a>
       <nav class="acd-nav" aria-label="Account sections">
-        <span class="acd-nav-label">General</span>
         <button type="button" data-acp="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>Overview</button>
-        <span class="acd-nav-label">Tickets and orders</span>
+        <span class="acd-nav-label">Tickets</span>
         <button type="button" data-acp="tickets"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3zM14 8v2M14 13v1M14 16v1"/></svg>My tickets</button>
         <button type="button" data-acp="orders"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Orders</button>
         <button type="button" data-acp="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.1-8 11-8 11z"/></svg>Saved</button>
@@ -22,7 +21,7 @@
       <!-- OVERVIEW -->
       <div class="acd-p" data-p="overview">
         <div class="acd-head">
-          <div><p class="acd-crumb">Your account</p><h1 id="ac-hi">Your tickets</h1><p id="acd-today"></p></div>
+          <div><h1 id="ac-hi">Your tickets</h1><p id="acd-today"></p></div>
           <a class="btn acd-primary" href="/discover">Find events</a>
         </div>
         <section class="acd-next" id="acd-next" aria-label="Your next event"></section>
@@ -31,10 +30,10 @@
           <section class="acd-card" aria-labelledby="acd-up-h"><div class="acd-ch"><h2 id="acd-up-h">Coming up</h2><button type="button" class="acd-lnk" data-acp="tickets">All tickets</button></div><ul class="acd-mini" id="acd-up"></ul></section>
           <section class="acd-card" aria-labelledby="acd-qa-h"><div class="acd-ch"><h2 id="acd-qa-h">Quick actions</h2></div>
             <div class="acd-qa">
-              <a href="/discover"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></i><span><b>Discover events</b><small>Concerts, nightlife, conferences</small></span></a>
-              <button type="button" data-acp="orders"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M8 11l4 4 4-4M5 19h14"/></svg></i><span><b>Download tickets</b><small>PDF tickets and receipts</small></span></button>
-              <button type="button" data-acp="saved"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.1-8 11-8 11z"/></svg></i><span><b>Saved events</b><small>Events you tapped the heart on</small></span></button>
-              <button type="button" data-acp="help"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg></i><span><b>Get help</b><small>Refunds, lost tickets, support</small></span></button>
+              <a href="/discover"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></i><span><b>Discover events</b></span></a>
+              <button type="button" data-acp="orders"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M8 11l4 4 4-4M5 19h14"/></svg></i><span><b>Downloads</b></span></button>
+              <button type="button" data-acp="saved"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.1-8 11-8 11z"/></svg></i><span><b>Saved events</b></span></button>
+              <button type="button" data-acp="help"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg></i><span><b>Help</b></span></button>
             </div>
           </section>
         </div>

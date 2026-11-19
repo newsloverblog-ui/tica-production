@@ -427,3 +427,265 @@
 @media (prefers-reduced-motion: reduce) {
   .tica-directory-page--organizers .directory-btn { transition: none; }
 }
+
+/* Customer directory: restrained account operations. */
+.tica-directory-page--customers {
+  --dir-ink: #14213a;
+  --dir-muted: #718096;
+  --dir-line: #e0e6ef;
+  --dir-blue: #2f5bd3;
+  max-width: 1380px;
+}
+
+.tica-directory-page--customers .directory-page-header {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tica-directory-page--customers .directory-page-header h1 {
+  margin: 0 0 5px;
+  font-size: clamp(28px, 2.3vw, 34px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+
+.tica-directory-page--customers .directory-page-header p {
+  max-width: 58ch;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tica-directory-page--customers .directory-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.tica-directory-page--customers .directory-btn:hover { transform: none; }
+.tica-directory-page--customers .directory-btn--primary,
+.tica-directory-page--customers .directory-btn--primary:hover,
+.tica-directory-page--customers .directory-btn--primary:focus {
+  border-color: #2f5bd3 !important;
+  background: #2f5bd3 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+.tica-directory-page--customers .directory-btn--primary:hover,
+.tica-directory-page--customers .directory-btn--primary:focus { background: #244ab7 !important; }
+
+.tica-directory-page--customers .customer-add-action,
+.tica-directory-page--customers .customer-add-action:hover,
+.tica-directory-page--customers .customer-add-action:focus {
+  border-color: #b9c8e8 !important;
+  background: #fff !important;
+  color: #244ab7 !important;
+  -webkit-text-fill-color: #244ab7 !important;
+}
+
+.tica-directory-page--customers .customer-add-action:hover,
+.tica-directory-page--customers .customer-add-action:focus {
+  border-color: #2f5bd3 !important;
+  background: #f7f9ff !important;
+}
+
+.tica-directory-page--customers .directory-btn--primary i,
+.tica-directory-page--customers .directory-btn--primary .directory-btn__label {
+  display: inline-block !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.tica-directory-page--customers .customer-add-action {
+  min-width: 142px;
+  white-space: nowrap;
+}
+
+.tica-directory-page--customers .customer-add-action i,
+.tica-directory-page--customers .customer-add-action .directory-btn__label {
+  color: #244ab7 !important;
+  -webkit-text-fill-color: #244ab7 !important;
+}
+
+.customer-directory-shortcuts {
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+}
+
+.customer-directory-shortcuts a {
+  min-height: 36px;
+  padding-inline: 9px;
+}
+
+.tica-directory-page--customers .directory-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: visible;
+  margin-bottom: 16px;
+  border-top: 1px solid var(--dir-line);
+  border-bottom: 1px solid var(--dir-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.tica-directory-page--customers .directory-stats article {
+  min-height: 76px;
+  padding: 14px 18px;
+  border: 0;
+  border-left: 1px solid var(--dir-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.tica-directory-page--customers .directory-stats article:first-child { border-left: 0; }
+.tica-directory-page--customers .directory-stats article::after { display: none; }
+.tica-directory-page--customers .directory-stats span { color: var(--dir-muted); font-weight: 500; }
+.tica-directory-page--customers .directory-stats strong { margin-top: 6px; font-size: 22px; font-weight: 600; }
+
+.tica-directory-page--customers .directory-surface {
+  overflow: visible;
+  border-color: var(--dir-line);
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.tica-directory-page--customers .directory-toolbar {
+  align-items: center;
+  padding: 13px 16px;
+  border-radius: 9px 9px 0 0;
+  background: #fff;
+}
+
+.tica-directory-page--customers .directory-search { max-width: 420px; }
+.tica-directory-page--customers .directory-search input,
+.tica-directory-page--customers .directory-filter select,
+.tica-directory-page--customers .directory-export select {
+  height: 41px;
+  border-color: #d3dbe7;
+  border-radius: 7px;
+  background: #fff;
+  color: #46546b;
+}
+
+.tica-directory-page--customers .directory-filter .directory-btn--primary {
+  min-width: 72px;
+}
+
+.tica-directory-page--customers .directory-export {
+  padding-left: 14px;
+  border-left: 1px solid var(--dir-line);
+}
+
+.tica-directory-page--customers .directory-table-wrap { overflow: visible; }
+.tica-directory-page--customers .directory-table th {
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--dir-line);
+  background: #f8fafc;
+  color: var(--dir-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.tica-directory-page--customers .directory-table td { padding: 15px 18px; color: #46546b; }
+.tica-directory-page--customers .directory-table td strong { font-weight: 600; }
+.tica-directory-page--customers .directory-table tbody tr { transition: background-color .14s ease; }
+.tica-directory-page--customers .directory-table tbody tr:hover { background: #fbfcfe; }
+.tica-directory-page--customers .directory-person { min-width: 210px; }
+.tica-directory-page--customers .directory-avatar {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+  border-color: #d8e1f3;
+  background: #f1f5ff;
+  font-weight: 600;
+}
+.tica-directory-page--customers .directory-state-select {
+  height: 36px;
+  border-color: #d3dbe7;
+  border-radius: 7px;
+  color: #46546b;
+  font-weight: 500;
+}
+
+.tica-directory-page--customers .directory-more {
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dir-muted);
+}
+
+.tica-directory-page--customers .directory-more:hover,
+.tica-directory-page--customers .dropdown.show .directory-more {
+  border-color: var(--dir-line);
+  background: #f8fafc;
+  color: var(--dir-ink);
+}
+
+.tica-directory-page--customers .directory-table .dropdown-menu {
+  z-index: 1080;
+  min-width: 210px;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(18, 33, 58, .1);
+}
+
+@media (max-width: 1050px) {
+  .tica-directory-page--customers .directory-toolbar { align-items: stretch; flex-direction: column; }
+  .tica-directory-page--customers .directory-filter,
+  .tica-directory-page--customers .directory-export { width: 100%; }
+  .tica-directory-page--customers .directory-export {
+    justify-content: flex-end;
+    padding-top: 12px;
+    padding-left: 0;
+    border-top: 1px solid var(--dir-line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .tica-directory-page--customers .directory-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tica-directory-page--customers .directory-stats article:nth-child(3) { border-left: 0; }
+  .tica-directory-page--customers .directory-stats article:nth-child(n+3) { border-top: 1px solid var(--dir-line); }
+  .tica-directory-page--customers .directory-table-wrap { overflow-x: auto; }
+}
+
+@media (max-width: 767.98px) {
+  .tica-directory-page--customers .directory-page-header { align-items: stretch; }
+  .tica-directory-page--customers .directory-header-actions { display: block; }
+  .tica-directory-page--customers .directory-header-actions .directory-btn { width: 100%; }
+  .customer-directory-shortcuts { overflow-x: auto; }
+  .customer-directory-shortcuts a { flex: 0 0 auto; }
+  .tica-directory-page--customers .directory-filter,
+  .tica-directory-page--customers .directory-export { align-items: stretch; flex-direction: column; }
+  .tica-directory-page--customers .directory-search { width: 100%; max-width: none; }
+  .tica-directory-page--customers .directory-export select { width: 100%; }
+  .tica-directory-page--customers .directory-table-wrap { overflow: visible; }
+  .tica-directory-page--customers .directory-table tr { padding: 16px; }
+  .tica-directory-page--customers .directory-table td { padding: 8px 0; }
+  .tica-directory-page--customers .directory-table td::before {
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .tica-directory-page--customers .directory-person { min-width: 0; }
+}
+
+@media (max-width: 430px) {
+  .tica-directory-page--customers .directory-stats { grid-template-columns: 1fr 1fr; }
+  .tica-directory-page--customers .directory-stats article:nth-child(odd) { border-left: 0; }
+  .tica-directory-page--customers .directory-stats article:nth-child(n+3) { border-top: 1px solid var(--dir-line); }
+  .tica-directory-page--customers .directory-stats article { padding-inline: 14px; }
+  .tica-directory-page--customers .directory-stats strong { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tica-directory-page--customers .directory-btn,
+  .tica-directory-page--customers .directory-table tbody tr { transition: none; }
+}

@@ -13,10 +13,6 @@ return [
   |
   */
 
-  // Lets /system/update apply database updates on hosts without a terminal (cPanel).
-  // Set 32+ random characters only while updating, then remove it.
-  'db_update_token' => env('DB_UPDATE_TOKEN'),
-
   'name' => env('APP_NAME', 'Evento'),
 
   /*
