@@ -142,6 +142,8 @@ class OrganizerShellTest extends TestCase
       $this->assertStringContainsString($selector, $css, $selector);
     }
     $this->assertStringContainsString('column-gap:16px!important;row-gap:16px!important', $css);
+    $this->assertStringContainsString('body.orgshell .t-page-head>.or-actions,', $css);
+    $this->assertStringContainsString('body.orgshell .db-head>.or-actions,', $css);
     $this->assertStringContainsString('.or-actions{display:flex!important;flex-wrap:wrap!important}', $css);
     $this->assertStringContainsString('.or-actions .t-btn{flex:1 1 100%!important;justify-content:center}', $css);
   }

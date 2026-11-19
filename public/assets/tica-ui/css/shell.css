@@ -159,12 +159,18 @@ body.orgshell-legacy .modal-footer{column-gap:16px!important;row-gap:16px!import
 
 /* A legacy page-head rule forces direct child wrappers to block layout.
    Restore flex for action groups so the declared gap can actually render. */
+body.orgshell .t-page-head>.or-actions,
+body.orgshell .db-head>.or-actions,
+body.orgshell-legacy .page-header>.or-actions,
 .or-actions{display:flex!important;flex-wrap:wrap!important}
 
 /* Small icon controls remain compact while retaining a clear hit target. */
 .rf-field__tools,.gl-actions{column-gap:8px!important;row-gap:8px!important}
 
 @media(max-width:700px){
+  body.orgshell .t-page-head>.or-actions,
+  body.orgshell .db-head>.or-actions,
+  body.orgshell-legacy .page-header>.or-actions,
   .or-actions{width:100%;justify-content:flex-start!important;margin-left:0!important}
   .or-actions .t-btn{flex:1 1 100%!important;justify-content:center}
 }
