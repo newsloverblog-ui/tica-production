@@ -492,7 +492,7 @@
   top: auto;
   bottom: calc(100% + 8px);
   right: 0;
-  width: 360px;
+  width: 400px;
   padding: 16px;
   border: 1px solid #cbd5e4;
   border-radius: 11px;
@@ -516,6 +516,40 @@
 .review-form-heading strong { color: var(--promo-ink); font-size: 13px; font-weight: 600; }
 .review-form-heading span { color: var(--promo-muted); font-size: 10px; }
 .review-date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.review-date-grid > label { min-width: 0; }
+.review-date-grid input,
+.review-date-grid select {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.review-date-grid input[type="datetime-local"] {
+  min-height: 42px;
+  padding: 8px 9px;
+  border-color: #cbd5e1;
+  background: #fff;
+  color: var(--promo-ink);
+  font-size: 11px;
+  line-height: 1.25;
+  color-scheme: light;
+}
+
+.review-date-grid input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: .68;
+}
+
+.review-date-grid input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  background: var(--promo-blue-soft);
+  opacity: 1;
+}
 .review-safety { display: flex; gap: 7px; margin: 0 0 12px; color: var(--promo-muted); font-size: 10px; line-height: 1.45; }
 .review-safety i { color: var(--promo-orange); }
 .btn-review-save { width: 100%; }
