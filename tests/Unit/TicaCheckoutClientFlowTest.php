@@ -37,15 +37,22 @@ class TicaCheckoutClientFlowTest extends TestCase
     {
         $controller = (string) file_get_contents(app_path('Http/Controllers/FrontEnd/TicaApiController.php'));
 
+        $clearPreviousHold = strpos($controller, "Session::pull('ticket_reservation_token', '')");
+        $releasePreviousHold = strpos($controller, "'checkout_replaced'");
         $createHold = strpos($controller, '$token = app(TicketReservationService::class)->reserve(');
         $saveHold = strpos($controller, 'Session::put(\'ticket_reservation_token\', $token);');
         $reserveSeats = strpos($controller, 'app(SeatReservationService::class)->reserve(');
 
+        $this->assertNotFalse($clearPreviousHold);
+        $this->assertNotFalse($releasePreviousHold);
         $this->assertNotFalse($createHold);
         $this->assertNotFalse($saveHold);
         $this->assertNotFalse($reserveSeats);
+        $this->assertLessThan($createHold, $clearPreviousHold);
+        $this->assertLessThan($createHold, $releasePreviousHold);
         $this->assertLessThan($reserveSeats, $createHold);
         $this->assertLessThan($reserveSeats, $saveHold);
+        $this->assertStringContainsString("'quote_validation_failed'", $controller);
         $this->assertStringNotContainsString(
             'The ticket hold expired before the seats could be reserved.',
             $controller

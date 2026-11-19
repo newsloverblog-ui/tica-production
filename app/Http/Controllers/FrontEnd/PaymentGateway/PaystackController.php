@@ -188,7 +188,6 @@ class PaystackController extends Controller
             Log::error('Paystack checkout initialization failed.', [
                 'exception_type' => $e::class,
                 'exception_code' => $e->getCode(),
-                'failure_reason' => $this->safeGatewayFailureReason($e),
                 'request_id' => $request->attributes->get('request_id'),
             ]);
             if ($reservationToken) {
@@ -197,24 +196,6 @@ class PaystackController extends Controller
             }
             return redirect()->back()->with('error', 'Something went wrong. Please try again.');
         }
-    }
-
-    /**
-     * Keep provider diagnostics useful without writing credentials or customer
-     * contact details to production logs.
-     */
-    private function safeGatewayFailureReason(\Throwable $exception): string
-    {
-        $message = mb_substr(trim($exception->getMessage()), 0, 300);
-        if ($message === '') {
-            return 'No failure reason was returned.';
-        }
-
-        $message = preg_replace('/\b(?:sk|pk)_(?:test|live)_[A-Za-z0-9]+\b/i', '[redacted-key]', $message);
-        $message = preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/i', '[redacted-email]', $message);
-        $message = preg_replace('/\bBearer\s+\S+/i', 'Bearer [redacted]', $message);
-
-        return $message ?: 'The failure reason could not be safely recorded.';
     }
 
     // =========================================================================

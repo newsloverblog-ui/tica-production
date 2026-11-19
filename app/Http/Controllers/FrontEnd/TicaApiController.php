@@ -130,6 +130,14 @@ class TicaApiController extends Controller
         ),
       ]);
     }
+
+    // A checkout retry is a new inventory attempt. Restore any previous hold
+    // before rebuilding the current selection so stale seats are not reused.
+    $previousReservationToken = trim((string) Session::pull('ticket_reservation_token', ''));
+    if ($previousReservationToken !== '') {
+      app(TicketReservationService::class)->release($previousReservationToken, 'checkout_replaced');
+    }
+
     $quantities = array_map('intval', $validated['quantities']);
 
     $selection = [
@@ -173,6 +181,10 @@ class TicaApiController extends Controller
       app(\App\Services\EventCheckoutQuoteService::class)
     );
     if ($quote instanceof RedirectResponse) {
+      if ($reservationToken !== '') {
+        app(TicketReservationService::class)->release($reservationToken, 'quote_validation_failed');
+        Session::forget('ticket_reservation_token');
+      }
       return $this->failed('Your ticket selection changed. Review it and try again.');
     }
 
