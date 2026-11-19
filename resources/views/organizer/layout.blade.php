@@ -44,10 +44,6 @@
             @yield('content')
           </main>
         </div>
-
-        {{-- footer area start --}}
-        @includeIf('organizer.partials.footer')
-        {{-- footer area end --}}
       </div>
     </div>
 

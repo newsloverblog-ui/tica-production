@@ -485,10 +485,12 @@
 .review-drawer > summary::-webkit-details-marker { display: none; }
 .review-drawer[open] > summary { border-color: #b9c8ed; background: var(--promo-blue-soft); }
 .review-drawer[open] > summary i { transform: rotate(180deg); }
+.review-drawer[open] { z-index: 40; }
 .review-drawer > form {
   position: absolute;
   z-index: 30;
-  top: calc(100% + 8px);
+  top: auto;
+  bottom: calc(100% + 8px);
   right: 0;
   width: 360px;
   padding: 16px;
@@ -751,7 +753,7 @@
   .review-cell { position: static; }
   .review-drawer { width: 100%; }
   .review-drawer > summary { justify-content: center; width: 100%; }
-  .review-drawer > form { position: static; width: 100%; margin-top: 8px; box-shadow: none; }
+  .review-drawer > form { position: static; top: auto; bottom: auto; width: 100%; margin-top: 8px; box-shadow: none; }
   .plan-editor-fields { grid-template-columns: 1fr; }
   .plan-editor--create .plan-editor-fields { grid-template-columns: 1fr; }
   .plan-editor-fields .field-wide,

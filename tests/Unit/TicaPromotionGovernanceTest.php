@@ -216,6 +216,21 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString('kept for your records', $controller);
     }
 
+    public function test_authenticated_dashboards_do_not_render_public_footers_and_campaign_review_opens_in_view(): void
+    {
+        $adminLayout = file_get_contents(resource_path('views/backend/layout.blade.php'));
+        $organizerLayout = file_get_contents(resource_path('views/organizer/layout.blade.php'));
+        $eventBuilderShell = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
+        $promotionCss = file_get_contents(public_path('assets/tica-ui/css/admin-promotions.css'));
+
+        $this->assertStringNotContainsString('backend.partials.footer', $adminLayout);
+        $this->assertStringNotContainsString('organizer.partials.footer', $organizerLayout);
+        $this->assertStringNotContainsString('backend.partials.footer', $eventBuilderShell);
+        $this->assertStringContainsString('bottom: calc(100% + 8px)', $promotionCss);
+        $this->assertStringContainsString('.review-drawer[open] { z-index: 40; }', $promotionCss);
+        $this->assertStringNotContainsString('top: calc(100% + 8px)', $promotionCss);
+    }
+
     public function test_modern_promotion_center_is_not_redirected_as_a_retired_advertising_page(): void
     {
         $routes = app('router')->getRoutes();

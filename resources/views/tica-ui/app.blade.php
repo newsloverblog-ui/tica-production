@@ -54,7 +54,7 @@ body.tica-admin-event-builder .page[data-page=create] .wrap.pagehead.creategrid{
 @include('tica-ui.pages.content', ['content' => $content])
 @endif
 @if ($adminShell)
-</div></main></div>@includeIf('backend.partials.footer')</div></div>
+</div></main></div></div></div>
 @else
 </main>
 @include('tica-ui.partials.footer')
