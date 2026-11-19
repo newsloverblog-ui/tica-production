@@ -138,10 +138,10 @@ class OrganizerShellTest extends TestCase
   {
     $css = file_get_contents(public_path('assets/tica-ui/css/shell.css'));
 
-    foreach (['.or-actions', '.org-overview-actions', '.tica-quick-actions', '.t-toolbar', '.lg-actions', '.lg-range', '.fin-balance__actions', '.gl-head__actions', '.rf-actions', '.pr-form__actions', '.tsc-actions', '.ce-success-actions', '.t-modal__foot'] as $selector) {
+    foreach (['.or-actions', '.ev-actions', '.nav-actions', '.workspace-actions', '.org-overview-actions', '.tica-quick-actions', '.t-toolbar', '.tica-report-toolbar', '.lg-actions', '.lg-range', '.fin-balance__actions', '.gl-head__actions', '.rf-actions', '.pr-form__actions', '.tsc-actions', '.ce-success-actions', '.t-modal__foot'] as $selector) {
       $this->assertStringContainsString($selector, $css, $selector);
     }
-    $this->assertStringContainsString('column-gap:12px!important;row-gap:12px!important', $css);
+    $this->assertStringContainsString('column-gap:16px!important;row-gap:16px!important', $css);
   }
 
   /* ------------------------------------------------------------- helpers */
