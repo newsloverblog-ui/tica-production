@@ -641,7 +641,23 @@ BEGIN
   END IF;
 END $$;
 
--- 13. Keep these tables private -------------------------------------------
+-- 13. Route customer event questions to the responsible organiser --------
+DO $$
+BEGIN
+  IF to_regclass('public.support_tickets') IS NOT NULL THEN
+    ALTER TABLE public.support_tickets ADD COLUMN IF NOT EXISTS recipient_type varchar(20) NOT NULL DEFAULT 'tica';
+    ALTER TABLE public.support_tickets ADD COLUMN IF NOT EXISTS recipient_organizer_id bigint NULL;
+    ALTER TABLE public.support_tickets ADD COLUMN IF NOT EXISTS event_id bigint NULL;
+    ALTER TABLE public.support_tickets ADD COLUMN IF NOT EXISTS booking_id bigint NULL;
+    CREATE INDEX IF NOT EXISTS support_recipient_inbox_idx
+      ON public.support_tickets (recipient_type, recipient_organizer_id, last_message);
+    PERFORM pg_temp.tica_mark_migration('2026_11_19_150000_add_recipient_context_to_support_tickets');
+  ELSE
+    RAISE NOTICE 'support_tickets does not exist yet: skipped recipient context.';
+  END IF;
+END $$;
+
+-- 14. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -861,6 +877,14 @@ SELECT 'missing update', 'events.timezone column'
       WHERE table_schema = 'public' AND table_name = 'events' AND column_name = 'timezone'
    )
 UNION ALL
+SELECT 'missing update', 'support_tickets.' || required.column_name || ' column'
+  FROM (VALUES ('recipient_type'), ('recipient_organizer_id'), ('event_id'), ('booking_id')) AS required(column_name)
+ WHERE to_regclass('public.support_tickets') IS NOT NULL
+   AND NOT EXISTS (
+     SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'support_tickets' AND column_name = required.column_name
+   )
+UNION ALL
 SELECT 'update not recorded', m.name
   FROM (VALUES
   ('2023_03_04_134315_drop_secondary_color_from_basic_settings_table'),
@@ -1007,6 +1031,7 @@ SELECT 'update not recorded', m.name
   ,('2026_11_17_120000_create_financial_ledger')
   ,('2026_11_17_180000_create_event_programme_tables')
   ,('2026_11_18_120000_add_transactional_mail_templates')
+  ,('2026_11_19_150000_add_recipient_context_to_support_tickets')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

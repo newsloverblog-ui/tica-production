@@ -132,6 +132,9 @@ class TicaUiPayload
         'support' => optional(\Illuminate\Support\Facades\DB::table('support_ticket_statuses')->first())->support_ticket_status === 'active'
           ? route('customer.support_tickert')
           : null,
+        'organizerSupport' => optional(\Illuminate\Support\Facades\DB::table('support_ticket_statuses')->first())->support_ticket_status === 'active'
+          ? route('customer.support_tickert.create', ['recipient' => 'organizer'])
+          : null,
       ],
     ];
   }

@@ -110,7 +110,8 @@
           <a href="/how#faq"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg></i><b>Questions and answers</b><small>Tickets, payments, transfers and more</small></a>
           <a href="/policies/refunds"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4"/></svg></i><b>Refunds</b><small>What happens if an event is cancelled</small></a>
           <button type="button" data-acp="orders"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7l8 6 8-6M4 6h16v12H4z"/></svg></i><b>I can't find my ticket</b><small>Resend tickets to your email from Orders</small></button>
-          <a href="/contact" id="acd-support"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></i><b>Contact TICA</b><small>Call, email or message the team</small></a>
+          <a href="/support-ticket/create?recipient=organizer" id="acd-organizer-support"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-6 6-6 1.2 0 2.3.3 3.2.9M15 8h6v8h-3l-3 3z"/></svg></i><b>Message an organizer</b><small>Ask about an event you booked</small></a>
+          <a href="/contact" id="acd-support"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></i><b>Contact TICA</b><small>Payments, refunds and account support</small></a>
         </div>
       </div>
     </div>

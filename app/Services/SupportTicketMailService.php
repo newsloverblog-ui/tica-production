@@ -35,8 +35,8 @@ class SupportTicketMailService
             ? ($actor?->username ?: 'there')
             : (trim((string) $actor?->fname.' '.(string) $actor?->lname) ?: 'there');
         $url = $ticket->user_type === 'organizer'
-            ? url('/organizer/support-ticket/message/'.$ticket->id)
-            : url('/customer/support-ticket/message/'.$ticket->id);
+            ? route('organizer.support_tickets.message', $ticket->id)
+            : route('customer.support_ticket.message', $ticket->id);
         app(MailTemplateService::class)->queueSafely($type, $ticket->email ?: $actor?->email, $data + [
             'account_name' => $name,
             'ticket_id' => $ticket->id,
