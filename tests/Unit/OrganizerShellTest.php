@@ -124,6 +124,13 @@ class OrganizerShellTest extends TestCase
       $lastCss = end($all[0])[1];
       $this->assertGreaterThanOrEqual($lastCss, $shell + strlen('tica-ui/css/shell'), $name.': shell.css must be the last stylesheet.');
     }
+    foreach (['tica.css', 'ds.css', 'shell.css'] as $stylesheet) {
+      $this->assertStringContainsString(
+        "tica_asset_version('assets/tica-ui/css/{$stylesheet}')",
+        $app,
+        "{$stylesheet} must use its own content fingerprint."
+      );
+    }
     $this->assertStringNotContainsString('.os-side{', str_replace(' ', '', file_get_contents(public_path('assets/tica-ui/css/ds.css'))));
   }
 
