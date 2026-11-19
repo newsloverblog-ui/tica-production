@@ -27,7 +27,7 @@
 /* ---- sidebar ---------------------------------------------------------- */
 #tica-shell .tsh-side{position:fixed;top:0;bottom:0;left:0;z-index:1040;width:var(--tsh-side);display:flex;flex-direction:column;gap:16px;padding:16px;background:#fff;border-right:1px solid #E3E7ED;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 #tica-shell .tsh-logo{display:flex;align-items:center;height:40px;padding:0 8px;flex:none}
-#tica-shell .tsh-logo img{display:block;height:28px;width:auto;max-width:none}
+#tica-shell .tsh-logo img{display:block;height:32px;width:auto;max-width:none}
 
 #tica-shell .tsh-org{display:flex;align-items:center;gap:12px;height:64px;padding:0 12px;border:1px solid #E3E7ED;border-radius:12px;background:#fff;flex:none;transition:background-color 150ms ease}
 #tica-shell .tsh-org:hover{background:#F1F3F6}

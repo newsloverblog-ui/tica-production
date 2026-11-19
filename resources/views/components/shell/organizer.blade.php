@@ -177,7 +177,7 @@
       <div class="tsh-me__who"><b>{{ $name }}</b><small>{{ $organizer?->email }}</small></div>
       @if ($can('settings.manage'))
         <a href="/dashboard/settings">Profile</a>
-        <a href="/dashboard/settings#security">Settings</a>
+        <a href="/dashboard/settings#password">Settings</a>
       @endif
       @if ($organizer)
         <a href="{{ route('frontend.organizer.details', [$organizer->id, \Illuminate\Support\Str::slug((string) $organizer->username)]) }}" target="_blank" rel="noopener">View public page</a>

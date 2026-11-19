@@ -254,14 +254,12 @@
               <li><span><b>Payout status emails</b></span><span class="od-sec-state on">Always on</span></li>
             </ul>
           </section>
-          <section class="db-card od-security-card" id="password"><div class="db-ch"><h2>Security</h2><span class="od-sec-state" id="od-mfa-state">Off</span></div>
+          <section class="db-card od-security-card" id="password"><div class="db-ch"><h2>Password</h2></div>
             <form class="od-form" id="od-pass" novalidate>
               <div class="inp"><label for="od-pass-current">Current password</label><input id="od-pass-current" type="password" autocomplete="current-password" required></div>
               <div class="od-row2"><div class="inp"><label for="od-pass-new">New password</label><input id="od-pass-new" type="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters with upper and lowercase letters and a number.</small></div><div class="inp"><label for="od-pass-confirm">Confirm new password</label><input id="od-pass-confirm" type="password" autocomplete="new-password" minlength="8" required></div></div>
               <button class="t-btn t-btn--secondary" type="submit">Update password</button><p class="hint" id="od-pass-m" role="status"></p>
             </form>
-            <div class="db-ch od-sub"><h2>Two-step verification</h2></div>
-            <a class="btn btn-line" id="od-security-link" href="/account-security/organizer">Manage two-step verification</a>
           </section>
           </div>
         </div>

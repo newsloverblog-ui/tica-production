@@ -18,7 +18,7 @@
             @elseif(request()->routeIs('customer.support_tickert.create')) active
             @elseif(request()->routeIs('customer.support_ticket.message')) active @endif">
           {{ __('Support Tickets') }}</a></li>
-      <li><a href="{{ url('/account#profile') }}">{{ __('Profile and security') }}</a></li>
+      <li><a href="{{ url('/account#profile') }}">{{ __('Profile') }}</a></li>
       <li><a href="{{ route('customer.data-export.index') }}"
           class="@if (request()->routeIs('customer.data-export.*')) active @endif">{{ __('My Data') }}</a></li>
       <li>

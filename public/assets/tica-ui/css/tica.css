@@ -4439,8 +4439,8 @@ body.admin-builder footer{display:none}
     color:#fff!important;
   }
 }
-/* Security status badges shared by the TICA customer and organiser dashboards. */
-.acd-sec-state,.od-sec-state{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:6px 10px;border-radius:999px;background:#eef2f8;color:#526079;font-size:12px;font-weight:800;line-height:1}.acd-sec-state.on,.od-sec-state.on{background:#e4f5ee;color:#187455}.acd-security .acd-ch>div,.od-security-card .db-ch>div{min-width:0}.acd-security .acd-text,.od-security-card .hint{margin:4px 0 0}.od-security-card{align-self:start}
+/* Persistent notification status in the organiser dashboard. */
+.od-sec-state{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:6px 10px;border-radius:999px;background:#eef2f8;color:#526079;font-size:12px;font-weight:800;line-height:1}.od-sec-state.on{background:#e4f5ee;color:#187455}.od-security-card .db-ch>div{min-width:0}.od-security-card .hint{margin:4px 0 0}.od-security-card{align-self:start}
 
 /* =====================================================================
    TICA dashboards — calm 60 / 30 / 10 brand balance.
@@ -4765,7 +4765,7 @@ body.isuser.appmode footer{display:none}
 body.appmode .topbar .wrap{max-width:none;padding-inline:0}
 body.appmode .workspace-nav{min-height:68px;padding:0;gap:0}
 .workspace-brand-zone{display:flex;flex:0 0 248px;min-height:68px;align-items:center;justify-content:space-between;padding:0 20px 0 28px;border-right:1px solid var(--dash-border);background:#fff}
-.workspace-brand-zone .logo{width:70px;min-height:44px}
+.workspace-brand-zone .logo{width:76px;min-height:44px}
 .workspace-brand-zone .logo img{display:block;width:100%;height:auto}
 body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .workspace-menu{width:38px;height:38px;border:0;border-radius:9px;background:transparent;color:#44516a}
@@ -4807,7 +4807,7 @@ body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
   body.appmode{--hdr:58px}
   body.appmode .workspace-nav{min-height:58px}
   .workspace-brand-zone{flex:0 0 auto;min-height:58px;padding:0 8px 0 16px;border-right:0}
-  .workspace-brand-zone .logo{width:58px}
+  .workspace-brand-zone .logo{width:62px}
   .workspace-menu{display:grid!important;margin-left:8px}
   .workspace-context{gap:8px;padding:0 8px}
   .workspace-badge{display:none}

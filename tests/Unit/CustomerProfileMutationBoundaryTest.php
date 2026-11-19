@@ -196,6 +196,9 @@ class CustomerProfileMutationBoundaryTest extends TestCase
         $this->assertStringContainsString("workspaceRole.hidden=p==='account'", $script);
         $this->assertStringContainsString('body.isuser.appmode .workspace-badge { display: none !important; }', $styles);
         $this->assertStringContainsString('el.replaceChildren(image)', $script);
+        $this->assertStringNotContainsString('Two-step verification', $view);
+        $this->assertStringNotContainsString('acd-mfa-state', $view);
+        $this->assertStringNotContainsString('acd-security', $view);
     }
 
     public function test_google_sign_in_replaces_a_numeric_provider_username_with_the_display_name(): void

@@ -96,10 +96,6 @@
             <button class="btn btn-line" type="submit">Change password</button>
           </form>
         </section>
-        <section class="acd-card acd-security">
-          <div class="acd-ch"><div><h2>Two-step verification</h2><p class="acd-text">Use an authenticator app and recovery codes after your password.</p></div><span class="acd-sec-state" id="acd-mfa-state">Off</span></div>
-          <a class="btn btn-line" id="acd-security" href="/account-security/customer">Manage account security</a>
-        </section>
         <section class="acd-card">
           <div class="acd-ch"><h2>Your data</h2></div>
           <p class="acd-text">Download a copy of everything TICA holds about you, or ask us to close your account.</p>

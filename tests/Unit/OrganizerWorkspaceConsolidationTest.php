@@ -196,16 +196,19 @@ class OrganizerWorkspaceConsolidationTest extends TestCase
         $this->assertStringContainsString("Role updated. It applies from their next action.", $script);
     }
 
-    public function test_settings_are_grouped_into_profile_preferences_notifications_and_security(): void
+    public function test_settings_are_grouped_without_two_step_verification_controls(): void
     {
         $dashboard = file_get_contents(resource_path('views/tica-ui/pages/dashboard.blade.php'));
         $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
         $this->assertStringContainsString('class="od-settings-layout"', $dashboard);
         $this->assertStringContainsString('class="od-settings-stack"', $dashboard);
-        foreach (['Public profile', 'Sign-in details', 'Contact and location', 'Social profiles', 'Defaults for new events', 'Notifications', 'Security'] as $heading) {
+        foreach (['Public profile', 'Sign-in details', 'Contact and location', 'Social profiles', 'Defaults for new events', 'Notifications', 'Password'] as $heading) {
             $this->assertStringContainsString($heading, $dashboard);
         }
+        $this->assertStringNotContainsString('Two-step verification', $dashboard);
+        $this->assertStringNotContainsString('od-mfa-state', $dashboard);
+        $this->assertStringNotContainsString('od-security-link', $dashboard);
         $this->assertStringNotContainsString('Sales update automatically as orders come in.', $dashboard);
         $this->assertStringNotContainsString('These details identify your account and appear where relevant on TICA.', $dashboard);
         $this->assertStringContainsString('.od-settings-layout{display:grid;grid-template-columns:', $css);

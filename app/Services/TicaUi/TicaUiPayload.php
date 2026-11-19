@@ -124,12 +124,10 @@ class TicaUiPayload
         'country' => (string) ($customer->country ?? ''),
         'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
         'social' => !empty($customer->provider),
-        'mfa' => $customer->two_factor_enabled_at !== null,
       ],
       'links' => [
         'profile' => route('customer.profile.update'),
         'password' => route('customer.password.update'),
-        'security' => route('account-security.show', ['guard' => 'customer']),
         'data' => route('customer.data-export.index'),
         'support' => optional(\Illuminate\Support\Facades\DB::table('support_ticket_statuses')->first())->support_ticket_status === 'active'
           ? route('customer.support_tickert')

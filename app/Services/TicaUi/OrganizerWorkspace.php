@@ -121,8 +121,6 @@ class OrganizerWorkspace
         'facebook' => (string) ($organizer->facebook ?? ''),
         'twitter' => (string) ($organizer->twitter ?? ''),
         'linkedin' => (string) ($organizer->linkedin ?? ''),
-        'mfa' => $organizer->two_factor_enabled_at !== null,
-        'securityUrl' => route('account-security.show', ['guard' => 'organizer']),
       ],
       'prefs' => array_merge(self::PREFERENCE_DEFAULTS, ['buyers_pay_fee' => \App\Support\TicaPlatform::all()['default_fee_payer'] === 'buyer'], (array) json_decode((string) ($organizer->preferences ?? ''), true)),
       'generatedAt' => $now->toIso8601String(),

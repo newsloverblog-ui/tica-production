@@ -709,7 +709,6 @@ function renderAccount(){
   $('acd-saved').innerHTML=savedList.length?'<div class="grid4">'+savedList.map(card).join('')+'</div>':'<div class="ac-empty"><h2>No saved events yet</h2><p>Tap the heart on any event to keep it here.</p><a class="btn btn-hot" href="/discover">Discover events</a></div>';
   /* profile */
   var F=$('acd-profile');if(F&&!F.dataset.ready){F.dataset.ready='1';['fname','lname','email','phone','city','country','username'].forEach(function(k){var i=F.querySelector('[name='+k+']');if(i)i.value=pf[k]||''});var photoInput=$('pf-photo');if(photoInput)photoInput.addEventListener('change',function(){var file=this.files&&this.files[0],label=$('pf-photo-name');if(!file){label.textContent='No photo selected';acAvatar($('pf-photo-preview'),u.name,pf.photo||u.photo);return}label.textContent=file.name;if(F._photoPreview)URL.revokeObjectURL(F._photoPreview);F._photoPreview=URL.createObjectURL(file);acAvatar($('pf-photo-preview'),u.name,F._photoPreview)})}
-  var ms=$('acd-mfa-state');if(ms){ms.textContent=pf.mfa?'On':'Off';ms.classList.toggle('on',!!pf.mfa)}if(links.security)$('acd-security').href=links.security;
   if(links.data)$('acd-data').href=links.data;
   if(links.support){var sp=$('acd-support');sp.href=links.support;sp.querySelector('b').textContent='Message support';sp.querySelector('small').textContent='Open a support ticket with the TICA team'}
   acShow(acPanel);
@@ -1903,7 +1902,6 @@ function drawSettings(){
   $('od-pi').value=p.instagram||'';$('od-pw').value=p.phone;
   $('od-pt').value=p.tiktok||'';$('od-pweb').value=p.website||'';$('od-pfb').value=p.facebook||'';$('od-px').value=p.twitter||'';$('od-pli').value=p.linkedin||'';$('od-pyt').value=p.youtube||'';
   $('od-photo-ini').textContent=D.org.initials;$('od-pcp-row').hidden=true;var img=$('od-photo-preview');img.onerror=function(){img.hidden=true};if(p.photoUrl){img.src=p.photoUrl;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
-  var state=$('od-mfa-state'),sec=$('od-security-link'),on=p.totp||p.mfa;if(state){state.textContent=p.totp?'App code on':p.mfa?'Email code on':'Off';state.classList.toggle('on',!!on)}if(sec&&p.securityUrl)sec.href=p.securityUrl;
 
   // Each switch names its own setting in data-pref, so adding one can't shift the others.
   [].forEach.call(document.querySelectorAll('[data-p=settings] [data-pref]'),function(s){s.checked=!!D.prefs[s.dataset.pref]});
