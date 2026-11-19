@@ -125,50 +125,37 @@ body:not(.orgshell):not(.orgshell-legacy) #tica-shell{display:none}
    Shared here because this stylesheet is loaded after every organiser
    page stylesheet. Keep related actions together, but never let adjacent
    controls touch when a toolbar wraps at narrower widths. */
-body:is(.orgshell,.orgshell-legacy,.tica-organizer){--org-action-gap:12px}
-body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(
-  .or-actions,
-  .ov-head__actions,
-  .org-overview-actions,
-  .tica-quick-actions,
-  .t-toolbar,
-  .lg-actions,
-  .gl-head__actions,
-  .gl-empty__actions,
-  .rf-actions,
-  .pr-form__actions,
-  .kv-actions,
-  .tsc-actions,
-  .tica-filter-actions,
-  .tica-export-form,
-  .od-settings-actions,
-  .scanner-form-action,
-  .scanner-sync-row,
-  .t-modal__foot
-){column-gap:var(--org-action-gap)!important;row-gap:var(--org-action-gap)!important}
+.or-actions,
+.ev-actions,
+.f-foot,
+.nav-actions,
+.workspace-actions,
+.ov-head__actions,
+.org-overview-actions,
+.tica-quick-actions,
+.t-toolbar,
+.tica-report-toolbar,
+.lg-actions,
+.lg-range,
+.lg-form__foot,
+.fin-balance__actions,
+.gl-head__actions,
+.gl-empty__actions,
+.gl-dlg__foot,
+.rf-actions,
+.rf-dlg__foot,
+.pr-form__actions,
+.kv-actions,
+.tsc-actions,
+.tica-filter-actions,
+.tica-export-form,
+.od-settings-actions,
+.scanner-form-action,
+.scanner-sync-row,
+.ce-success-actions,
+.ce-reg-pick-foot,
+.t-modal__foot,
+body.orgshell-legacy .modal-footer{column-gap:16px!important;row-gap:16px!important}
 
 /* Small icon controls remain compact while retaining a clear hit target. */
-body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(.rf-field__tools,.gl-actions){column-gap:8px!important;row-gap:8px!important}
-
-@media (max-width:767px){
-  body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(
-    .or-actions,
-    .ov-head__actions,
-    .org-overview-actions,
-    .tica-quick-actions,
-    .t-toolbar,
-    .lg-actions,
-    .gl-head__actions,
-    .gl-empty__actions,
-    .rf-actions,
-    .pr-form__actions,
-    .kv-actions,
-    .tsc-actions,
-    .tica-filter-actions,
-    .tica-export-form,
-    .od-settings-actions,
-    .scanner-form-action,
-    .scanner-sync-row,
-    .t-modal__foot
-  ){column-gap:12px!important;row-gap:12px!important}
-}
+.rf-field__tools,.gl-actions{column-gap:8px!important;row-gap:8px!important}
