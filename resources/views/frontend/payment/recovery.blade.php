@@ -186,4 +186,19 @@
       </section>
     </div>
   </main>
+  @unless (in_array($intent->status, ['failed', 'expired', 'completed'], true))
+    <script>
+      // Paystack's confirmation usually lands within seconds: look again a few times,
+      // then leave the "Check payment status" button to the buyer.
+      (function () {
+        try {
+          var key = 'tica-recovery-{{ substr(hash('sha256', (string) $intent->reference), 0, 16) }}';
+          var tries = parseInt(sessionStorage.getItem(key) || '0', 10);
+          if (tries >= 5) return;
+          sessionStorage.setItem(key, String(tries + 1));
+          setTimeout(function () { location.reload(); }, 3000 + tries * 1000);
+        } catch (e) {}
+      })();
+    </script>
+  @endunless
 @endsection

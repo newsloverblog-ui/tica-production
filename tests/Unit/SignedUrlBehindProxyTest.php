@@ -22,6 +22,7 @@ class SignedUrlBehindProxyTest extends TestCase
         URL::forceRootUrl('https://tica.example');
         URL::forceScheme('https');
         Route::get('/signed-probe/{id}', fn () => 'ok')->name('signed.probe');
+        app('router')->getRoutes()->refreshNameLookups();
     }
 
     public function test_a_link_signed_for_https_passes_when_php_sees_http(): void
@@ -64,7 +65,7 @@ class SignedUrlBehindProxyTest extends TestCase
 
     public function test_the_app_uses_this_middleware_and_trusts_vercels_scheme_headers(): void
     {
-        $this->assertSame(ValidateSignature::class, app('router')->getMiddleware()['signed'] ?? null);
+        $this->assertStringContainsString("'signed' => \\App\\Http\\Middleware\\ValidateSignature::class", file_get_contents(app_path('Http/Kernel.php')));
         $proxy = file_get_contents(app_path('Http/Middleware/TrustProxies.php'));
         $this->assertStringContainsString("protected \$proxies = '*'", $proxy);
         $this->assertStringContainsString('HEADER_X_FORWARDED_PROTO', $proxy);

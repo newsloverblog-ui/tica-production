@@ -445,18 +445,6 @@ class PaystackController extends Controller
             );
         }
 
-        if (($outcome['status'] ?? null) !== 'completed' && ($outcome['status'] ?? null) !== 'failed') {
-            // Paystack's webhook often lands at the same moment and finishes the
-            // booking; give it a few seconds before showing the recovery page.
-            for ($i = 0; $i < 6; $i++) {
-                usleep(700000);
-                $fresh = $intent->fresh();
-                if ($fresh && $fresh->status === 'completed' && $fresh->booking_id) {
-                    return $this->completedRedirect($request, $fresh);
-                }
-            }
-        }
-
         return $this->recoveryOutcomeRedirect($request, $intent->fresh(), $outcome);
     }
 
