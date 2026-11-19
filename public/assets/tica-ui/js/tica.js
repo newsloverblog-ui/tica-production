@@ -649,6 +649,16 @@ $('mt-form').addEventListener('submit',function(ev){
 /* v19: attendee account and gate check-in */
 var acTab='up';
 var ACC=TICA_DATA.account||{orders:[],events:[],saved:[]};
+function acInitials(name){return ((name||'T').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0)}).join('')||'T').toUpperCase()}
+function acAvatar(el,name,photo){
+  if(!el)return;
+  el.textContent=acInitials(name);el.classList.remove('has-photo');
+  if(!photo)return;
+  var image=new Image();image.alt='';image.decoding='async';
+  image.onerror=function(){image.remove();el.classList.remove('has-photo')};
+  image.onload=function(){el.classList.add('has-photo')};
+  image.src=photo;el.appendChild(image);
+}
 function evAny(s){return bySlug(s)||(ACC.events||[]).filter(function(e){return e.slug===s})[0]}
 var acPanel='overview';
 function acOrders(){return (ACC.orders||[]).map(function(o){return Object.assign({},o,{e:evAny(o.slug)})}).filter(function(o){return o.e})}
@@ -669,8 +679,8 @@ function renderAccount(){
   var all=acOrders(),up=all.filter(function(o){return eventTime(o.e)>=now}).sort(function(a,b){return eventTime(a.e)-eventTime(b.e)}),past=all.filter(function(o){return eventTime(o.e)<now}).sort(function(a,b){return eventTime(b.e)-eventTime(a.e)});
   var savedList=Object.keys(saved).filter(function(k){return saved[k]}).map(evAny).filter(Boolean);
   var h=new Date().getHours();
-  $('acd-name').textContent=u.name||'Your account';$('acd-since').textContent=pf.since?'Member since '+pf.since:(u.email||'');
-  $('acd-av').textContent=((u.name||'T').split(/\s+/).slice(0,2).map(function(w){return w.charAt(0)}).join('')||'T').toUpperCase();
+  $('acd-name').textContent=u.name||'Your account';
+  acAvatar($('acd-av'),u.name,pf.photo||u.photo);acAvatar($('pf-photo-preview'),u.name,pf.photo||u.photo);
   $('ac-hi').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+(first?', '+first:'');
   $('acd-today').textContent=up.length?'You have '+up.reduce(function(a,o){return a+o.n},0)+(up.reduce(function(a,o){return a+o.n},0)===1?' ticket':' tickets')+' for '+up.length+(up.length===1?' upcoming event.':' upcoming events.'):'Your tickets and upcoming events will appear here.';
   /* next event */
@@ -698,7 +708,7 @@ function renderAccount(){
   /* saved */
   $('acd-saved').innerHTML=savedList.length?'<div class="grid4">'+savedList.map(card).join('')+'</div>':'<div class="ac-empty"><h2>No saved events yet</h2><p>Tap the heart on any event to keep it here.</p><a class="btn btn-hot" href="/discover">Discover events</a></div>';
   /* profile */
-  var F=$('acd-profile');if(F&&!F.dataset.ready){F.dataset.ready='1';['fname','lname','email','phone','city','country','username'].forEach(function(k){var i=F.querySelector('[name='+k+']');if(i)i.value=pf[k]||''})}
+  var F=$('acd-profile');if(F&&!F.dataset.ready){F.dataset.ready='1';['fname','lname','email','phone','city','country','username'].forEach(function(k){var i=F.querySelector('[name='+k+']');if(i)i.value=pf[k]||''});var photoInput=$('pf-photo');if(photoInput)photoInput.addEventListener('change',function(){var file=this.files&&this.files[0],label=$('pf-photo-name');if(!file){label.textContent='No photo selected';acAvatar($('pf-photo-preview'),u.name,pf.photo||u.photo);return}label.textContent=file.name;if(F._photoPreview)URL.revokeObjectURL(F._photoPreview);F._photoPreview=URL.createObjectURL(file);acAvatar($('pf-photo-preview'),u.name,F._photoPreview)})}
   var ms=$('acd-mfa-state');if(ms){ms.textContent=pf.mfa?'On':'Off';ms.classList.toggle('on',!!pf.mfa)}if(links.security)$('acd-security').href=links.security;
   if(links.data)$('acd-data').href=links.data;
   if(links.support){var sp=$('acd-support');sp.href=links.support;sp.querySelector('b').textContent='Message support';sp.querySelector('small').textContent='Open a support ticket with the TICA team'}
@@ -716,12 +726,14 @@ function acSubmit(form,url,msgId,okText){
     if(!r.ok){m.className='acd-msg bad';m.textContent='Something went wrong. Please try again.';return false}
     /* A successful save returns to this page; any other landing page means it was stopped (for example an unverified email). */
     if(r.redirected&&new URL(r.url).pathname!==location.pathname){m.className='acd-msg bad';m.textContent='We couldn\'t save this. Confirm your email address first, then try again.';return false}
-    m.className='acd-msg ok';m.textContent=okText;return true;
+    var saved=function(data){form._lastResponse=data||{};m.className='acd-msg ok';m.textContent=(data&&data.message)||okText;return true};
+    if((r.headers.get('content-type')||'').indexOf('application/json')>-1)return r.json().then(saved,function(){return saved({})});
+    return saved({});
   },function(){m.className='acd-msg bad';m.textContent='No connection. Check the internet and try again.';return false});
 }
 document.addEventListener('submit',function(ev){
   var f=ev.target;
-  if(f.id==='acd-profile'){ev.preventDefault();var L=(ACC.links||{});acSubmit(f,L.profile,'pf-msg','Saved. Your receipts and tickets use these details.').then(function(ok){if(!ok)return;var pf=ACC.profile||(ACC.profile={});['fname','lname','email','phone','city','country','username'].forEach(function(k){pf[k]=f.querySelector('[name='+k+']').value.trim()});window.TICA_USER=Object.assign(window.TICA_USER||{},{name:(pf.fname+' '+pf.lname).trim(),email:pf.email});f.querySelector('[name=current_password]').value='';$('pf-cur-wrap').hidden=true;$('acd-name').textContent=window.TICA_USER.name})}
+  if(f.id==='acd-profile'){ev.preventDefault();var L=(ACC.links||{});acSubmit(f,L.profile,'pf-msg','Saved. Your receipts and tickets use these details.').then(function(ok){if(!ok)return;var pf=ACC.profile||(ACC.profile={});['fname','lname','email','phone','city','country','username'].forEach(function(k){pf[k]=f.querySelector('[name='+k+']').value.trim()});var response=f._lastResponse||{};if(response.profile&&response.profile.photo)pf.photo=response.profile.photo;window.TICA_USER=Object.assign(window.TICA_USER||{},{name:(pf.fname+' '+pf.lname).trim(),email:pf.email,photo:pf.photo});f.querySelector('[name=current_password]').value='';$('pf-cur-wrap').hidden=true;$('acd-name').textContent=window.TICA_USER.name;acAvatar($('acd-av'),window.TICA_USER.name,pf.photo);acAvatar($('pf-photo-preview'),window.TICA_USER.name,pf.photo);acAvatar($('workspace-account'),window.TICA_USER.name,pf.photo);var photo=f.querySelector('[name=photo]');if(photo)photo.value='';$('pf-photo-name').textContent='No photo selected'})}
   if(f.id==='acd-pass'){ev.preventDefault();if(f.new_password.value!==f.new_password_confirmation.value){var m=$('pw-msg');m.className='acd-msg bad';m.textContent='The two new passwords don\'t match.';return}acSubmit(f,(ACC.links||{}).password,'pw-msg','Password changed.').then(function(ok){if(ok)f.reset()})}
 });
 document.addEventListener('input',function(ev){if(ev.target.id==='pf-email'){var pf=ACC.profile||{};$('pf-cur-wrap').hidden=ev.target.value.trim().toLowerCase()===(pf.email||'').toLowerCase()}});
@@ -891,10 +903,12 @@ function route(){
   }else if(window.TICA_DATA&&TICA_DATA.content&&cur===TICA_DATA.path&&document.querySelector('.page[data-page=content]')){p='content'}else if(!TITLES[p])p='missing';
   [].forEach.call(document.querySelectorAll('.page'),function(s){s.hidden=s.dataset.page!==p});
   document.body.classList.toggle('isorg',!!window.TICA_ORG);document.body.classList.toggle('orgshell',!!document.getElementById('os-side')&&['dashboard','create','checkin'].indexOf(p)>-1);document.body.classList.toggle('t-app',document.body.classList.contains('orgshell'));document.body.classList.toggle('dashmode',p==='dashboard');document.body.classList.toggle('appmode',['dashboard','create','account','checkin'].indexOf(p)>-1);document.body.classList.toggle('gatemode',p==='checkin');document.body.classList.toggle('isuser',!!window.TICA_USER);document.body.classList.remove('dashnav-open');var workspaceMenu=document.getElementById('workspace-menu');if(workspaceMenu){var workspaceOpen=window.matchMedia('(min-width:861px)').matches&&!document.body.classList.contains('dashnav-collapsed');workspaceMenu.setAttribute('aria-expanded',workspaceOpen?'true':'false');workspaceMenu.setAttribute('aria-label',workspaceOpen?'Close dashboard menu':'Open dashboard menu')}if(p==='account')renderAccount();if(p==='checkin')renderCheckin();if(p==='dashboard')renderDash();
-  var workspaceTitle=document.getElementById('workspace-title'),workspaceRole=document.getElementById('workspace-role'),workspaceAccount=document.getElementById('workspace-account');
+  var workspaceTitle=document.getElementById('workspace-title'),workspaceRole=document.getElementById('workspace-role'),workspaceAccount=document.getElementById('workspace-account'),workspaceBadge=document.querySelector('.workspace-badge');
+  if(workspaceBadge)workspaceBadge.hidden=p==='account';
+  if(workspaceRole)workspaceRole.hidden=p==='account';
   if(workspaceTitle)workspaceTitle.textContent=p==='dashboard'?'Organiser dashboard':p==='account'?'Your account':p==='checkin'?'Gate check-in':p==='create'?'Create an event':'TICA workspace';
-  if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':p==='account'?'Customer account':'TICA workspace';
-  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=window.TICA_ADMIN?(TICA_DATA.adminBuilder.adminName||'TICA admin'):customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null,workspaceAvatar=window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.avatar:null;workspaceAccount.textContent=(workspaceName||'T').trim().charAt(0).toUpperCase();workspaceAccount.classList.remove('has-photo');if(workspaceAvatar){var workspaceImage=new Image();workspaceImage.alt='';workspaceImage.decoding='async';workspaceImage.onerror=function(){workspaceImage.remove();workspaceAccount.classList.remove('has-photo')};workspaceImage.onload=function(){workspaceAccount.classList.add('has-photo')};workspaceImage.src=workspaceAvatar;workspaceAccount.appendChild(workspaceImage)}workspaceAccount.href=window.TICA_ADMIN?(TICA_DATA.adminBuilder.backUrl||'/admin/dashboard'):customerWorkspace?'/account/profile':'/dashboard/settings'}
+  if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':'TICA workspace';
+  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=window.TICA_ADMIN?(TICA_DATA.adminBuilder.adminName||'TICA admin'):customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null,workspaceAvatar=customerWorkspace&&window.TICA_USER?window.TICA_USER.photo:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.avatar:null;acAvatar(workspaceAccount,workspaceName,workspaceAvatar);workspaceAccount.href=window.TICA_ADMIN?(TICA_DATA.adminBuilder.backUrl||'/admin/dashboard'):customerWorkspace?'/account/profile':'/dashboard/settings'}
   if(p==='dashboard'&&!route.ran){var workspaceMore=document.getElementById('od-more');if(workspaceMore)workspaceMore.removeAttribute('open')}
   document.body.classList.toggle('authmode',p==='login'||p==='signup'||p==='forgot');
   [].forEach.call(document.querySelectorAll('.pagebar a'),function(a){var h=a.getAttribute('href').slice(1).split('/')[0]||'home';if(h===p)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});

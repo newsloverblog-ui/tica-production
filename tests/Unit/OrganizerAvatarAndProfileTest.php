@@ -85,8 +85,9 @@ class OrganizerAvatarAndProfileTest extends TestCase
     $css = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
     $this->assertStringContainsString('window.TICA_DATA.dashboard.org.avatar', $script);
-    $this->assertStringContainsString("workspaceAccount.classList.add('has-photo')", $script);
-    $this->assertStringContainsString("workspaceAccount.classList.remove('has-photo')", $script);
+    $this->assertStringContainsString('function acAvatar(el,name,photo)', $script);
+    $this->assertStringContainsString("el.classList.add('has-photo')", $script);
+    $this->assertStringContainsString("el.classList.remove('has-photo')", $script);
     $this->assertStringContainsString('.workspace-avatar img{position:absolute;inset:0;z-index:1', $css);
   }
 

@@ -7,10 +7,12 @@ use App\Models\Customer;
 use App\Services\CustomerEmailVerificationService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -137,6 +139,58 @@ class CustomerProfileMutationBoundaryTest extends TestCase
         $this->assertSame('local', $customer->provider);
         $this->assertNotNull($customer->email_verified_at);
         $this->assertNull($customer->verification_token);
+    }
+
+    public function test_customer_can_upload_a_profile_photo_and_receive_its_public_url(): void
+    {
+        $customer = $this->customer();
+        Auth::guard('customer')->login($customer);
+        $verifications = Mockery::mock(CustomerEmailVerificationService::class);
+        $verifications->shouldNotReceive('request');
+        $originalPublicPath = public_path();
+        $temporaryPublicPath = sys_get_temp_dir() . '/tica-customer-profile-' . uniqid();
+        File::ensureDirectoryExists($temporaryPublicPath . '/assets/admin/img/customer-profile');
+        $this->app->usePublicPath($temporaryPublicPath);
+        config()->set('services.supabase.url', null);
+
+        try {
+            $request = Request::create('/customer/update-profile', 'POST', [
+                'fname' => 'Member',
+                'lname' => 'Customer',
+                'username' => 'member',
+                'email' => 'member@example.com',
+            ], [], [
+                'photo' => UploadedFile::fake()->image('profile.jpg', 600, 600),
+            ], [
+                'HTTP_ACCEPT' => 'application/json',
+                'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+            ]);
+            $request->setLaravelSession(app('session')->driver());
+
+            $response = (new CustomerController())->update_profile($request, $verifications);
+
+            $customer->refresh();
+            $this->assertNotNull($customer->photo);
+            $this->assertFileExists($temporaryPublicPath . '/assets/admin/img/customer-profile/' . $customer->photo);
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString($customer->photo, (string) $response->getData(true)['profile']['photo']);
+        } finally {
+            $this->app->usePublicPath($originalPublicPath);
+            File::deleteDirectory($temporaryPublicPath);
+        }
+    }
+
+    public function test_customer_workspace_exposes_photo_upload_without_membership_or_role_labels(): void
+    {
+        $view = file_get_contents(resource_path('views/tica-ui/pages/account.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringContainsString('name="photo"', $view);
+        $this->assertStringContainsString('id="pf-photo-preview"', $view);
+        $this->assertStringNotContainsString('acd-since', $view);
+        $this->assertStringNotContainsString('Member since', $script);
+        $this->assertStringNotContainsString("p==='account'?'Customer account'", $script);
+        $this->assertStringContainsString("workspaceRole.hidden=p==='account'", $script);
     }
 
     public function test_email_change_requires_password_and_revokes_verification(): void

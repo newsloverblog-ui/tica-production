@@ -2,7 +2,7 @@
 <section class="page" data-page="account">
   <div class="acd">
     <aside class="acd-side" aria-label="Your account">
-      <div class="acd-me"><i class="acd-av" id="acd-av" aria-hidden="true"></i><div><b id="acd-name"></b><span id="acd-since"></span></div></div>
+      <div class="acd-me"><i class="acd-av" id="acd-av" aria-hidden="true"></i><div><b id="acd-name"></b></div></div>
       <a class="btn acd-find" href="/discover">Find events</a>
       <nav class="acd-nav" aria-label="Account sections">
         <button type="button" data-acp="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>Overview</button>
@@ -68,6 +68,16 @@
         <section class="acd-card">
           <div class="acd-ch"><h2>Your details</h2></div>
           <form class="acd-form" id="acd-profile" novalidate>
+            <div class="acd-photo-field">
+              <i class="acd-photo-preview" id="pf-photo-preview" aria-hidden="true"></i>
+              <div class="acd-photo-control">
+                <strong>Profile photo</strong>
+                <span>JPG, PNG, WebP or GIF, up to 15 MB.</span>
+                <label class="btn btn-line acd-photo-button" for="pf-photo">Choose photo</label>
+                <input class="acd-photo-input" id="pf-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                <small id="pf-photo-name">No photo selected</small>
+              </div>
+            </div>
             <div class="acd-row"><div class="inp"><label for="pf-fname">First name</label><input id="pf-fname" name="fname" autocomplete="given-name" required></div><div class="inp"><label for="pf-lname">Last name</label><input id="pf-lname" name="lname" autocomplete="family-name" required></div></div>
             <div class="acd-row"><div class="inp"><label for="pf-email">Email address</label><input id="pf-email" name="email" type="email" autocomplete="email" required></div><div class="inp"><label for="pf-phone">Phone number</label><input id="pf-phone" name="phone" type="tel" autocomplete="tel"></div></div>
             <div class="acd-row"><div class="inp"><label for="pf-city">City</label><input id="pf-city" name="city" autocomplete="address-level2"></div><div class="inp"><label for="pf-country">Country</label><input id="pf-country" name="country" autocomplete="country-name"></div></div>

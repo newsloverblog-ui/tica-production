@@ -26,6 +26,7 @@ use App\Services\CustomerLoginCodeService;
 use App\Services\GuestTicketClaimService;
 use App\Services\ApplicationMailService;
 use App\Services\AccountMfaService;
+use App\Support\PublicImage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -505,10 +506,8 @@ class CustomerController extends Controller
 
     $file = $request->file('photo');
     if ($file) {
-      $extension = ImageMimeTypeRule::extension($file);
       $directory = public_path('assets/admin/img/customer-profile/');
-      $fileName = (string) Str::uuid() . '.' . strtolower($extension);
-      UploadFile::storeAs($directory, $file, $fileName);
+      $fileName = PublicImage::store($file, 'assets/admin/img/customer-profile', 800);
       UploadFile::delete($directory, (string) $customer->photo);
       $profile['photo'] = $fileName;
     }
@@ -547,6 +546,16 @@ class CustomerController extends Controller
           ? 'Your email was updated. Verify the new address before signing in again.'
           : 'Your email was updated, but the verification message could not be queued. Request a new link before signing in.'
       );
+    }
+
+    $customer = $customer->fresh();
+    if ($request->expectsJson()) {
+      return response()->json([
+        'message' => 'Your profile has been updated.',
+        'profile' => [
+          'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
+        ],
+      ]);
     }
 
     Session::flash('success', 'Your profile has been successfully updated!');

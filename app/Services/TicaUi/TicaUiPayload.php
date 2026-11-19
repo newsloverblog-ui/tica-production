@@ -13,6 +13,7 @@ use App\Models\Language;
 use App\Models\OrganizerInfo;
 use App\Models\OrganizerPayoutAccount;
 use App\Services\TicketIssuanceService;
+use App\Support\PublicImage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -121,7 +122,7 @@ class TicaUiPayload
         'phone' => (string) ($customer->phone ?? ''),
         'city' => (string) ($customer->city ?? ''),
         'country' => (string) ($customer->country ?? ''),
-        'since' => Carbon::parse($customer->created_at)->format('F Y'),
+        'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
         'social' => !empty($customer->provider),
         'mfa' => $customer->two_factor_enabled_at !== null,
       ],
@@ -261,6 +262,7 @@ class TicaUiPayload
       'name' => trim($customer->fname . ' ' . $customer->lname) ?: $customer->username,
       'email' => (string) $customer->email,
       'phone' => (string) ($customer->phone ?? ''),
+      'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
     ];
   }
 
