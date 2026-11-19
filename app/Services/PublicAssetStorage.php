@@ -140,11 +140,20 @@ class PublicAssetStorage
 
     private function request()
     {
+        $key = $this->apiKey();
+        $headers = ['apikey' => $key];
+
+        // Supabase's current secret keys are opaque `sb_secret_...` values,
+        // not JWTs. Sending one as a bearer token makes the Storage gateway
+        // reject an otherwise valid upload with "Invalid JWT". The legacy
+        // service-role key is a JWT and still needs the bearer header while a
+        // project is being migrated to the new key format.
+        if (!str_starts_with($key, 'sb_secret_')) {
+            $headers['Authorization'] = 'Bearer ' . $key;
+        }
+
         return Http::acceptJson()
-            ->withHeaders([
-                'apikey' => $this->apiKey(),
-                'Authorization' => 'Bearer ' . $this->apiKey(),
-            ])
+            ->withHeaders($headers)
             ->timeout((int) config('services.supabase.storage_timeout', 15));
     }
 

@@ -14,6 +14,7 @@ use App\Services\TicaUi\EventCatalog;
 use App\Services\TicaUi\TicaUiPayload;
 use App\Services\TicaPromotionAnalyticsService;
 use App\Services\TicaPromotionPlacementService;
+use App\Support\PublicImage;
 use App\Support\TicaSite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -269,7 +270,7 @@ class TicaUiController extends Controller
           'id' => (int) $popup->id,
           'headline' => (string) ($popup->headline ?: optional($content)->title ?: __('Featured event')),
           'body' => (string) ($popup->body ?: __('Discover this event on TICA.')),
-          'image' => $popup->creative_path ? asset('assets/admin/img/tica-promotions/' . basename($popup->creative_path)) : null,
+          'image' => PublicImage::url('assets/admin/img/tica-promotions', $popup->creative_path),
           'url' => route('tica.promotion.click', $popup->id),
         ];
       }

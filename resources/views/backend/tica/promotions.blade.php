@@ -196,7 +196,7 @@
                   <div class="campaign-identity">
                     <div class="campaign-creative">
                       @if ($campaign->creative_path)
-                        <img src="{{ asset('assets/admin/img/tica-promotions/' . basename($campaign->creative_path)) }}" alt="">
+                        <img src="{{ \App\Support\PublicImage::url('assets/admin/img/tica-promotions', $campaign->creative_path) }}" alt="">
                       @else
                         <i class="{{ $placementIcon($placement) }}" aria-hidden="true"></i>
                       @endif
