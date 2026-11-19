@@ -663,15 +663,31 @@ END $$;
 -- Duplicate accounts (or `php artisan accounts:duplicates`).
 DO $$
 BEGIN
-  ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade smallint NOT NULL DEFAULT 0;
-  ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade_approval smallint NOT NULL DEFAULT 1;
-  ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_to_organizer_id bigint NULL;
-  ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_at timestamp NULL;
-  CREATE INDEX IF NOT EXISTS customers_migrated_to_organizer_id_index ON public.customers (migrated_to_organizer_id);
-  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider varchar(30) NULL;
-  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider_id varchar(191) NULL;
-  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS migrated_from_customer_id bigint NULL;
-  CREATE INDEX IF NOT EXISTS organizers_migrated_from_customer_id_index ON public.organizers (migrated_from_customer_id);
+  IF to_regclass('public.basic_settings') IS NOT NULL THEN
+    ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade smallint NOT NULL DEFAULT 0;
+    ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade_approval smallint NOT NULL DEFAULT 1;
+  END IF;
+  IF to_regclass('public.customers') IS NOT NULL THEN
+    ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_to_organizer_id bigint NULL;
+    ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_at timestamp NULL;
+    CREATE INDEX IF NOT EXISTS customers_migrated_to_organizer_id_index ON public.customers (migrated_to_organizer_id);
+    IF NOT EXISTS (SELECT 1 FROM public.customers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
+      CREATE UNIQUE INDEX IF NOT EXISTS customers_email_lower_unique ON public.customers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
+    ELSE
+      RAISE NOTICE 'customers has duplicate emails: unique email index skipped.';
+    END IF;
+  END IF;
+  IF to_regclass('public.organizers') IS NOT NULL THEN
+    ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider varchar(30) NULL;
+    ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider_id varchar(191) NULL;
+    ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS migrated_from_customer_id bigint NULL;
+    CREATE INDEX IF NOT EXISTS organizers_migrated_from_customer_id_index ON public.organizers (migrated_from_customer_id);
+    IF NOT EXISTS (SELECT 1 FROM public.organizers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
+      CREATE UNIQUE INDEX IF NOT EXISTS organizers_email_lower_unique ON public.organizers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
+    ELSE
+      RAISE NOTICE 'organizers has duplicate emails: unique email index skipped.';
+    END IF;
+  END IF;
   CREATE TABLE IF NOT EXISTS public.organizer_upgrade_requests (
     id bigserial PRIMARY KEY,
     customer_id bigint NOT NULL,
@@ -688,16 +704,6 @@ BEGIN
   );
   CREATE INDEX IF NOT EXISTS organizer_upgrade_customer_status_idx ON public.organizer_upgrade_requests (customer_id, status);
   CREATE INDEX IF NOT EXISTS organizer_upgrade_status_created_idx ON public.organizer_upgrade_requests (status, created_at);
-  IF NOT EXISTS (SELECT 1 FROM public.customers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
-    CREATE UNIQUE INDEX IF NOT EXISTS customers_email_lower_unique ON public.customers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
-  ELSE
-    RAISE NOTICE 'customers has duplicate emails: unique email index skipped.';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.organizers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
-    CREATE UNIQUE INDEX IF NOT EXISTS organizers_email_lower_unique ON public.organizers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
-  ELSE
-    RAISE NOTICE 'organizers has duplicate emails: unique email index skipped.';
-  END IF;
   IF to_regclass('public.mail_templates') IS NOT NULL THEN
     INSERT INTO public.mail_templates (mail_type, mail_subject, mail_body)
     SELECT v.mail_type, v.mail_subject, v.mail_body
