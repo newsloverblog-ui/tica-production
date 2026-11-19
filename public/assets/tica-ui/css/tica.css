@@ -5571,3 +5571,15 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 .tica-customer-impersonation{display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;padding:8px 20px;border-bottom:1px solid #d8e1f3;background:#eef3fd;color:#173a78;font-size:14px;font-weight:600}
 .tica-customer-impersonation form{margin:0}.tica-customer-impersonation button{min-height:32px;padding:0 13px;border:1px solid #2f5bd3;border-radius:7px;background:#fff;color:#244ab7;font:inherit;cursor:pointer}.tica-customer-impersonation button:hover{background:#f8faff}
 @media(max-width:560px){.tica-customer-impersonation{align-items:flex-start;flex-direction:column;gap:7px;padding:10px 14px}.tica-customer-impersonation button{width:100%}}
+
+/* One email, one account type: the "log in as …" switch under an auth message. */
+.au-switch{display:inline-flex;align-items:center;min-height:36px;margin-top:6px;padding:0 12px;border:1px solid #C9D3E3;border-radius:8px;background:#fff;color:#2E4FD8;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.au-switch:hover{border-color:#2E4FD8}
+.au-switch:focus-visible{outline:3px solid rgba(46,79,216,.35);outline-offset:2px}
+.au-err .au-switch{display:flex;width:max-content}
+
+/* Customer header: "Become an Organizer" (only when Admin allows upgrades). */
+.acd-head-acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
+.acd-upgrade[hidden],.acd-upgrade-note[hidden]{display:none!important}
+.acd-upgrade-note{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;background:#EEF2FE;color:#1E3A8A;font-size:13.5px;font-weight:600}
+@media (max-width:600px){.acd-head-acts{width:100%;justify-content:flex-start}}

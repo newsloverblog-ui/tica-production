@@ -146,6 +146,10 @@ class TransactionalMailTemplateTest extends TestCase
             'support_ticket_reply' => 'app/Services/SupportTicketMailService.php',
             'support_ticket_closed' => 'app/Services/SupportTicketMailService.php',
             'admin_contact_form' => 'app/Http/Controllers/FrontEnd/ContactController.php',
+            'organizer_upgrade_received' => 'app/Services/OrganizerUpgradeService.php',
+            'admin_organizer_upgrade_request' => 'app/Services/OrganizerUpgradeService.php',
+            'organizer_upgrade_approved' => 'app/Services/OrganizerUpgradeService.php',
+            'organizer_upgrade_rejected' => 'app/Services/OrganizerUpgradeService.php',
         ];
 
         foreach ($directTriggers as $type => $file) {

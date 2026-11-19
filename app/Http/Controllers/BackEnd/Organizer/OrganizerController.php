@@ -171,7 +171,7 @@ class OrganizerController extends Controller
         'unique:organizers',
         "not_in:$this->admin_user_name"
       ],
-      'email'    => 'required|string|email:rfc|max:254|unique:organizers',
+      'email'    => ['required', 'string', 'email:rfc', 'max:254', 'unique:organizers', \App\Rules\AccountTypeEmail::organizer()],
       'password' => ['required', 'confirmed', PasswordPolicy::rule()],
     ];
 
@@ -422,6 +422,7 @@ class OrganizerController extends Controller
       'email'    => [
         'required', 'string', 'email:rfc', 'max:254',
         Rule::unique('organizers', 'email')->ignore($organizer->id),
+        \App\Rules\AccountTypeEmail::organizer(),
       ],
       'username' => [
         'required',

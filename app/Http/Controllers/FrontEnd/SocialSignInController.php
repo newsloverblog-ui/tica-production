@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organizer;
 use App\Models\OrganizerInfo;
 use App\Services\AccountMfaService;
+use App\Services\AccountTypeGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,8 @@ class SocialSignInController extends Controller
     if (!self::googleReady()) {
       return redirect('/login')->with('alert', __('Google sign-in is not available right now. Log in with your email instead.'));
     }
-    $request->session()->put('social_as', $request->query('as') === 'org' ? 'org' : 'att');
+    $as = (string) $request->query('as');
+    $request->session()->put('social_as', in_array($as, ['org', 'upgrade'], true) ? $as : 'att');
 
     return Socialite::driver('google')->scopes(['openid', 'email', 'profile'])->redirect();
   }
@@ -36,6 +38,9 @@ class SocialSignInController extends Controller
   public function callback(Request $request)
   {
     $as = $request->session()->pull('social_as', 'att');
+    if ($as === 'upgrade') {
+      return $this->confirmUpgrade($request);
+    }
     if ($as !== 'org') {
       return app(CustomerController::class)->handleGoogleCallback();
     }
@@ -55,7 +60,16 @@ class SocialSignInController extends Controller
 
     $organizer = Organizer::query()->whereRaw('LOWER(email) = ?', [$email])->first();
     if (!$organizer) {
+      // One email, one account type: never create an organiser for a customer's email.
+      $conflict = app(AccountTypeGuard::class)->conflict(AccountTypeGuard::ORGANIZER, $email);
+      if ($conflict) {
+        rescue(fn () => \App\Services\AuditLogger::record('account_type.google_blocked', null, [], [], ['as' => 'organizer', 'existing' => $conflict['type']]), null, false);
+        return redirect('/login?role=att')->with('alert', $conflict['message'])->with('switch_role', 'att');
+      }
       return $this->createOrganizer($request, $email, (string) ($google->getName() ?: Str::before($email, '@')));
+    }
+    if (blank($organizer->provider_id) && \Illuminate\Support\Facades\Schema::hasColumn('organizers', 'provider_id')) {
+      $organizer->forceFill(['provider' => 'google', 'provider_id' => (string) $google->getId()])->saveQuietly();
     }
     if ((int) $organizer->status !== 1) {
       return redirect('/login')->with('alert', __('Your organiser account is not active yet. We\'ll email you once it\'s approved.'));
@@ -66,6 +80,32 @@ class SocialSignInController extends Controller
     }
 
     return $this->signIn($request, $organizer);
+  }
+
+  /**
+   * A Google-only customer confirms their organiser upgrade by signing in
+   * with Google again. The same Google account must come back.
+   */
+  private function confirmUpgrade(Request $request): RedirectResponse
+  {
+    $customer = Auth::guard('customer')->user();
+    if (!$customer) {
+      return redirect('/login')->with('alert', __('Log in to your account first.'));
+    }
+    try {
+      $google = Socialite::driver('google')->user();
+    } catch (Throwable $e) {
+      Log::warning('customer.upgrade_google_reauth_failed', ['exception' => $e::class]);
+      return redirect()->route('customer.organizer_upgrade.show')->with('alert', __('Google could not confirm it\'s you. Please try again.'));
+    }
+    $sameAccount = AccountTypeGuard::normalize($google->getEmail()) === AccountTypeGuard::normalize($customer->email)
+      && (blank($customer->provider_id) || hash_equals((string) $customer->provider_id, (string) $google->getId()));
+    if (!$sameAccount) {
+      return redirect()->route('customer.organizer_upgrade.show')->with('alert', __('That Google account does not match this TICA account.'));
+    }
+    $request->session()->put('organizer_upgrade_reauth', ['customer_id' => (int) $customer->id, 'at' => now()->getTimestamp()]);
+
+    return redirect()->route('customer.organizer_upgrade.show')->with('success', __('Confirmed with Google. Finish your request below.'));
   }
 
   private function signIn(Request $request, Organizer $organizer): RedirectResponse

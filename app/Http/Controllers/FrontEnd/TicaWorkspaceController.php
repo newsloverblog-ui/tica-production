@@ -793,7 +793,7 @@ class TicaWorkspaceController extends Controller
     $validated = $request->validate([
       'name' => ['required', 'string', 'min:2', 'max:100'],
       'about' => ['nullable', 'string', 'max:2000'],
-      'email' => ['required', 'email:rfc', 'max:254', Rule::unique('organizers', 'email')->ignore($organizer->id)],
+      'email' => ['required', 'email:rfc', 'max:254', Rule::unique('organizers', 'email')->ignore($organizer->id), \App\Rules\AccountTypeEmail::organizer()],
       'username' => ['required', 'string', 'alpha_dash', 'max:100', Rule::unique('organizers', 'username')->ignore($organizer->id), Rule::notIn(Admin::query()->pluck('username')->filter()->all())],
       'current_password' => $emailChanged ? ['required', 'string'] : ['nullable', 'string'],
       'country' => ['nullable', 'string', 'max:100'],

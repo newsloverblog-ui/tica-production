@@ -73,7 +73,7 @@ class CustomerController extends Controller
     $rules = [
       'fname' => 'required',
       'lname' => 'required',
-      'email' => 'required|email|unique:customers',
+      'email' => ['required', 'email', 'unique:customers', \App\Rules\AccountTypeEmail::customer()],
       'username' => [
         'required',
         'alpha_dash',
@@ -259,6 +259,14 @@ class CustomerController extends Controller
         }
       }
     } else {
+      $login = trim((string) $request->username);
+      $moved = \App\Services\AccountTypeGuard::hasMigrationColumns()
+        && Customer::query()->whereNotNull('migrated_to_organizer_id')
+          ->where(fn ($q) => $q->where('username', $login)->orWhereRaw('LOWER(email) = ?', [mb_strtolower($login)]))
+          ->exists();
+      if ($moved) {
+        return redirect('/login?role=org')->with('alert', \App\Services\AccountTypeGuard::upgradedMessage())->with('switch_role', 'org');
+      }
       return redirect()->back()->with('alert', 'Oops, Username or password does not match!');
     }
   }
@@ -469,7 +477,8 @@ class CustomerController extends Controller
         'string',
         'email:rfc',
         'max:254',
-        Rule::unique('customers', 'email')->ignore($customer->id)
+        Rule::unique('customers', 'email')->ignore($customer->id),
+        \App\Rules\AccountTypeEmail::customer(),
       ],
       'username' => [
         'required',
@@ -611,12 +620,20 @@ class CustomerController extends Controller
     try {
 
       $user = Socialite::driver($driver)->user();
+      $guard = app(\App\Services\AccountTypeGuard::class);
       $isUser = Customer::where('provider_id', $user->id)->first();
+      // One email, one account type: an upgraded customer logs in as an organiser now.
+      if ($isUser && \App\Services\AccountTypeGuard::hasMigrationColumns() && $isUser->migrated_to_organizer_id) {
+        return redirect('/login?role=org')->with('alert', \App\Services\AccountTypeGuard::upgradedMessage())->with('switch_role', 'org');
+      }
       // Someone who signed up with email and later uses "Continue with Google" with the
       // same, Google-verified address gets their existing account, not a duplicate.
       $verifiedEmail = $driver === 'google' && (bool) data_get($user->user, 'email_verified', data_get($user->user, 'verified_email', false));
+      if (!$isUser && filled($user->getEmail()) && $guard->migratedCustomer($user->getEmail()) && !$guard->customer($user->getEmail())) {
+        return redirect('/login?role=org')->with('alert', \App\Services\AccountTypeGuard::upgradedMessage())->with('switch_role', 'org');
+      }
       if (!$isUser && $verifiedEmail && filled($user->getEmail())) {
-        $isUser = Customer::query()->whereRaw('LOWER(email) = ?', [mb_strtolower(trim((string) $user->getEmail()))])->first();
+        $isUser = $guard->customer($user->getEmail());
         if ($isUser) {
           $isUser->forceFill(['provider' => $driver, 'provider_id' => $user->id, 'email_verified_at' => $isUser->email_verified_at ?: now()])->save();
         }
@@ -651,6 +668,12 @@ class CustomerController extends Controller
         request()->session()->regenerate();
         return $redirectURL ? redirect($redirectURL) : redirect()->route('customer.dashboard');
       } else {
+        // Never create a customer for an email that belongs to an organiser.
+        $conflict = $guard->conflict(\App\Services\AccountTypeGuard::CUSTOMER, (string) $user->getEmail());
+        if ($conflict) {
+          rescue(fn () => \App\Services\AuditLogger::record('account_type.google_blocked', null, [], [], ['as' => 'customer', 'existing' => $conflict['type']]), null, false);
+          return redirect('/login?role=org')->with('alert', $conflict['message'])->with('switch_role', 'org');
+        }
         // Store the provider avatar in the same durable object store used by
         // regular profile uploads. Vercel's bundled public directory is read-only.
         // The profile photo is a nice-to-have: a failed download never blocks signing in.

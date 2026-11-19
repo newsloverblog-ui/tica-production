@@ -183,6 +183,9 @@ Route::prefix('/customer')->middleware('auth:customer', 'Deactive:customer', 'ch
   Route::get('/dashboard', 'FrontEnd\CustomerController@index')->name('customer.dashboard');
   Route::get('/edit-profile', 'FrontEnd\CustomerController@edit_profile')->name('customer.edit.profile');
   Route::post('/update-profile', 'FrontEnd\CustomerController@update_profile')->name('customer.profile.update');
+  Route::get('/become-organizer', 'FrontEnd\OrganizerUpgradeController@show')->name('customer.organizer_upgrade.show');
+  Route::post('/become-organizer', 'FrontEnd\OrganizerUpgradeController@store')
+    ->middleware('throttle:6,10')->name('customer.organizer_upgrade.store');
   Route::get('/my-data', 'FrontEnd\CustomerDataExportController@index')->name('customer.data-export.index');
   Route::post('/my-data', 'FrontEnd\CustomerDataExportController@store')
     ->middleware('throttle:2,60')->name('customer.data-export.store');

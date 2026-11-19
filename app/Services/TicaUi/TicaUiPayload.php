@@ -54,6 +54,7 @@ class TicaUiPayload
         'success' => Session::get('success'),
         'error' => Session::get('error') ?: Session::get('alert') ?: (Session::get('alert-type') === 'error' ? Session::get('message') : null),
         'message' => Session::get('alert-type') === 'success' ? Session::get('message') : null,
+        'switch_role' => in_array(Session::get('switch_role'), ['org', 'att'], true) ? Session::get('switch_role') : null,
       ]),
     ];
   }
@@ -128,6 +129,7 @@ class TicaUiPayload
         'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
         'social' => !empty($customer->provider),
       ],
+      'upgrade' => rescue(fn () => app(\App\Services\OrganizerUpgradeService::class)->headerState($customer), null, false),
       'organizerEmail' => $organizerBooking ? [
         'email' => (string) $organizerBooking->organizer->email,
         'event' => (string) ($organizerBooking->event?->title ?: 'your event'),

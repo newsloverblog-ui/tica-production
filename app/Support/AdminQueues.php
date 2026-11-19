@@ -46,6 +46,7 @@ class AdminQueues
       ['promotions', 'Promotions to review', 'admin.advertise.tica_promotions', fn () => self::table('tica_promotion_campaigns', fn ($q) => $q->where('status', 'pending_review'))],
       ['pixels', 'Tracking pixels to review', 'admin.advertise.tica_promotions', fn () => self::table('tica_tracking_pixels', fn ($q) => $q->where('status', 'pending_review'))],
       ['support', 'Support requests', 'admin.support_tickets', fn () => self::table('support_tickets', fn ($q) => $q->where('status', 1))],
+      ['organizer_upgrades', 'Organizer upgrade requests', 'admin.organizer_upgrades.index', fn () => self::table('organizer_upgrade_requests', fn ($q) => $q->where('status', 'pending'))],
       ['approvals', 'Organisers to approve', 'admin.organizer_management.registered_organizer', fn () => (int) DB::table('basic_settings')->value('organizer_admin_approval') === 1 ? self::table('organizers', fn ($q) => $q->where('status', 0)) : 0],
     ];
 
