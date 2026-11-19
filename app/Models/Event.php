@@ -43,6 +43,7 @@ class Event extends Model
     'visibility',
     'show_remaining',
     'waitlist_enabled',
+    'allow_transfers',
     'is_hybrid',
     'join_reveal_minutes',
     'attendee_question'
@@ -52,7 +53,37 @@ class Event extends Model
     'sales_closed_at' => 'datetime',
     'cancelled_at' => 'datetime',
     'online_join_url' => 'encrypted',
+    'show_remaining' => 'boolean',
+    'waitlist_enabled' => 'boolean',
+    'allow_transfers' => 'boolean',
+    'is_hybrid' => 'boolean',
   ];
+
+  /**
+   * The legacy event flags are SMALLINT columns in the production Supabase
+   * schema. PDO serializes PHP booleans as the PostgreSQL literals "true" and
+   * "false", which SMALLINT rejects. Keep the database representation at 0/1
+   * while exposing normal booleans through the casts above.
+   */
+  public function setShowRemainingAttribute(mixed $value): void
+  {
+    $this->attributes['show_remaining'] = (int) filter_var($value, FILTER_VALIDATE_BOOL);
+  }
+
+  public function setWaitlistEnabledAttribute(mixed $value): void
+  {
+    $this->attributes['waitlist_enabled'] = (int) filter_var($value, FILTER_VALIDATE_BOOL);
+  }
+
+  public function setAllowTransfersAttribute(mixed $value): void
+  {
+    $this->attributes['allow_transfers'] = (int) filter_var($value, FILTER_VALIDATE_BOOL);
+  }
+
+  public function setIsHybridAttribute(mixed $value): void
+  {
+    $this->attributes['is_hybrid'] = (int) filter_var($value, FILTER_VALIDATE_BOOL);
+  }
 
   public function isBookable(): bool
   {
