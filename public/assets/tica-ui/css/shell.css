@@ -154,6 +154,9 @@ body:not(.orgshell):not(.orgshell-legacy) #tica-shell{display:none}
 .scanner-sync-row,
 .ce-success-actions,
 .ce-reg-pick-foot,
+.card-footer,
+.modal-footer,
+.tica-report-pagination,
 .t-modal__foot,
 body.orgshell-legacy .modal-footer{column-gap:16px!important;row-gap:16px!important}
 
