@@ -120,3 +120,55 @@ body.orgshell-legacy .main-panel{float:none!important;width:auto!important}
 
 /* The shell only appears on organiser pages. */
 body:not(.orgshell):not(.orgshell-legacy) #tica-shell{display:none}
+
+/* ---- organiser page action spacing ------------------------------------
+   Shared here because this stylesheet is loaded after every organiser
+   page stylesheet. Keep related actions together, but never let adjacent
+   controls touch when a toolbar wraps at narrower widths. */
+body:is(.orgshell,.orgshell-legacy,.tica-organizer){--org-action-gap:12px}
+body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(
+  .or-actions,
+  .ov-head__actions,
+  .org-overview-actions,
+  .tica-quick-actions,
+  .t-toolbar,
+  .lg-actions,
+  .gl-head__actions,
+  .gl-empty__actions,
+  .rf-actions,
+  .pr-form__actions,
+  .kv-actions,
+  .tsc-actions,
+  .tica-filter-actions,
+  .tica-export-form,
+  .od-settings-actions,
+  .scanner-form-action,
+  .scanner-sync-row,
+  .t-modal__foot
+){column-gap:var(--org-action-gap)!important;row-gap:var(--org-action-gap)!important}
+
+/* Small icon controls remain compact while retaining a clear hit target. */
+body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(.rf-field__tools,.gl-actions){column-gap:8px!important;row-gap:8px!important}
+
+@media (max-width:767px){
+  body:is(.orgshell,.orgshell-legacy,.tica-organizer) :is(
+    .or-actions,
+    .ov-head__actions,
+    .org-overview-actions,
+    .tica-quick-actions,
+    .t-toolbar,
+    .lg-actions,
+    .gl-head__actions,
+    .gl-empty__actions,
+    .rf-actions,
+    .pr-form__actions,
+    .kv-actions,
+    .tsc-actions,
+    .tica-filter-actions,
+    .tica-export-form,
+    .od-settings-actions,
+    .scanner-form-action,
+    .scanner-sync-row,
+    .t-modal__foot
+  ){column-gap:12px!important;row-gap:12px!important}
+}

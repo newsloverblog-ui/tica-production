@@ -134,6 +134,17 @@ class OrganizerShellTest extends TestCase
     $this->assertStringNotContainsString('.os-side{', str_replace(' ', '', file_get_contents(public_path('assets/tica-ui/css/ds.css'))));
   }
 
+  public function test_shared_organizer_action_groups_keep_consistent_spacing(): void
+  {
+    $css = file_get_contents(public_path('assets/tica-ui/css/shell.css'));
+
+    $this->assertStringContainsString('--org-action-gap:12px', $css);
+    foreach (['.or-actions', '.org-overview-actions', '.tica-quick-actions', '.t-toolbar', '.lg-actions', '.gl-head__actions', '.rf-actions', '.pr-form__actions', '.tsc-actions', '.t-modal__foot'] as $selector) {
+      $this->assertStringContainsString($selector, $css, $selector);
+    }
+    $this->assertStringContainsString('column-gap:var(--org-action-gap)!important;row-gap:var(--org-action-gap)!important', $css);
+  }
+
   /* ------------------------------------------------------------- helpers */
 
   protected function setUp(): void
