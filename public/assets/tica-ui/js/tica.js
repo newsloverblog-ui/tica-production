@@ -399,7 +399,6 @@ function renderCheckout(e){
     var lines=S.qty.map(function(q,i){return q?'<div class="sumline"><span>'+q+' x '+esc(e.tiers[i][0])+'</span><span>'+naira(lineTotal(i))+'</span></div>':''}).join('');
     var action='';
     if(S.stage==='choose')action='<button class="btn btn-hot" type="button" id="to-details"'+(count()?'':' disabled')+'>Continue</button>';
-    if(S.stage==='pay')action='<button class="btn btn-hot" type="button" id="pay-now">'+(isFree()?(count()===1?'Get my free ticket':'Get my free tickets'):(count()===1?'Buy ticket':'Buy '+count()+' tickets'))+'</button><p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p>'+(isFree()?'':'<p class="secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="gw-secure">Payments are processed securely by '+esc(gwLabel())+'</span></p>');
     return '<aside class="summary">'+(S.stage!=='choose'&&HOLD?'<p class="hold" role="timer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/></svg>Tickets held for <b data-hold="'+HOLD.end+'" data-slug="'+e.slug+'">10:00</b></p>':'')+'<h2>Order summary</h2><p class="sumevent">'+esc(e.name)+'<br><span>'+dstr(e)+', '+esc(meta(e))+'</span></p>'+(lines||'<p class="hint">No tickets chosen yet.</p>')+
     (S.disc&&total()?'<div class="sumline"><span>'+esc(discountLabel(S.disc))+'</span><span>-'+naira(discountOf(S.disc,total()))+'</span></div>':'')+(isFree()?'':'<div class="sumline"><span>Booking fee</span><span>'+(e.absorb?'Included':naira(fee()))+'</span></div>')+'<div class="sumline sumtotal"><span>Total</span><span>'+money()+'</span></div>'+action+
     (S.stage==='details'?'<p class="hint">Complete every ticket form to continue to payment.</p>':'')+'</aside>';
@@ -437,13 +436,14 @@ function renderCheckout(e){
     sl.map(function(tier,i){
       var head='Ticket '+(i+1)+' of '+sl.length+'<span>'+esc(tier)+(i===0?', buyer':'')+'</span>',p=S.people[i];
       if(i===S.open){
-        var next=i<sl.length-1?'Continue to ticket '+(i+2):(isFree()?'Review my order':'Continue to payment');
+        var next=i<sl.length-1?'Continue to ticket '+(i+2):(isFree()?(sl.length===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
         return '<form class="pform open" data-i="'+i+'" novalidate><h3>'+head+'</h3>'+
         (i===0?'<p class="hint top">We\'ll send all tickets and your receipt to this email.</p>':'')+
         field(i,'name','Full name','text','name')+
         '<div class="two">'+(i===0?field(i,'email','Email address','email','email')+field(i,'phone','Phone number','tel','tel'):field(i,'email','Email address (optional)','email','off','Leave blank to send this ticket to the buyer.')+'<div></div>')+'</div>'+
         (e.question?field(i,'answer',esc(e.question),'text','off'):'')+
-        '<button class="btn btn-hot" type="submit">'+next+'</button></form>';
+        '<button class="btn btn-hot" type="submit">'+next+'</button>'+
+        (i===sl.length-1?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
       }
       if(p&&p.done)return '<div class="pform done"><div><h3>'+head+'</h3><p>'+esc(p.name)+(p.email?', '+esc(p.email):', sent to buyer')+'</p></div><button class="editbtn" type="button" data-edit="'+i+'" aria-label="Edit ticket '+(i+1)+'">Edit</button></div>';
       return '<div class="pform later"><h3>'+head+'</h3></div>';
@@ -455,30 +455,24 @@ function renderCheckout(e){
   function gateways(){var cur=(e.cur&&e.cur.code)||(TICA_DATA.currency||{}).code||'NGN';return ((TICA_DATA.currency||{}).gateways||[]).filter(function(g){return !g.currencies||g.currencies.indexOf(cur)>-1})}
   function gwKey(){var gs=gateways();if(!gs.length)return null;if(!S.gw||!gs.some(function(g){return g.key===S.gw}))S.gw=gs[0].key;return S.gw}
   function gwLabel(){var k=gwKey(),g=gateways().filter(function(x){return x.key===k})[0];return g?g.label:'Our payment partner'}
-  function gwHtml(){var gs=gateways();if(isFree()||gs.length<2)return '';
-    return '<fieldset class="gwpick"><legend>How would you like to pay?</legend>'+gs.map(function(g){return '<label><input type="radio" name="gw" value="'+esc(g.key)+'"'+(g.key===gwKey()?' checked':'')+'><span><b>'+esc(g.label)+'</b><small>Card, bank transfer or USSD</small></span></label>'}).join('')+'</fieldset>'}
-  function payHtml(){
-    return '<button class="backlink" type="button" id="back-details">Back to details</button><h1 class="display">Review your order</h1><div class="review">'+
-    S.people.map(function(p,i){return '<div><b>'+esc(p.name)+'</b><span>'+esc(slots()[i])+'</span><span>'+esc(p.email||S.people[0].email)+'</span></div>'}).join('')+'</div>'+
-    gwHtml()+
-    '<p class="hint" id="pay-msg" role="status"></p>'+
-    '<dialog class="paymodal" id="paymodal" aria-labelledby="pm-title"><p class="pm-note">Secure payment</p><h2 id="pm-title">'+esc(gwLabel())+' opens here</h2><p>Pay securely with '+esc(gwLabel())+' using card, bank transfer or USSD.</p><dl><div><dt>Amount</dt><dd>'+money()+'</dd></div><div><dt>Receipt to</dt><dd>'+esc(S.people[0].email)+'</dd></div></dl><div class="pm-wait" role="status"><i></i>Confirming your payment</div><div class="pm-btns"><button class="btn btn-hot" type="button" id="pm-ok">Complete payment</button><button class="btn btn-line" type="button" id="pm-fail">Try another method</button><button class="btn btn-line" type="button" id="pm-cancel">Cancel</button></div></dialog>';
-  }
   function prefill(){var u=window.TICA_USER;if(u&&u.email&&!(S.people[0]&&S.people[0].done)){S.people[0]=Object.assign({name:u.name||'',email:u.email,phone:(S.people[0]&&S.people[0].phone)||''},{fromUser:1})}}
   function draw(focusSel){
-    var n={choose:0,details:1,pay:2}[S.stage];
-    view.innerHTML=stepsBar(n)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():S.stage==='details'?detailsWrap():payHtml())+'</div>'+summary()+'</div>';
+    var n={choose:0,details:1}[S.stage];
+    view.innerHTML=stepsBar(n)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():detailsWrap())+'</div>'+summary()+'</div>';
     bind();
     if(S.stage==='choose')loadSeats();
     if(focusSel){var f=view.querySelector(focusSel);if(f)f.focus()}
   }
   /* Tica: hand the order to the server, then go to the chosen gateway or the confirmation page. */
   function place(onFail){
+    if(S.placing)return;
+    S.placing=true;
     var m=$('pay-msg');if(m){m.className='hint';m.textContent=''}
     api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,submission_id:S.submission,seat_ids:S.seats,
       buyer:{name:S.people[0].name,email:S.people[0].email,phone:S.people[0].phone},gateway:isFree()?null:gwKey(),
       attendees:S.people.map(function(p){return {name:p.name,email:p.email||'',answer:p.answer||''}})})
     .then(function(r){clearCheckoutSubmission(e.slug);HOLD=null;PENDING=null;location.href=r.redirect},function(er){
+      S.placing=false;
       onFail&&onFail();
       if(er.data&&er.data.login){S.stage='details';S.login='id';draw('#al-id');return}
       var mm=$('pay-msg');if(mm){mm.className='payerr';mm.textContent=er.message}else flash(er.message)});
@@ -519,7 +513,6 @@ function renderCheckout(e){
         function(x){sb2.disabled=false;er.textContent=x.status===422?'That code is wrong or has expired. Check it or ask for a new one.':x.message;$('al-code').focus()})});
 
     var bc=$('back-choose');if(bc)bc.addEventListener('click',function(){PENDING={slug:e.slug,qty:S.qty.slice(),disc:S.disc,date:S.date,people:S.people.slice(),submission:S.submission};go('event/'+e.slug)});
-    var bd=$('back-details');if(bd)bd.addEventListener('click',function(){S.stage='details';S.open=S.people.length-1;draw('.pform.open input')});
     view.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){S.open=+b.dataset.edit;S.err={};draw('.pform.open input')})});
     view.querySelectorAll('form.pform').forEach(function(f){f.addEventListener('submit',function(ev){
       ev.preventDefault();
@@ -532,16 +525,13 @@ function renderCheckout(e){
       if(Object.keys(er).length){S.err={};S.err[i]=er;draw('.pform.open [aria-invalid=true]');return}
       S.err={};
       var nxt=-1;for(var k=0;k<count();k++){if(!(S.people[k]&&S.people[k].done)){nxt=k;break}}
-      if(nxt===-1){S.stage='pay';draw('.backlink');window.scrollTo(0,0)}else{S.open=nxt;draw('.pform.open input')}
+      if(nxt===-1){
+        var submit=f.querySelector('[type=submit]'),label=submit.textContent;
+        submit.disabled=true;submit.textContent=isFree()?'Issuing your tickets…':'Opening '+gwLabel()+'…';
+        var status=$('pay-msg');if(status){status.className='hint checkout-status';status.textContent=isFree()?'Creating your tickets…':'Connecting securely to '+gwLabel()+'…'}
+        place(function(){submit.disabled=false;submit.textContent=label});
+      }else{S.open=nxt;draw('.pform.open input')}
     })});
-    [].forEach.call(document.querySelectorAll('.gwpick input'),function(r){r.addEventListener('change',function(){S.gw=r.value;var t=$('pm-title');if(t){t.textContent=gwLabel()+' opens here';t.nextElementSibling.textContent='Pay securely with '+gwLabel()+' using card, bank transfer or USSD.'};var sec=$('gw-secure');if(sec)sec.textContent='Payments are processed securely by '+gwLabel()})});
-    var pn=$('pay-now');if(pn)pn.addEventListener('click',function(){
-      if(isFree()){pn.disabled=true;place(function(){pn.disabled=false});return}
-      var d=$('paymodal');d.showModal();
-    });
-    var ok=$('pm-ok');if(ok)ok.addEventListener('click',function(){$('paymodal').classList.add('busy');place(function(){$('paymodal').classList.remove('busy');$('paymodal').close()})});
-    var fl=$('pm-fail');if(fl)fl.addEventListener('click',function(){$('paymodal').close();var m=$('pay-msg');m.className='payerr';m.textContent='Your payment didn\'t go through, and you haven\'t been charged. Your tickets are still held, so you can try again or use another payment method.'});
-    var ca=$('pm-cancel');if(ca)ca.addEventListener('click',function(){$('paymodal').close();$('pay-msg').textContent='Payment cancelled. Your details are saved, so you can try again.'});
   }
   draw(S.stage==='details'?'.pform.open input':null);
 }
