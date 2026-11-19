@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\GatewayOutcomeUnknownException;
+use App\Exceptions\PaystackInitializationException;
 use App\Models\PaymentGateway\OnlineGateway;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Http;
@@ -62,7 +63,10 @@ class PaystackGatewayClient
             || !is_array($payload['data'] ?? null)
             || $authorizationScheme !== 'https'
             || $authorizationHost !== 'checkout.paystack.com') {
-            throw new RuntimeException((string) ($payload['message'] ?? 'Paystack rejected the payment initialization.'));
+            throw PaystackInitializationException::fromProvider(
+                $response->status(),
+                (string) ($payload['message'] ?? 'Paystack rejected the payment initialization.')
+            );
         }
 
         return $payload;

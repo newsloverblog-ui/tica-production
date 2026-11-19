@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FrontEnd\PaymentGateway;
 
 use App\Http\Controllers\Controller;
+use App\Exceptions\PaystackInitializationException;
 use App\Http\Controllers\FrontEnd\Event\BookingController;
 use App\Models\BasicSettings\Basic;
 use App\Models\PaymentGateway\OnlineGateway;
@@ -188,6 +189,8 @@ class PaystackController extends Controller
             Log::error('Paystack checkout initialization failed.', [
                 'exception_type' => $e::class,
                 'exception_code' => $e->getCode(),
+                'gateway_reason' => $e instanceof PaystackInitializationException ? $e->reason() : 'internal_error',
+                'provider_status' => $e instanceof PaystackInitializationException ? $e->providerStatus() : null,
                 'request_id' => $request->attributes->get('request_id'),
             ]);
             if ($reservationToken) {

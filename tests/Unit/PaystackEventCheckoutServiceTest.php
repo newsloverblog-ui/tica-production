@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\PaymentIntent;
+use App\Exceptions\PaystackInitializationException;
 use App\Services\PaystackEventCheckoutService;
 use App\Services\PaystackGatewayClient;
 use App\Services\IncidentAlertService;
@@ -94,8 +95,10 @@ class PaystackEventCheckoutServiceTest extends TestCase
                 new PaystackGatewayClient('test-secret')
             );
             $this->fail('A definitive provider rejection must throw.');
-        } catch (RuntimeException $exception) {
+        } catch (PaystackInitializationException $exception) {
             $this->assertStringContainsString('Transaction rejected', $exception->getMessage());
+            $this->assertSame('provider_rejected', $exception->reason());
+            $this->assertSame(400, $exception->providerStatus());
         }
 
         $intent = PaymentIntent::firstOrFail();
