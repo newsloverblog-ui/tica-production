@@ -683,6 +683,9 @@ function renderAccount(){
   acAvatar($('acd-av'),u.name,pf.photo||u.photo);acAvatar($('pf-photo-preview'),u.name,pf.photo||u.photo);
   $('ac-hi').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+(first?', '+first:'');
   $('acd-today').textContent='Your ticket activity and upcoming events, all in one place.';
+  var upg=ACC.upgrade,ub=$('acd-upgrade'),un=$('acd-upgrade-note');
+  if(ub){ub.hidden=!(upg&&upg.state==='available');if(upg&&upg.url)ub.href=upg.url}
+  if(un){un.hidden=!(upg&&upg.state==='pending');un.textContent=upg&&upg.state==='pending'?upg.label:''}
   /* next event */
   var nx=up[0],box=$('acd-next');
   if(nx){var e=nx.e;box.hidden=false;box.innerHTML='<a class="acd-next-f flyer" href="/event/'+e.slug+'" tabindex="-1" aria-hidden="true">'+e.art+'</a><div class="acd-next-b"><p class="acd-k">Your next event</p><h2>'+esc(e.name)+'</h2><p class="acd-next-m">'+acIcon('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>')+dstr(e)+', '+esc(e.time)+'</p><p class="acd-next-m">'+acIcon('<path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>')+esc(sameCity(e)?e.venue:e.venue+', '+e.city)+'</p><p class="acd-next-c">'+nx.n+(nx.n===1?' ticket':' tickets')+cdMini(e)+'</p><div class="acd-next-a"><a class="btn acd-primary" href="'+esc(nx.url)+'">Show my ticket</a><button class="btn btn-line" type="button" data-addcal="'+e.slug+'">Add to calendar</button>'+(e.mode==='online'?'':'<a class="btn btn-line" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.venue+', '+e.city)+'" target="_blank" rel="noopener">Directions</a>')+'</div></div>'}
@@ -1029,10 +1032,28 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
       },function(er){
         go.disabled=false;var placed=false,errs=er.data&&er.data.errors||{};
         Object.keys(errs).forEach(function(key){var id=FIELD[key];if(id&&f.querySelector('#'+id)){err(f,id,errs[key][0]);if(!placed){f.querySelector('#'+id).focus();placed=true}}});
-        if(!placed){var d=f.querySelector('.au-done');d.textContent=er.message;d.hidden=false}
+        if(!placed){var d=f.querySelector('.au-done');d.textContent=er.message;d.hidden=false;auSwitch(d,er.data&&er.data.switch_role)}
+        else if(errs.email&&/log in as an? (organi[sz]er|customer)/i.test(errs.email[0])){auSwitch(f.querySelector('#s-email-e')||f.querySelector('.au-done'),/organi[sz]er\./i.test(errs.email[0])?'org':'att')}
       });
     });
   });
+  /* One email, one account type: offer the right log-in in place. */
+  function auSwitch(box,role){
+    if(!box||(role!=='org'&&role!=='att'))return;
+    var b=document.createElement('button');b.type='button';b.className='au-switch';
+    b.textContent=role==='org'?'Log in as an organiser':'Log in as a customer';
+    b.addEventListener('click',function(){
+      if(location.pathname.replace(/\/$/,'')!=='/login'){location.href='/login?role='+role;return}
+      var t=document.querySelector('.au-seg button[data-role="'+role+'"]');if(t)t.click();
+    });
+    box.appendChild(document.createTextNode(' '));box.appendChild(b);box.hidden=false;
+  }
+  (function(){
+    var q=(location.search.match(/[?&](?:role|as)=(org|att)\b/)||[])[1];
+    if(q){var t=document.querySelector('.au-seg button[data-role="'+q+'"]');if(t)t.click()}
+    var fl=TICA_DATA.flash||{};
+    if(fl.error&&document.querySelector('.au')){var d=document.querySelector('[data-auth=login] .au-done');if(d){d.textContent=fl.error;d.hidden=false;auSwitch(d,fl.switch_role)}}
+  })();
   /* "Continue with Google" for attendees and organisers; shown only when Admin > Integrations has it on. */
   all('[data-demo]').forEach(function(b){
     if(!TICA_DATA.googleSignIn){b.hidden=true;b.style.display='none';var or=b.parentNode&&b.parentNode.querySelector('.au-or');if(or){or.hidden=true;or.style.display='none'}return}

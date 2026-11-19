@@ -11,6 +11,8 @@ use App\Models\OrganizerInfo;
 use App\Services\CustomerEmailVerificationService;
 use App\Services\GuestTicketClaimService;
 use App\Services\AccountMfaService;
+use App\Services\AccountTypeGuard;
+use App\Rules\AccountTypeEmail;
 use App\Services\OrganizerEmailVerificationService;
 use App\Services\PasswordPolicy;
 use Illuminate\Support\Facades\DB;
@@ -319,7 +321,7 @@ class TicaApiController extends Controller
 
     if ($validated['role'] === 'org') {
       if (!Auth::guard('organizer')->attempt(['email' => $email, 'password' => $validated['password'], 'status' => 1])) {
-        return $this->teamLogin($request, $email, $validated['password']) ?? $denied;
+        return $this->teamLogin($request, $email, $validated['password']) ?? $this->otherAccountType(AccountTypeGuard::ORGANIZER, $email) ?? $denied;
       }
       Session::forget('tica_team_member');
       $organizer = Auth::guard('organizer')->user();
@@ -340,7 +342,7 @@ class TicaApiController extends Controller
     }
 
     if (!Auth::guard('customer')->attempt(['email' => $email, 'password' => $validated['password'], 'status' => 1])) {
-      return $denied;
+      return $this->otherAccountType(AccountTypeGuard::CUSTOMER, $email) ?? $denied;
     }
     $customer = Auth::guard('customer')->user();
     if ($customer->email_verified_at === null) {
@@ -364,6 +366,33 @@ class TicaApiController extends Controller
     }
 
     return response()->json(['redirect' => $next ?: '/account']);
+  }
+
+  /**
+   * A failed log-in for an email that lives on the other side of TICA (or
+   * belongs to a customer who became an organiser) says where to log in.
+   */
+  private function otherAccountType(string $as, string $email): ?JsonResponse
+  {
+    $guard = app(AccountTypeGuard::class);
+    if ($as === AccountTypeGuard::CUSTOMER && !$guard->customer($email) && $guard->migratedCustomer($email)) {
+      return response()->json([
+        'message' => AccountTypeGuard::upgradedMessage(),
+        'switch_role' => 'org',
+        'login_url' => AccountTypeGuard::loginUrl(AccountTypeGuard::ORGANIZER),
+      ], 422);
+    }
+    $exists = $as === AccountTypeGuard::CUSTOMER ? $guard->customer($email) : $guard->organizer($email);
+    $conflict = $exists ? null : $guard->conflict($as, $email);
+    if (!$conflict) {
+      return null;
+    }
+
+    return response()->json([
+      'message' => $conflict['message'],
+      'switch_role' => $conflict['type'] === AccountTypeGuard::ORGANIZER ? 'org' : 'att',
+      'login_url' => $conflict['login_url'],
+    ], 422);
   }
 
   /**
@@ -460,7 +489,7 @@ class TicaApiController extends Controller
       'role' => ['required', 'in:att,org'],
       'organisation' => [$role === 'org' ? 'required' : 'nullable', 'string', 'min:2', 'max:100'],
       'name' => ['required', 'string', 'min:2', 'max:200'],
-      'email' => ['required', 'email:rfc', 'max:254', Rule::unique($table, 'email')],
+      'email' => ['required', 'email:rfc', 'max:254', Rule::unique($table, 'email'), new AccountTypeEmail($role === 'org' ? AccountTypeGuard::ORGANIZER : AccountTypeGuard::CUSTOMER)],
       'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\s()-]{10,20}$/'],
       'password' => ['required', 'string', PasswordPolicy::rule()],
     ] + $this->captchaRules(), [

@@ -19,6 +19,8 @@
     <nav class="directory-shortcuts" aria-label="{{ __('Organizer tools') }}">
       <a href="{{ route('admin.organizer_management.settings') }}"><i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Settings') }}</a>
       <a href="{{ route('admin.organizer_kyc.index') }}"><i class="fas fa-user-check" aria-hidden="true"></i>{{ __('KYC reviews') }}@if($summary['kyc_pending'])<span>{{ number_format($summary['kyc_pending']) }}</span>@endif</a>
+      <a href="{{ route('admin.organizer_upgrades.index') }}"><i class="fas fa-user-plus" aria-hidden="true"></i>{{ __('Upgrade requests') }}</a>
+      <a href="{{ route('admin.duplicate_accounts.index') }}"><i class="fas fa-clone" aria-hidden="true"></i>{{ __('Duplicate accounts') }}</a>
       <a href="{{ route('admin.directory_exports.index', ['directory' => 'organizers']) }}"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Export history') }}</a>
     </nav>
 

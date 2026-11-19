@@ -121,7 +121,8 @@ class OrganizerManagementController extends Controller
       'email' => [
         'required',
         'email',
-        Rule::unique('organizers', 'email')
+        Rule::unique('organizers', 'email'),
+        \App\Rules\AccountTypeEmail::organizer(),
       ],
       'password' => ['required', 'confirmed', PasswordPolicy::rule()],
       'username' => [
@@ -332,7 +333,9 @@ class OrganizerManagementController extends Controller
       $rules = [
         'email' => [
           'required',
-          Rule::unique('organizers', 'username')->ignore($id)
+          'email',
+          Rule::unique('organizers', 'email')->ignore($id),
+          \App\Rules\AccountTypeEmail::organizer(),
         ],
         'username' => [
           'required',

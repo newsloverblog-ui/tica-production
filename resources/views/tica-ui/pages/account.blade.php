@@ -22,7 +22,7 @@
       <div class="acd-p" data-p="overview">
         <div class="acd-head">
           <div><h1 id="ac-hi">Your tickets</h1><p id="acd-today"></p></div>
-          <a class="btn acd-primary" href="/discover">Find events</a>
+          <div class="acd-head-acts"><span class="acd-upgrade-note" id="acd-upgrade-note" role="status" hidden></span><a class="btn btn-line acd-upgrade" id="acd-upgrade" href="/customer/become-organizer" hidden>Become an Organizer</a><a class="btn acd-primary" href="/discover">Find events</a></div>
         </div>
         <section class="acd-next" id="acd-next" aria-label="Your next event"></section>
         <div class="acd-stats" id="acd-stats"></div>

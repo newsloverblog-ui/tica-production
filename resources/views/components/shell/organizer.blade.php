@@ -58,6 +58,10 @@
       ['Support', '/organizer/support-tikcet/tickets', 'support.use'],
     ],
   ];
+  // Organisers who used to be customers keep their past tickets here.
+  if ($organizer && !empty($organizer->migrated_from_customer_id)) {
+    $toolGroups['Account help'][] = ['My tickets', '/organizer/my-tickets', 'settings.manage'];
+  }
   $toolGroups = collect($toolGroups)->map(fn ($items) => array_values(array_filter($items, fn ($tool) => $can($tool[2]))))->filter()->all();
   $tools = collect($toolGroups)->flatten(1)->values()->all();
   // Legacy pages don't say which item they belong to: work it out from the address, most specific first,

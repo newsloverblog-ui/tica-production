@@ -84,6 +84,7 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
   Route::get('/dashboard', 'BackEnd\Organizer\OrganizerWorkspaceRedirectController@overview')->name('organizer.dashboard');
   Route::get('monthly-income', 'BackEnd\Organizer\OrganizerWorkspaceRedirectController@overview')->name('organizer.monthly_income');
   Route::get('/transaction', 'BackEnd\Organizer\OrganizerController@transaction')->name('organizer.transcation');
+  Route::get('/my-tickets', 'BackEnd\Organizer\OrganizerPastTicketsController@index')->name('organizer.my_tickets');
   Route::post('/transaction/export', 'BackEnd\Organizer\TransactionExportController@store')->name('organizer.transaction_exports.store');
   Route::get('/transaction/exports', 'BackEnd\Organizer\TransactionExportController@index')->name('organizer.transaction_exports.index');
   Route::get('/transaction/exports/{export}/download', 'BackEnd\Organizer\TransactionExportController@download')

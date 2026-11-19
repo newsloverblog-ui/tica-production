@@ -127,6 +127,16 @@
             <input type="hidden" name="organizer_admin_approval" value="0">
             <input class="ta-sw" id="ta-o-approve" type="checkbox" name="organizer_admin_approval" value="1" @checked((int) ($basic->organizer_admin_approval ?? 0) === 1)>
           </li>
+          <li>
+            <div><label for="ta-o-upgrade">{{ __('Allow customers to become organizers') }}</label><small>{{ __('Shows a "Become an Organizer" button in the customer dashboard. Their email, password, tickets and orders move with them. Off: the button and its pages disappear.') }}</small></div>
+            <input type="hidden" name="customer_organizer_upgrade" value="0">
+            <input class="ta-sw" id="ta-o-upgrade" type="checkbox" name="customer_organizer_upgrade" value="1" @checked((int) ($basic->customer_organizer_upgrade ?? 0) === 1)>
+          </li>
+          <li>
+            <div><label for="ta-o-upgrade-approve">{{ __('Require admin approval for organizer upgrades') }}</label><small>{{ __('On: each request waits in Organizers > Upgrade requests until an admin approves it. Off: the customer becomes an organizer as soon as they confirm.') }}</small></div>
+            <input type="hidden" name="customer_organizer_upgrade_approval" value="0">
+            <input class="ta-sw" id="ta-o-upgrade-approve" type="checkbox" name="customer_organizer_upgrade_approval" value="1" @checked((int) ($basic->customer_organizer_upgrade_approval ?? 1) === 1)>
+          </li>
         </ul>
         <div class="ta-field">
           <label for="ta-o-notice">{{ __('Message while they wait for approval') }}</label>

@@ -361,6 +361,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
     Route::post('/bulk-delete-user', 'BackEnd\Organizer\OrganizerManagementController@bulkDestroy')->name('admin.organizer_management.bulk_delete_organizer');
 
+    Route::get('/upgrade-requests', 'BackEnd\Organizer\OrganizerUpgradeRequestController@index')->name('admin.organizer_upgrades.index');
+    Route::post('/upgrade-requests/{upgrade}', 'BackEnd\Organizer\OrganizerUpgradeRequestController@decide')->whereNumber('upgrade')->middleware('throttle:30,1')->name('admin.organizer_upgrades.decide');
+    Route::get('/duplicate-accounts', 'BackEnd\Organizer\DuplicateAccountController@index')->name('admin.duplicate_accounts.index');
+    Route::post('/duplicate-accounts/resolve', 'BackEnd\Organizer\DuplicateAccountController@resolve')->middleware('throttle:30,1')->name('admin.duplicate_accounts.resolve');
     Route::get('/kyc', 'BackEnd\Organizer\OrganizerKycReviewController@index')->name('admin.organizer_kyc.index');
     Route::get('/kyc/{submission}', 'BackEnd\Organizer\OrganizerKycReviewController@show')->name('admin.organizer_kyc.show');
     Route::post('/kyc/{submission}/review', 'BackEnd\Organizer\OrganizerKycReviewController@review')->name('admin.organizer_kyc.review');

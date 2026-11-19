@@ -657,7 +657,62 @@ BEGIN
   END IF;
 END $$;
 
--- 14. Keep these tables private -------------------------------------------
+-- 14. One email, one account type; customer-to-organizer upgrades -------
+-- Unique emails per table are added only when no duplicates exist; emails
+-- shared by a customer and an organizer are listed in Admin > Organizers >
+-- Duplicate accounts (or `php artisan accounts:duplicates`).
+DO $$
+BEGIN
+  ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade smallint NOT NULL DEFAULT 0;
+  ALTER TABLE public.basic_settings ADD COLUMN IF NOT EXISTS customer_organizer_upgrade_approval smallint NOT NULL DEFAULT 1;
+  ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_to_organizer_id bigint NULL;
+  ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS migrated_at timestamp NULL;
+  CREATE INDEX IF NOT EXISTS customers_migrated_to_organizer_id_index ON public.customers (migrated_to_organizer_id);
+  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider varchar(30) NULL;
+  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS provider_id varchar(191) NULL;
+  ALTER TABLE public.organizers ADD COLUMN IF NOT EXISTS migrated_from_customer_id bigint NULL;
+  CREATE INDEX IF NOT EXISTS organizers_migrated_from_customer_id_index ON public.organizers (migrated_from_customer_id);
+  CREATE TABLE IF NOT EXISTS public.organizer_upgrade_requests (
+    id bigserial PRIMARY KEY,
+    customer_id bigint NOT NULL,
+    organisation varchar(100) NOT NULL,
+    contact_name varchar(200) NOT NULL,
+    phone varchar(20) NOT NULL,
+    status varchar(20) NOT NULL DEFAULT 'pending',
+    reason text NULL,
+    organizer_id bigint NULL,
+    reviewed_by bigint NULL,
+    reviewed_at timestamp NULL,
+    created_at timestamp NULL,
+    updated_at timestamp NULL
+  );
+  CREATE INDEX IF NOT EXISTS organizer_upgrade_customer_status_idx ON public.organizer_upgrade_requests (customer_id, status);
+  CREATE INDEX IF NOT EXISTS organizer_upgrade_status_created_idx ON public.organizer_upgrade_requests (status, created_at);
+  IF NOT EXISTS (SELECT 1 FROM public.customers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
+    CREATE UNIQUE INDEX IF NOT EXISTS customers_email_lower_unique ON public.customers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
+  ELSE
+    RAISE NOTICE 'customers has duplicate emails: unique email index skipped.';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.organizers WHERE email IS NOT NULL AND email <> '' GROUP BY LOWER(TRIM(email)) HAVING COUNT(*) > 1) THEN
+    CREATE UNIQUE INDEX IF NOT EXISTS organizers_email_lower_unique ON public.organizers (LOWER(email)) WHERE email IS NOT NULL AND email <> '';
+  ELSE
+    RAISE NOTICE 'organizers has duplicate emails: unique email index skipped.';
+  END IF;
+  IF to_regclass('public.mail_templates') IS NOT NULL THEN
+    INSERT INTO public.mail_templates (mail_type, mail_subject, mail_body)
+    SELECT v.mail_type, v.mail_subject, v.mail_body
+      FROM (VALUES
+        ('organizer_upgrade_received', 'We received your request to become an organizer', '<p>Hi {customer_name},</p><p>Thanks for asking to sell tickets on {website_title}. We are reviewing your request for <strong>{organisation}</strong> and will email you once it is decided.</p><p>You can keep using your account as normal while you wait.</p><p><a href="{dashboard_link}">Open your account</a></p><p>Regards,<br>{website_title}</p>'),
+        ('admin_organizer_upgrade_request', 'New organizer upgrade request: {organisation}', '<p>A customer asked to become an organizer.</p><p>Name: {customer_name}<br>Email: {customer_email}<br>Organisation: {organisation}<br>Phone: {phone}</p><p><a href="{admin_link}">Review request</a></p><p>Regards,<br>{website_title}</p>'),
+        ('organizer_upgrade_approved', 'You are now an organizer on {website_title}', '<p>Hi {customer_name},</p><p>Your account is now an organizer account for <strong>{organisation}</strong>. Log in as an organizer with the same email to create your first event.</p><p>Your past tickets and orders are still in your account.</p><p><a href="{login_link}">Log in as an organizer</a></p><p>Regards,<br>{website_title}</p>'),
+        ('organizer_upgrade_rejected', 'Update about your organizer request', '<p>Hi {customer_name},</p><p>We could not approve your request to become an organizer for <strong>{organisation}</strong>.</p><p>Reason: {reason}</p><p>Your customer account is unchanged.</p><p><a href="{dashboard_link}">Open your account</a></p><p>Regards,<br>{website_title}</p>')
+      ) AS v(mail_type, mail_subject, mail_body)
+     WHERE NOT EXISTS (SELECT 1 FROM public.mail_templates m WHERE m.mail_type = v.mail_type);
+  END IF;
+  PERFORM pg_temp.tica_mark_migration('2026_11_19_180000_add_account_type_controls');
+END $$;
+
+-- 15. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_integrations ENABLE ROW LEVEL SECURITY;
@@ -674,6 +729,7 @@ ALTER TABLE public.financial_ledger_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financial_ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_programme_people ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_agenda_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organizer_upgrade_requests ENABLE ROW LEVEL SECURITY;
 DO $$
 BEGIN
   IF to_regclass('public.organizer_earning_releases') IS NOT NULL THEN
@@ -786,6 +842,7 @@ SELECT 'missing table' AS problem, t.name AS detail
   ('organizer_kyc_documents'),
   ('organizer_kyc_submissions'),
   ('organizer_notifications'),
+  ('organizer_upgrade_requests'),
   ('organizer_payout_accounts'),
   ('organizer_team_members'),
   ('organizers'),
@@ -1032,6 +1089,7 @@ SELECT 'update not recorded', m.name
   ,('2026_11_17_180000_create_event_programme_tables')
   ,('2026_11_18_120000_add_transactional_mail_templates')
   ,('2026_11_19_150000_add_recipient_context_to_support_tickets')
+  ,('2026_11_19_180000_add_account_type_controls')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

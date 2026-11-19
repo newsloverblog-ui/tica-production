@@ -115,7 +115,8 @@ class CustomerManagementController extends Controller
       'email' => [
         'required',
         'email',
-        Rule::unique('customers', 'email')
+        Rule::unique('customers', 'email'),
+        \App\Rules\AccountTypeEmail::customer(),
       ],
       'username' => [
         'required',
@@ -275,7 +276,8 @@ class CustomerManagementController extends Controller
       'email' => [
         'required',
         'email',
-        Rule::unique('customers', 'email')->ignore($id)
+        Rule::unique('customers', 'email')->ignore($id),
+        \App\Rules\AccountTypeEmail::customer(),
       ],
       'username' => [
         'required',
