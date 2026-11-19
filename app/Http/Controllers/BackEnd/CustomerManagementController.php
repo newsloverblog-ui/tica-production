@@ -11,6 +11,7 @@ use App\Services\OperationalArchiveService;
 use App\Services\OperationalStatusService;
 use App\Services\PasswordPolicy;
 use App\Services\AuditLogger;
+use App\Services\ApplicationMailService;
 use App\Rules\ImageMimeTypeRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class CustomerManagementController extends Controller
 {
@@ -173,6 +175,53 @@ class CustomerManagementController extends Controller
 
     return redirect()->back();
   }
+
+  public function message(Request $request, $id, ApplicationMailService $mailService)
+  {
+    $validated = $request->validate([
+      'subject' => ['required', 'string', 'max:160'],
+      'message' => ['required', 'string', 'max:5000'],
+    ]);
+    $customer = Customer::findOrFail($id);
+    $subject = preg_replace('/[\r\n]+/', ' ', trim($validated['subject']));
+    $name = trim((string) $customer->fname . ' ' . (string) $customer->lname)
+      ?: ($customer->username ?: 'there');
+    $websiteTitle = trim((string) config('app.name')) ?: 'TICA';
+    $adminEmail = optional(Auth::guard('admin')->user())->email;
+    $replyTo = filter_var($adminEmail, FILTER_VALIDATE_EMAIL) ? $adminEmail : null;
+    $body = '<div style="font-family:Arial,sans-serif;max-width:620px;color:#152238;line-height:1.65">'
+      . '<p>Hello ' . e($name) . ',</p>'
+      . '<div>' . nl2br(e(trim($validated['message']))) . '</div>'
+      . '<p style="margin-top:28px">Regards,<br>' . e($websiteTitle) . '</p>'
+      . '</div>';
+
+    try {
+      $delivery = $mailService->queueHtml(
+        'admin_customer_message',
+        $customer->email,
+        $subject,
+        $body,
+        [],
+        $replyTo,
+        $customer
+      );
+    } catch (Throwable $exception) {
+      report($exception);
+
+      return redirect()->back()->with('warning', 'The message could not be queued. Please try again.');
+    }
+
+    try {
+      AuditLogger::record('customer.message_queued', $customer, [], [], [
+        'delivery_id' => (int) $delivery->id,
+        'subject_fingerprint' => hash('sha256', $subject),
+      ]);
+    } catch (Throwable $exception) {
+      report($exception);
+    }
+
+    return redirect()->back()->with('success', 'Message queued for ' . $name . '.');
+  }
   public function changePassword($id)
   {
     $userInfo = Customer::findOrFail($id);
@@ -282,21 +331,25 @@ class CustomerManagementController extends Controller
     return Response::json(['status' => 'success'], 200);
   }
 
-  //secrtet login
+  // Start a bounded administrator impersonation session.
   public function secret_login(Request $request, $id)
   {
     $user = Customer::findOrFail($id);
     $adminId = (int) Auth::guard('admin')->id();
+    abort_if($request->session()->get('secret_login'), 409, 'Finish the current impersonation session first.');
+    abort_unless($adminId > 0, 403);
     AuditLogger::record('customer.impersonation_started', $user, [], [], [
       'admin_id' => $adminId,
       'target_email' => $user->email,
     ]);
-    Session::put([
+    Auth::guard('customer')->logout();
+    $request->session()->regenerate();
+    $request->session()->put([
       'secret_login' => 1,
       'impersonator_admin_id' => $adminId,
       'impersonation_started_at' => now()->toIso8601String(),
     ]);
     Auth::guard('customer')->login($user);
-    return redirect()->route('customer.dashboard');
+    return redirect()->route('tica.account');
   }
 }

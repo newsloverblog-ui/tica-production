@@ -40,6 +40,13 @@ body.tica-admin-event-builder .page[data-page=create] .wrap.pagehead.creategrid{
 @else
 @include('tica-ui.partials.header')
 
+@if (session('secret_login') && session('impersonator_admin_id') && Auth::guard('customer')->check())
+<div class="tica-customer-impersonation" role="status">
+  <span>{{ __('Viewing the customer account for :name', ['name' => trim((string) Auth::guard('customer')->user()->fname . ' ' . (string) Auth::guard('customer')->user()->lname) ?: Auth::guard('customer')->user()->username]) }}</span>
+  <form method="POST" action="{{ route('customer.impersonation.return') }}">@csrf<button type="submit">{{ __('Return to admin') }}</button></form>
+</div>
+@endif
+
 @php($orgShell = Auth::guard('organizer')->check() && empty($payload['adminBuilder']))
 @if ($orgShell)
 <x-shell.organizer :active="$initialPage === 'checkin' ? 'checkin' : ($initialPage === 'create' ? 'events' : (request()->segment(2) ?: 'overview'))" :spa="true" :title="request()->routeIs('tica.edit') ? 'Edit event' : ($initialPage === 'create' ? 'Create an event' : null)" />

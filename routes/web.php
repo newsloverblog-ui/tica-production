@@ -123,6 +123,8 @@ Route::middleware('change.lang')->prefix('/customer')->group(function () {
   });
   Route::post('/logout', 'FrontEnd\CustomerController@logout')
     ->middleware('auth:customer')->name('customer.logout');
+  Route::post('/impersonation/return', 'BackEnd\Customer\AdminImpersonationController@destroy')
+    ->middleware(['auth:customer', 'throttle:10,1'])->name('customer.impersonation.return');
   Route::get('/change-password', 'FrontEnd\CustomerController@change_password')
     ->middleware(['auth:customer', 'Deactive:customer', 'EmailStatus:customer'])
     ->name('customer.change.password');

@@ -50,9 +50,18 @@
           <td data-label=""><input type="checkbox" class="bulk-check" data-val="{{ $customer->id }}" aria-label="{{ __('Select :name',['name'=>$customerName]) }}"></td>
           <td data-label="{{ __('Customer') }}"><div class="directory-person"><span class="directory-avatar directory-avatar--customer"><span>{{ $initials }}</span>@if($customer->photo)<img src="{{ asset('assets/admin/img/customer-profile/'.$customer->photo) }}" alt="">@endif</span><span><strong>{{ $customerName }}</strong><small>{{ '@'.$customer->username }}</small></span></div></td>
           <td data-label="{{ __('Contact') }}"><strong>{{ $customer->email }}</strong><small>{{ $customer->phone ?: __('No phone added') }}</small></td>
-          <td data-label="{{ __('Account') }}"><form action="{{ route('admin.customer_management.customer.update_account_status',['id'=>$customer->id]) }}" method="post">@csrf<select class="directory-state-select" name="account_status" onchange="this.form.submit()"><option value="1" @selected((int)$customer->status===1)>{{ __('Active') }}</option><option value="0" @selected((int)$customer->status===0)>{{ __('Inactive') }}</option></select></form></td>
+          <td data-label="{{ __('Account') }}"><span class="directory-status directory-status--{{ (int)$customer->status === 1 ? 'ready' : 'muted' }}">{{ (int)$customer->status === 1 ? __('Active') : __('Suspended') }}</span></td>
           <td data-label="{{ __('Verification') }}"><form action="{{ route('admin.customer_management.customer.update_email_status',['id'=>$customer->id]) }}" method="post">@csrf<select class="directory-state-select" name="email_status" onchange="this.form.submit()"><option value="1" @selected($customer->email_verified_at)>{{ __('Verified') }}</option><option value="0" @selected(!$customer->email_verified_at)>{{ __('Not verified') }}</option></select></form></td>
-          <td class="directory-table-action"><div class="dropdown"><button class="directory-more" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="{{ __('Actions for :name',['name'=>$customerName]) }}"><i class="fas fa-ellipsis-h" aria-hidden="true"></i></button><div class="dropdown-menu dropdown-menu-right"><a class="dropdown-item" href="{{ route('admin.customer_management.customer_details',['id'=>$customer->id,'language'=>$defaultLang->code]) }}">{{ __('View details') }}</a><a class="dropdown-item" href="{{ route('admin.customer_management.customer_edit',['id'=>$customer->id]) }}">{{ __('Edit customer') }}</a><div class="dropdown-divider"></div><form class="deleteForm" action="{{ route('admin.customer_management.customer_delete',['id'=>$customer->id]) }}" method="post">@csrf<button type="submit" class="dropdown-item text-danger deleteBtn" data-action="archive">{{ __('Archive customer') }}</button></form></div></div></td>
+          <td class="directory-table-action"><div class="dropdown"><button class="directory-more" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="{{ __('Actions for :name',['name'=>$customerName]) }}"><i class="fas fa-ellipsis-h" aria-hidden="true"></i></button><div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="{{ route('admin.customer_management.customer_details',['id'=>$customer->id,'language'=>$defaultLang->code]) }}"><i class="fas fa-chart-bar" aria-hidden="true"></i>{{ __('Bookings and details') }}</a>
+            <a class="dropdown-item" href="{{ route('admin.customer_management.customer_edit',['id'=>$customer->id]) }}"><i class="fas fa-pen" aria-hidden="true"></i>{{ __('Edit customer') }}</a>
+            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#customerMessageModal" data-customer-message data-customer-name="{{ $customerName }}" data-message-url="{{ route('admin.customer_management.customer.message',['id'=>$customer->id]) }}"><i class="fas fa-envelope" aria-hidden="true"></i>{{ __('Message customer') }}</button>
+            <a class="dropdown-item" href="{{ route('admin.customer_management.customer.change_password',['id'=>$customer->id]) }}"><i class="fas fa-key" aria-hidden="true"></i>{{ __('Reset access') }}</a>
+            <form method="post" action="{{ route('admin.customer_management.secret_login',['id'=>$customer->id]) }}">@csrf<button class="dropdown-item" type="submit"><i class="fas fa-user-shield" aria-hidden="true"></i>{{ __('Sign in as customer') }}</button></form>
+            <div class="dropdown-divider"></div>
+            <form action="{{ route('admin.customer_management.customer.update_account_status',['id'=>$customer->id]) }}" method="post" data-confirm="{{ (int)$customer->status === 1 ? __('Suspend this customer? They will lose access until reactivated.') : __('Reactivate this customer and restore account access?') }}">@csrf<input type="hidden" name="account_status" value="{{ (int)$customer->status === 1 ? 0 : 1 }}"><button type="submit" class="dropdown-item"><i class="fas fa-{{ (int)$customer->status === 1 ? 'pause-circle' : 'check-circle' }}" aria-hidden="true"></i>{{ (int)$customer->status === 1 ? __('Suspend customer') : __('Reactivate customer') }}</button></form>
+            <form action="{{ route('admin.customer_management.customer_delete',['id'=>$customer->id]) }}" method="post" data-confirm="{{ __('Delete this customer’s access? Booking, order and support history will stay preserved.') }}">@csrf<button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash-alt" aria-hidden="true"></i>{{ __('Delete customer') }}</button></form>
+          </div></div></td>
         </tr>
       @empty
         <tr><td colspan="6"><div class="directory-empty"><i class="fas fa-user-friends" aria-hidden="true"></i><strong>{{ __('No customers match these filters') }}</strong><span>{{ __('Try a broader search or clear the filters.') }}</span></div></td></tr>
@@ -61,4 +70,46 @@
       <div class="directory-footer"><button class="directory-btn directory-btn--quiet d-none bulk-delete" data-action="archive" data-href="{{ route('admin.customer_management.bulk_delete_customer') }}"><i class="fas fa-archive" aria-hidden="true"></i>{{ __('Archive selected') }}</button><div class="directory-pagination">{{ $customers->links() }}</div></div>
     </section>
   </div>
+
+  <div class="modal fade customer-message-modal" id="customerMessageModal" tabindex="-1" role="dialog" aria-labelledby="customerMessageTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <form id="customerMessageForm" method="POST" action="">
+          @csrf
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="customerMessageTitle">{{ __('Message customer') }}</h2><p>{{ __('To') }} <strong id="customerMessageRecipient">—</strong></p></div>
+            <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <label for="customerMessageSubject">{{ __('Subject') }}</label>
+            <input id="customerMessageSubject" name="subject" type="text" maxlength="160" required autocomplete="off">
+            <label for="customerMessageBody">{{ __('Message') }}</label>
+            <textarea id="customerMessageBody" name="message" rows="7" maxlength="5000" required></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="directory-btn directory-btn--quiet" data-dismiss="modal">{{ __('Cancel') }}</button>
+            <button type="submit" class="directory-btn directory-btn--primary"><i class="fas fa-paper-plane" aria-hidden="true"></i>{{ __('Queue message') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+@endsection
+
+@section('script')
+  <script>
+    document.addEventListener('click', function (event) {
+      var trigger = event.target.closest('[data-customer-message]');
+      if (!trigger) return;
+      document.getElementById('customerMessageForm').action = trigger.dataset.messageUrl;
+      document.getElementById('customerMessageRecipient').textContent = trigger.dataset.customerName;
+      document.getElementById('customerMessageSubject').value = '';
+      document.getElementById('customerMessageBody').value = '';
+    });
+
+    document.addEventListener('submit', function (event) {
+      var message = event.target.dataset.confirm;
+      if (message && !window.confirm(message)) event.preventDefault();
+    });
+  </script>
 @endsection

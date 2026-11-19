@@ -4,8 +4,10 @@ namespace Tests\Unit;
 
 use App\Exports\AdminDirectoryQueryExport;
 use App\Http\Controllers\BackEnd\Organizer\OrganizerManagementController;
+use App\Http\Controllers\BackEnd\CustomerManagementController;
 use App\Jobs\GenerateAdminDirectoryExport;
 use App\Models\ApplicationMailDelivery;
+use App\Models\Customer;
 use App\Models\Organizer;
 use App\Services\ApplicationMailService;
 use App\Services\DataExportService;
@@ -98,6 +100,12 @@ class AdminDirectoryOperationsTest extends TestCase
         $this->assertContains('throttle:10,1', Route::getRoutes()->getByName('admin.organizer_management.organizer.message')->gatherMiddleware());
         $this->assertSame(['POST'], Route::getRoutes()->getByName('organizer.impersonation.return')->methods());
         $this->assertContains('auth:organizer', Route::getRoutes()->getByName('organizer.impersonation.return')->gatherMiddleware());
+        $this->assertSame(['POST'], Route::getRoutes()->getByName('admin.customer_management.secret_login')->methods());
+        $this->assertContains('throttle:10,1', Route::getRoutes()->getByName('admin.customer_management.secret_login')->gatherMiddleware());
+        $this->assertSame(['POST'], Route::getRoutes()->getByName('admin.customer_management.customer.message')->methods());
+        $this->assertContains('throttle:10,1', Route::getRoutes()->getByName('admin.customer_management.customer.message')->gatherMiddleware());
+        $this->assertSame(['POST'], Route::getRoutes()->getByName('customer.impersonation.return')->methods());
+        $this->assertContains('auth:customer', Route::getRoutes()->getByName('customer.impersonation.return')->gatherMiddleware());
 
         $controller = file_get_contents(app_path('Http/Controllers/BackEnd/Organizer/AdminImpersonationController.php'));
         $shell = file_get_contents(resource_path('views/components/shell/organizer.blade.php'));
@@ -106,6 +114,14 @@ class AdminDirectoryOperationsTest extends TestCase
         $this->assertStringContainsString("->session()->regenerate()", $controller);
         $this->assertStringContainsString("route('organizer.impersonation.return')", $shell);
         $this->assertStringContainsString("{{ __('Return to admin') }}", $shell);
+
+        $customerController = file_get_contents(app_path('Http/Controllers/BackEnd/Customer/AdminImpersonationController.php'));
+        $ticaShell = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
+        $this->assertStringContainsString("get('impersonator_admin_id')", $customerController);
+        $this->assertStringContainsString("Auth::guard('customer')->logout()", $customerController);
+        $this->assertStringContainsString("->session()->regenerate()", $customerController);
+        $this->assertStringContainsString("route('customer.impersonation.return')", $ticaShell);
+        $this->assertStringContainsString("{{ __('Return to admin') }}", $ticaShell);
     }
 
     public function test_admin_message_to_organizer_is_queued_escaped_and_audited(): void
@@ -147,12 +163,60 @@ class AdminDirectoryOperationsTest extends TestCase
         ]);
     }
 
+    public function test_admin_message_to_customer_is_queued_escaped_and_audited(): void
+    {
+        $this->insertCustomer(9, 'Ada', 'Buyer', 'ada-buyer', 'ada@example.test', 1, true);
+        $captured = [];
+        $delivery = new ApplicationMailDelivery();
+        $delivery->setAttribute('id', 45);
+        $mail = Mockery::mock(ApplicationMailService::class);
+        $mail->shouldReceive('queueHtml')->once()->withArgs(function (
+            string $kind,
+            string $recipient,
+            string $subject,
+            string $body,
+            array $attachments,
+            ?string $replyTo,
+            Customer $source
+        ) use (&$captured): bool {
+            $captured = compact('kind', 'recipient', 'subject', 'body', 'attachments', 'replyTo', 'source');
+            return true;
+        })->andReturn($delivery);
+
+        $request = Request::create('/admin/customer-management/customer/9/message', 'POST', [
+            'subject' => "Ticket update\r\nBcc: ignored@example.test",
+            'message' => "Your ticket is ready.\n<script>alert('x')</script>",
+        ]);
+        app(CustomerManagementController::class)->message($request, 9, $mail);
+
+        $this->assertSame('admin_customer_message', $captured['kind']);
+        $this->assertSame('ada@example.test', $captured['recipient']);
+        $this->assertSame('Ticket update Bcc: ignored@example.test', $captured['subject']);
+        $this->assertStringContainsString('Your ticket is ready.', $captured['body']);
+        $this->assertStringContainsString('&lt;script&gt;', $captured['body']);
+        $this->assertStringNotContainsString('<script>', $captured['body']);
+        $this->assertSame(9, $captured['source']->id);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'customer.message_queued',
+            'subject_id' => 9,
+        ]);
+    }
+
     private function insertOrganizer(int $id, string $username, string $email, int $status, bool $verified): void
     {
         DB::table('organizers')->insert([
             'id' => $id, 'username' => $username, 'email' => $email, 'password' => 'hash',
             'phone' => null, 'status' => $status, 'email_verified_at' => $verified ? now() : null,
             'kyc_status' => 'unverified', 'amount' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    private function insertCustomer(int $id, string $firstName, string $lastName, string $username, string $email, int $status, bool $verified): void
+    {
+        DB::table('customers')->insert([
+            'id' => $id, 'fname' => $firstName, 'lname' => $lastName, 'username' => $username,
+            'email' => $email, 'password' => 'hash', 'phone' => null, 'status' => $status,
+            'email_verified_at' => $verified ? now() : null, 'created_at' => now(), 'updated_at' => now(),
         ]);
     }
 

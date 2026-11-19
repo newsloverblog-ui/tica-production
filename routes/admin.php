@@ -387,6 +387,9 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
       Route::post('/update-account-status', 'BackEnd\CustomerManagementController@updateAccountStatus')->name('admin.customer_management.customer.update_account_status');
 
+      Route::post('/message', 'BackEnd\CustomerManagementController@message')
+        ->middleware('throttle:10,1')->name('admin.customer_management.customer.message');
+
       Route::get('/details', 'BackEnd\CustomerManagementController@show')->name('admin.customer_management.customer_details');
 
       Route::get('/edit', 'BackEnd\CustomerManagementController@edit')->name('admin.customer_management.customer_edit');
@@ -399,7 +402,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
       Route::post('/customer-delete', 'BackEnd\CustomerManagementController@destroy')->name('admin.customer_management.customer_delete');
 
-      Route::post('/secret-login', 'BackEnd\CustomerManagementController@secret_login')->name('admin.customer_management.secret_login');
+      Route::post('/secret-login', 'BackEnd\CustomerManagementController@secret_login')
+        ->middleware('throttle:10,1')->name('admin.customer_management.secret_login');
     });
   });
   Route::post('bulk/delete-customer', 'BackEnd\CustomerManagementController@bulkDestroy')

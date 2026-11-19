@@ -5534,3 +5534,7 @@ footer,footer.ft{--indigo-2:#0F4C9E}
   .page[data-page=account] .acd-head .btn { width: 100%; }
   .page[data-page=account] .acd-qa { grid-template-columns: 1fr; }
 }
+/* Administrator customer preview. Kept explicit so impersonation is never mistaken for a normal session. */
+.tica-customer-impersonation{display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;padding:8px 20px;border-bottom:1px solid #d8e1f3;background:#eef3fd;color:#173a78;font-size:14px;font-weight:600}
+.tica-customer-impersonation form{margin:0}.tica-customer-impersonation button{min-height:32px;padding:0 13px;border:1px solid #2f5bd3;border-radius:7px;background:#fff;color:#244ab7;font:inherit;cursor:pointer}.tica-customer-impersonation button:hover{background:#f8faff}
+@media(max-width:560px){.tica-customer-impersonation{align-items:flex-start;flex-direction:column;gap:7px;padding:10px 14px}.tica-customer-impersonation button{width:100%}}
