@@ -190,6 +190,8 @@
               @php
                 $title = optional(optional($campaign->event)->information)->title ?? __('Untitled event');
                 $placement = optional($campaign->plan)->placement;
+                $approvalReady = (float) $campaign->price <= 0
+                  || ($campaign->payment_status === 'paid' && $campaign->paid_at && $campaign->payment_transaction_id);
               @endphp
               <tr>
                 <td data-label="{{ __('Campaign') }}">
@@ -239,10 +241,13 @@
                       </div>
                       <label>{{ __('Decision') }}
                         <select name="decision" required>
-                          <option value="approve">{{ in_array($campaign->status, ['paused', 'rejected'], true) ? __('Approve / resume') : __('Approve') }}</option>
+                          <option value="" selected disabled>{{ __('Choose an action') }}</option>
+                          @if($approvalReady)
+                            <option value="approve">{{ in_array($campaign->status, ['paused', 'rejected'], true) ? __('Approve / resume') : __('Approve') }}</option>
+                          @endif
                           <option value="request_changes">{{ __('Request changes') }}</option>
-                          <option value="resume">{{ __('Resume') }}</option>
-                          <option value="pause">{{ __('Pause placement') }}</option>
+                          @if($approvalReady && in_array($campaign->status, ['paused', 'rejected'], true))<option value="resume">{{ __('Resume') }}</option>@endif
+                          @if(in_array($campaign->status, ['approved', 'scheduled', 'active'], true))<option value="pause">{{ __('Pause placement') }}</option>@endif
                           <option value="reject">{{ __('Reject request') }}</option>
                           <option value="cancel">{{ __('Cancel campaign') }}</option>
                           @if($campaign->payment_status === 'paid')<option value="refund">{{ optional($campaign->paymentTransaction)->gateway === 'paystack' ? __('Refund through Paystack') : __('Refund to organizer balance') }}</option>@endif
@@ -268,8 +273,8 @@
                       <label>{{ __('Confirm with admin password') }}
                         <input name="current_password" type="password" autocomplete="current-password" required placeholder="{{ __('Your password') }}">
                       </label>
-                      <p class="review-safety"><i class="fas fa-lock" aria-hidden="true"></i>{{ __('Approval is blocked until a paid campaign has a recorded payment.') }}</p>
-                      <button class="btn-review-save" type="submit">{{ __('Apply decision') }}</button>
+                      <p class="review-safety"><i class="fas {{ $approvalReady ? 'fa-check-circle' : 'fa-clock' }}" aria-hidden="true"></i>{{ $approvalReady ? __('Payment verified. This campaign can be approved.') : __('Waiting for organizer payment through Paystack or TICA balance.') }}</p>
+                      <button class="btn-review-save" type="submit">{{ __('Save decision') }}</button>
                     </form>
                   </details>
                 </td>

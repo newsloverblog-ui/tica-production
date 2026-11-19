@@ -89,6 +89,9 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("name=\"starts_at\"", $view);
         $this->assertStringContainsString("name=\"ends_at\"", $view);
         $this->assertStringContainsString("name=\"current_password\"", $view);
+        $this->assertStringContainsString("$" . "approvalReady = (float) $" . "campaign->price <= 0", $view);
+        $this->assertStringContainsString("value=\"\" selected disabled", $view);
+        $this->assertStringContainsString("Waiting for organizer payment through Paystack or TICA balance.", $view);
 
         $this->assertIsString($styles);
         $this->assertStringContainsString('.plan-editor--create {', $styles);
