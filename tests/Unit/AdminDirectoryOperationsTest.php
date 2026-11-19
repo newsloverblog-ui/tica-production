@@ -3,15 +3,20 @@
 namespace Tests\Unit;
 
 use App\Exports\AdminDirectoryQueryExport;
+use App\Http\Controllers\BackEnd\Organizer\OrganizerManagementController;
 use App\Jobs\GenerateAdminDirectoryExport;
+use App\Models\ApplicationMailDelivery;
 use App\Models\Organizer;
+use App\Services\ApplicationMailService;
 use App\Services\DataExportService;
 use DomainException;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Mockery;
 use Tests\TestCase;
 
 class AdminDirectoryOperationsTest extends TestCase
@@ -89,6 +94,8 @@ class AdminDirectoryOperationsTest extends TestCase
         $this->assertContains('signed', Route::getRoutes()->getByName('admin.directory_exports.download')->gatherMiddleware());
         $this->assertSame(['POST'], Route::getRoutes()->getByName('admin.organizer_management.organizer.secret_login')->methods());
         $this->assertContains('throttle:10,1', Route::getRoutes()->getByName('admin.organizer_management.organizer.secret_login')->gatherMiddleware());
+        $this->assertSame(['POST'], Route::getRoutes()->getByName('admin.organizer_management.organizer.message')->methods());
+        $this->assertContains('throttle:10,1', Route::getRoutes()->getByName('admin.organizer_management.organizer.message')->gatherMiddleware());
         $this->assertSame(['POST'], Route::getRoutes()->getByName('organizer.impersonation.return')->methods());
         $this->assertContains('auth:organizer', Route::getRoutes()->getByName('organizer.impersonation.return')->gatherMiddleware());
 
@@ -99,6 +106,45 @@ class AdminDirectoryOperationsTest extends TestCase
         $this->assertStringContainsString("->session()->regenerate()", $controller);
         $this->assertStringContainsString("route('organizer.impersonation.return')", $shell);
         $this->assertStringContainsString("{{ __('Return to admin') }}", $shell);
+    }
+
+    public function test_admin_message_to_organizer_is_queued_escaped_and_audited(): void
+    {
+        $this->insertOrganizer(8, 'tica-events', 'organizer@example.test', 1, true);
+        $captured = [];
+        $delivery = new ApplicationMailDelivery();
+        $delivery->setAttribute('id', 44);
+        $mail = Mockery::mock(ApplicationMailService::class);
+        $mail->shouldReceive('queueHtml')->once()->withArgs(function (
+            string $kind,
+            string $recipient,
+            string $subject,
+            string $body,
+            array $attachments,
+            ?string $replyTo,
+            Organizer $source
+        ) use (&$captured): bool {
+            $captured = compact('kind', 'recipient', 'subject', 'body', 'attachments', 'replyTo', 'source');
+            return true;
+        })->andReturn($delivery);
+
+        $request = Request::create('/admin/organizer-management/organizer/8/message', 'POST', [
+            'subject' => "Schedule update\r\nBcc: ignored@example.test",
+            'message' => "Doors open at 6 PM.\n<script>alert('x')</script>",
+        ]);
+        app(OrganizerManagementController::class)->message($request, 8, $mail);
+
+        $this->assertSame('admin_organizer_message', $captured['kind']);
+        $this->assertSame('organizer@example.test', $captured['recipient']);
+        $this->assertSame('Schedule update Bcc: ignored@example.test', $captured['subject']);
+        $this->assertStringContainsString('Doors open at 6 PM.', $captured['body']);
+        $this->assertStringContainsString('&lt;script&gt;', $captured['body']);
+        $this->assertStringNotContainsString('<script>', $captured['body']);
+        $this->assertSame(8, $captured['source']->id);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'organizer.message_queued',
+            'subject_id' => 8,
+        ]);
     }
 
     private function insertOrganizer(int $id, string $username, string $email, int $status, bool $verified): void

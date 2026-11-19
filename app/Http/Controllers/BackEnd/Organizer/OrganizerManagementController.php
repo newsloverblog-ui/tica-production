@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class OrganizerManagementController extends Controller
 {
@@ -229,6 +230,51 @@ class OrganizerManagementController extends Controller
     Session::flash('success', 'Updated Successfully');
 
     return redirect()->back();
+  }
+
+  public function message(Request $request, $id, ApplicationMailService $mailService)
+  {
+    $validated = $request->validate([
+      'subject' => ['required', 'string', 'max:160'],
+      'message' => ['required', 'string', 'max:5000'],
+    ]);
+    $organizer = Organizer::findOrFail($id);
+    $subject = preg_replace('/[\r\n]+/', ' ', trim($validated['subject']));
+    $websiteTitle = trim((string) config('app.name')) ?: 'TICA';
+    $adminEmail = optional(Auth::guard('admin')->user())->email;
+    $replyTo = filter_var($adminEmail, FILTER_VALIDATE_EMAIL) ? $adminEmail : null;
+    $body = '<div style="font-family:Arial,sans-serif;max-width:620px;color:#152238;line-height:1.65">'
+      . '<p>Hello ' . e($organizer->username ?: 'there') . ',</p>'
+      . '<div>' . nl2br(e(trim($validated['message']))) . '</div>'
+      . '<p style="margin-top:28px">Regards,<br>' . e($websiteTitle) . '</p>'
+      . '</div>';
+
+    try {
+      $delivery = $mailService->queueHtml(
+        'admin_organizer_message',
+        $organizer->email,
+        $subject,
+        $body,
+        [],
+        $replyTo,
+        $organizer
+      );
+    } catch (Throwable $exception) {
+      report($exception);
+
+      return redirect()->back()->with('warning', 'The message could not be queued. Please try again.');
+    }
+
+    try {
+      AuditLogger::record('organizer.message_queued', $organizer, [], [], [
+        'delivery_id' => (int) $delivery->id,
+        'subject_fingerprint' => hash('sha256', $subject),
+      ]);
+    } catch (Throwable $exception) {
+      report($exception);
+    }
+
+    return redirect()->back()->with('success', 'Message queued for ' . $organizer->username . '.');
   }
   public function changePassword($id)
   {
@@ -438,7 +484,7 @@ class OrganizerManagementController extends Controller
   {
     (new OperationalArchiveService())->archiveOrganizers([(int) $id]);
 
-    return redirect()->back()->with('success', 'Organizer archived. Financial and event history was preserved.');
+    return redirect()->back()->with('success', 'Organizer access removed. Financial and event history was preserved.');
   }
 
   public function bulkDestroy(Request $request)

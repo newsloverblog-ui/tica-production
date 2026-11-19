@@ -311,8 +311,66 @@
 
 .tica-directory-page--organizers .directory-table .dropdown-menu {
   z-index: 1080;
+  min-width: 230px;
   border-radius: 8px;
 }
+
+.tica-directory-page--organizers .directory-table .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  font-weight: 500;
+}
+
+.tica-directory-page--organizers .directory-table .dropdown-item i {
+  width: 15px;
+  margin: 0 !important;
+  color: #8793a6;
+  text-align: center;
+}
+
+.tica-directory-page--organizers .directory-table .dropdown-item.text-danger,
+.tica-directory-page--organizers .directory-table .dropdown-item.text-danger i { color: #b42318 !important; }
+
+.organizer-message-modal .modal-content {
+  overflow: hidden;
+  border: 1px solid #dfe5ed;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.organizer-message-modal .modal-header,
+.organizer-message-modal .modal-footer {
+  align-items: center;
+  padding: 18px 20px;
+  border-color: #e7ebf1;
+}
+
+.organizer-message-modal .modal-header { background: #fbfcfe; }
+.organizer-message-modal .modal-title { margin: 0; color: #152238; font-size: 19px; font-weight: 600; }
+.organizer-message-modal .modal-header p { margin: 4px 0 0; color: #78849a; font-size: 12px; }
+.organizer-message-modal .modal-header p strong { color: #46546b; font-weight: 600; }
+.organizer-message-modal .modal-body { padding: 20px; }
+.organizer-message-modal .modal-body label { display: block; margin: 0 0 7px; color: #46546b; font-size: 12px; font-weight: 600; }
+.organizer-message-modal .modal-body label:not(:first-child) { margin-top: 17px; }
+.organizer-message-modal .modal-body input,
+.organizer-message-modal .modal-body textarea {
+  width: 100%;
+  border: 1px solid #d3dbe7;
+  border-radius: 8px;
+  background: #fff;
+  color: #152238;
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+}
+.organizer-message-modal .modal-body input { height: 43px; padding: 0 12px; }
+.organizer-message-modal .modal-body textarea { min-height: 150px; padding: 11px 12px; resize: vertical; }
+.organizer-message-modal .modal-body input:focus,
+.organizer-message-modal .modal-body textarea:focus { border-color: #8fa7de; }
+.organizer-message-modal .modal-footer { justify-content: flex-end; background: #fff; }
+.organizer-message-modal .close { color: #667085; font-weight: 400; opacity: 1; }
 
 @media (max-width: 1050px) {
   .tica-directory-page--organizers .directory-toolbar {

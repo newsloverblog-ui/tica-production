@@ -335,6 +335,9 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
       Route::post('/update-account-status', 'BackEnd\Organizer\OrganizerManagementController@updateAccountStatus')->name('admin.organizer_management.organizer.update_account_status');
 
+      Route::post('/message', 'BackEnd\Organizer\OrganizerManagementController@message')
+        ->middleware('throttle:10,1')->name('admin.organizer_management.organizer.message');
+
       Route::get('/details', 'BackEnd\Organizer\OrganizerManagementController@show')->name('admin.organizer_management.organizer_details');
 
       Route::get('/edit', 'BackEnd\Organizer\OrganizerManagementController@edit')->name('admin.edit_management.organizer_edit');
