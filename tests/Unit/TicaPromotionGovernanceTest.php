@@ -80,6 +80,7 @@ class TicaPromotionGovernanceTest extends TestCase
     {
         $view = file_get_contents(resource_path('views/backend/tica/promotions.blade.php'));
         $controller = file_get_contents(app_path('Http/Controllers/BackEnd/TicaPromotionController.php'));
+        $styles = file_get_contents(public_path('assets/tica-ui/css/admin-promotions.css'));
 
         $this->assertIsString($view);
         foreach (['campaigns', 'plans', 'analytics', 'tracking', 'tools'] as $section) {
@@ -88,6 +89,12 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("name=\"starts_at\"", $view);
         $this->assertStringContainsString("name=\"ends_at\"", $view);
         $this->assertStringContainsString("name=\"current_password\"", $view);
+
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('.plan-editor--create {', $styles);
+        $this->assertStringContainsString('grid-template-areas:', $styles);
+        $this->assertStringContainsString('grid-area: fields', $styles);
+        $this->assertStringContainsString('grid-area: inventory', $styles);
 
         $this->assertIsString($controller);
         $this->assertStringContainsString("Rule::in(['approve', 'reject', 'request_changes', 'pause', 'resume', 'cancel', 'refund'])", $controller);

@@ -565,12 +565,16 @@
 .plan-editor {
   display: grid;
   grid-template-columns: 205px minmax(0, 1fr);
+  grid-template-areas:
+    "identity fields"
+    "inventory inventory"
+    ". actions";
   gap: 24px;
   align-items: start;
   padding: 24px;
 }
 .plan-editor + .plan-editor { border-top: 1px solid var(--promo-line); }
-.plan-editor-identity { display: flex; gap: 12px; align-items: flex-start; }
+.plan-editor-identity { display: flex; grid-area: identity; gap: 12px; align-items: flex-start; min-width: 0; }
 .plan-editor-identity > i {
   display: grid;
   flex: 0 0 40px;
@@ -585,8 +589,9 @@
 .plan-editor-identity span,
 .plan-editor-identity small { color: var(--promo-muted); font-size: 10px; font-weight: 400; }
 .plan-editor-identity strong { color: var(--promo-ink); font-size: 13px; font-weight: 600; }
-.plan-editor-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; }
+.plan-editor-fields { display: grid; grid-area: fields; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; min-width: 0; }
 .plan-editor-fields .field-wide { grid-column: span 2; }
+.plan-editor-fields > label { min-width: 0; }
 .plan-editor label small { color: var(--promo-muted); font-weight: 400; }
 .plan-switch {
   display: flex !important;
@@ -601,7 +606,7 @@
 .plan-switch input:checked + span { background: var(--promo-blue); }
 .plan-switch input:checked + span::after { transform: translateX(16px); }
 .plan-switch em { font-style: normal; font-weight: 500; }
-.plan-actions { display: flex; grid-column: 2; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.plan-actions { display: flex; grid-area: actions; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .btn-plan-secondary,
 .btn-plan-danger {
   min-height: 38px;
@@ -614,10 +619,24 @@
   font-weight: 550;
 }
 .btn-plan-danger { border-color: #efcaca; color: var(--promo-red); }
-.inventory-strip { display: flex; grid-column: 1 / -1; gap: 8px; overflow-x: auto; padding: 10px 0 2px; }
+.inventory-strip { display: flex; grid-area: inventory; gap: 8px; max-width: 100%; overflow-x: auto; padding: 10px 0 2px; }
 .inventory-strip > span { display: grid; flex: 0 0 auto; gap: 2px; min-width: 125px; padding: 9px 11px; border: 1px solid #dce4f1; border-radius: 8px; background: #f8faff; }
 .inventory-strip b { color: var(--promo-ink); font-size: 10px; font-weight: 600; }
 .inventory-strip small { color: var(--promo-muted); font-size: 9px; text-transform: capitalize; }
+
+/* The new-package form has no identity column. Keep its fields in the full
+   editor width instead of inheriting the two-column saved-plan layout. */
+.plan-editor--create {
+  display: block;
+}
+
+.plan-editor--create .plan-editor-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.plan-editor--create > .btn-plan-save {
+  margin-top: 2px;
+}
 
 .analytics-summary {
   display: grid;
@@ -690,9 +709,16 @@
 @media (max-width: 991.98px) {
   .promotion-filters { grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(140px, 180px)); }
   .btn-filter { justify-self: start; }
-  .plan-editor { grid-template-columns: 1fr; }
+  .plan-editor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "identity"
+      "fields"
+      "inventory"
+      "actions";
+  }
   .plan-editor-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .plan-actions { grid-column: auto; }
+  .plan-editor--create .plan-editor-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .organizer-tools-grid { grid-template-columns: 1fr; }
   .tool-ledger + .tool-ledger { border-top: 1px solid var(--promo-line); border-left: 0; }
 }
@@ -727,6 +753,7 @@
   .review-drawer > summary { justify-content: center; width: 100%; }
   .review-drawer > form { position: static; width: 100%; margin-top: 8px; box-shadow: none; }
   .plan-editor-fields { grid-template-columns: 1fr; }
+  .plan-editor--create .plan-editor-fields { grid-template-columns: 1fr; }
   .plan-editor-fields .field-wide,
   .plan-switch { grid-column: auto; }
   .analytics-summary { grid-template-columns: repeat(2, 1fr); margin: 0 16px 18px; }
