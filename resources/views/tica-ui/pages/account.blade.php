@@ -26,18 +26,8 @@
         </div>
         <section class="acd-next" id="acd-next" aria-label="Your next event"></section>
         <div class="acd-stats" id="acd-stats"></div>
-        <div class="acd-two">
-          <section class="acd-card" aria-labelledby="acd-up-h"><div class="acd-ch"><h2 id="acd-up-h">Coming up</h2><button type="button" class="acd-lnk" data-acp="tickets">All tickets</button></div><ul class="acd-mini" id="acd-up"></ul></section>
-          <section class="acd-card" aria-labelledby="acd-qa-h"><div class="acd-ch"><h2 id="acd-qa-h">Quick actions</h2></div>
-            <div class="acd-qa">
-              <a href="/discover"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></i><span><b>Discover events</b></span></a>
-              <button type="button" data-acp="orders"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M8 11l4 4 4-4M5 19h14"/></svg></i><span><b>Downloads</b></span></button>
-              <button type="button" data-acp="saved"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.1-8 11-8 11z"/></svg></i><span><b>Saved events</b></span></button>
-              <button type="button" data-acp="help"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg></i><span><b>Help</b></span></button>
-            </div>
-          </section>
-        </div>
-        <section class="acd-recs" aria-labelledby="acd-recs-h"><div class="acd-ch bare"><h2 id="acd-recs-h">Events you may like</h2><a class="acd-lnk" href="/discover">See all</a></div><div class="grid4" id="acd-recs"></div></section>
+        <section class="acd-card acd-later" id="acd-up-card" aria-labelledby="acd-up-h" hidden><div class="acd-ch"><h2 id="acd-up-h">Later events</h2><button type="button" class="acd-lnk" data-acp="tickets">View tickets</button></div><ul class="acd-mini" id="acd-up"></ul></section>
+        <section class="acd-recs" aria-labelledby="acd-recs-h"><div class="acd-ch bare"><h2 id="acd-recs-h">Recommended events</h2><a class="acd-lnk" href="/discover">Browse all</a></div><div class="grid4" id="acd-recs"></div></section>
       </div>
 
       <!-- MY TICKETS -->

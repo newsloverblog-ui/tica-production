@@ -4765,7 +4765,7 @@ body.isuser.appmode footer{display:none}
 body.appmode .topbar .wrap{max-width:none;padding-inline:0}
 body.appmode .workspace-nav{min-height:68px;padding:0;gap:0}
 .workspace-brand-zone{display:flex;flex:0 0 248px;min-height:68px;align-items:center;justify-content:space-between;padding:0 20px 0 28px;border-right:1px solid var(--dash-border);background:#fff}
-.workspace-brand-zone .logo{width:76px;min-height:44px}
+.workspace-brand-zone .logo{width:84px;min-height:44px}
 .workspace-brand-zone .logo img{display:block;width:100%;height:auto}
 body.dashmode .workspace-menu,body.isuser.appmode .workspace-menu{display:grid}
 .workspace-menu{width:38px;height:38px;border:0;border-radius:9px;background:transparent;color:#44516a}
@@ -5445,8 +5445,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 .page[data-page=account] .acd-next-empty h2 { margin: 0; font-size: 20px; font-weight: 600; }
-.page[data-page=account] .acd-next-empty p { flex: 1; margin: 0; font-size: 14px; }
-.page[data-page=account] .acd-next-empty .btn { flex: none; }
+.page[data-page=account] .acd-next-empty p { margin: 7px 0 0; font-size: 14px; }
 
 .page[data-page=account] .acd-stats {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5469,7 +5468,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 .page[data-page=account] .acd-stat:first-child { border-left: 0 !important; }
-.page[data-page=account] .acd-stat:hover { transform: none; background: #f8faff !important; }
+.page[data-page=account] .acd-stat:hover { transform: translateY(-2px); background: #f8faff !important; }
 .page[data-page=account] .acd-stat .acd-ic {
   width: 34px;
   height: 34px;
@@ -5481,11 +5480,30 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 .page[data-page=account] .acd-stat b { font-size: 20px; font-weight: 600; }
-.page[data-page=account] .acd-two { grid-template-columns: minmax(0, 1.3fr) minmax(330px, .7fr); gap: 16px; }
 .page[data-page=account] .acd-card {
   border: 1px solid #dfe5ed !important;
   border-radius: 10px !important;
   box-shadow: none !important;
+}
+
+.page[data-page=account] .acd-later {
+  width: min(100%, 980px);
+}
+
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-next,
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-stats,
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-later,
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-recs {
+  animation: acd-overview-in .22s ease both;
+}
+
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-stats { animation-delay: .035s; }
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-later { animation-delay: .07s; }
+.page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > .acd-recs { animation-delay: .105s; }
+
+@keyframes acd-overview-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .page[data-page=account] .acd-qa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -5531,14 +5549,11 @@ body.isuser.appmode .workspace-badge { display: none !important; }
   .page[data-page=account] .acd-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .page[data-page=account] .acd-stat:nth-child(3) { border-left: 0 !important; }
   .page[data-page=account] .acd-stat:nth-child(n+3) { border-top: 1px solid #e6eaf0 !important; }
-  .page[data-page=account] .acd-two { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
   .page[data-page=account] .acd-main { padding: 18px 14px 32px; }
-  .page[data-page=account] .acd-next-empty { align-items: flex-start; flex-direction: column; }
-  .page[data-page=account] .acd-next-empty p { flex: none; }
-  .page[data-page=account] .acd-next-empty .btn { width: 100%; }
+  .page[data-page=account] .acd-next-empty { align-items: flex-start; }
   .page[data-page=account] .acd-stats { grid-template-columns: 1fr 1fr; }
   .page[data-page=account] .acd-qa { grid-template-columns: 1fr 1fr; }
 }
@@ -5546,6 +5561,11 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 @media (max-width: 430px) {
   .page[data-page=account] .acd-head .btn { width: 100%; }
   .page[data-page=account] .acd-qa { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > * { animation: none !important; }
+  .page[data-page=account] .acd-stat { transition: none !important; }
 }
 /* Administrator customer preview. Kept explicit so impersonation is never mistaken for a normal session. */
 .tica-customer-impersonation{display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;padding:8px 20px;border-bottom:1px solid #d8e1f3;background:#eef3fd;color:#173a78;font-size:14px;font-weight:600}

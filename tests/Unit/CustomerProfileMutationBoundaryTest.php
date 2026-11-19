@@ -199,6 +199,10 @@ class CustomerProfileMutationBoundaryTest extends TestCase
         $this->assertStringNotContainsString('Two-step verification', $view);
         $this->assertStringNotContainsString('acd-mfa-state', $view);
         $this->assertStringNotContainsString('acd-security', $view);
+        $this->assertStringNotContainsString('Quick actions', $view);
+        $this->assertStringContainsString('id="acd-up-card"', $view);
+        $this->assertStringContainsString('Recommended events', $view);
+        $this->assertStringContainsString("['Total spent',spent", $script);
     }
 
     public function test_google_sign_in_replaces_a_numeric_provider_username_with_the_display_name(): void
