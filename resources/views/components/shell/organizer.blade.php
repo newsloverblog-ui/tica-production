@@ -19,7 +19,6 @@
     'events' => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
     'tickets' => '<path d="M4 8h16v3a2 2 0 0 0 0 3v3H4v-3a2 2 0 0 0 0-3z"/><path d="M9 8v9M15 8v9"/>',
     'orders' => '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>',
-    'messages' => '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
     'checkin' => '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/>',
     'promote' => '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1zM18 9a4 4 0 0 1 0 6"/>',
     'payouts' => '<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
@@ -36,7 +35,6 @@
       ['events', 'Events', '/dashboard/events', 'events.view'],
       ['tickets', 'Ticket management', '/dashboard/tickets', 'orders.view'],
       ['orders', 'Orders and attendees', '/dashboard/orders', 'orders.view'],
-      ['messages', 'Customer messages', '/organizer/customer-messages', 'support.use'],
       ['checkin', 'Gate check-in', '/checkin', 'checkin.run'],
     ],
     'Growth' => [
@@ -69,7 +67,6 @@
     $toolHit = collect($tools)->first(fn ($tool) => str_starts_with($path, $tool[1]));
     $active = match (true) {
       str_starts_with($path, '/organizer/forms'), str_starts_with($path, '/organizer/event/registrations') => 'forms',
-      str_starts_with($path, '/organizer/customer-messages') => 'messages',
       str_starts_with($path, '/organizer/event-booking/report'), str_starts_with($path, '/organizer/event-booking/exports') => 'orders',
       str_starts_with($path, '/organizer/transaction'), str_starts_with($path, '/organizer/finance'), str_starts_with($path, '/organizer/monthly-income') => 'transactions',
       str_starts_with($path, '/organizer/withdraw/exports') => 'payouts',
@@ -84,7 +81,7 @@
   }
   $toolsActive = in_array($active, ['tools', 'forms'], true);
   $payoutAction = $organizer && $can('payouts.view') && !\App\Models\OrganizerPayoutAccount::where('organizer_id', $organizer->id)->where('is_default', true)->where('status', 'verified')->exists();
-  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'messages' => 'Customer messages', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'transactions' => 'Transactions', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
+  $titles = ['overview' => 'Overview', 'events' => 'Events', 'tickets' => 'Ticket management', 'forms' => 'Registration forms', 'orders' => 'Orders and attendees', 'checkin' => 'Gate check-in', 'promote' => 'Promote', 'payouts' => 'Payouts', 'transactions' => 'Transactions', 'team' => 'Team', 'settings' => 'Settings', 'tools' => 'More tools'];
 @endphp
 
 <div id="tica-shell" class="tsh">

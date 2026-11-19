@@ -11,10 +11,6 @@ class SupportTicket extends Model
   protected $fillable = [
     'user_id',
     'user_type',
-    'recipient_type',
-    'recipient_organizer_id',
-    'event_id',
-    'booking_id',
     'email',
     'subject',
     'description',
@@ -33,20 +29,5 @@ class SupportTicket extends Model
   public function messages()
   {
     return $this->hasMany(Conversation::class);
-  }
-
-  public function recipientOrganizer()
-  {
-    return $this->belongsTo(Organizer::class, 'recipient_organizer_id');
-  }
-
-  public function event()
-  {
-    return $this->belongsTo(\App\Models\Event\EventContent::class, 'event_id', 'event_id');
-  }
-
-  public function booking()
-  {
-    return $this->belongsTo(\App\Models\Event\Booking::class, 'booking_id');
   }
 }

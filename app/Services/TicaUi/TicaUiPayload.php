@@ -70,11 +70,14 @@ class TicaUiPayload
     }
 
     $bookings = Booking::query()
+      ->with(['organizer:id,email', 'event:event_id,title'])
       ->where('customer_id', $customer->id)
       ->whereIn('paymentStatus', ['completed', 'free'])
       ->latest('id')
       ->limit(100)
       ->get();
+    $organizerBooking = $bookings->first(fn (Booking $booking) => $booking->organizer
+      && filter_var($booking->organizer->email, FILTER_VALIDATE_EMAIL));
     $saved = Wishlist::query()->where('customer_id', $customer->id)->pluck('event_id')->map(fn ($id) => (int) $id)->all();
     $known = $events->keyBy('id');
     $other = [];
@@ -125,16 +128,15 @@ class TicaUiPayload
         'photo' => PublicImage::url('assets/admin/img/customer-profile', $customer->photo, $customer->updated_at),
         'social' => !empty($customer->provider),
       ],
+      'organizerEmail' => $organizerBooking ? [
+        'email' => (string) $organizerBooking->organizer->email,
+        'event' => (string) ($organizerBooking->event?->title ?: 'your event'),
+        'subject' => 'Question about ' . (string) ($organizerBooking->event?->title ?: 'my event'),
+      ] : null,
       'links' => [
         'profile' => route('customer.profile.update'),
         'password' => route('customer.password.update'),
         'data' => route('customer.data-export.index'),
-        'support' => optional(\Illuminate\Support\Facades\DB::table('support_ticket_statuses')->first())->support_ticket_status === 'active'
-          ? route('customer.support_tickert')
-          : null,
-        'organizerSupport' => optional(\Illuminate\Support\Facades\DB::table('support_ticket_statuses')->first())->support_ticket_status === 'active'
-          ? route('customer.support_tickert.create', ['recipient' => 'organizer'])
-          : null,
       ],
     ];
   }

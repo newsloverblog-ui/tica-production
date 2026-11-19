@@ -17,9 +17,10 @@ class OrganizerShellTest extends TestCase
   {
     $html = $this->render('overview');
 
-    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Customer messages', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
+    foreach (['Overview', 'Events', 'Registration forms', 'Orders and attendees', 'Gate check-in', 'Promote', 'Payouts', 'Team', 'Settings', 'More tools', 'Log out'] as $label) {
       $this->assertStringContainsString($label, $html, $label);
     }
+    $this->assertStringNotContainsString('Customer messages', $html);
     $this->assertSame(1, substr_count($html, 'Create an event'));
     $this->assertSame(1, substr_count($html, 'aria-current="page"'), 'Exactly one active item.');
     // Door sales, Sponsorships and Plans and usage were removed from TICA.

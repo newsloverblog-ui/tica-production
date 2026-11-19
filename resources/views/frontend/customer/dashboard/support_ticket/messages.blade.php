@@ -3,21 +3,17 @@
 @section('react-only', 'true')
 @section('content')
 @php
-  $organizerName = $ticket->recipientOrganizer?->verified_legal_name ?: $ticket->recipientOrganizer?->username ?: __('Event organizer');
-  $messages = $ticket->messages->map(function ($message) use ($organizerName) {
+  $messages = $ticket->messages->map(function ($message) {
     $fromCustomer = (int) $message->type === 1;
     return [
       'id' => (int) $message->id,
-      'author' => $fromCustomer ? __('You') : ((int) $message->type === 3 ? $organizerName : __('TICA support')),
+      'author' => $fromCustomer ? __('You') : __('TICA support'),
       'body' => trim(strip_tags((string) $message->reply)),
       'time' => optional($message->created_at)->format('j M Y, g:i a'),
       'fromCustomer' => $fromCustomer,
       'attachmentUrl' => $message->file ? route('customer.support_ticket.reply_attachment', $message->id) : null,
     ];
   })->values();
-  $destination = $ticket->recipient_type === 'organizer'
-    ? (($ticket->event?->title ?: __('Event')).' · '.$organizerName)
-    : __('TICA support');
   $props = [
     'mode' => 'conversation',
     'csrf' => csrf_token(),
@@ -29,7 +25,7 @@
     'canReply' => (int) $ticket->status !== 3,
     'conversation' => [
       'subject' => $ticket->subject,
-      'destination' => $destination,
+      'destination' => __('TICA support'),
       'status' => (int) $ticket->status === 3 ? __('Closed') : __('Open'),
       'initialMessage' => trim(strip_tags((string) $ticket->description)),
       'createdAt' => optional($ticket->created_at)->format('j M Y, g:i a'),

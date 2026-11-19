@@ -5,7 +5,7 @@
 @php
   $messagingEnabled = optional(App\Models\SupportTicketStatus::find(1))->support_ticket_status === 'active';
   $tickets = $collection->map(function ($item) use ($messagingEnabled) {
-    return ['id'=>$item->id,'subject'=>$item->subject,'status'=>$item->status == 3 ? __('Closed') : __('Open'),'destination'=>$item->recipient_type === 'organizer' ? (($item->event?->title ?: __('Event')).' · '.__('Organizer')) : __('TICA support'),'messageUrl'=>$messagingEnabled ? route('customer.support_ticket.message',$item->id) : route('customer.support_tickert')];
+    return ['id'=>$item->id,'subject'=>$item->subject,'status'=>$item->status == 1 ? __('Pending') : ($item->status == 2 ? __('Open') : __('Closed')),'messageUrl'=>$messagingEnabled ? route('customer.support_ticket.message',$item->id) : route('customer.support_tickert')];
   })->values();
   $props = ['mode'=>'list','csrf'=>csrf_token(),'listUrl'=>route('customer.support_tickert'),'createUrl'=>route('customer.support_tickert.create'),'tickets'=>$tickets];
 @endphp

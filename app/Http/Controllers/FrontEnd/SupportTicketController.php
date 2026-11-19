@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketStatus;
-use App\Models\Event\Booking;
-use App\Support\OrganizerInbox;
 use App\Services\SupportTicketAttachmentStorage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -19,8 +17,7 @@ class SupportTicketController extends Controller
 {
   public function index()
   {
-    $collection = SupportTicket::with(['event', 'recipientOrganizer'])
-      ->where('user_id', Auth::guard('customer')->user()->id)
+    $collection = SupportTicket::where('user_id', Auth::guard('customer')->user()->id)
       ->where('user_type', 'customer')
       ->orderBy('id', 'desc')
       ->get();
@@ -29,14 +26,7 @@ class SupportTicketController extends Controller
   //create
   public function create()
   {
-    $bookings = Booking::query()
-      ->with(['event', 'organizer'])
-      ->where('customer_id', Auth::guard('customer')->id())
-      ->whereIn('paymentStatus', ['completed', 'free'])
-      ->whereNotNull('organizer_id')
-      ->latest('id')
-      ->get();
-    return view('frontend.customer.dashboard.support_ticket.create', compact('bookings'));
+    return view('frontend.customer.dashboard.support_ticket.create');
   }
   //store
   public function store(Request $request)
@@ -46,20 +36,7 @@ class SupportTicketController extends Controller
       'email' => ['required', 'email', 'max:255'],
       'description' => ['required', 'string', 'max:10000'],
       'attachment' => ['nullable', 'file', 'mimes:zip', 'mimetypes:application/zip,application/x-zip-compressed', 'max:5000'],
-      'recipient_type' => ['required', 'in:tica,organizer'],
-      'booking_id' => ['nullable', 'required_if:recipient_type,organizer', 'integer'],
     ]);
-
-    $booking = null;
-    if ($validated['recipient_type'] === 'organizer') {
-      $booking = Booking::query()
-        ->with('event')
-        ->whereKey($validated['booking_id'])
-        ->where('customer_id', Auth::guard('customer')->id())
-        ->whereIn('paymentStatus', ['completed', 'free'])
-        ->whereNotNull('organizer_id')
-        ->firstOrFail();
-    }
 
     $in = [
       'subject' => $validated['subject'],
@@ -67,10 +44,6 @@ class SupportTicketController extends Controller
       'description' => Purifier::clean($validated['description'], 'youtube'),
       'user_id' => Auth::guard('customer')->id(),
       'user_type' => 'customer',
-      'recipient_type' => $booking ? 'organizer' : 'tica',
-      'recipient_organizer_id' => $booking?->organizer_id,
-      'event_id' => $booking?->event_id,
-      'booking_id' => $booking?->id,
       'status' => 1,
       'last_message' => Carbon::now(),
     ];
@@ -81,18 +54,8 @@ class SupportTicketController extends Controller
     }
     $save = SupportTicket::create($in);
     app(\App\Services\SupportTicketMailService::class)->created($save);
-    if ($booking) {
-      OrganizerInbox::send(
-        (int) $booking->organizer_id,
-        'customer_message',
-        'New customer message',
-        trim((string) optional($booking->event)->title) ?: $save->subject,
-        route('organizer.customer_messages.show', $save)
-      );
-    }
-    return redirect()
-      ->route('customer.support_ticket.message', $save->id)
-      ->with('success', 'Your message has been sent.');
+    Session::flash('success', 'Ticket has been submitted successfully.');
+    return back();
   }
   //message
   public function message($id)
@@ -103,7 +66,7 @@ class SupportTicketController extends Controller
       return redirect()->route('customer.support_tickert');
     }
     $ticket = SupportTicket::query()
-      ->with(['messages', 'recipientOrganizer', 'customer', 'event'])
+      ->with(['messages', 'customer'])
       ->whereKey($id)
       ->where('user_id', Auth::guard('customer')->id())
       ->where('user_type', 'customer')
@@ -146,17 +109,7 @@ class SupportTicketController extends Controller
 
     $ticket->update([
       'last_message' => Carbon::now(),
-      'status' => 2,
     ]);
-    if ($ticket->recipient_type === 'organizer' && $ticket->recipient_organizer_id) {
-      OrganizerInbox::send(
-        (int) $ticket->recipient_organizer_id,
-        'customer_message',
-        'Customer replied',
-        $ticket->subject,
-        route('organizer.customer_messages.show', $ticket)
-      );
-    }
     // Customer replies are visible to support; only staff replies notify the requester.
 
     Session::flash('success', 'Message Sent Successfully');

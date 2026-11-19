@@ -239,14 +239,4 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
     Route::post('/bulk/delete/', 'BackEnd\Organizer\SupportTicketController@bulk_delete')->name('organizer.support_tickets.bulk_delete');
   });
 
-  Route::prefix('customer-messages')->group(function () {
-    Route::get('/', 'BackEnd\Organizer\CustomerMessageController@index')->name('organizer.customer_messages.index');
-    Route::get('/{supportTicket}', 'BackEnd\Organizer\CustomerMessageController@show')->name('organizer.customer_messages.show');
-    Route::post('/{supportTicket}/reply', 'BackEnd\Organizer\CustomerMessageController@reply')->name('organizer.customer_messages.reply');
-    Route::post('/{supportTicket}/close', 'BackEnd\Organizer\CustomerMessageController@close')->name('organizer.customer_messages.close');
-    Route::get('/{supportTicket}/attachment', 'BackEnd\Organizer\CustomerMessageController@downloadAttachment')
-      ->middleware('throttle:6,1')->name('organizer.customer_messages.attachment');
-    Route::get('/reply/{conversation}/attachment', 'BackEnd\Organizer\CustomerMessageController@downloadReplyAttachment')
-      ->middleware('throttle:6,1')->name('organizer.customer_messages.reply_attachment');
-  });
 });

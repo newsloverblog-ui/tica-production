@@ -714,8 +714,12 @@ function renderAccount(){
   /* profile */
   var F=$('acd-profile');if(F&&!F.dataset.ready){F.dataset.ready='1';['fname','lname','email','phone','city','country','username'].forEach(function(k){var i=F.querySelector('[name='+k+']');if(i)i.value=pf[k]||''});var photoInput=$('pf-photo');if(photoInput)photoInput.addEventListener('change',function(){var file=this.files&&this.files[0],label=$('pf-photo-name');if(!file){label.textContent='No photo selected';acAvatar($('pf-photo-preview'),u.name,pf.photo||u.photo);return}label.textContent=file.name;if(F._photoPreview)URL.revokeObjectURL(F._photoPreview);F._photoPreview=URL.createObjectURL(file);acAvatar($('pf-photo-preview'),u.name,F._photoPreview)})}
   if(links.data)$('acd-data').href=links.data;
-  if(links.support){var sp=$('acd-support');sp.href=links.support;sp.querySelector('b').textContent='Message support';sp.querySelector('small').textContent='Open a support ticket with the TICA team'}
-  if(links.organizerSupport){var osp=$('acd-organizer-support');if(osp)osp.href=links.organizerSupport}
+  var organizerEmail=$('acd-organizer-email'),organizerContact=ACC.organizerEmail;
+  if(organizerEmail&&organizerContact&&organizerContact.email){
+    organizerEmail.hidden=false;
+    organizerEmail.href='mailto:'+organizerContact.email+'?subject='+encodeURIComponent(organizerContact.subject||'Event question');
+    organizerEmail.querySelector('small').textContent='Ask about '+(organizerContact.event||'your event');
+  }else if(organizerEmail){organizerEmail.hidden=true;organizerEmail.removeAttribute('href')}
   acShow(acPanel);
   cdTick();
 }
