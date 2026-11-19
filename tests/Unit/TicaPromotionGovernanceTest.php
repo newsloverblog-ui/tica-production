@@ -102,6 +102,32 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString('An approved promotion must have an end time in the future.', $controller);
     }
 
+    public function test_custom_frontend_assets_use_release_aware_cache_versions(): void
+    {
+        config(['app.asset_version' => 'release-a']);
+        $first = tica_asset_version('assets/tica-ui/css/admin-promotions.css');
+
+        config(['app.asset_version' => 'release-b']);
+        $second = tica_asset_version('assets/tica-ui/css/admin-promotions.css');
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame(12, strlen($second));
+
+        foreach ([
+            'views/backend/tica/promotions.blade.php',
+            'views/backend/event/coupon/index.blade.php',
+            'views/backend/end-user/organizer/index.blade.php',
+            'views/organizer/partials/styles.blade.php',
+            'views/frontend/layout.blade.php',
+        ] as $viewPath) {
+            $view = file_get_contents(resource_path($viewPath));
+
+            $this->assertIsString($view);
+            $this->assertStringContainsString('tica_asset_version(', $view);
+            $this->assertStringNotContainsString('filemtime(public_path(', $view);
+        }
+    }
+
     public function test_promotion_system_uses_server_authority_capacity_locks_and_idempotent_payments(): void
     {
         $service = file_get_contents(app_path('Services/TicaPromotionService.php'));

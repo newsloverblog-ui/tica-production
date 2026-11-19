@@ -67,7 +67,7 @@
 
 @section('custom-style')
   <link rel="stylesheet" href="{{ asset('assets/admin/css/summernote-content.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/front/css/event-detail-pulse.css') }}?v={{ file_exists(public_path('assets/front/css/event-detail-pulse.css')) ? filemtime(public_path('assets/front/css/event-detail-pulse.css')) : '1' }}">
+  <link rel="stylesheet" href="{{ asset('assets/front/css/event-detail-pulse.css') }}?v={{ tica_asset_version('assets/front/css/event-detail-pulse.css') }}">
 @endsection
 
 @section('hero-section')

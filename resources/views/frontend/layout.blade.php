@@ -63,7 +63,7 @@
   @endif
   @yield('custom-style')
   @vite(['resources/css/tica-front.css'])
-  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/human-ui.css')) }}">
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
   @if(trim($__env->yieldContent('react-only')) === 'true')
     @vite(['resources/js/tica-app.tsx'])
   @endif

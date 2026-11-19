@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex">
     <title>@yield('title') | {{ $websiteInfo->website_title }}</title>
     <link rel="shortcut icon" type="image/png" href="{{ asset('assets/admin/img/' . $websiteInfo->favicon) }}">
-    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-auth.css') }}?v={{ file_exists(public_path('assets/tica-ui/css/admin-auth.css')) ? filemtime(public_path('assets/tica-ui/css/admin-auth.css')) : '3' }}">
-    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/human-ui.css')) }}">
+    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-auth.css') }}?v={{ tica_asset_version('assets/tica-ui/css/admin-auth.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
   </head>
   <body class="taa">
     <aside class="taa-brand" aria-hidden="true">

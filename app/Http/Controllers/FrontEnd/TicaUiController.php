@@ -368,8 +368,6 @@ class TicaUiController extends Controller
 
   private function assetVersion(): string
   {
-    $files = ['css/tica.css', 'js/tica.js', 'js/qrcode.js'];
-
-    return substr(md5(implode('|', array_map(fn ($file) => (string) @filemtime(public_path('assets/tica-ui/' . $file)), $files))), 0, 10);
+    return tica_asset_version('assets/tica-ui');
   }
 }

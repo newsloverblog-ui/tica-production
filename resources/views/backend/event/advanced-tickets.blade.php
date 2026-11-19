@@ -1,7 +1,7 @@
 @extends('backend.layout')
 
 @section('style')
-  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-ticketing.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/admin-ticketing.css')) }}">
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-ticketing.css') }}?v={{ tica_asset_version('assets/tica-ui/css/admin-ticketing.css') }}">
 @endsection
 
 @section('content')

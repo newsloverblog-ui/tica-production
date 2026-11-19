@@ -4,7 +4,7 @@
 @section('body-class', 'registration-page')
 
 @section('custom-style')
-  <link rel="stylesheet" href="{{ asset('assets/front/css/event-registration.css') }}?v={{ file_exists(public_path('assets/front/css/event-registration.css')) ? filemtime(public_path('assets/front/css/event-registration.css')) : '1' }}">
+  <link rel="stylesheet" href="{{ asset('assets/front/css/event-registration.css') }}?v={{ tica_asset_version('assets/front/css/event-registration.css') }}">
 @endsection
 
 @section('content')

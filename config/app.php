@@ -60,6 +60,10 @@ return [
 
   'asset_url' => env('ASSET_URL', null),
 
+  // Vercel's PHP runtime does not expose public asset mtimes reliably. Use
+  // the release SHA so browsers receive fresh CSS and JavaScript per deploy.
+  'asset_version' => env('ASSET_VERSION', env('VERCEL_GIT_COMMIT_SHA')),
+
   /*
   |--------------------------------------------------------------------------
   | Application Timezone

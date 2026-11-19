@@ -16,7 +16,7 @@
   <script src="{{ asset('assets/pwa_scanner/jquery.min.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('assets/front/css/toastr.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/pwa_scanner/style.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/organizer-blend.css')) }}">
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ tica_asset_version('assets/tica-ui/css/organizer-blend.css') }}">
 </head>
 
 <body class="tica-organizer tica-scanner-page">

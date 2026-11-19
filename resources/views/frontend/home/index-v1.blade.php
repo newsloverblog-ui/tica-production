@@ -12,7 +12,7 @@
 @section('body-class', 'tica-editorial-home')
 
 @section('custom-style')
-  <link rel="stylesheet" href="{{ asset('assets/front/css/home-city-pulse.css') }}?v={{ file_exists(public_path('assets/front/css/home-city-pulse.css')) ? filemtime(public_path('assets/front/css/home-city-pulse.css')) : '1' }}">
+  <link rel="stylesheet" href="{{ asset('assets/front/css/home-city-pulse.css') }}?v={{ tica_asset_version('assets/front/css/home-city-pulse.css') }}">
 @endsection
 
 @section('hero-section')
@@ -40,7 +40,7 @@
       @foreach ($heroBlueprints as $heroCategory)
         <div class="city-pulse-slide {{ $loop->first ? 'is-active' : '' }}"
           data-hero-slide="{{ $loop->index }}"
-          style="--hero-image: url('{{ asset('assets/front/images/home/categories/' . $heroCategory['image']) }}?v={{ file_exists(public_path('assets/front/images/home/categories/' . $heroCategory['image'])) ? filemtime(public_path('assets/front/images/home/categories/' . $heroCategory['image'])) : '1' }}')"></div>
+          style="--hero-image: url('{{ asset('assets/front/images/home/categories/' . $heroCategory['image']) }}?v={{ tica_asset_version('assets/front/images/home/categories/' . $heroCategory['image']) }}')"></div>
       @endforeach
     </div>
     <div class="container city-pulse-container">

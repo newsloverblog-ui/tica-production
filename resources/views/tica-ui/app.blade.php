@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/tica.css') }}?v={{ $assetVersion }}">
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ $assetVersion }}">
 <link rel="preload" href="{{ asset('assets/tica-ui/fonts/inter-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/human-ui.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/shell.css') }}?v={{ $assetVersion }}">
 <style>:root{--tica-brand-primary:{{ $ticaBrand['primary_color'] }};--tica-brand-deep:{{ $ticaBrand['secondary_color'] }};--tica-brand-accent:{{ $ticaBrand['accent_color'] }};--indigo-2:var(--tica-brand-primary);--indigo:var(--tica-brand-deep);--ink:var(--tica-brand-deep);--camwood:var(--tica-brand-accent);--accent-500:var(--tica-brand-accent)}</style>
 @if ($adminShell)

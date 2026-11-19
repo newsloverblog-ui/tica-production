@@ -2,7 +2,7 @@
 
 @section('style')
   <link rel="stylesheet"
-    href="{{ asset('assets/tica-ui/css/admin-promotions.css') }}?v={{ @filemtime(public_path('assets/tica-ui/css/admin-promotions.css')) }}">
+    href="{{ asset('assets/tica-ui/css/admin-promotions.css') }}?v={{ tica_asset_version('assets/tica-ui/css/admin-promotions.css') }}">
 @endsection
 
 @section('content')

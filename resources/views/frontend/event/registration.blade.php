@@ -5,7 +5,7 @@
 @section('body-class', ($embedMode ?? false) ? 'registration-page registration-embed-page' : 'registration-page')
 
 @section('custom-style')
-  <link rel="stylesheet" href="{{ asset('assets/front/css/event-registration.css') }}?v={{ file_exists(public_path('assets/front/css/event-registration.css')) ? filemtime(public_path('assets/front/css/event-registration.css')) : '1' }}">
+  <link rel="stylesheet" href="{{ asset('assets/front/css/event-registration.css') }}?v={{ tica_asset_version('assets/front/css/event-registration.css') }}">
   @if ($embedMode ?? false)
     <style>:root{--registration-brand:{{ $embedSetting->accent_color }};--registration-soft:{{ $embedSetting->background_color }};}</style>
   @endif

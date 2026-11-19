@@ -1,5 +1,17 @@
 <?php
 
+if (!function_exists('tica_asset_version')) {
+  function tica_asset_version(?string $relativePath = null): string
+  {
+    $path = $relativePath ? ltrim($relativePath, '/') : null;
+    $modifiedAt = $path ? @filemtime(public_path($path)) : false;
+    $release = (string) config('app.asset_version', '');
+    $version = $release !== '' ? $release : ($modifiedAt ?: 'tica-assets');
+
+    return substr(sha1($version . '|' . ($path ?? 'shared')), 0, 12);
+  }
+}
+
 if (!function_exists('eventBookingCancelUrl')) {
   function eventBookingCancelUrl($eventId): string
   {
