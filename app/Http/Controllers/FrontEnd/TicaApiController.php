@@ -148,7 +148,7 @@ class TicaApiController extends Controller
 
     $reservationToken = (string) Session::get('ticket_reservation_token', '');
     try {
-      $this->reserveSelectedSeats(
+      $reservationToken = $this->reserveSelectedSeats(
         $event,
         Session::get('selTickets', []),
         $validated['seat_ids'] ?? [],
@@ -250,7 +250,7 @@ class TicaApiController extends Controller
     string $token,
     Request $request,
     ?string $buyerEmailHash,
-  ): void
+  ): string
   {
     $selected = collect($selections)->mapWithKeys(fn ($line) => [(int) ($line['ticket_id'] ?? 0) => (int) ($line['qty'] ?? 0)]);
     $reservedTickets = Ticket::query()->where('event_id', $event->id)->whereIn('id', $selected->keys())
@@ -258,8 +258,22 @@ class TicaApiController extends Controller
     $required = $reservedTickets->sum(fn ($ticketId) => (int) $selected->get((int) $ticketId, 0));
     if ($required === 0 && $seatIds !== []) throw new RuntimeException('Seats were selected for a general-admission ticket.');
     if ($required > 0 && count($seatIds) !== $required) throw new RuntimeException("Choose exactly {$required} seats for the reserved tickets in this order.");
-    if ($required === 0) return;
-    if ($token === '') throw new RuntimeException('The ticket hold expired before the seats could be reserved.');
+    if ($required === 0) return $token;
+
+    // The design checkout reserves numbered seats before it hands the order to
+    // the gateway. Create the inventory hold here so the seat hold and ticket
+    // hold share one token. The gateway then atomically replaces that token
+    // while it initializes payment, carrying the selected seats with it.
+    if ($token === '') {
+      $token = app(TicketReservationService::class)->reserve(
+        (int) $event->id,
+        $selections,
+        $request->session()->getId(),
+        Auth::guard('customer')->id(),
+        buyerEmailHash: $buyerEmailHash,
+      );
+      Session::put('ticket_reservation_token', $token);
+    }
 
     $seatTicketCounts = EventSeat::query()->with('section:id,ticket_id')->where('event_id', $event->id)->whereIn('id', $seatIds)->get()
       ->groupBy(fn (EventSeat $seat) => (int) ($seat->ticket_id ?: $seat->section?->ticket_id))->map->count();
@@ -276,6 +290,8 @@ class TicaApiController extends Controller
       Auth::guard('customer')->id(),
       $buyerEmailHash,
     );
+
+    return $token;
   }
 
   /** Email and password log in for attendees (customers) and organisers. */

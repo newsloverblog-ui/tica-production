@@ -32,4 +32,23 @@ class TicaCheckoutClientFlowTest extends TestCase
         $this->assertStringNotContainsString('paymodal', $client);
         $this->assertStringNotContainsString('Payment cancelled. Your details are saved', $client);
     }
+
+    public function test_reserved_seat_checkout_creates_its_ticket_hold_before_reserving_seats(): void
+    {
+        $controller = (string) file_get_contents(app_path('Http/Controllers/FrontEnd/TicaApiController.php'));
+
+        $createHold = strpos($controller, '$token = app(TicketReservationService::class)->reserve(');
+        $saveHold = strpos($controller, 'Session::put(\'ticket_reservation_token\', $token);');
+        $reserveSeats = strpos($controller, 'app(SeatReservationService::class)->reserve(');
+
+        $this->assertNotFalse($createHold);
+        $this->assertNotFalse($saveHold);
+        $this->assertNotFalse($reserveSeats);
+        $this->assertLessThan($reserveSeats, $createHold);
+        $this->assertLessThan($reserveSeats, $saveHold);
+        $this->assertStringNotContainsString(
+            'The ticket hold expired before the seats could be reserved.',
+            $controller
+        );
+    }
 }
