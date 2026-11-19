@@ -192,6 +192,17 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("'attributed_tickets'", file_get_contents(app_path('Models/TicaPromotionCampaign.php')));
     }
 
+    public function test_large_promotion_images_are_optimized_before_the_vercel_request(): void
+    {
+        $client = (string) file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+
+        $this->assertStringContainsString('function promoCreative(file)', $client);
+        $this->assertStringContainsString("canvas.toBlob(function(blob)", $client);
+        $this->assertStringContainsString("'image/webp',.82", $client);
+        $this->assertStringContainsString("GIF images must be 3 MB or smaller.", $client);
+        $this->assertStringContainsString("Could not create promotion (HTTP '+r.status+')", $client);
+    }
+
     public function test_organizer_can_edit_and_delete_codes_and_tracking_links(): void
     {
         $routes = file_get_contents(base_path('routes/web.php'));

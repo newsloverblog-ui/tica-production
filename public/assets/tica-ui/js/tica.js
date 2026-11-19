@@ -1847,9 +1847,33 @@ $('od-code-f').addEventListener('submit',function(e){e.preventDefault();var c=$(
 $('od-link-f').addEventListener('submit',function(e){e.preventDefault();var n=$('od-ln').value.trim(),m=$('od-link-m'),go=$('od-link-go');if(n.length<2){m.textContent='Give the link a name of at least 2 letters.';$('od-ln').focus();return}
   go.disabled=true;m.textContent='';
   api(PR.link?'/tica-api/organizer/links/'+PR.link.id:'/tica-api/organizer/links',{name:n,channel:$('od-link-channel').value.trim(),influencer:$('od-link-influencer').value.trim(),event_id:+$('od-link-event').value||null}).then(function(r){reload(PR.link?r.message:'Tracking link created.')},function(er){go.disabled=false;m.textContent=errText(er)})});
-$('od-promo-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),fd=new FormData(),plan=$('od-promo-plan').value,eventId=$('od-promo-event').value,m=$('od-promo-m');if(!plan||!eventId){m.textContent='Choose a package and a published upcoming event.';return}
-  fd.append('plan_id',plan);fd.append('event_id',eventId);fd.append('starts_at',$('od-promo-start').value);fd.append('headline',$('od-promo-headline').value.trim());fd.append('body',$('od-promo-body').value.trim());fd.append('destination_url',$('od-promo-url').value.trim());var creative=$('od-promo-creative').files&&$('od-promo-creative').files[0];if(creative)fd.append('creative',creative);b.disabled=true;m.textContent='';
-  fetch('/tica-api/organizer/promotions',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.message||'Could not create promotion.');er.data=j;throw er}return j})}).then(function(r){reload(r.message)},function(er){b.disabled=false;m.textContent=errText(er)})});
+function promoCreative(file){
+  var limit=3*1024*1024;if(!file||file.size<=limit)return Promise.resolve(file);
+  if(file.type==='image/gif')return Promise.reject(new Error('GIF images must be 3 MB or smaller.'));
+  if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0)return Promise.reject(new Error('Choose a JPG, PNG, WebP or GIF image.'));
+  if(file.size>12*1024*1024)return Promise.reject(new Error('Choose an image smaller than 12 MB.'));
+  return new Promise(function(resolve,reject){
+    var img=new Image(),url=URL.createObjectURL(file);
+    function done(){URL.revokeObjectURL(url)}
+    img.onerror=function(){done();reject(new Error('This image could not be prepared. Choose another image.'))};
+    img.onload=function(){
+      done();var max=1800,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+      var context=canvas.getContext('2d');if(!context){reject(new Error('This image could not be prepared. Choose another image.'));return}
+      context.drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(function(blob){
+        if(!blob||blob.size>limit){reject(new Error('This image is still larger than 3 MB after optimization. Choose a smaller image.'));return}
+        var name=(file.name||'campaign-image').replace(/\.[^.]+$/,'')+'.webp';resolve(new File([blob],name,{type:'image/webp',lastModified:Date.now()}));
+      },'image/webp',.82);
+    };
+    img.src=url;
+  });
+}
+$('od-promo-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),plan=$('od-promo-plan').value,eventId=$('od-promo-event').value,m=$('od-promo-m');if(!plan||!eventId){m.textContent='Choose a package and a published upcoming event.';return}
+  var creative=$('od-promo-creative').files&&$('od-promo-creative').files[0];b.disabled=true;m.textContent=creative&&creative.size>3*1024*1024?'Optimizing image…':'';
+  promoCreative(creative).then(function(upload){var fd=new FormData();fd.append('plan_id',plan);fd.append('event_id',eventId);fd.append('starts_at',$('od-promo-start').value);fd.append('headline',$('od-promo-headline').value.trim());fd.append('body',$('od-promo-body').value.trim());fd.append('destination_url',$('od-promo-url').value.trim());if(upload)fd.append('creative',upload);m.textContent='';
+    return fetch('/tica-api/organizer/promotions',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.message||('Could not create promotion (HTTP '+r.status+').'));er.data=j;throw er}return j})});
+  }).then(function(r){reload(r.message)},function(er){b.disabled=false;m.textContent=errText(er)})});
 $('od-promo-pay-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),m=$('od-promo-pay-m'),password=$('od-promo-password').value;if(!password){m.textContent='Enter your current password.';return}b.disabled=true;m.textContent='';api('/tica-api/organizer/promotions/'+PR.payCampaign+'/pay',{current_password:password}).then(function(r){$('pr-pay-dlg').close();reload(r.message)},function(er){b.disabled=false;m.textContent=errText(er)})});
 document.addEventListener('click',function(e){var choose=e.target.closest('[data-choosepackage]'),checkout=e.target.closest('[data-checkoutprom]'),pay=e.target.closest('[data-payprom]'),cancel=e.target.closest('[data-cancelprom]');
   if(choose){$('od-promo-plan').value=choose.dataset.choosepackage;$('od-promo-plan').dispatchEvent(new Event('change'));$('od-promo-f').scrollIntoView({behavior:'smooth',block:'center'});return}
