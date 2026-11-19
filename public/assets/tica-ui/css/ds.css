@@ -542,15 +542,42 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
 /* =====================================================================
    Page: Orders and attendees
    ===================================================================== */
-.or-actions{display:flex;flex-wrap:wrap;gap:var(--t-2)}
-.or-date .t-input{min-width:0;width:160px}
+.od-p[data-p="orders"] .t-page-head{align-items:flex-start}
+.or-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--t-2);margin-left:auto}
+.od-p[data-p="orders"] .t-toolbar{display:grid;grid-template-columns:minmax(260px,1.7fr) minmax(170px,1fr) minmax(160px,1fr) 170px 170px auto;align-items:center}
+.od-p[data-p="orders"] .t-toolbar .t-search{width:100%;max-width:none;min-width:0}
+.od-p[data-p="orders"] .t-toolbar .t-input,.od-p[data-p="orders"] .t-toolbar .t-select{width:100%;min-width:0}
+.or-date,.or-date .t-input{min-width:0;width:100%}
+.or-table{table-layout:fixed;min-width:900px}
+.or-table .or-col-attendee{width:23%}
+.or-table .or-col-ticket{width:25%}
+.or-table .or-col-order{width:22%}
+.or-table .or-col-amount{width:12%}
+.or-table .or-col-status{width:14%}
+.or-table .or-col-actions{width:56px}
+.or-table th,.or-table td{vertical-align:middle}
+.or-table th.t-num{text-align:right}
+.or-table td:nth-child(3),.or-table .or-amount{white-space:nowrap;font-variant-numeric:tabular-nums}
+.or-table td.ev-actions{width:auto;padding-left:var(--t-2);padding-right:var(--t-3)}
 .or-name{display:block;color:var(--t-ink);font-weight:500;overflow-wrap:anywhere}
 .or-sub{display:block;font-size:13px;overflow-wrap:anywhere}
 .or-skel{padding:var(--t-2) 0}
-@media (max-width:767px){.or-actions{width:100%}.or-actions .t-btn{flex:1}.or-date,.or-date .t-input,.t-toolbar .t-select{width:100%}}
+@media (max-width:1279px){
+  .od-p[data-p="orders"] .t-toolbar{grid-template-columns:minmax(240px,1.4fr) minmax(170px,1fr) minmax(160px,1fr)}
+  .od-p[data-p="orders"] .t-toolbar .or-date{width:100%}
+}
+@media (max-width:767px){
+  .or-actions{width:100%;justify-content:flex-start;margin-left:0}
+  .or-actions .t-btn{flex:1 1 calc(50% - var(--t-2));justify-content:center}
+  .od-p[data-p="orders"] .t-toolbar{display:flex}
+  .or-date,.or-date .t-input,.t-toolbar .t-select{width:100%}
+  .or-table{min-width:0;table-layout:auto}
+  .or-table colgroup{display:none}
+}
 @media (max-width:767px){
   .or-table tr{position:relative;padding-right:56px}
   .or-table td.t-num{text-align:left}
+  .or-table td.t-num::before{display:inline-block;min-width:64px}
   .or-table td.ev-actions{position:absolute;top:var(--t-2);right:var(--t-2);width:auto}
   .t-toolbar .or-date{width:calc(50% - var(--t-1));flex:0 0 auto}
 }

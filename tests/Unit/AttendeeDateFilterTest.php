@@ -37,6 +37,18 @@ class AttendeeDateFilterTest extends TestCase
     $this->assertStringContainsString("attendees?'+attQuery()", $js);
   }
 
+  public function test_attendee_table_keeps_amount_status_and_actions_in_separate_columns(): void
+  {
+    $js = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+    $css = file_get_contents(public_path('assets/tica-ui/css/ds.css'));
+
+    $this->assertStringContainsString('<col class="or-col-amount">', $js);
+    $this->assertStringContainsString('<col class="or-col-status">', $js);
+    $this->assertStringContainsString('class="t-num or-amount"', $js);
+    $this->assertStringContainsString('.or-table th.t-num{text-align:right}', $css);
+    $this->assertStringContainsString('.or-table .or-col-actions{width:56px}', $css);
+  }
+
   private function directoryQuery(array $filters)
   {
     $method = new \ReflectionMethod(OrganizerAttendeeDirectory::class, 'query');
