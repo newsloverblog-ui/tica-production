@@ -21,7 +21,8 @@ storage/framework/views
 database/evento_v2.0.sql
 database/schema
 deploy
-scripts
+scripts/*
+!scripts/build-frontend.mjs
 *.png
 *.jpg
 *.jpeg
