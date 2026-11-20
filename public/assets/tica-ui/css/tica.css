@@ -5632,6 +5632,18 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 @media (max-width: 700px) {
+  .page[data-page="home"] .org-copy .display {
+    width: 100%;
+    max-inline-size: none;
+    font-size: clamp(25px, 7vw, 30px);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+  }
+
+  .page[data-page="home"] .org-copy .display > span {
+    white-space: nowrap;
+  }
+
   .page[data-page="home"] .spot {
     display: grid !important;
     grid-template-columns: 112px minmax(0, 1fr) !important;
