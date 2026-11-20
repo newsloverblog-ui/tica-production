@@ -6240,6 +6240,18 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 }
 
+@media (max-width: 900px) {
+    .page[data-page="home"] .tk-copy h2 {
+        max-width: none !important;
+        font-size: clamp(23px, 8.6vw, 34px) !important;
+        letter-spacing: -.05em !important;
+    }
+
+    .page[data-page="home"] .tk-copy h2 > span {
+        white-space: nowrap;
+    }
+}
+
 #home-wall .card,
 .spot {
     transition: border-color .22s ease, transform .22s ease;
