@@ -65,4 +65,20 @@ class TicaWebsiteCmsTest extends TestCase
             $this->assertStringNotContainsString($draftText, $policies);
         }
     }
+
+    public function test_home_search_separates_event_format_from_location_and_keeps_feature_art_square(): void
+    {
+        $home = file_get_contents(resource_path('views/tica-ui/pages/home.blade.php'));
+        $discover = file_get_contents(resource_path('views/tica-ui/pages/discover.blade.php'));
+        $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        foreach (['h-format', 'd-format', 'in_person', 'online'] as $control) {
+            $this->assertStringContainsString($control, $home . $discover);
+        }
+        $this->assertStringContainsString("format==='online'", $script);
+        $this->assertStringContainsString("format==='in_person'", $script);
+        $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
+        $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);
+    }
 }

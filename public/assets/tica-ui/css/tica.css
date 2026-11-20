@@ -6923,3 +6923,135 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         grid-row: 4 !important;
     }
 }
+
+/* Event format is independent of location: users can choose online or
+   in-person events without treating "Online" as a country. */
+@media (min-width: 1181px) {
+    .page[data-page="home"] .h-in .search.ms {
+        grid-template-columns:
+            minmax(230px, 1.55fr)
+            minmax(138px, .78fr)
+            minmax(132px, .72fr)
+            minmax(142px, .78fr)
+            minmax(174px, .92fr)
+            134px !important;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+    .page[data-page="home"] .h-in .search.ms {
+        max-width: 940px !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-q { grid-column: span 2; }
+    .page[data-page="home"] .h-in .search.ms .ms-go { grid-column: 3 / 5; }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+    .page[data-page="home"] .h-in .search.ms .ms-q { grid-column: 1 / 3; }
+    .page[data-page="home"] .h-in .search.ms .ms-format { grid-column: 3; }
+    .page[data-page="home"] .h-in .search.ms .ms-format + .ms-f { grid-column: 4; }
+}
+
+@media (max-width: 700px) {
+    .page[data-page="home"] .h-in .search.ms {
+        grid-template-rows: 50px 44px !important;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-q {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-s { display: none !important; }
+    .page[data-page="home"] .h-in .search.ms .ms-format {
+        display: grid !important;
+        grid-column: 1 / -1 !important;
+        grid-row: 2 !important;
+        grid-template-columns: 18px minmax(0, 1fr) !important;
+        grid-template-rows: 12px 22px !important;
+        height: 44px !important;
+        padding: 4px 10px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-format > svg {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        align-self: center;
+        width: 18px;
+        height: 18px;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-format label.sr {
+        position: static !important;
+        grid-column: 2;
+        grid-row: 1;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+        clip: auto !important;
+        clip-path: none !important;
+        white-space: nowrap !important;
+        color: #6b778c;
+        font-size: 9px;
+        line-height: 12px;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-format > .smart-select {
+        grid-column: 2;
+        grid-row: 2;
+        height: 22px;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-format .smart-trigger {
+        font-size: 12.5px;
+        line-height: 22px;
+    }
+    .page[data-page="home"] .h-in .search.ms .ms-go {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+    }
+}
+
+/* The featured artwork uses one predictable square crop. The desktop side is
+   340px — 10px larger than the previous 330px feature height. */
+@media (min-width: 701px) {
+    .page[data-page="home"] .spot {
+        --featured-square: clamp(280px, 30vw, 340px);
+        grid-template-columns: var(--featured-square) minmax(0, 1fr) !important;
+        height: auto !important;
+        min-height: var(--featured-square) !important;
+    }
+    .page[data-page="home"] .spot-flyer {
+        position: relative !important;
+        width: var(--featured-square) !important;
+        height: var(--featured-square) !important;
+        min-height: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+    }
+    .page[data-page="home"] .spot-flyer > img,
+    .page[data-page="home"] .spot-flyer > .p {
+        position: absolute !important;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        object-fit: cover !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .page[data-page="home"] .spot {
+        grid-template-columns: clamp(134px, calc(34vw + 10px), 154px) minmax(0, 1fr) !important;
+    }
+}
+
+@media (min-width: 1180px) {
+    .page[data-page="discover"] .filters {
+        grid-template-columns:
+            minmax(220px, 1.35fr)
+            minmax(130px, .76fr)
+            minmax(125px, .72fr)
+            minmax(135px, .76fr)
+            minmax(145px, .82fr)
+            minmax(125px, .72fr)
+            minmax(150px, .88fr)
+            minmax(145px, .82fr) !important;
+    }
+}
