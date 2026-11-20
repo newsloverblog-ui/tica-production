@@ -1294,10 +1294,13 @@ window.TICA_consent=load;
   if(window.TICA_ADMIN)return;
   var page=document.querySelector('.page[data-page="policies"]');if(!page)return;
   var links=[].slice.call(page.querySelectorAll('[data-pol]'));
+  var title=page.querySelector('[data-policy-title]'),lead=page.querySelector('[data-policy-lead]'),meta=page.querySelector('[data-policy-meta]'),draft=page.querySelector('[data-policy-draft]');
+  var defaultCopy={title:title?title.textContent:'Terms and policies',lead:lead?lead.textContent:'',meta:meta?meta.textContent:''};
   function hdr(){var t=document.querySelector('.topbar');if(t)page.style.setProperty('--hdr',t.offsetHeight+'px')}hdr();window.addEventListener('resize',hdr);
   function mark(id){links.forEach(function(a){if(a.dataset.pol===id){a.setAttribute('aria-current','true');var ul=a.closest('ul');if(ul&&ul.scrollWidth>ul.clientWidth)ul.scrollTo({left:a.offsetLeft-16,behavior:'smooth'})}else a.removeAttribute('aria-current')})}
-  function jump(id,smooth){var el=document.getElementById('pol-'+id);if(!el)return;el.scrollIntoView({behavior:smooth?'smooth':'instant',block:'start'});mark(id)}
-  function fromHash(){var m=location.pathname.match(/^\/policies\/([a-z]+)/);if(m){setTimeout(function(){jump(m[1],false)},0);setTimeout(function(){var el=document.getElementById('pol-'+m[1]);if(el&&Math.abs(el.getBoundingClientRect().top)>window.innerHeight*.5)jump(m[1],false)},450)}else mark('summary')}
+  function view(id){var privacy=id==='privacy';page.dataset.policyView=privacy?'privacy':'all';if(title)title.textContent=privacy?'Privacy, simply explained':defaultCopy.title;if(lead)lead.textContent=privacy?'What TICA collects, why we need it and the choices you have.':defaultCopy.lead;if(meta)meta.textContent=privacy?'Last updated 20 November 2026':defaultCopy.meta;if(draft)draft.hidden=privacy}
+  function jump(id,smooth){var el=document.getElementById('pol-'+id);if(!el)return;view(id);if(id==='privacy')page.scrollIntoView({behavior:smooth?'smooth':'instant',block:'start'});else el.scrollIntoView({behavior:smooth?'smooth':'instant',block:'start'});mark(id)}
+  function fromHash(){var m=location.pathname.match(/^\/policies\/([a-z]+)/);if(m){view(m[1]);setTimeout(function(){jump(m[1],false)},0);setTimeout(function(){var el=document.getElementById('pol-'+m[1]);if(el&&m[1]!=='privacy'&&Math.abs(el.getBoundingClientRect().top)>window.innerHeight*.5)jump(m[1],false)},450)}else{view('all');mark('summary')}}
   window.addEventListener('tica:navigate',fromHash);fromHash();
   page.addEventListener('click',function(e){var a=e.target.closest('[data-pol]');if(!a)return;e.preventDefault();e.stopPropagation();try{history.replaceState(null,'','/policies/'+a.dataset.pol)}catch(err){}jump(a.dataset.pol,!matchMedia('(prefers-reduced-motion: reduce)').matches)},true);
   if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting)mark(en.target.id.slice(4))})},{rootMargin:'-30% 0px -60% 0px'});[].forEach.call(page.querySelectorAll('.lg-sec'),function(s){io.observe(s)})}

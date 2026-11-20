@@ -35,7 +35,7 @@
 @verbatim
 
         <form class="search ms" id="home-search" role="search" aria-label="Find events">
-          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><label for="h-q" class="sr">Search events</label><input id="h-q" type="search" placeholder="Search events or artists" autocomplete="off"></div>
+          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" type="search" placeholder="Search events or artists" aria-label="Search events" autocomplete="off"></div>
           <div class="ms-f ms-s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/><circle cx="12" cy="12" r="9"/></svg><label for="h-country" class="sr">Country</label><select id="h-country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option><option value="Online">Online</option></select></div><div class="ms-f ms-s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.5 7-11.5a7 7 0 0 0-14 0C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><label for="h-where" class="sr">City</label><select id="h-where" data-city><option value="all">All cities</option></select></div>
           <div class="ms-f ms-s ms-date"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16"/><rect x="4" y="5" width="16" height="16" rx="2.5"/></svg><label for="h-date" class="sr">Date</label><input id="h-date" type="date" aria-label="Choose event date"><input id="h-month" type="hidden" value="all"><input id="h-day" type="hidden" value="all"></div>
           <select id="h-cat" class="catselect" hidden aria-hidden="true" tabindex="-1"></select>
@@ -57,9 +57,9 @@
     <div class="spot" aria-roledescription="carousel" aria-label="Featured events">
       <div class="spot-flyer" id="spot-flyer" aria-hidden="true"></div>
       <div class="spot-body" aria-live="polite">
-        <span class="spot-kicker">Featured event</span>
+        <div class="spot-copy"><span class="spot-kicker">Featured event</span>
         <h2 id="spot-name"></h2>
-        <p id="spot-meta"></p><div class="spot-live"><div id="spot-cd"></div><div class="stk" id="spot-stock"></div></div>
+        <p id="spot-meta"></p></div><div class="spot-live"><div id="spot-cd"></div><div class="stk" id="spot-stock"></div></div>
         <div class="spot-buy">
           <b id="spot-price"></b>
           <a class="btn btn-hot" id="spot-link" href="/discover">Get tickets</a>

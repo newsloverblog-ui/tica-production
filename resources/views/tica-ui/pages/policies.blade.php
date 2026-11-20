@@ -1,10 +1,10 @@
 @verbatim
-<section class="page" data-page="policies">
+<section class="page" data-page="policies" data-policy-view="all">
 <div class="lg-head"><div class="wrap">
-  <h1 class="x-h1">Terms and policies</h1>
-  <p class="x-lead">The rules for buying tickets, running events and how we look after your information, in plain language.</p>
-  <p class="lg-meta">Last updated 7 November 2026</p>
-  <p class="draftnote">Draft for legal review. Fill in the <mark class="ph">highlighted details</mark> and have a Nigerian lawyer approve this before launch.</p>
+  <h1 class="x-h1" data-policy-title>Terms and policies</h1>
+  <p class="x-lead" data-policy-lead>The rules for buying tickets, running events and how we look after your information, in plain language.</p>
+  <p class="lg-meta" data-policy-meta>Last updated 7 November 2026</p>
+  <p class="draftnote" data-policy-draft>Draft for legal review. Fill in the <mark class="ph">highlighted details</mark> and have a Nigerian lawyer approve this before launch.</p>
 </div></div>
 <div class="wrap lg">
   <nav class="lg-nav" aria-label="On this page"><p>On this page</p><ul>
@@ -131,68 +131,71 @@
     <p>You can see the names, emails and phone numbers of people attending your events. You're responsible for how you use them, under the Nigeria Data Protection Act 2023. You may use them only to run the event and contact attendees about it. Only send marketing to attendees who agreed to hear from you. Keep the information secure, don't sell it, and delete it when you no longer need it.</p>
   </section>
 
-  <section id="pol-privacy" class="lg-sec">
+  <section id="pol-privacy" class="lg-sec privacy-policy">
     <h2>Privacy policy</h2>
-    <p>This policy explains what personal information TICA collects, why, and what you can do about it. <mark class="ph">[Company legal name]</mark> is the data controller, under the Nigeria Data Protection Act 2023.</p>
-    <h3>What we collect</h3>
-    <ul>
-      <li><b>When you buy tickets:</b> your name, email and phone number, the names and emails of other attendees you add, and your orders and tickets.</li>
-      <li><b>When you run events:</b> your name, organisation, contact details, ID for verification and the bank account for your payouts.</li>
-      <li><b>When you pay:</b> Paystack confirms whether the payment worked and gives us the payment reference, the type of card and its last four digits. We never see or store your full card number or PIN.</li>
-      <li><b>When you use the site:</b> your IP address, the approximate city it points to, your device and browser type, and the pages you visit. Some of this comes from cookies (see below).</li>
-      <li><b>When you contact us:</b> your messages and any reports you send.</li>
-    </ul>
-    <h3>Why we use it</h3>
-    <div class="lg-table three" role="table" aria-label="How we use your information">
-      <div class="lg-tr lg-th" role="row"><span role="columnheader">What we do</span><span role="columnheader">Information used</span><span role="columnheader">Our legal basis</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Sell and deliver your tickets, and check them at the gate</span><span role="cell">Name, email, phone, attendee details, orders</span><span role="cell">To carry out our contract with you</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Share your details with the event's organiser</span><span role="cell">Name, email, phone, ticket type</span><span role="cell">To carry out our contract with you</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Take payments, pay organisers and prevent fraud</span><span role="cell">Payment details, verification details, IP address</span><span role="cell">Contract, and our legitimate interest in keeping TICA safe</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Answer questions and handle refunds and reports</span><span role="cell">Contact details, orders, messages</span><span role="cell">Contract, and our legitimate interest</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Keep tax and accounting records</span><span role="cell">Orders, payments, payouts</span><span role="cell">Legal obligation</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Show events near you</span><span role="cell">Approximate city from your IP address</span><span role="cell">Your consent</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Improve the site, and show TICA ads elsewhere</span><span role="cell">Cookies, pages visited, device type</span><span role="cell">Your consent</span></div>
-      <div class="lg-tr" role="row"><span role="cell">Send news about events and offers</span><span role="cell">Email</span><span role="cell">Your consent. Every email has an unsubscribe link</span></div>
+    <p class="privacy-intro">TICA Technologies Limited uses personal information to sell and deliver tickets, support organisers and keep payments safe. We do not sell personal information.</p>
+
+    <div class="privacy-promise" aria-label="Our privacy promises">
+      <p><b>Only what we need</b><span>Information that helps us run your account, tickets and payments.</span></p>
+      <p><b>Shared with purpose</b><span>Organisers see details only for people attending their events.</span></p>
+      <p><b>You stay in control</b><span>You can ask to access, correct, download or delete your information.</span></p>
     </div>
-    <p>If we use automated checks to spot fraud, a person reviews any order before we cancel it.</p>
-    <h3>Who we share it with</h3>
-    <ul>
-      <li><b>Organisers,</b> for their own events only.</li>
-      <li><b>Paystack,</b> to process payments.</li>
-      <li><b>Service providers</b> who host the site and send our emails and texts, such as <mark class="ph">[hosting, email and SMS providers]</mark>. They act on our instructions and must keep your information secure.</li>
-      <li><b>Authorities,</b> when the law requires it, or to protect people from harm or fraud.</li>
-      <li><b>A new owner,</b> if TICA's business is sold or merged. This policy would still apply.</li>
-    </ul>
-    <p>We don't sell your personal information.</p>
-    <h3>Storing information outside Nigeria</h3>
-    <p>Some of our service providers store information outside Nigeria. When they do, we use safeguards allowed under the Nigeria Data Protection Act, such as contracts that require the same level of protection.</p>
-    <h3>How long we keep it</h3>
-    <ul>
-      <li>Account details, for as long as your account is open, then up to 12 months after you close it.</li>
-      <li>Orders, payments and payouts, for 6 years, to meet tax and accounting law.</li>
-      <li>Support messages and reports, for 2 years.</li>
-      <li>Your cookie choices, for 12 months, and records of your consent for as long as we need to show we had it.</li>
-      <li>Your approximate city, only for your visit. We don't store it.</li>
-    </ul>
-    <h3>Keeping it safe</h3>
-    <p>We encrypt information sent to and from TICA, limit which staff can see it and check our systems for weaknesses. If a breach is likely to put your rights at risk, we'll report it to the Nigeria Data Protection Commission within 72 hours of finding it. If the risk to you is high, we'll tell you directly too.</p>
-    <h3>Your rights</h3>
-    <p>Under the Nigeria Data Protection Act 2023, you can:</p>
-    <ul>
-      <li>Ask whether we hold information about you, and get a copy.</li>
-      <li>Have wrong information corrected.</li>
-      <li>Have your information deleted, unless we must keep it by law.</li>
-      <li>Ask us to limit, or object to, how we use it.</li>
-      <li>Get your information in a format you can take elsewhere.</li>
-      <li>Withdraw your consent at any time. This doesn't affect what we did before.</li>
-      <li>Not be subject to a decision made only by automated means that significantly affects you.</li>
-      <li>Complain to the <a href="https://ndpc.gov.ng" rel="noopener" target="_blank">Nigeria Data Protection Commission</a>.</li>
-    </ul>
-    <p>To use any of these rights, email <a href="mailto:hello@tica.ng">hello@tica.ng</a> with "Privacy" in the subject. We may ask you to confirm who you are, and we'll reply within 30 days.</p>
-    <h3>Children</h3>
-    <p>TICA is for people aged 18 and over. Under-18s may attend events the organiser allows, on a ticket bought by a parent or guardian. If you think a child has given us their details, email us and we'll delete them.</p>
-    <h3>Changes to this policy</h3>
-    <p>The date at the top shows when this policy last changed. If we make a significant change, we'll tell you by email or on the site before it applies.</p>
+
+    <div class="privacy-sections">
+      <section>
+        <h3>Information we collect</h3>
+        <ul>
+          <li>Your name, email, phone number and account details.</li>
+          <li>Your orders, tickets, saved events and support messages.</li>
+          <li>For organisers: identity checks, organisation and payout details.</li>
+          <li>Device, browser, IP address and security activity when you use TICA.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>How we use it</h3>
+        <ul>
+          <li>Process orders, issue tickets, check entry and handle refunds.</li>
+          <li>Pay organisers, prevent fraud and protect accounts.</li>
+          <li>Provide support and keep financial records required by law.</li>
+          <li>Use optional analytics or event recommendations only when you allow them.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Who receives it</h3>
+        <p>The organiser receives the attendee details needed to run the event. Paystack processes payments. Hosting, email and messaging providers help us operate TICA. We share information with authorities only when legally required or needed to prevent harm or fraud.</p>
+        <p>Some providers may process information outside Nigeria. They must protect it under their contracts with us.</p>
+      </section>
+      <section>
+        <h3>Payments</h3>
+        <p>Paystack handles card, bank and USSD details. TICA receives the payment status, reference and limited payment-method information. We do not store your full card number or PIN.</p>
+      </section>
+      <section>
+        <h3>How long we keep it</h3>
+        <ul>
+          <li>Account details: while your account is open, then up to 12 months.</li>
+          <li>Orders, payments and payouts: 6 years for financial records.</li>
+          <li>Support messages and reports: up to 2 years.</li>
+          <li>Security records: only as long as needed to investigate and prevent abuse.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Your choices</h3>
+        <p>You can ask for a copy of your information, correct it, download it or ask us to delete it. We may keep records required for payments, fraud prevention or law. You can unsubscribe from marketing and withdraw optional cookie permission at any time.</p>
+      </section>
+      <section>
+        <h3>Security and children</h3>
+        <p>We encrypt information in transit, limit staff access and monitor our systems. TICA accounts and purchases are for adults. A parent or guardian may buy a ticket for a child where an event allows it.</p>
+      </section>
+      <section>
+        <h3>Updates</h3>
+        <p>We will update the date above when this policy changes. If a change significantly affects you, we will explain it by email or on TICA before it takes effect.</p>
+      </section>
+    </div>
+
+    <div class="privacy-contact">
+      <div><h3>Questions or requests</h3><p>Email <a href="mailto:hello@tica.ng?subject=Privacy">hello@tica.ng</a> with “Privacy” in the subject.</p></div>
+      <p>We may confirm your identity before releasing or changing information. We normally reply within 30 days.</p>
+    </div>
   </section>
 
   <section id="pol-cookies" class="lg-sec">
