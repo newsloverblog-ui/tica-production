@@ -5767,11 +5767,11 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 
 /* Home page finishing pass: structured steps, consistent event media and
    restrained motion. Kept at the end so it wins over legacy page rules. */
-.org-benefits {
+.page[data-page="home"] .org-benefits {
     counter-reset: benefit-step;
 }
 
-.org-benefits > li {
+.page[data-page="home"] .org-benefits > li {
     counter-increment: benefit-step;
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
@@ -5779,8 +5779,8 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     align-items: start;
 }
 
-.org-benefits > li::before {
-    content: "0" counter(benefit-step);
+.page[data-page="home"] .org-benefits > li::before {
+    content: "0" counter(benefit-step) !important;
     display: grid;
     width: 40px;
     height: 40px;
@@ -5795,17 +5795,17 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     transition: background-color .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
 }
 
-.org-benefits > li > b,
-.org-benefits > li > span {
+.page[data-page="home"] .org-benefits > li > b,
+.page[data-page="home"] .org-benefits > li > span {
     grid-column: 2;
 }
 
-.org-benefits > li > b {
+.page[data-page="home"] .org-benefits > li > b {
     margin-top: 1px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .org-benefits > li:hover::before {
+    .page[data-page="home"] .org-benefits > li:hover::before {
         transform: translateY(-3px);
         border-color: var(--accent-500);
         background: var(--accent-500);
@@ -5871,32 +5871,33 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 @media (max-width: 700px) {
-    .org-benefits {
+    .page[data-page="home"] .org-benefits {
         display: grid;
         gap: 0;
         padding-top: 4px;
     }
 
-    .org-benefits > li {
+    .page[data-page="home"] .org-benefits > li {
+        display: grid;
         grid-template-columns: 38px minmax(0, 1fr);
         column-gap: 14px;
         padding: 18px 0;
         border-top: 1px solid rgba(255, 255, 255, .14);
     }
 
-    .org-benefits > li::before {
+    .page[data-page="home"] .org-benefits > li::before {
         width: 34px;
         height: 34px;
         border-radius: 9px;
         font-size: 11px;
     }
 
-    .org-benefits > li > b {
+    .page[data-page="home"] .org-benefits > li > b {
         font-size: 15px;
         line-height: 1.35;
     }
 
-    .org-benefits > li > span {
+    .page[data-page="home"] .org-benefits > li > span {
         margin-top: 3px;
         font-size: 14px;
         line-height: 1.5;
@@ -5945,24 +5946,24 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         white-space: nowrap;
     }
 
-    .spot-body h2 {
-        display: -webkit-box;
-        overflow: hidden;
+    .page[data-page="home"] .spot-body h2 {
+        display: block !important;
+        height: auto !important;
+        max-height: 56px;
+        overflow: hidden !important;
         margin: 0 !important;
         font-size: clamp(20px, 6vw, 26px) !important;
         line-height: 1.08 !important;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
     }
 
-    .spot-body > p {
-        display: -webkit-box;
-        overflow: hidden;
+    .page[data-page="home"] .spot-body > p {
+        display: block !important;
+        height: auto !important;
+        max-height: 40px;
+        overflow: hidden !important;
         margin: 0 !important;
         font-size: 13px !important;
         line-height: 1.4 !important;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
     }
 
     .spot-live {
@@ -6013,6 +6014,23 @@ body.isuser.appmode .workspace-badge { display: none !important; }
        can no longer dictate the height of the entire mobile card. */
     .band #home-wall {
         gap: 14px !important;
+    }
+
+    .page[data-page="home"] .band .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        overflow: visible;
+        margin-bottom: 20px;
+        padding: 0;
+    }
+
+    .page[data-page="home"] .band .tab {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 15px;
     }
 
     .band #home-wall .card {
@@ -6138,7 +6156,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         transition: none !important;
     }
 
-    .org-benefits > li::before,
+    .page[data-page="home"] .org-benefits > li::before,
     #home-wall .flyer img,
     .spot-flyer > img {
         transition: none !important;
