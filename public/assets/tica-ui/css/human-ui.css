@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "TICA Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin.woff2") format("woff2");
+}
+
 /* TICA interface foundation
    Flat, readable, brand-led. Decorative effects stay out of product chrome. */
 :root {
@@ -27,7 +35,7 @@ body.orgshell,
 body.orgshell-legacy {
   color: var(--tica-ink);
   background: var(--tica-page);
-  font-family: Inter, Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "TICA Inter", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -315,4 +323,268 @@ body.taa .taa-brand { background: #f1f4fa; }
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Responsive interface foundation
+   This is intentionally the final shared layer. It fixes legacy layout
+   assumptions without changing page-specific information architecture. */
+:where(
+  body.tica-control-center,
+  body.tica-front-ui,
+  body.t-app,
+  body.orgshell,
+  body.orgshell-legacy,
+  body.taa
+) *,
+:where(
+  body.tica-control-center,
+  body.tica-front-ui,
+  body.t-app,
+  body.orgshell,
+  body.orgshell-legacy,
+  body.taa
+) *::before,
+:where(
+  body.tica-control-center,
+  body.tica-front-ui,
+  body.t-app,
+  body.orgshell,
+  body.orgshell-legacy,
+  body.taa
+) *::after { box-sizing: border-box; }
+
+:where(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy, body.taa) {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+:where(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy, body.taa)
+  :where(img, svg, video, canvas, iframe) { max-width: 100%; }
+
+:where(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(img, video) { height: auto; }
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(.row, [class*="grid"], [class*="flex"], .card, .card-body, .card-header, .main-panel, .content, .page-inner, main, section, article, form) {
+  min-width: 0;
+}
+
+body.tica-admin,
+body.tica-admin :where(button, input, select, textarea),
+body.tica-front-ui,
+body.tica-front-ui :where(button, input, select, textarea) {
+  font-family: "TICA Inter", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(h1, h2, h3, h4, h5, h6) {
+  max-width: 100%;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+body.tica-control-center .page-inner,
+body.tica-organizer .page-inner {
+  width: 100%;
+  max-width: 1760px !important;
+  margin-inline: auto;
+  padding: clamp(20px, 2.4vw, 36px) !important;
+}
+
+body.tica-control-center .main-panel,
+body.tica-control-center .content,
+body.tica-organizer .main-panel,
+body.tica-organizer .content { min-width: 0; }
+
+/* Page headings and toolbars may wrap, but controls never collide. */
+:is(body.tica-control-center, body.tica-organizer)
+  :where(.page-header, .directory-page-header, .organizer-form-header, .t-page-head, .db-head) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+:is(body.tica-control-center, body.tica-organizer)
+  :where(
+    .directory-header-actions,
+    .directory-shortcuts,
+    .directory-toolbar,
+    .directory-filter,
+    .directory-export,
+    .organizer-form-actions,
+    .org-overview-actions,
+    .tica-quick-actions,
+    .t-toolbar,
+    .lg-actions,
+    .lg-range,
+    .fin-balance__actions,
+    .gl-head__actions,
+    .gl-empty__actions,
+    .rf-actions,
+    .pr-form__actions,
+    .kv-actions,
+    .tsc-actions,
+    .tica-filter-actions,
+    .tica-export-form,
+    .od-settings-actions,
+    .card-actions,
+    .modal-footer
+  ) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px !important;
+}
+
+:is(body.tica-control-center, body.tica-organizer)
+  :where(.directory-toolbar, .t-toolbar, .tica-report-toolbar) { justify-content: space-between; }
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(.btn, .t-btn, .directory-btn, button:not(.close):not([class*="icon"]), [role="button"]) {
+  max-width: 100%;
+  min-height: 40px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--tica-blue) !important;
+  outline-offset: 2px;
+}
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  :where(input, select, textarea, .form-control, .t-input) {
+  max-width: 100%;
+}
+
+:is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
+  textarea { resize: vertical; }
+
+/* Tables keep their column relationships on narrow screens and scroll inside
+   their own surface instead of forcing the entire page wider than the device. */
+:is(body.tica-control-center, body.tica-organizer)
+  :where(.table-responsive, .directory-table-wrap, .t-table-wrap, .tica-table-wrap, .dataTables_wrapper) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+:is(body.tica-control-center, body.tica-organizer)
+  :where(.table, .directory-table, .t-table) { width: 100%; }
+
+/* Menus and dialogs must remain inside the viewport. */
+:is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+  .dropdown-menu { max-width: min(360px, calc(100vw - 24px)); }
+
+:is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+  .modal-dialog { max-width: min(720px, calc(100vw - 24px)); }
+
+:is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+  .modal-content { max-height: calc(100dvh - 24px); overflow-y: auto; }
+
+body.tica-front-ui [data-tica-react],
+body.tica-front-ui #app,
+body.tica-front-ui main { min-width: 0; max-width: 100%; }
+
+body.tica-front-ui :where(.container, .container-fluid) {
+  width: 100%;
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+
+@media (max-width: 991px) {
+  body.tica-control-center .page-inner,
+  body.tica-organizer .page-inner { padding: 20px !important; }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.directory-toolbar, .directory-filter, .directory-export, .t-toolbar, .lg-range, .tica-report-filters) {
+    width: 100%;
+  }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.directory-filter, .t-toolbar, .lg-range, .tica-report-filters) > * {
+    flex: 1 1 180px;
+  }
+
+  body.tica-control-center .table-responsive > .table:not(.table-sm),
+  body.tica-organizer .table-responsive > .table:not(.table-sm),
+  body.tica-control-center .directory-table-wrap > .directory-table,
+  body.tica-organizer .t-table-wrap > .t-table { min-width: 720px; }
+}
+
+@media (max-width: 767px) {
+  body.tica-control-center .page-inner,
+  body.tica-organizer .page-inner { padding: 16px !important; }
+
+  :is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+    :where(input, select, textarea, .form-control, .t-input) { font-size: 16px !important; }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.page-header, .directory-page-header, .organizer-form-header, .t-page-head, .db-head) {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.page-header, .directory-page-header, .organizer-form-header, .t-page-head, .db-head) > * {
+    width: 100%;
+  }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(
+      .directory-header-actions,
+      .directory-shortcuts,
+      .directory-toolbar,
+      .directory-filter,
+      .directory-export,
+      .organizer-form-actions,
+      .org-overview-actions,
+      .tica-quick-actions,
+      .t-toolbar,
+      .lg-actions,
+      .lg-range,
+      .fin-balance__actions,
+      .tica-filter-actions
+    ) { width: 100%; align-items: stretch; }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.directory-header-actions, .organizer-form-actions, .org-overview-actions, .lg-actions, .fin-balance__actions) > * {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.directory-filter, .directory-export, .lg-range, .tica-report-filters) > * {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.card-header, .card-footer) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  :is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+    .modal-dialog { margin: 12px; width: auto; }
+
+  body.tica-front-ui :where(.container, .container-fluid) { padding-inline: 16px; }
+
+  body.tica-control-center .directory-table-wrap > .directory-table { min-width: 0; }
+}
+
+@media (max-width: 480px) {
+  :is(body.tica-control-center, body.tica-front-ui, body.tica-organizer)
+    :where(h1, .page-title) { font-size: clamp(26px, 9vw, 34px) !important; }
+
+  :is(body.tica-control-center, body.tica-organizer)
+    :where(.directory-stats, .org-metric-grid) { grid-template-columns: 1fr !important; }
+
+  .org-metric { border-right: 0; border-bottom: 1px solid var(--tica-line); }
+  .org-metric:last-child { border-bottom: 0; }
 }
