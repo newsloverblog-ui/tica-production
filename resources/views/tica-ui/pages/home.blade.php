@@ -9,12 +9,12 @@
   $tsOrganizerTitle = trim((string) ($tsHome['organisers_title'] ?? ''));
   $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEventScenes = [
-      ['label' => 'Concerts & shows', 'main' => '/assets/front/images/home/categories/concerts-shows.webp', 'sub' => '/assets/front/images/home/categories/parties-nightlife.webp'],
-      ['label' => 'Weddings', 'main' => '/assets/front/images/home/categories/parties-nightlife.webp', 'sub' => '/assets/front/images/home/categories/arts-culture.webp'],
-      ['label' => 'Conferences & seminars', 'main' => '/assets/front/images/home/categories/conferences-seminars.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
-      ['label' => 'Sports & fitness', 'main' => '/assets/front/images/home/categories/sports-fitness.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
-      ['label' => 'Parties & nightlife', 'main' => '/assets/front/images/home/categories/parties-nightlife.webp', 'sub' => '/assets/front/images/home/categories/concerts-shows.webp'],
-      ['label' => 'Arts & culture', 'main' => '/assets/front/images/home/categories/arts-culture.webp', 'sub' => '/assets/front/images/home/categories/conferences-seminars.webp'],
+      ['label' => 'Concerts & shows', 'main' => 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=560&h=700&q=82'],
+      ['label' => 'Weddings', 'main' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=560&h=700&q=82'],
+      ['label' => 'Conferences & seminars', 'main' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=560&h=700&q=82'],
+      ['label' => 'Sports & fitness', 'main' => 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=560&h=700&q=82'],
+      ['label' => 'Parties & nightlife', 'main' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=560&h=700&q=82'],
+      ['label' => 'Arts & culture', 'main' => 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=560&h=700&q=82'],
   ];
 @endphp
 @verbatim
