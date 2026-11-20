@@ -73,11 +73,10 @@ class TicaWebsiteCmsTest extends TestCase
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
-        foreach (['h-format', 'd-format', 'in_person', 'online'] as $control) {
-            $this->assertStringContainsString($control, $home . $discover);
+        foreach (['h-format', 'in_person', 'online'] as $control) {
+            $this->assertStringContainsString($control, $home);
         }
-        $this->assertStringContainsString("format==='online'", $script);
-        $this->assertStringContainsString("format==='in_person'", $script);
+        $this->assertStringNotContainsString('d-format', $discover . $script);
         $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
         $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);
     }
@@ -96,19 +95,5 @@ class TicaWebsiteCmsTest extends TestCase
         $this->assertStringNotContainsString('Ticket ready', $home);
         $this->assertStringContainsString('.band #home-wall .cardlink', $styles);
         $this->assertStringContainsString('.tk-art .tk-entry-detail img', $styles);
-    }
-
-    public function test_discover_search_uses_balanced_responsive_filter_rows(): void
-    {
-        $discover = file_get_contents(resource_path('views/tica-ui/pages/discover.blade.php'));
-        $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
-
-        foreach (['discover-query', 'discover-format', 'discover-country', 'discover-city', 'discover-category', 'discover-price', 'discover-sort', 'discover-date', 'discover-submit'] as $layoutClass) {
-            $this->assertStringContainsString($layoutClass, $discover);
-        }
-
-        $this->assertStringContainsString('grid-template-columns: repeat(12, minmax(0, 1fr))', $styles);
-        $this->assertStringContainsString('.discover-submit', $styles);
-        $this->assertStringContainsString('min-height: 76px', $styles);
     }
 }

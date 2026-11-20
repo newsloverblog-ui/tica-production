@@ -202,11 +202,10 @@ $('rows').innerHTML=EV.map(row).join('');
 
 /* discover filter */
 function filter(){
-  var q=$('d-q').value.trim().toLowerCase(),format=$('d-format').value,country=$('d-country').value,w=$('d-where').value,c=$('d-cat').value,p=$('d-price').value,m=$('d-month').value,day=$('d-day').value,n=0;
+  var q=$('d-q').value.trim().toLowerCase(),country=$('d-country').value,w=$('d-where').value,c=$('d-cat').value,p=$('d-price').value,m=$('d-month').value,day=$('d-day').value,n=0;
   EV.forEach(function(e){
-    var formatOk=format==='all'||(format==='online'&&(e.mode==='online'||e.mode==='hybrid'))||(format==='in_person'&&e.mode!=='online');
     var countryOk=e.mode==='online'||!e.country||e.country.toLowerCase()===country.toLowerCase();
-    var ok=(!q||(e.name+' '+e.label+' '+e.by+' '+e.city).toLowerCase().indexOf(q)!==-1)&&formatOk&&countryOk&&(w==='all'||e.city===w)&&(c==='all'||e.cat===c||!CATS[c]&&iconKey(e.cat)===c)&&(m==='all'||e.m===m)&&(day==='all'||String(e.day)===day)&&(p==='all'||(p==='free'&&e.n===0)||(p==='low'&&e.n>0&&e.n<5000)||(p==='high'&&e.n>=5000));
+    var ok=(!q||(e.name+' '+e.label+' '+e.by+' '+e.city).toLowerCase().indexOf(q)!==-1)&&countryOk&&(w==='all'||e.city===w)&&(c==='all'||e.cat===c||!CATS[c]&&iconKey(e.cat)===c)&&(m==='all'||e.m===m)&&(day==='all'||String(e.day)===day)&&(p==='all'||(p==='free'&&e.n===0)||(p==='low'&&e.n>0&&e.n<5000)||(p==='high'&&e.n>=5000));
     document.querySelector('.row[data-slug="'+e.slug+'"]').hidden=!ok;if(ok)n++;
   });
   var srt=$('d-sort').value,box=$('rows');
@@ -214,11 +213,11 @@ function filter(){
   $('count').textContent=n===1?'1 event':n+' events';
   $('empty').hidden=n!==0;
 }
-['d-q','d-format','d-country','d-where','d-cat','d-price','d-date','d-sort'].forEach(function(i){$(i).addEventListener('input',filter)});$('d-submit').addEventListener('click',filter);
-$('reset').addEventListener('click',function(){$('d-q').value='';$('d-country').value='Nigeria';$('d-date').value='';['d-format','d-where','d-cat','d-price','d-month','d-day'].forEach(function(i){$(i).value='all'});if(window.TICA_SYNC_DATE)window.TICA_SYNC_DATE('d','');['d-format','d-country','d-where','d-cat','d-price'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});filter()});
+['d-q','d-country','d-where','d-cat','d-price','d-date','d-sort'].forEach(function(i){$(i).addEventListener('input',filter)});$('d-submit').addEventListener('click',filter);
+$('reset').addEventListener('click',function(){$('d-q').value='';$('d-country').value='Nigeria';$('d-date').value='';['d-where','d-cat','d-price','d-month','d-day'].forEach(function(i){$(i).value='all'});if(window.TICA_SYNC_DATE)window.TICA_SYNC_DATE('d','');['d-country','d-where','d-cat','d-price'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});filter()});
 $('home-search').addEventListener('submit',function(e){
   e.preventDefault();
-  $('d-format').value=$('h-format').value;$('d-country').value=$('h-country').value;$('d-date').value=$('h-date').value;if(window.TICA_SYNC_SEARCH)window.TICA_SYNC_SEARCH('d',$('h-country').value,$('h-date').value);$('d-where').value=$('h-where').value;$('d-cat').value=$('h-cat').value;$('d-q').value=$('h-q').value;['d-format','d-country','d-where','d-cat'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});
+  $('d-country').value=$('h-country').value;$('d-date').value=$('h-date').value;if(window.TICA_SYNC_SEARCH)window.TICA_SYNC_SEARCH('d',$('h-country').value,$('h-date').value);$('d-where').value=$('h-where').value;$('d-cat').value=$('h-cat').value;$('d-q').value=$('h-q').value;['d-country','d-where','d-cat'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});
   $('d-price').value='all';filter();go('discover');
 });
 document.addEventListener('click',function(ev){
@@ -1155,7 +1154,7 @@ s.addEventListener('touchend',function(e){if(x===null)return;var dx=e.changedTou
 (function(){
 if(window.TICA_ADMIN)return;
 var $=function(i){return document.getElementById(i)},more=$('f-more'),bd=$('f-bd'),btn=$('f-btn'),last=null;
-var SEL=[['d-format','Event format'],['d-where','City'],['d-cat','Category'],['d-price','Price'],['d-month','Date']];
+var SEL=[['d-where','City'],['d-cat','Category'],['d-price','Price'],['d-month','Date']];
 function ui(){
   var n=0,chips='';
   SEL.forEach(function(s){var el=$(s[0]);if(el.value!=='all'){n++;chips+='<button type="button" data-clr="'+s[0]+'" aria-label="Remove filter: '+el.options[el.selectedIndex].text+'">'+el.options[el.selectedIndex].text+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'}});
