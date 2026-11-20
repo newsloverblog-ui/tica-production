@@ -3,7 +3,7 @@
   <div class="wrap a-hero">
     <h1 class="a-h1">More than tickets. A home for the people who make events happen.</h1>
     <div class="a-grid">
-      <p class="x-lead">TICA is an event ticketing platform from Owerri, Nigeria. Organisers use it to sell tickets and grow a community. Attendees use it to find where they want to be next.</p>
+      <p class="x-lead">TICA is an event ticketing platform. Organisers use it to sell tickets and grow a community. Attendees use it to find where they want to be next.</p>
       <div class="a-pics">
         <img class="ph a" data-src="https://images.unsplash.com/photo-1778847195159-874f36cf4e3b?auto=format&fit=crop&w=1400&q=72" alt="A crowd with hands raised at a live show">
         <img class="ph b" loading="lazy" data-src="https://images.unsplash.com/photo-1662858557337-48c9ecf07ee0?auto=format&fit=crop&w=600&q=72" alt="A smiling woman wearing headphones looks at her phone">
