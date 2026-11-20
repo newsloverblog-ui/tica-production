@@ -1167,18 +1167,20 @@ body.orgshell .ov{gap:16px}
 .ov-setup .ov-tick{width:18px;height:18px;background:#fff}
 .ov-setup>.t-btn{grid-column:auto;grid-row:auto;min-height:38px}
 
-/* Four related measures share one surface; audience includes conversion. */
-.ov-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:hidden;border:1px solid var(--t-line);border-radius:12px;background:#fff}
-.ov-summary .t-skel{height:112px;border-radius:0;border-left:1px solid var(--t-line)}
-.ov-summary .t-skel:first-child{border-left:0}
-.ov-summary__item{display:grid;align-content:start;gap:5px;min-width:0;min-height:112px;padding:15px 18px;border:0;border-left:1px solid var(--t-line);background:#fff;color:inherit;text-align:left;font:inherit;transition:background-color .16s ease}
+/* Four calm, scannable measures with no trend noise. */
+.ov-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;overflow:visible;border:0;border-radius:0;background:transparent}
+.ov-summary .t-skel{height:108px;border:1px solid var(--t-line);border-radius:12px;background:#fff}
+.ov-summary .t-skel:first-child{border-left:1px solid var(--t-line)}
+.ov-summary__item{position:relative;display:grid;align-content:center;gap:7px;min-width:0;min-height:108px;padding:18px 20px;overflow:hidden;border:1px solid var(--t-line);border-radius:12px;background:#fff;color:inherit;text-align:left;font:inherit;box-shadow:0 2px 10px rgba(11,36,71,.035);transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.ov-summary__item::before{position:absolute;inset:0 auto 0 0;width:4px;background:var(--t-blue);content:""}
+.ov-summary__item--tickets::before{background:#16a36a}
+.ov-summary__item--orders::before{background:#f59d62}
+.ov-summary__item--audience::before{background:#7c6ee6}
 button.ov-summary__item{cursor:pointer}
-.ov-summary__item:first-child{border-left:0}
-button.ov-summary__item:hover{background:var(--t-surface)}
-button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px solid var(--t-blue);outline-offset:-2px}
-.ov-summary__label{color:var(--t-muted);font-size:12px;font-weight:600;line-height:18px;letter-spacing:.015em}
-.ov-summary__value{overflow:hidden;color:var(--ov-ink);font-size:25px;font-weight:650;line-height:30px;letter-spacing:-.025em;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
-.ov-summary__foot{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;color:var(--t-muted);font-size:11px;line-height:16px}
+button.ov-summary__item:hover{border-color:#b8c8e1;box-shadow:0 8px 20px rgba(11,36,71,.08);transform:translateY(-1px)}
+button.ov-summary__item:focus-visible{z-index:1;outline:2px solid var(--t-blue);outline-offset:2px}
+.ov-summary__label{color:var(--t-muted);font-size:13px;font-weight:600;line-height:18px;letter-spacing:.01em}
+.ov-summary__value{overflow:hidden;color:var(--ov-ink);font-size:30px;font-weight:700;line-height:34px;letter-spacing:-.035em;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* The primary and secondary rows use the same calm rhythm. */
 .ov-row--primary,.ov-row--secondary{grid-template-columns:minmax(0,1.75fr) minmax(300px,.85fr);gap:16px}
@@ -1220,8 +1222,6 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
 
 @container ov (max-width:899px){
   .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ov-summary__item:nth-child(3),.ov-summary__item:nth-child(4),.ov-summary .t-skel:nth-child(3),.ov-summary .t-skel:nth-child(4){border-top:1px solid var(--t-line)}
-  .ov-summary__item:nth-child(3),.ov-summary .t-skel:nth-child(3){border-left:0}
   .ov-row--primary,.ov-row--secondary{grid-template-columns:1fr}
   .ov-setup{grid-template-columns:auto minmax(0,1fr) auto}
   .ov-setup .ov-steps{display:none}
@@ -1230,7 +1230,6 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
   .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ov-summary__item{min-height:100px;padding:13px 14px}
   .ov-summary__value{font-size:22px;line-height:28px}
-  .ov-summary__foot{display:grid;gap:3px}
   .ov-setup{grid-template-columns:auto minmax(0,1fr)}
   .ov-setup>.t-btn{grid-column:1/-1;width:100%;justify-content:center}
   .ov-empty--chart,.ov-empty--compact{grid-template-columns:auto minmax(0,1fr)}
@@ -1244,7 +1243,7 @@ button.ov-summary__item:focus-visible{position:relative;z-index:1;outline:2px so
   .ov-next__act .t-btn{justify-content:center}
   .ov-money__list{grid-template-columns:1fr}
 }
-@media (prefers-reduced-motion:reduce){.ov-summary__item{transition:none}}
+@media (prefers-reduced-motion:reduce){.ov-summary__item{transition:none}button.ov-summary__item:hover{transform:none}}
 .t-pager:has(>[role=status]:empty):has(>button[hidden]){display:none}
 
 /* =====================================================================

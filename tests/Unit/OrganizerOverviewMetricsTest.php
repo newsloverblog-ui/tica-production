@@ -116,8 +116,10 @@ class OrganizerOverviewMetricsTest extends TestCase
         foreach (['Audience', 'conversion', 'Available now', 'Where sales come from', 'New tracking link', 'Show as a table'] as $label) {
             $this->assertStringContainsString($label, $script.$view, $label);
         }
-        // Change against the previous period, and a chart you can hover.
-        $this->assertStringContainsString('function delta(now,prev)', $script);
+        // The cards stay concise; detailed comparison remains in the chart below.
+        $this->assertStringNotContainsString('function delta(now,prev)', $script);
+        $this->assertStringNotContainsString('ov-summary__foot', $script);
+        $this->assertStringNotContainsString('No change', $script);
         $this->assertStringContainsString("svg.addEventListener('pointermove'", $script);
         // The overview uses one integrated four-part summary instead of five repetitive cards.
         $this->assertStringContainsString('class="ov-summary"', $view);

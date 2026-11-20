@@ -296,7 +296,7 @@ function renderEvent(e){
   '<div class="tp" id="tp">'+(e.countdown?'<div class="tp-cd">'+cdFull(e)+(e.time.indexOf('confirmed')>-1?'<small>Counting to the date. The start time is still to be confirmed.</small>':'')+'</div>':'')+'<div class="tp-stock">'+stockBlock(e)+'</div>'+
   (e.dates&&e.dates.length>1?'<div class="inp tp-when"><label for="tp-date">Choose a date</label><select id="tp-date">'+e.dates.map(function(d){return '<option value="'+esc(d.value)+'"'+(d.value===when?' selected':'')+'>'+esc(d.label)+'</option>'}).join('')+'</select></div>':'')+
   '<h2>Choose your tickets</h2>'+e.tiers.map(function(t,i){var inf=tierInfo(e,i),p=tierPrice(e,i),low=!inf.unlimited&&t[2]>0&&t[2]<=Math.max(10,t[3]*.15),desc=inf.description||(inf.seatingMode==='reserved'?'Choose your seat from the live seating map.':TD[t[0]]);
-    return '<div class="tp-row"><div><span>'+esc(t[0])+'</span>'+(desc?'<em class="tdesc">'+esc(desc)+'</em>':'')+'<b>'+naira(p)+(inf.earlyBird?'<small class="tfee">Early bird, was '+naira(t[1])+'</small>':'')+(p?(e.absorb?'<small class="tfee">Fees included</small>':'<small class="tfee">+ '+naira(feeFor(p,1))+' fee</small>'):'')+'</b>'+((inf.unlimited||e.hideStock)&&t[2]>0?'':'<small class="tleft'+(low?' low':'')+(t[2]===0?' out':'')+'">'+(t[2]===0?'Sold out':(low?'Only ':'')+t[2].toLocaleString('en-NG')+' left')+'</small>')+'</div>'+(t[2]===0?'':'<div class="stepper"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Remove one '+esc(t[0])+' ticket">−</button><output id="tq'+i+'">'+qty[i]+'</output><button type="button" class="plus" data-d="1" data-i="'+i+'" aria-label="Add one '+esc(t[0])+' ticket">+</button></div>')+'</div>'}).join('')+
+    return '<div class="tp-row"><div><span>'+esc(t[0])+'</span>'+(desc?'<em class="tdesc">'+esc(desc)+'</em>':'')+'<b>'+naira(p)+(inf.earlyBird?'<small class="tfee">Early bird, was '+naira(t[1])+'</small>':'')+'</b>'+((inf.unlimited||e.hideStock)&&t[2]>0?'':'<small class="tleft'+(low?' low':'')+(t[2]===0?' out':'')+'">'+(t[2]===0?'Sold out':(low?'Only ':'')+t[2].toLocaleString('en-NG')+' left')+'</small>')+'</div>'+(t[2]===0?'':'<div class="stepper"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Remove one '+esc(t[0])+' ticket">−</button><output id="tq'+i+'">'+qty[i]+'</output><button type="button" class="plus" data-d="1" data-i="'+i+'" aria-label="Add one '+esc(t[0])+' ticket">+</button></div>')+'</div>'}).join('')+
   '<div class="tp-lines" id="tp-lines"></div>'+
   (e.tiers.some(function(t){return t[1]>0})?'<form class="tp-code" id="tp-code"><label for="code">Discount code</label><div><input id="code" type="text" placeholder="Enter code" autocomplete="off" value="'+esc(disc?disc.code:'')+'"><button class="btn btn-line" type="submit">Apply</button></div><p class="hint" id="code-msg" role="status">'+(disc?esc(disc.code)+' applied.':'Enter a discount code if you have one.')+'</p></form>':'')+
   '<button class="btn btn-hot tp-go" type="button" id="tp-go" disabled>Continue</button></div>';
@@ -1383,31 +1383,18 @@ function compact(n){n=Number(n||0);var a=Math.abs(n);return a>=1e9?(n/1e9).toFix
 function money(n){return N(n)}
 function moneyShort(n){var s=N(0).replace(/[\d.,\s]+/g,'');return s+compact(n)}
 function perLabel(){return OV.range==='all'?'all time':'the last '+OV.range+' days'}
-function delta(now,prev){
-  if(prev==null||OV.range==='all')return '';
-  if(!prev&&!now)return '<span class="ov-delta is-flat">No change</span>';
-  if(!prev)return '<span class="ov-delta is-up"><span aria-hidden="true">▲</span> New</span>';
-  var p=Math.round((now-prev)/prev*100),cls=p>0?'is-up':p<0?'is-down':'is-flat';
-  return '<span class="ov-delta '+cls+'"><span aria-hidden="true">'+(p>0?'▲':p<0?'▼':'•')+'</span> '+Math.abs(p)+'%<span class="t-sr"> '+(p>0?'up':p<0?'down':'unchanged')+' on the previous '+OV.range+' days</span></span>';
-}
-function spark(vals){
-  if(!vals.length||!vals.some(Boolean))return '';
-  var w=96,h=28,max=Math.max.apply(null,vals.concat([1])),step=vals.length>1?w/(vals.length-1):w;
-  var pts=vals.map(function(v,i){return (i*step).toFixed(1)+','+(h-2-(v/max)*(h-4)).toFixed(1)}).join(' ');
-  return '<svg class="ov-spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true"><polyline points="'+pts+'"/></svg>';
-}
 function chartRows(){return (D.chart&&D.chart[OV.range])||[]}
 function drawOverviewKpis(range){
   if(range)OV.range=range;
-  var k=D.kpisByRange&&D.kpisByRange[OV.range]||D.kpis||{},pv=k.prev||null,rate=k.views?Math.min(999,Math.round(k.sold/k.views*1000)/10):0,aov=k.orders?k.gross/k.orders:0;
+  var k=D.kpisByRange&&D.kpisByRange[OV.range]||D.kpis||{};
   var cards=[
-    ['Revenue',money(k.gross),delta(k.gross,pv&&pv.gross),'Paid ticket sales',CAN.orders?'orders':'','money'],
-    ['Tickets',nf(k.sold),delta(k.sold,pv&&pv.sold),'Paid and free issued','tickets','tickets'],
-    ['Orders',nf(k.orders),delta(k.orders,pv&&pv.orders),k.orders?'Average '+money(aov):'No completed orders',CAN.orders?'orders':'','orders'],
-    ['Audience',nf(k.views),delta(k.views,pv&&pv.views),rate+'% conversion',CAN.promote?'promote':'','audience']
+    ['Revenue',money(k.gross),CAN.orders?'orders':'','money'],
+    ['Tickets',nf(k.sold),'tickets','tickets'],
+    ['Orders',nf(k.orders),CAN.orders?'orders':'','orders'],
+    ['Audience',nf(k.views),CAN.promote?'promote':'','audience']
   ];
-  $('db-kpis').innerHTML=cards.map(function(c){var tag=c[4]?'button type="button" data-panel="'+c[4]+'"':'div';
-    return '<'+tag+' class="ov-summary__item ov-summary__item--'+c[5]+'"><span class="ov-summary__label">'+c[0]+'</span><span class="ov-summary__value">'+esc(c[1])+'</span><span class="ov-summary__foot">'+c[2]+'<span>'+esc(c[3])+'</span></span></'+(c[4]?'button':'div')+'>'}).join('');
+  $('db-kpis').innerHTML=cards.map(function(c){var tag=c[2]?'button type="button" data-panel="'+c[2]+'" aria-label="Open '+c[0]+'"':'div';
+    return '<'+tag+' class="ov-summary__item ov-summary__item--'+c[3]+'"><span class="ov-summary__label">'+c[0]+'</span><span class="ov-summary__value">'+esc(c[1])+'</span></'+(c[2]?'button':'div')+'>'}).join('');
 }
 function drawChart(range){
   if(range)OV.range=range;

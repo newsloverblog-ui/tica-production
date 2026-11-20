@@ -21,7 +21,7 @@
 
         <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
 
-        <!-- One performance rail for the chosen period, with change against the period before. -->
+        <!-- One concise performance summary for the chosen period. -->
         <div class="ov-summary" id="db-kpis" aria-live="polite">
           <span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span>
         </div>

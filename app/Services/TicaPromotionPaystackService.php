@@ -30,11 +30,12 @@ class TicaPromotionPaystackService
                 return [$campaign, $existing, false];
             }
             $reference = 'tica-promo-' . Str::lower(Str::random(28));
+            $paymentEmail = $this->paymentEmail((string) $campaign->organizer->email);
             $intent = PaymentIntent::create([
                 'gateway' => 'paystack', 'reference' => $reference, 'event_id' => $campaign->event_id, 'customer_id' => null,
                 'status' => 'initializing', 'amount' => $campaign->price, 'currency' => $campaign->currency,
-                'email' => $campaign->organizer->email,
-                'payload' => ['payment_kind' => 'promotion', 'campaign_id' => $campaign->id, 'organizer_id' => $organizerId, 'price' => (float) $campaign->price, 'tax' => 0, 'currencyText' => $campaign->currency, 'email' => $campaign->organizer->email],
+                'email' => $paymentEmail,
+                'payload' => ['payment_kind' => 'promotion', 'campaign_id' => $campaign->id, 'organizer_id' => $organizerId, 'price' => (float) $campaign->price, 'tax' => 0, 'currencyText' => $campaign->currency, 'email' => $paymentEmail],
                 'expires_at' => now()->addDay(),
             ]);
             $metadata['payment_intent_id'] = $intent->id;
@@ -45,7 +46,7 @@ class TicaPromotionPaystackService
         $reference = $intent->reference;
         try {
             $response = ($client ?: new PaystackGatewayClient())->initializeTransaction(
-                $reference, (string) $campaign->organizer->email, (float) $campaign->price, (string) $campaign->currency,
+                $reference, (string) $intent->email, (float) $campaign->price, (string) $campaign->currency,
                 route('tica.promotion.paystack.callback'), ['payment_kind' => 'promotion', 'campaign_id' => $campaign->id]
             );
             if ((string) data_get($response, 'data.reference') !== $reference) throw new RuntimeException('Paystack returned a different transaction reference.');
@@ -153,5 +154,15 @@ class TicaPromotionPaystackService
         $intent = PaymentIntent::query()->where('gateway', 'paystack')->where('reference', $reference)->firstOrFail();
         if (($intent->payload['payment_kind'] ?? null) !== 'promotion') throw new RuntimeException('The payment reference is not a promotion payment.');
         return $intent;
+    }
+
+    private function paymentEmail(string $organizerEmail): string
+    {
+        foreach ([$organizerEmail, (string) config('mail.from.address'), 'tickets@tica.ng'] as $candidate) {
+            $candidate = mb_strtolower(trim($candidate));
+            if (filter_var($candidate, FILTER_VALIDATE_EMAIL) !== false) return $candidate;
+        }
+
+        return 'tickets@tica.ng';
     }
 }
