@@ -54,4 +54,15 @@ class TicaWebsiteCmsTest extends TestCase
             $this->assertStringNotContainsString('onesignal', strtolower(file_get_contents($path)), $path);
         }
     }
+
+    public function test_public_policies_have_final_company_details_without_draft_placeholders(): void
+    {
+        $policies = file_get_contents(resource_path('views/tica-ui/pages/policies.blade.php'));
+
+        $this->assertStringContainsString('TICA Innovations', $policies);
+        $this->assertStringContainsString('Paul Unigwe', $policies);
+        foreach (['Draft for legal review', '[company legal name]', '[analytics tool]', '[ad platforms]', 'Nigeria Data Protection Commission', 'Federal Competition and Consumer Protection Commission'] as $draftText) {
+            $this->assertStringNotContainsString($draftText, $policies);
+        }
+    }
 }

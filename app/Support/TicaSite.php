@@ -87,7 +87,7 @@ final class TicaSite
           ['title' => 'Explore', 'links' => [['label' => 'Discover events', 'url' => '/discover'], ['label' => 'How TICA works', 'url' => '/how'], ['label' => 'About us', 'url' => '/about']]],
           ['title' => 'Organisers', 'links' => [['label' => 'Create an event', 'url' => '/create'], ['label' => 'Pricing', 'url' => '/pricing'], ['label' => 'FAQ', 'url' => '/how#faq']]],
         ],
-        'copyright' => '© {year} TICA Technologies Limited. All rights reserved.',
+        'copyright' => '© {year} TICA Innovations. All rights reserved.',
       ],
       'contact' => [
         'phone' => '0707 379 7999',
@@ -124,6 +124,11 @@ final class TicaSite
       $site[$area] = array_is_list($value) ? $stored[$area] : array_replace($value, $stored[$area]);
     }
     $site['home']['sections'] = array_replace(array_map(fn () => true, self::SECTIONS), array_map('boolval', (array) $site['home']['sections']));
+    $site['footer']['copyright'] = str_replace(
+      'TICA Technologies Limited',
+      'TICA Innovations',
+      (string) ($site['footer']['copyright'] ?? '')
+    );
     $order = array_values(array_unique(array_filter((array) ($site['home']['section_order'] ?? []), fn ($key) => isset(self::SECTIONS[$key]))));
     $site['home']['section_order'] = array_values(array_merge($order, array_diff(array_keys(self::SECTIONS), $order)));
 

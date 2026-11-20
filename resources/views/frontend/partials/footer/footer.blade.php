@@ -5,5 +5,5 @@
     <div><h2>{{ __('Organisers') }}</h2><ul><li><a href="{{ route('organizer.signup') }}">{{ __('Create an event') }}</a></li><li><a href="{{ route('pricing') }}">{{ __('Pricing') }}</a></li><li><a href="{{ Auth::guard('organizer')->check() ? route('organizer.dashboard') : route('organizer.login') }}">{{ __('Dashboard') }}</a></li></ul></div>
     <div><h2>{{ __('TICA') }}</h2><ul><li><a href="{{ route('about') }}">{{ __('About') }}</a></li><li><a href="{{ route('contact') }}">{{ __('Contact') }}</a></li>@foreach($quickLinkInfos->take(1) as $quickLinkInfo)<li><a href="{{ $quickLinkInfo->url }}">{{ __('Terms and policies') }}</a></li>@endforeach</ul></div>
   </div>
-  <div class="ft-base"><div class="wrap"><span>© {{ date('Y') }} TICA Technologies Limited</span><span>{{ __('Made for the culture in Lagos') }}</span></div></div>
+  <div class="ft-base"><div class="wrap"><span>© {{ date('Y') }} TICA Innovations</span><span>{{ __('Made for the culture in Lagos') }}</span></div></div>
 </footer>

@@ -2,9 +2,6 @@
 <section class="page" data-page="policies" data-policy-view="all">
 <div class="lg-head"><div class="wrap">
   <h1 class="x-h1" data-policy-title>Terms and policies</h1>
-  <p class="x-lead" data-policy-lead>The rules for buying tickets, running events and how we look after your information, in plain language.</p>
-  <p class="lg-meta" data-policy-meta>Last updated 7 November 2026</p>
-  <p class="draftnote" data-policy-draft>Draft for legal review. Fill in the <mark class="ph">highlighted details</mark> and have a Nigerian lawyer approve this before launch.</p>
 </div></div>
 <div class="wrap lg">
   <nav class="lg-nav" aria-label="On this page"><p>On this page</p><ul>
@@ -15,7 +12,7 @@
     <li><a href="/policies/organisers" data-pol="organisers">Organiser terms</a></li>
     <li><a href="/policies/privacy" data-pol="privacy">Privacy policy</a></li>
     <li><a href="/policies/cookies" data-pol="cookies">Cookies and location</a></li>
-    <li><a href="/policies/contact" data-pol="contact">Contact and complaints</a></li>
+    <li><a href="/policies/contact" data-pol="contact">Contact</a></li>
   </ul></nav>
 
   <div class="policy lg-body">
@@ -33,7 +30,7 @@
   <section id="pol-terms" class="lg-sec">
     <h2>Terms of use</h2>
     <h3>Who we are</h3>
-    <p>TICA is run by <mark class="ph">[company legal name]</mark>, a company registered in Nigeria with RC number <mark class="ph">[RC number]</mark>, at <mark class="ph">[registered address]</mark>, Owerri, Imo State. In these terms, "TICA", "we" and "us" mean that company.</p>
+    <p>TICA is run by TICA Innovations, a company registered in Nigeria. In these terms, "TICA", "we" and "us" mean TICA Innovations.</p>
     <p>TICA is a ticketing platform. We sell tickets on behalf of event organisers. The organiser runs the event and is responsible for it. Each event page shows who the organiser is.</p>
     <h3>Agreeing to these terms</h3>
     <p>By using TICA or buying a ticket, you agree to these terms. If you run events, the organiser terms below also apply to you. If you don't agree, please don't use TICA.</p>
@@ -57,9 +54,9 @@
     <p>We're responsible for selling and delivering your tickets and handling your payment as these terms describe. The organiser is responsible for the event itself, including what happens at the venue, the line-up and safety on the day.</p>
     <p>As far as the law allows, our total responsibility to you for any order is limited to the amount you paid for that order. Nothing in these terms limits responsibility that the law doesn't allow us to limit, including for death or injury caused by our negligence, or your rights under the Federal Competition and Consumer Protection Act 2018.</p>
     <h3>Changes to these terms</h3>
-    <p>We may update these terms. The date at the top shows when they last changed. If a change affects you significantly, we'll tell you by email before it applies. Orders already placed follow the terms in force when you bought.</p>
+    <p>We may update these terms. If a change affects you significantly, we'll tell you by email before it applies. Orders already placed follow the terms in force when you bought.</p>
     <h3>Law and disputes</h3>
-    <p>These terms are governed by the laws of the Federal Republic of Nigeria. If something goes wrong, please contact us first so we can try to fix it. You can also complain to the Federal Competition and Consumer Protection Commission. Any dispute will be decided by the courts of Nigeria.</p>
+    <p>These terms are governed by the laws of the Federal Republic of Nigeria. If something goes wrong, please contact us first so we can try to fix it. Any dispute will be decided by the courts of Nigeria.</p>
   </section>
 
   <section id="pol-tickets" class="lg-sec">
@@ -133,7 +130,7 @@
 
   <section id="pol-privacy" class="lg-sec privacy-policy">
     <h2>Privacy policy</h2>
-    <p class="privacy-intro">TICA Technologies Limited uses personal information to sell and deliver tickets, support organisers and keep payments safe. We do not sell personal information.</p>
+    <p class="privacy-intro">TICA Innovations uses personal information to sell and deliver tickets, support organisers and keep payments safe. We do not sell personal information.</p>
 
     <div class="privacy-promise" aria-label="Our privacy promises">
       <p><b>Only what we need</b><span>Information that helps us run your account, tickets and payments.</span></p>
@@ -188,7 +185,7 @@
       </section>
       <section>
         <h3>Updates</h3>
-        <p>We will update the date above when this policy changes. If a change significantly affects you, we will explain it by email or on TICA before it takes effect.</p>
+        <p>We may update this policy. If a change significantly affects you, we will explain it by email or on TICA before it takes effect.</p>
       </section>
     </div>
 
@@ -208,24 +205,21 @@
       <div class="lg-tr" role="row"><span role="cell"><code>tica_consent_v1</code></span><span role="cell">Remembers your cookie choices</span><span role="cell">Essential</span><span role="cell">12 months</span></div>
       <div class="lg-tr" role="row"><span role="cell">Paystack</span><span role="cell">Payment security and fraud checks inside Paystack's window</span><span role="cell">Essential, set by Paystack</span><span role="cell">Set by Paystack</span></div>
       <div class="lg-tr" role="row"><span role="cell"><code>tica_city</code></span><span role="cell">Remembers your approximate city to show events near you</span><span role="cell">Personalisation</span><span role="cell">Your visit only</span></div>
-      <div class="lg-tr" role="row"><span role="cell"><mark class="ph">[analytics tool]</mark></span><span role="cell">Counts visits and shows which pages are used</span><span role="cell">Analytics</span><span role="cell"><mark class="ph">[duration]</mark></span></div>
-      <div class="lg-tr" role="row"><span role="cell"><mark class="ph">[ad platforms]</mark></span><span role="cell">Shows TICA events in ads on other sites</span><span role="cell">Marketing</span><span role="cell"><mark class="ph">[duration]</mark></span></div>
     </div>
     <h3>How we work out your location</h3>
     <p>If you allow personalisation, we estimate your city from your internet connection's IP address, to suggest events nearby. This is approximate and city-level only. We don't use your phone's GPS unless you choose "Use my location" in search, and we don't store your location.</p>
   </section>
 
   <section id="pol-contact" class="lg-sec">
-    <h2>Contact and complaints</h2>
+    <h2>Contact</h2>
     <ul class="lg-contact">
       <li><b>Tickets and refunds</b><a href="mailto:tickets@tica.ng">tickets@tica.ng</a></li>
       <li><b>Privacy and everything else</b><a href="mailto:hello@tica.ng">hello@tica.ng</a></li>
       <li><b>Report an event</b><a href="mailto:reports@tica.ng">reports@tica.ng</a></li>
       <li><b>Phone</b><a href="tel:+2347073797999">0707 379 7999</a></li>
-      <li><b>Post</b><span><mark class="ph">[company legal name and registered address]</mark></span></li>
-      <li><b>Data protection officer</b><span><mark class="ph">[name and email]</mark></span></li>
+      <li><b>Company</b><span>TICA Innovations</span></li>
+      <li><b>Data protection officer</b><span>Paul Unigwe</span></li>
     </ul>
-    <p>If you're not happy with our answer, you can complain to the <a href="https://ndpc.gov.ng" rel="noopener" target="_blank">Nigeria Data Protection Commission</a> about privacy, or to the <a href="https://fccpc.gov.ng" rel="noopener" target="_blank">Federal Competition and Consumer Protection Commission</a> about a purchase.</p>
   </section>
   </div>
 </div>
