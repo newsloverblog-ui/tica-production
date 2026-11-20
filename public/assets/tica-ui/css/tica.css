@@ -4243,10 +4243,8 @@ button.od-tile:hover,a.od-tile:hover{border-color:var(--c-blue-line)!important;b
 .ce-side .btn-hot{background:var(--c-blue);border-color:var(--c-blue);color:#fff;border-radius:10px;box-shadow:none}
 @media (max-width:860px){.ce-shell.has-side{grid-template-columns:minmax(0,1fr)}.ce-shell.has-side .ce-side{position:sticky;top:var(--hdr,64px);z-index:5;min-width:0}.ce-shell.has-side .ce-side .od-side{height:auto;position:static}}
 
-/* Working screens (organiser dashboard, create event, check-in, buyer
-   account) use the device's own interface font, like real product apps:
-   SF Pro on Apple, Segoe UI on Windows, Roboto on Android. */
-:root{--ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+/* Keep the public site and product workspaces on the same TICA type system. */
+:root{--ui:"Montserrat",system-ui,sans-serif}
 .tica-promo-popup{width:min(92vw,720px);max-height:88vh;padding:0;border:0;border-radius:20px;background:#fff;color:#0b2447;box-shadow:0 28px 80px rgba(5,20,44,.28);overflow:hidden}
 .tica-promo-popup::backdrop{background:rgba(5,20,44,.55);backdrop-filter:blur(3px)}
 .tica-promo-popup>img{width:100%;max-height:290px;object-fit:cover;background:#edf3fb}
