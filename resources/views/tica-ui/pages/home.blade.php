@@ -101,18 +101,19 @@
   <!-- Organisers -->
 @endverbatim
   <div class="org"{!! $tsOff('organisers') !!}><div class="wrap org-in">
-    <div class="org-art duo-art">
-      <div class="da-main da-girl"><img src="{{ asset('assets/tica-ui/img/tica-girl-1100.webp') }}" srcset="{{ asset('assets/tica-ui/img/tica-girl-640.webp') }} 640w, {{ asset('assets/tica-ui/img/tica-girl-1100.webp') }} 1100w" sizes="(max-width: 900px) 80vw, 520px" width="1100" height="1269" loading="lazy" decoding="async" alt="A smiling TICA fan holding up her phone with a ticket QR code"></div>
-      <div class="da-sub da-crowd"><img data-src="https://images.unsplash.com/photo-1763598944959-62692173594c?auto=format&fit=crop&w=560&h=700&q=72" width="560" height="700" loading="lazy" decoding="async" alt="Fans with their phones up at a live show"></div>
-      <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>2 VIP tickets just sold</span>
+    <div class="org-visual" aria-label="A TICA ticket ready to scan at a live event">
+      <span class="org-visual-accent" aria-hidden="true"></span>
+      <div class="org-portrait"><img src="{{ asset('assets/tica-ui/img/tica-girl-1100.webp') }}" srcset="{{ asset('assets/tica-ui/img/tica-girl-640.webp') }} 640w, {{ asset('assets/tica-ui/img/tica-girl-1100.webp') }} 1100w" sizes="(max-width: 900px) 86vw, 560px" width="1100" height="1269" loading="lazy" decoding="async" alt="A smiling TICA host holding a phone with a ticket QR code"></div>
+      <div class="org-crowd"><img data-src="https://images.unsplash.com/photo-1763598944959-62692173594c?auto=format&fit=crop&w=640&h=760&q=78" width="640" height="760" loading="lazy" decoding="async" alt="Guests enjoying a live event"></div>
+      <span class="org-sale"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg><span>2 VIP tickets just sold</span></span>
     </div>
-    <div>
+    <div class="org-copy">
       <h2 class="display">{{ $tsHome['organisers_title'] }}</h2>
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       @if ($tsHome['organisers_points'])<ul class="org-list">@foreach ($tsHome['organisers_points'] as $tsP)
-        <li><b>{{ $tsP['title'] }}</b>@if ($tsP['text'])<span>{{ $tsP['text'] }}</span>@endif</li>@endforeach
+        <li><strong>{{ $tsP['title'] }}</strong>@if ($tsP['text'])<span>{{ $tsP['text'] }}</span>@endif</li>@endforeach
       </ul>@endif
-      <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
+      <div class="btns org-actions"><a class="btn org-primary" href="/create">Create an event</a><a class="btn org-secondary" href="/pricing">See pricing</a></div>
     </div>
   </div></div>
 @verbatim
