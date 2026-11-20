@@ -6595,3 +6595,29 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         transition: none !important;
     }
 }
+
+/* Keep the ticket promise to two complete lines without crowding the artwork. */
+@media (min-width: 901px) {
+    .page[data-page="home"] .tk {
+        grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr) !important;
+        gap: clamp(44px, 5vw, 72px) !important;
+    }
+
+    .page[data-page="home"] .tk-art {
+        max-width: 610px !important;
+    }
+
+    .page[data-page="home"] .tk-copy {
+        max-width: 640px !important;
+    }
+
+    .page[data-page="home"] .tk-copy h2 {
+        max-width: none !important;
+        font-size: clamp(34px, 3.05vw, 44px) !important;
+        letter-spacing: -.045em !important;
+    }
+
+    .page[data-page="home"] .tk-copy h2 > span {
+        white-space: nowrap;
+    }
+}
