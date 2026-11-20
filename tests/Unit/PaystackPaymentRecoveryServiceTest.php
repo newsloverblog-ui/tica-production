@@ -91,6 +91,26 @@ class PaystackPaymentRecoveryServiceTest extends TestCase
         $this->assertSame(1, $intent->fresh()->verification_attempts);
     }
 
+    public function test_verified_payment_with_fulfillment_error_remains_safely_recoverable(): void
+    {
+        $intent = $this->intent('success-ref');
+        $client = $this->clientReturning('success-ref', $this->successfulGatewayPayment());
+
+        $outcome = (new PaystackPaymentRecoveryService())->attempt(
+            $intent,
+            fn () => throw new \LogicException('Synthetic ledger invariant failure.'),
+            $client
+        );
+
+        $this->assertSame('verification_required', $outcome['status']);
+        $this->assertStringContainsString('verified your payment', $outcome['message']);
+        $this->assertSame('verification_required', $intent->fresh()->status);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payment.fulfillment_retry_required',
+            'subject_id' => $intent->id,
+        ]);
+    }
+
     public function test_verification_mismatch_fails_closed_and_is_audited(): void
     {
         $intent = $this->intent('mismatch-ref');

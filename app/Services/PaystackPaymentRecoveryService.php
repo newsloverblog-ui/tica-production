@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\PaymentIntent;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class PaystackPaymentRecoveryService
 {
@@ -46,7 +48,43 @@ class PaystackPaymentRecoveryService
                 return ['status' => 'failed', 'message' => 'We could not safely match this payment to the checkout. Support has been alerted.'];
             }
 
-            $result = $fulfill();
+            try {
+                $result = $fulfill();
+            } catch (Throwable $exception) {
+                $intent->refresh();
+                if ($intent->status !== 'completed') {
+                    $intent->forceFill([
+                        'status' => 'verification_required',
+                        'last_error' => 'Paystack verified the payment, but ticket finalization needs to be retried.',
+                    ])->save();
+                }
+
+                Log::error('Verified Paystack payment is awaiting ticket finalization.', [
+                    'payment_intent_id' => $intent->id,
+                    'reference' => $intent->reference,
+                    'exception_type' => $exception::class,
+                    'exception_code' => $exception->getCode(),
+                ]);
+                app(IncidentAlertService::class)->alert(
+                    'paystack-fulfillment-retry:' . $intent->id,
+                    'A verified Paystack payment is awaiting ticket finalization.', [
+                        'reference' => $intent->reference,
+                        'payment_intent_id' => $intent->id,
+                    ]
+                );
+                AuditLogger::record(
+                    'payment.fulfillment_retry_required',
+                    $intent,
+                    [],
+                    ['status' => 'verification_required'],
+                    ['gateway' => 'paystack', 'reference' => $intent->reference]
+                );
+
+                return [
+                    'status' => 'verification_required',
+                    'message' => 'Paystack verified your payment. TICA is still finalizing your ticket; no second charge was created. Check again shortly.',
+                ];
+            }
             $intent->refresh();
             if ($intent->status === 'completed') {
                 return $this->completed($intent, (string) ($result['status'] ?? 'completed'));

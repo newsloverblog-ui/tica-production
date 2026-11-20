@@ -61,6 +61,7 @@
   @else
     @includeIf('frontend.partials.styles')
   @endif
+  @yield('style')
   @yield('custom-style')
   @vite(['resources/css/tica-front.css'])
   <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">

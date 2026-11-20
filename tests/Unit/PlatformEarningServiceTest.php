@@ -7,7 +7,6 @@ use App\Services\PlatformEarningService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use LogicException;
 use Tests\TestCase;
 
 class PlatformEarningServiceTest extends TestCase
@@ -45,12 +44,14 @@ class PlatformEarningServiceTest extends TestCase
         $this->assertTrue($locked->is($earning));
     }
 
-    public function test_missing_authoritative_row_fails_closed(): void
+    public function test_missing_authoritative_row_is_repaired_when_singleton_constraint_exists(): void
     {
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('exactly one');
+        $locked = DB::transaction(fn () => app(PlatformEarningService::class)->lock());
 
-        DB::transaction(fn () => app(PlatformEarningService::class)->lock());
+        $this->assertSame(1, (int) $locked->singleton_key);
+        $this->assertSame(0.0, (float) $locked->total_revenue);
+        $this->assertSame(0.0, (float) $locked->total_earning);
+        $this->assertDatabaseCount('earnings', 1);
     }
 
     public function test_legacy_duplicate_rows_fail_closed(): void
@@ -62,7 +63,7 @@ class PlatformEarningServiceTest extends TestCase
         Earning::create(['total_revenue' => 100, 'total_earning' => 25]);
         Earning::create(['total_revenue' => 200, 'total_earning' => 50]);
 
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('exactly one');
 
         DB::transaction(fn () => app(PlatformEarningService::class)->lock());

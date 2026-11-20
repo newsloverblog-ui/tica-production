@@ -632,8 +632,8 @@ class PaystackController extends Controller
                 ->first();
             if ($failedIntent) {
                 $failedIntent->update([
-                    'status' => 'failed',
-                    'last_error' => 'Payment processing failed; inspect the correlated exception report.',
+                    'status' => 'verification_required',
+                    'last_error' => 'Paystack verified the payment, but ticket finalization needs to be retried.',
                 ]);
             }
             throw $e;

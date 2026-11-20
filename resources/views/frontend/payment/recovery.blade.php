@@ -16,9 +16,8 @@
       margin: 0 auto;
       padding: clamp(28px, 5vw, 52px);
       border: 1px solid #e4e7ee;
-      border-radius: 24px;
+      border-radius: 16px;
       background: #fff;
-      box-shadow: 0 20px 55px rgba(8, 20, 38, .08);
     }
     .payment-recovery-mark {
       display: grid;
@@ -26,7 +25,7 @@
       height: 56px;
       margin-bottom: 24px;
       place-items: center;
-      border-radius: 18px;
+      border-radius: 12px;
       color: #081426;
       background: #fe9b59;
       font-size: 22px;
@@ -51,7 +50,7 @@
       overflow: hidden;
       margin-bottom: 24px;
       border: 1px solid #e4e7ee;
-      border-radius: 16px;
+      border-radius: 12px;
       background: #e4e7ee;
     }
     .payment-recovery-summary > div {
@@ -91,17 +90,17 @@
       justify-content: center;
       padding: 12px 21px;
       border: 1px solid #081426;
-      border-radius: 999px;
+      border-radius: 10px;
       color: #fff;
       background: #081426;
       font-weight: 700;
-      transition: transform .2s ease, box-shadow .2s ease;
+      transition: background-color .18s ease, border-color .18s ease;
     }
     .payment-recovery-actions .action:hover,
     .payment-recovery-actions .action:focus {
       color: #fff;
-      transform: translateY(-1px);
-      box-shadow: 0 9px 24px rgba(8, 20, 38, .16);
+      background: #142847;
+      border-color: #142847;
     }
     .payment-recovery-actions .action.secondary { color: #081426; background: #fff; }
     .payment-recovery-note {
@@ -112,7 +111,7 @@
     }
     @media (max-width: 575px) {
       .payment-recovery-shell { padding: 42px 0 72px; }
-      .payment-recovery-card { border-radius: 18px; }
+      .payment-recovery-card { border-radius: 14px; }
       .payment-recovery-summary { grid-template-columns: 1fr; }
       .payment-recovery-actions, .payment-recovery-actions form,
       .payment-recovery-actions .action { width: 100%; }
@@ -124,6 +123,15 @@
 @endsection
 
 @section('content')
+  @php
+    $statusLabels = [
+      'initialized' => __('Awaiting confirmation'),
+      'processing' => __('Finalizing ticket'),
+      'verification_required' => __('Action needed'),
+      'failed' => __('Not completed'),
+      'expired' => __('Expired'),
+    ];
+  @endphp
   <main class="payment-recovery-shell">
     <div class="container">
       <section class="payment-recovery-card" aria-labelledby="payment-recovery-title">
@@ -148,7 +156,7 @@
           </div>
           <div>
             <span>{{ __('Status') }}</span>
-            <strong>{{ __(ucfirst($intent->status)) }}</strong>
+            <strong>{{ $statusLabels[$intent->status] ?? __(ucfirst(str_replace('_', ' ', $intent->status))) }}</strong>
           </div>
           <div>
             <span>{{ __('Email') }}</span>
@@ -161,7 +169,7 @@
         </div>
 
         <div class="payment-recovery-actions">
-          @unless (in_array($intent->status, ['failed', 'expired'], true))
+          @unless ($intent->status === 'expired')
             <form method="POST" action="{{ $verifyUrl }}">
               @csrf
               <button class="action" type="submit">
