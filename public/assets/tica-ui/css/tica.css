@@ -5671,14 +5671,14 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 .page[data-page=home] .event-reel{
     position:relative;
     min-height:430px;
-    padding:0 0 56px 44px!important;
+    padding:0 0 42px 44px!important;
     isolation:isolate;
 }
 
 .page[data-page=home] .event-reel-stage{
     position:absolute;
     z-index:1;
-    inset:0 0 56px 44px;
+    inset:0 0 42px 44px;
 }
 
 .page[data-page=home] .event-reel-slide{
@@ -5722,7 +5722,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 
 .page[data-page=home] .event-reel-slide .da-sub{
     left:-44px;
-    bottom:-56px;
+    bottom:-42px;
 }
 
 .page[data-page=home] .event-reel-slide figcaption{
@@ -5737,32 +5737,6 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     font-size:12px;
     font-weight:650;
     letter-spacing:.01em;
-}
-
-.page[data-page=home] .event-reel-tabs{
-    position:absolute;
-    z-index:5;
-    right:18px;
-    top:18px;
-    display:flex;
-    gap:7px;
-}
-
-.page[data-page=home] .event-reel-tabs button{
-    width:8px;
-    height:8px;
-    padding:0;
-    border:1px solid rgba(255,255,255,.82);
-    border-radius:50%;
-    background:rgba(8,28,58,.5);
-    cursor:pointer;
-    transition:width .2s ease,background-color .2s ease;
-}
-
-.page[data-page=home] .event-reel-tabs button[aria-selected=true]{
-    width:24px;
-    border-radius:999px;
-    background:#fff;
 }
 
 @media (max-width:900px){
@@ -5788,19 +5762,18 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     .page[data-page=home] .event-reel{
         width:calc(100% - 8px);
         min-height:340px;
-        padding:0 0 46px 22px!important;
+        padding:0 0 38px 22px!important;
         margin-right:8px!important;
     }
 
-    .page[data-page=home] .event-reel-stage{inset:0 0 46px 22px}
+    .page[data-page=home] .event-reel-stage{inset:0 0 38px 22px}
     .page[data-page=home] .event-reel-slide .da-sub{
         left:-22px;
-        bottom:-46px;
+        bottom:-38px;
         width:43%;
         border-width:5px;
     }
     .page[data-page=home] .event-reel-slide figcaption{left:14px;top:14px}
-    .page[data-page=home] .event-reel-tabs{right:14px;top:14px}
 }
 
 @media (prefers-reduced-motion:reduce){

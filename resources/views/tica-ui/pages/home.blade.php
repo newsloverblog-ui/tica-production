@@ -10,7 +10,7 @@
   $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEventScenes = [
       ['label' => 'Concerts & shows', 'main' => '/assets/front/images/home/categories/concerts-shows.webp', 'sub' => '/assets/front/images/home/categories/parties-nightlife.webp'],
-      ['label' => 'Weddings', 'main' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&h=900&q=80', 'sub' => '/assets/front/images/home/categories/arts-culture.webp'],
+      ['label' => 'Weddings', 'main' => '/assets/front/images/home/categories/parties-nightlife.webp', 'sub' => '/assets/front/images/home/categories/arts-culture.webp'],
       ['label' => 'Conferences & seminars', 'main' => '/assets/front/images/home/categories/conferences-seminars.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
       ['label' => 'Sports & fitness', 'main' => '/assets/front/images/home/categories/sports-fitness.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
       ['label' => 'Parties & nightlife', 'main' => '/assets/front/images/home/categories/parties-nightlife.webp', 'sub' => '/assets/front/images/home/categories/concerts-shows.webp'],
@@ -120,15 +120,10 @@
       <div class="event-reel-stage">
         @foreach ($tsEventScenes as $tsSceneIndex => $tsScene)
           <figure class="event-reel-slide{{ $tsSceneIndex === 0 ? ' is-active' : '' }}" data-event-slide aria-hidden="{{ $tsSceneIndex === 0 ? 'false' : 'true' }}">
-            <div class="da-main da-concert"><img data-src="{{ $tsImg($tsScene['main']) }}" width="1200" height="900" loading="lazy" decoding="async" alt="{{ $tsScene['label'] }} event organised with TICA"></div>
-            <div class="da-sub da-crowd"><img data-src="{{ $tsImg($tsScene['sub']) }}" width="560" height="700" loading="lazy" decoding="async" alt=""></div>
+            <div class="da-main da-concert"><img src="{{ $tsImg($tsScene['main']) }}" width="1200" height="900" decoding="async" alt="{{ $tsScene['label'] }} event organised with TICA"></div>
+            <div class="da-sub da-crowd"><img src="{{ $tsImg($tsScene['sub']) }}" width="560" height="700" decoding="async" alt=""></div>
             <figcaption>{{ $tsScene['label'] }}</figcaption>
           </figure>
-        @endforeach
-      </div>
-      <div class="event-reel-tabs" role="tablist" aria-label="Event types">
-        @foreach ($tsEventScenes as $tsSceneIndex => $tsScene)
-          <button type="button" role="tab" data-event-reel-tab aria-selected="{{ $tsSceneIndex === 0 ? 'true' : 'false' }}" aria-label="Show {{ $tsScene['label'] }}" title="{{ $tsScene['label'] }}"></button>
         @endforeach
       </div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>2 VIP tickets just sold</span>

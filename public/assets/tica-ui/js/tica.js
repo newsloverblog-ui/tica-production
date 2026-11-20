@@ -2670,7 +2670,6 @@ upd();stage(0);
 
   document.querySelectorAll('[data-event-reel]').forEach((reel) => {
     const slides = [...reel.querySelectorAll('[data-event-slide]')];
-    const tabs = [...reel.querySelectorAll('[data-event-reel-tab]')];
     if (slides.length < 2) return;
 
     let active = 0;
@@ -2683,7 +2682,6 @@ upd();stage(0);
         slide.classList.toggle('is-active', selected);
         slide.setAttribute('aria-hidden', String(!selected));
       });
-      tabs.forEach((tab, tabIndex) => tab.setAttribute('aria-selected', String(tabIndex === active)));
     };
 
     const stop = () => {
@@ -2698,10 +2696,6 @@ upd();stage(0);
       }
     };
 
-    tabs.forEach((tab, index) => tab.addEventListener('click', () => {
-      select(index);
-      start();
-    }));
     reel.addEventListener('pointerenter', stop);
     reel.addEventListener('pointerleave', start);
     reel.addEventListener('focusin', stop);
