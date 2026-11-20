@@ -5747,6 +5747,113 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 }
 
+/* The ticket journey uses a payment moment and a branded pass, not generic portraits. */
+.page[data-page="home"] .tk-copy h2 > span {
+    display: block;
+}
+
+.page[data-page="home"] .tk-art .da-main {
+    background: #0b2447 !important;
+}
+
+.page[data-page="home"] .tk-art .da-main img {
+    object-position: center 45% !important;
+    filter: saturate(.82) contrast(1.05) brightness(.92) !important;
+}
+
+.page[data-page="home"] .tk-art .da-main::before {
+    background: linear-gradient(135deg, rgba(11, 36, 71, .18), rgba(47, 91, 216, .06) 56%, rgba(243, 154, 74, .1)) !important;
+}
+
+.page[data-page="home"] .tk-art .da-main::after {
+    background: linear-gradient(180deg, rgba(5, 25, 54, .02), rgba(5, 25, 54, .2)) !important;
+}
+
+.page[data-page="home"] .tk .tk-art::before {
+    background: #183f73 !important;
+    opacity: 1 !important;
+}
+
+.page[data-page="home"] .tk-art .tk-pass {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr auto auto;
+    align-content: stretch;
+    gap: 4px 10px;
+    padding: 16px 15px 15px;
+    border: 6px solid #fff !important;
+    background: linear-gradient(155deg, #173f74 0%, #0b2447 100%) !important;
+    color: #fff;
+    box-shadow: 0 20px 44px rgba(5, 24, 51, .28) !important;
+}
+
+.page[data-page="home"] .tk-art .tk-pass::after {
+    display: none !important;
+}
+
+.page[data-page="home"] .tk-pass-brand {
+    grid-column: 1;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 760;
+    letter-spacing: .06em;
+}
+
+.page[data-page="home"] .tk-pass-qr {
+    grid-column: 1 / -1;
+    align-self: center;
+    width: min(100%, 92px);
+    aspect-ratio: 1;
+    padding: 9px;
+    border-radius: 10px;
+    background: #fff;
+    fill: #0b2447;
+}
+
+.page[data-page="home"] .tk-pass strong {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    font-weight: 680;
+    line-height: 1.2;
+}
+
+.page[data-page="home"] .tk-pass small {
+    grid-column: 1 / -1;
+    color: #bed0e8;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+@media (min-width: 1100px) {
+    .page[data-page="home"] .tk-copy {
+        max-width: 580px;
+    }
+
+    .page[data-page="home"] .tk-copy h2 {
+        max-width: none !important;
+        font-size: clamp(38px, 3.15vw, 48px) !important;
+    }
+
+    .page[data-page="home"] .tk-copy h2 > span {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .page[data-page="home"] .tk-pass-qr {
+        width: min(100%, 68px);
+        padding: 7px;
+    }
+
+    .page[data-page="home"] .tk-art .tk-pass {
+        padding: 12px 11px;
+    }
+
+    .page[data-page="home"] .tk-pass strong {
+        font-size: 11px;
+    }
+}
+
 /* Ticket journey: image-led on wide screens, reading-led on small screens. */
 .page[data-page="home"] .tk {
     grid-template-columns: minmax(0, 1.08fr) minmax(360px, .82fr) !important;
