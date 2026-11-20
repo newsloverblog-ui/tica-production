@@ -81,4 +81,20 @@ class TicaWebsiteCmsTest extends TestCase
         $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
         $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);
     }
+
+    public function test_home_event_cards_and_ticket_entry_photos_use_square_real_image_treatments(): void
+    {
+        $home = file_get_contents(resource_path('views/tica-ui/pages/home.blade.php'));
+        $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
+
+        foreach (['event-entry-security-pexels-v1.webp', 'event-ticket-check-pexels-v1.webp'] as $asset) {
+            $this->assertStringContainsString($asset, $home);
+            $this->assertFileExists(public_path("assets/tica-ui/img/{$asset}"));
+        }
+
+        $this->assertStringNotContainsString('tk-pass-qr', $home);
+        $this->assertStringNotContainsString('Ticket ready', $home);
+        $this->assertStringContainsString('.band #home-wall .cardlink', $styles);
+        $this->assertStringContainsString('.tk-art .tk-entry-detail img', $styles);
+    }
 }

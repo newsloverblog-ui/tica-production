@@ -7055,3 +7055,85 @@ body.isuser.appmode .workspace-badge { display: none !important; }
             minmax(145px, .82fr) !important;
     }
 }
+
+/* Homepage event artwork uses a consistent square crop. This keeps uploaded
+   portrait and landscape flyers aligned without stretching either source. */
+.page[data-page="home"] .band #home-wall .cardlink,
+.page[data-page="home"] .band #home-wall .flyer,
+.page[data-page="home"] .band #home-wall .flyer > .p {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 1 !important;
+}
+
+.page[data-page="home"] .band #home-wall .flyer img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* Real event-entry photography replaces the decorative barcode pass. */
+.page[data-page="home"] .tk-art .tk-entry-main img {
+    object-position: center 46% !important;
+}
+
+.page[data-page="home"] .tk-art .tk-entry-detail {
+    padding: 0 !important;
+    background: #0b2447 !important;
+}
+
+.page[data-page="home"] .tk-art .tk-entry-detail img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 66% !important;
+}
+
+.page[data-page="home"] .tk-art .tk-entry-detail::after {
+    background: linear-gradient(180deg, transparent 68%, rgba(5, 20, 43, .18)) !important;
+}
+
+@media (max-width: 700px) {
+    .page[data-page="home"] .band #home-wall .card {
+        grid-template-columns: 132px minmax(0, 1fr) !important;
+        grid-template-rows: minmax(158px, auto) !important;
+        min-height: 158px !important;
+        height: auto !important;
+    }
+
+    .page[data-page="home"] .band #home-wall .cardlink {
+        align-self: start;
+        width: 132px !important;
+        height: 132px !important;
+        margin: 13px 0;
+        overflow: hidden;
+        border-radius: 0 12px 12px 0;
+    }
+
+    .page[data-page="home"] .band #home-wall .flyer,
+    .page[data-page="home"] .band #home-wall .flyer > .p {
+        width: 132px !important;
+        height: 132px !important;
+        aspect-ratio: 1 / 1 !important;
+    }
+
+    .page[data-page="home"] .band #home-wall .cardbody {
+        min-height: 158px !important;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .page[data-page="home"] .band #home-wall .card {
+        grid-template-columns: 112px minmax(0, 1fr) !important;
+    }
+
+    .page[data-page="home"] .band #home-wall .cardlink,
+    .page[data-page="home"] .band #home-wall .flyer,
+    .page[data-page="home"] .band #home-wall .flyer > .p {
+        width: 112px !important;
+        height: 112px !important;
+    }
+}

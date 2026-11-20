@@ -141,13 +141,8 @@
 @endverbatim
   <div class="wrap h-sec tk"{!! $tsOff('eticket') !!}>
     <div class="tk-art duo-art" aria-hidden="true">
-      <div class="da-main"><img loading="lazy" decoding="async" data-src="https://images.unsplash.com/photo-1758874385348-accad10488f9?auto=format&amp;fit=crop&amp;w=1200&amp;h=900&amp;q=82" alt=""></div>
-      <div class="da-sub tk-pass">
-        <span class="tk-pass-brand">TICA</span>
-        <svg class="tk-pass-qr" viewBox="0 0 64 64" aria-hidden="true"><path d="M4 4h20v20H4zm5 5v10h10V9zM40 4h20v20H40zm5 5v10h10V9zM4 40h20v20H4zm5 5v10h10V45zM31 5h5v8h-5zm0 14h5v5h-5zm-5 8h10v6H26zm15 0h6v6h-6zm12 0h7v7h-7zM29 38h7v8h-7zm12 0h6v6h-6zm12 3h7v6h-7zM29 51h5v9h-5zm10-3h8v6h-8zm6 8h7v4h-7zm10-5h5v9h-5z"/></svg>
-        <strong>Ticket ready</strong>
-        <small>Show at the gate</small>
-      </div>
+      <div class="da-main tk-entry-main"><img loading="lazy" decoding="async" src="/assets/tica-ui/img/event-entry-security-pexels-v1.webp" width="1200" height="1798" alt=""></div>
+      <div class="da-sub tk-entry-detail"><img loading="lazy" decoding="async" src="/assets/tica-ui/img/event-ticket-check-pexels-v1.webp" width="900" height="1350" alt=""></div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2z"/></svg>E-ticket sent to your email</span>
     </div>
     <div class="tk-copy">
