@@ -114,7 +114,7 @@
         </section>
         <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
         <h2 id="ce-fee-title">Fees &amp; payout</h2>
-        <p class="ce-q">Who pays the <span data-fee-pct>6%</span> booking fee?</p>
+        <p class="ce-q">Who pays the <span data-fee-pct>6%</span> + ₦100 booking fee?</p>
         <div class="ce-payer" role="radiogroup" aria-label="Who pays the booking fee">
           <label><input type="radio" name="c-payer" value="buyer" checked><span><b>Buyers pay it</b><small id="ce-ex-b">Buyer pays ₦5,300. You get ₦5,000.</small></span></label>
           <label><input type="radio" name="c-payer" value="me"><span><b>I'll include it</b><small id="ce-ex-m">Buyer pays ₦5,000. You get ₦4,700.</small></span></label>

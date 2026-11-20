@@ -3,6 +3,7 @@
 @php
   $symbol = \App\Support\TicaCurrency::symbol($base);
   $fee = (float) ($basic->booking_fee_percentage ?? 6);
+  $fixedFee = \App\Services\EventFeeCalculatorService::FIXED_FEE_PER_PAID_TICKET;
   $on = fn ($key) => (bool) ($platform['features'][$key] ?? true);
   $sections = [
     'ta-fees' => __('Booking fee and checkout'),
@@ -44,8 +45,13 @@
         </div>
 
         <div class="ta-row">
-          <div><label for="ta-fee">{{ __('Booking fee') }}</label><small>{{ __('A percentage of each paid ticket, up to 30%.') }}</small></div>
+          <div><label for="ta-fee">{{ __('Percentage fee') }}</label><small>{{ __('Applied to the paid ticket subtotal, up to 30%.') }}</small></div>
           <div class="ta-pct"><input class="form-control" id="ta-fee" name="booking_fee_percentage" type="number" min="0" max="30" step="0.01" value="{{ old('booking_fee_percentage', $fee) }}" required><span>%</span></div>
+        </div>
+
+        <div class="ta-row">
+          <div><span class="ta-l">{{ __('Fixed fee') }}</span><small>{{ __('Added once for every paid ticket. Free and fully discounted tickets have no fee.') }}</small></div>
+          <div class="ta-pct"><strong>{{ $symbol }}{{ number_format($fixedFee, 0) }}</strong><span>{{ __('per ticket') }}</span></div>
         </div>
 
         <div class="ta-row">
@@ -170,11 +176,11 @@
 @section('script')
   <script>
     (function () {
-      var fee = document.getElementById('ta-fee'), sym = @json($symbol);
+      var fee = document.getElementById('ta-fee'), sym = @json($symbol), flat = @json($fixedFee);
       function money(n) { return sym + Math.round(n).toLocaleString('en-NG'); }
       function payer() { var c = document.querySelector('[name=default_fee_payer]:checked'); return c ? c.value : 'buyer'; }
       function draw() {
-        var pct = Math.max(0, Math.min(30, parseFloat(fee.value) || 0)), cut = 5000 * pct / 100, buyerPays = payer() === 'buyer';
+        var pct = Math.max(0, Math.min(30, parseFloat(fee.value) || 0)), cut = 5000 * pct / 100 + flat, buyerPays = payer() === 'buyer';
         document.getElementById('ta-ex-buyer').textContent = @json(__('Buyer pays')) + ' ' + money(buyerPays ? 5000 + cut : 5000);
         document.getElementById('ta-ex-org').textContent = @json(__('Organiser gets')) + ' ' + money(buyerPays ? 5000 : 5000 - cut);
         document.getElementById('ta-ex-tica').textContent = @json(__('TICA earns')) + ' ' + money(cut);

@@ -86,7 +86,7 @@ final class LifecycleMailCatalog
                     'Order' => $data['order_reference'] ?? null,
                     'Tickets' => $data['ticket_count'] ?? null,
                     'Subtotal' => $data['subtotal'] ?? null,
-                    'Booking fee (6%)' => $data['booking_fee'] ?? null,
+                    'Booking fee (6% + ₦100 per paid ticket)' => $data['booking_fee'] ?? null,
                     'Total paid' => $data['total'] ?? null,
                 ]),
                 'primary_action' => self::action('Open tickets', $data['tickets_url'] ?? null),

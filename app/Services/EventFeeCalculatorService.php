@@ -4,6 +4,8 @@ namespace App\Services;
 
 final class EventFeeCalculatorService
 {
+    public const FIXED_FEE_PER_PAID_TICKET = 100.0;
+
     /**
      * Integer version used by the authoritative ledger. Percent is expressed
      * in basis points (600 = 6%) so no floating-point money enters accounting.
@@ -72,10 +74,10 @@ final class EventFeeCalculatorService
     }
 
     /**
-     * The percentage booking fee on paid tickets. When buyers pay it, it is
-     * added at checkout and the organiser keeps the full ticket sales. When
-     * the organiser includes it, buyers pay the ticket price only and the
-     * fee is deducted from the organiser's sales as commission.
+     * The booking fee on paid tickets: a percentage of the discounted ticket
+     * sales plus a fixed amount for every paid ticket. When buyers pay it, the
+     * fee is added at checkout and the organiser keeps the ticket sales. When
+     * the organiser includes it, the fee is deducted from their sales.
      *
      * @return array{
      *   ticket_sales: float,
@@ -86,11 +88,21 @@ final class EventFeeCalculatorService
      *   organizer_net: float
      * }
      */
-    public function quotePercentage(float $ticketSales, int $paidQuantity, float $percentage, string $payer): array
+    public function quotePercentage(
+        float $ticketSales,
+        int $paidQuantity,
+        float $percentage,
+        string $payer,
+        float $fixedFeePerPaidTicket = self::FIXED_FEE_PER_PAID_TICKET,
+    ): array
     {
         $ticketSales = round(max(0, $ticketSales), 2);
+        $paidQuantity = max(0, min(100000, $paidQuantity));
         $percentage = round(min(100, max(0, $percentage)), 2);
-        $fee = $paidQuantity > 0 ? round($ticketSales * $percentage / 100, 2) : 0.0;
+        $fixedFeePerPaidTicket = round(max(0, $fixedFeePerPaidTicket), 2);
+        $fee = $paidQuantity > 0 && $ticketSales > 0
+            ? round(($ticketSales * $percentage / 100) + ($paidQuantity * $fixedFeePerPaidTicket), 2)
+            : 0.0;
         $organizerPays = $payer === 'organizer';
 
         return [

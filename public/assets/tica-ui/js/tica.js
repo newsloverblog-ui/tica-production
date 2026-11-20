@@ -20,8 +20,9 @@ function hydrateImages(root){
 }
 var imageRoot=document.getElementById('main');if(imageRoot&&'MutationObserver' in window)new MutationObserver(function(records){records.forEach(function(record){[].forEach.call(record.addedNodes,function(node){if(node.nodeType===1)hydrateImages(node)})})}).observe(imageRoot,{childList:true,subtree:true});
 function naira(n){return n===0?'Free':window.TICA_MONEY(n)}
-/* Tica: the booking fee percentage set by the admin. */
+/* Tica: the booking fee is the admin percentage plus a fixed amount per paid ticket. */
 window.TICA_FEE_PCT=(TICA_DATA.currency&&TICA_DATA.currency.feePct!=null)?+TICA_DATA.currency.feePct:6;
+window.TICA_FEE_FLAT=(TICA_DATA.currency&&TICA_DATA.currency.feeFlat!=null)?+TICA_DATA.currency.feeFlat:100;
 [].forEach.call(document.querySelectorAll('[data-fee-pct]'),function(n){n.textContent=String(window.TICA_FEE_PCT).replace(/\.0+$/,'')+'%'});
 window.TICA_MONEY=function(n){var c=window.TICA_CUR||TICA_DATA.currency||{},r=Math.round(n*100)/100,v=r.toLocaleString('en-NG',{minimumFractionDigits:r%1?2:0,maximumFractionDigits:2});return c.position==='right'?v+(c.symbol||''):(c.symbol||'₦')+v};
 function meta(e){return e.time[0].toUpperCase()+e.time.slice(1)+', '+e.venue}
@@ -353,7 +354,7 @@ function renderEvent(e){
 
 /* checkout: choose, details, pay */
 var ORDER=null,PENDING=null;
-var FEE_PCT=(TICA_DATA.currency&&TICA_DATA.currency.feePct!=null)?+TICA_DATA.currency.feePct:6,FEE_FLAT=0; /* Tica: booking fee % from admin settings */
+var FEE_PCT=window.TICA_FEE_PCT,FEE_FLAT=window.TICA_FEE_FLAT;
 function checkoutSubmissionId(slug,candidate){
   var valid=function(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''))},key='tica_checkout_'+slug;
   if(valid(candidate))return candidate;
@@ -958,7 +959,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
   })});
   var $=function(i){return document.getElementById(i)},N=function(n){return window.TICA_MONEY(n)};
   function calc(){
-    var p=+$('c1').value,q=+$('c2').value,fee=Math.round(p*window.TICA_FEE_PCT)/100;
+    var p=+$('c1').value,q=+$('c2').value,fee=Math.round((p*window.TICA_FEE_PCT/100+window.TICA_FEE_FLAT)*100)/100;
     $('c1o').textContent=N(p);$('c2o').textContent=q.toLocaleString('en-NG');
     var s=p*q;$('c-fee').textContent=N(fee);$('c-buy').textContent=N(p+fee);$('c-get').textContent=N(s);
   }

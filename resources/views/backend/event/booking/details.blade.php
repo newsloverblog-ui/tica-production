@@ -179,9 +179,7 @@
 
             <div class="row mb-2">
               <div class="col-lg-4">
-                <strong>{{ __('Tax') }} <span class="text-danger">({{ $booking->tax_percentage }}%+)
-                  </span> :
-                </strong>
+                <strong>{{ __('Booking fee') }} :</strong>
               </div>
               <div class="col-lg-8">
                 @if (!is_null($booking->tax))
@@ -211,7 +209,7 @@
             @if (!empty($booking->organizer_id))
               <div class="row mb-2">
                 <div class="col-lg-4">
-                  <strong>{{ __('Commission') }} ({{ $booking->commission_percentage }}%) : </strong>
+                  <strong>{{ __('Organizer-paid booking fee') }} : </strong>
                 </div>
                 <div class="col-lg-8">
                   @if (!is_null($booking->commission))

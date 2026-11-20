@@ -22,7 +22,7 @@
   <section id="pol-summary" class="lg-sec">
     <h2>Key points</h2>
     <ul class="lg-keys">
-      <li><b>You see the full price before you pay.</b>Paid tickets carry a <span data-fee-pct>6%</span> booking fee. The organiser either adds it at checkout or includes it in the price. Free tickets have no fee.</li>
+      <li><b>You see the full price before you pay.</b>Paid tickets carry a <span data-fee-pct>6%</span> + ₦100 booking fee per ticket. The organiser either adds it at checkout or includes it in the price. Free tickets have no fee.</li>
       <li><b>Cancelled event, full refund.</b>If an event is cancelled, you get back everything you paid, including the booking fee.</li>
       <li><b>One ticket, one entry.</b>Each QR code works once. Don't share it or buy tickets from resellers.</li>
       <li><b>We don't sell your data.</b>Organisers only see the details of people attending their own events.</li>
@@ -65,7 +65,7 @@
   <section id="pol-tickets" class="lg-sec">
     <h2>Buying tickets</h2>
     <ul>
-      <li><b>Prices.</b> Prices are in naira. Paid tickets carry a booking fee of <span data-fee-pct>6%</span> of each ticket's price. The organiser decides whether it's added at checkout or included in the ticket price. Either way, you see the full total before you pay. Free tickets have no fee.</li>
+      <li><b>Prices.</b> Prices are in naira. Paid tickets carry a booking fee of <span data-fee-pct>6%</span> of the ticket price plus ₦100 per paid ticket. The organiser decides whether it's added at checkout or included in the ticket price. Either way, you see the full total before you pay. Free tickets have no fee.</li>
       <li><b>Holding your tickets.</b> When you start checkout, we hold your tickets for 10 minutes. If you don't pay in time, they go back on sale.</li>
       <li><b>Payment.</b> Payments are handled by Paystack, by card, bank transfer or USSD. Your order is confirmed when Paystack confirms the payment and we send your tickets. If the payment fails, no order is made and you aren't charged.</li>
       <li><b>Tickets for other people.</b> Each ticket carries an attendee's name and email. If you enter someone else's details, make sure they're happy for you to do so. We only use them to send that ticket and updates about the event.</li>
@@ -116,7 +116,7 @@
     <p>Events that are illegal, fraudulent or misleading; events that promote hatred or violence; explicit adult content; and the sale of weapons, drugs or unlicensed gambling. We may unpublish events that break these rules. If we do, buyers are refunded.</p>
     <h3>Fees and payouts</h3>
     <ul>
-      <li>For each event, you choose who pays the <span data-fee-pct>6%</span> booking fee. If buyers pay it, you receive the full ticket price. If you include it, we take it from the ticket price. Free events cost nothing.</li>
+      <li>For each event, you choose who pays the <span data-fee-pct>6%</span> + ₦100 per paid ticket booking fee. If buyers pay it, you receive the full ticket price. If you include it, we take it from the ticket price. Free events cost nothing.</li>
       <li>Your sales are released 3 working days after your event ends, less any refunds and chargebacks. We send them to your verified bank account automatically, or when you withdraw, as you choose in Payouts.</li>
       <li>Payouts only go to a bank account in your name or your business's name. We check the account name with your bank before saving it, ask for a code sent to your phone, and hold payouts for 24 hours after any change.</li>
       <li>We may hold a payout if your event is cancelled or changed, if we receive many complaints, if there's a chargeback, or if we suspect fraud. We'll tell you why and what we need from you.</li>

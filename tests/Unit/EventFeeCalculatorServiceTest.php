@@ -19,6 +19,22 @@ class EventFeeCalculatorServiceTest extends TestCase
         $this->assertSame('customer', $quote['payer']);
     }
 
+    public function test_checkout_fee_is_six_percent_plus_one_hundred_naira_per_paid_ticket(): void
+    {
+        $calculator = new EventFeeCalculatorService();
+
+        $buyerQuote = $calculator->quotePercentage(10000, 2, 6, 'buyer');
+        $organizerQuote = $calculator->quotePercentage(10000, 2, 6, 'organizer');
+        $fullyDiscountedQuote = $calculator->quotePercentage(0, 2, 6, 'buyer');
+
+        $this->assertSame(800.0, $buyerQuote['booking_fee']);
+        $this->assertSame(800.0, $buyerQuote['attendee_booking_fees']);
+        $this->assertSame(10800.0, $buyerQuote['attendee_total']);
+        $this->assertSame(800.0, $organizerQuote['commission']);
+        $this->assertSame(9200.0, $organizerQuote['organizer_net']);
+        $this->assertSame(0.0, $fullyDiscountedQuote['booking_fee']);
+    }
+
     #[Test]
     public function it_matches_the_event_checkout_fee_formula(): void
     {

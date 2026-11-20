@@ -140,7 +140,7 @@
               @endif
 
               <p>
-                {{ __('Tax') }} ({{ $bookingInfo->tax_percentage }}%) : <span
+                {{ __('Booking fee') }} : <span
                   class="text-muted">{{ $position == 'left' ? $currency . ' ' : '' }}{{ is_null($bookingInfo->tax) ? '0.00' : $bookingInfo->tax }}{{ $position == 'right' ? ' ' . $currency : '' }}</span>
               </p>
 

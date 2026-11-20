@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Support\TicaCurrency;
+use App\Services\EventFeeCalculatorService;
 use App\Support\PublicImage;
 use Mews\Purifier\Facades\Purifier;
 
@@ -117,6 +118,7 @@ class EventCatalog
       'position' => (string) ($basic->base_currency_symbol_position ?? 'left'),
       'text' => (string) ($basic->base_currency_text ?? 'NGN'),
       'feePct' => round((float) ($basic->booking_fee_percentage ?? 6), 2),
+      'feeFlat' => EventFeeCalculatorService::FIXED_FEE_PER_PAID_TICKET,
       'guestCheckout' => (int) ($basic->event_guest_checkout_status ?? 0) === 1,
       'code' => TicaCurrency::base(),
       'options' => TicaCurrency::options(),

@@ -68,8 +68,8 @@ class EventCheckoutQuoteServiceTest extends TestCase
         $this->assertSame(7000.0, $quote['selTickets'][0]['price']);
         $this->assertSame(14000.0, $quote['sub_total']);
         $this->assertSame(1000.0, $quote['discount']);
-        $this->assertSame(780.0, $quote['tax']);
-        $this->assertSame(13780.0, $quote['grand_total']);
+        $this->assertSame(980.0, $quote['tax']);
+        $this->assertSame(13980.0, $quote['grand_total']);
         $this->assertSame($quote['grand_total'], (float) session('grand_total'));
     }
 
@@ -95,7 +95,7 @@ class EventCheckoutQuoteServiceTest extends TestCase
 
         $this->assertSame(0.0, $quote['discount']);
         $this->assertFalse(session()->has('event_coupon_id'));
-        $this->assertSame(5300.0, $quote['grand_total']);
+        $this->assertSame(5400.0, $quote['grand_total']);
     }
 
     public function test_reserved_seat_section_price_is_rebuilt_from_active_server_holds(): void
@@ -162,8 +162,8 @@ class EventCheckoutQuoteServiceTest extends TestCase
         $this->assertSame([8000.0, 8000.0], $quote['selTickets'][0]['unit_prices']);
         $this->assertSame(8000.0, $quote['selTickets'][0]['price']);
         $this->assertSame(16000.0, $quote['sub_total']);
-        $this->assertSame(960.0, $quote['tax']);
-        $this->assertSame(16960.0, $quote['grand_total']);
+        $this->assertSame(1160.0, $quote['tax']);
+        $this->assertSame(17160.0, $quote['grand_total']);
     }
 
     public function test_variation_name_and_duplicate_identity_fail_closed(): void
