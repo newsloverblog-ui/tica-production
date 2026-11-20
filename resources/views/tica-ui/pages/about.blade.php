@@ -27,7 +27,10 @@
     <a class="whoc nz" href="/create"><img loading="lazy" data-src="https://images.unsplash.com/photo-1778877032995-4ab6cd8fe106?auto=format&fit=crop&w=900&q=72" alt=""><div><h3>Hosting?</h3><p>Sell tickets, reach new people and see who's through the door.</p><span>Create an event</span></div></a>
   </div>
 
-  <div class="partners"><div class="wrap"><p>Our partners</p><div class="partner-marks" aria-label="TICA partners"><span class="partner-logo coh" aria-label="Creative Open House"><b>COH</b><small>Creative<br>Open House</small></span><span class="partner-logo ndfa" aria-label="Nollywood DIC Film Academy"><b>NDFA</b><small>Nollywood DIC<br>Film Academy</small></span></div></div></div>
+@endverbatim
+  @php $tsAboutPartners = \App\Support\TicaSite::get('home')['partners'] ?? []; @endphp
+  <div class="partners"><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-marquee', ['partners' => $tsAboutPartners])</div></div>
+@verbatim
 </section>
 
 <!-- CONTACT -->

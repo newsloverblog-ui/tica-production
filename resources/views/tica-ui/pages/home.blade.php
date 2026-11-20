@@ -8,6 +8,14 @@
   $tsImg = fn ($path) => \App\Support\TicaSite::imageUrl($path);
   $tsOrganizerTitle = trim((string) ($tsHome['organisers_title'] ?? ''));
   $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
+  $tsEventScenes = [
+      ['label' => 'Concerts & shows', 'main' => '/assets/front/images/home/categories/concerts-shows.webp', 'sub' => '/assets/front/images/home/categories/parties-nightlife.webp'],
+      ['label' => 'Weddings', 'main' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&h=900&q=80', 'sub' => '/assets/front/images/home/categories/arts-culture.webp'],
+      ['label' => 'Conferences & seminars', 'main' => '/assets/front/images/home/categories/conferences-seminars.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
+      ['label' => 'Sports & fitness', 'main' => '/assets/front/images/home/categories/sports-fitness.webp', 'sub' => '/assets/front/images/home/categories/campus-youth.webp'],
+      ['label' => 'Parties & nightlife', 'main' => '/assets/front/images/home/categories/parties-nightlife.webp', 'sub' => '/assets/front/images/home/categories/concerts-shows.webp'],
+      ['label' => 'Arts & culture', 'main' => '/assets/front/images/home/categories/arts-culture.webp', 'sub' => '/assets/front/images/home/categories/conferences-seminars.webp'],
+  ];
 @endphp
 @verbatim
 <section class="page" data-page="home">
@@ -108,9 +116,21 @@
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
     </div>
-    <div class="org-art duo-art">
-      <div class="da-main da-concert"><img data-src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&h=900&q=80" width="1200" height="900" loading="lazy" decoding="async" alt="A packed concert organised with TICA"></div>
-      <div class="da-sub da-crowd"><img data-src="https://images.unsplash.com/photo-1763598944959-62692173594c?auto=format&fit=crop&w=560&h=700&q=72" width="560" height="700" loading="lazy" decoding="async" alt="Fans with their phones up at a live show"></div>
+    <div class="org-art duo-art event-reel" data-event-reel aria-roledescription="carousel" aria-label="Events powered by TICA">
+      <div class="event-reel-stage">
+        @foreach ($tsEventScenes as $tsSceneIndex => $tsScene)
+          <figure class="event-reel-slide{{ $tsSceneIndex === 0 ? ' is-active' : '' }}" data-event-slide aria-hidden="{{ $tsSceneIndex === 0 ? 'false' : 'true' }}">
+            <div class="da-main da-concert"><img data-src="{{ $tsImg($tsScene['main']) }}" width="1200" height="900" loading="lazy" decoding="async" alt="{{ $tsScene['label'] }} event organised with TICA"></div>
+            <div class="da-sub da-crowd"><img data-src="{{ $tsImg($tsScene['sub']) }}" width="560" height="700" loading="lazy" decoding="async" alt=""></div>
+            <figcaption>{{ $tsScene['label'] }}</figcaption>
+          </figure>
+        @endforeach
+      </div>
+      <div class="event-reel-tabs" role="tablist" aria-label="Event types">
+        @foreach ($tsEventScenes as $tsSceneIndex => $tsScene)
+          <button type="button" role="tab" data-event-reel-tab aria-selected="{{ $tsSceneIndex === 0 ? 'true' : 'false' }}" aria-label="Show {{ $tsScene['label'] }}" title="{{ $tsScene['label'] }}"></button>
+        @endforeach
+      </div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>2 VIP tickets just sold</span>
     </div>
     @if ($tsHome['organisers_points'])<ol class="org-list org-benefits">@foreach ($tsHome['organisers_points'] as $tsP)
@@ -136,7 +156,7 @@
     </div>
   </div>
 
-  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p><div class="partner-marks" aria-label="TICA partners">@foreach ($tsHome['partners'] as $tsI => $tsPartner)@if (!empty($tsPartner['logo']))<span class="partner-logo has-img" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><img data-src="{{ $tsImg($tsPartner['logo']) }}" alt="" loading="lazy"></span>@else<span class="partner-logo {{ ['coh', 'ndfa'][$tsI % 2] }}" aria-label="{{ trim(($tsPartner['short'] ?? '') . ' ' . str_replace("\n", ' ', $tsPartner['name'] ?? '')) }}"><b>{{ $tsPartner['short'] }}</b><small>{!! nl2br(e($tsPartner['name']), false) !!}</small></span>@endif @endforeach</div></div></div>
+  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-marquee', ['partners' => $tsHome['partners']])</div></div>
   </div>
 </section>
 @verbatim

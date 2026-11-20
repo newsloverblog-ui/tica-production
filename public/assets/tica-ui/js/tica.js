@@ -2664,3 +2664,51 @@ upd();stage(0);
 
   update();
 })();
+
+(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll('[data-event-reel]').forEach((reel) => {
+    const slides = [...reel.querySelectorAll('[data-event-slide]')];
+    const tabs = [...reel.querySelectorAll('[data-event-reel-tab]')];
+    if (slides.length < 2) return;
+
+    let active = 0;
+    let timer = null;
+
+    const select = (index) => {
+      active = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => {
+        const selected = slideIndex === active;
+        slide.classList.toggle('is-active', selected);
+        slide.setAttribute('aria-hidden', String(!selected));
+      });
+      tabs.forEach((tab, tabIndex) => tab.setAttribute('aria-selected', String(tabIndex === active)));
+    };
+
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+    };
+
+    const start = () => {
+      stop();
+      if (!reduceMotion.matches && !document.hidden) {
+        timer = window.setInterval(() => select(active + 1), 4400);
+      }
+    };
+
+    tabs.forEach((tab, index) => tab.addEventListener('click', () => {
+      select(index);
+      start();
+    }));
+    reel.addEventListener('pointerenter', stop);
+    reel.addEventListener('pointerleave', start);
+    reel.addEventListener('focusin', stop);
+    reel.addEventListener('focusout', start);
+    document.addEventListener('visibilitychange', start);
+    reduceMotion.addEventListener?.('change', start);
+    select(0);
+    start();
+  });
+})();
