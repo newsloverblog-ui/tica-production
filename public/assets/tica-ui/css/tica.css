@@ -5789,7 +5789,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         line-height: 16px !important;
     }
 
-    .page[data-page="discover"] .filters .pick input,
+    .page[data-page="discover"] .filters .pick input:not(.calendar-native),
     .page[data-page="discover"] .filters .pick .smart-trigger,
     .page[data-page="discover"] .filters .pick-date > .calendar-trigger {
         width: 100% !important;
@@ -5886,7 +5886,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         line-height: 16px !important;
     }
 
-    .page[data-page="discover"] .filters .pick input,
+    .page[data-page="discover"] .filters .pick input:not(.calendar-native),
     .page[data-page="discover"] .filters .pick .smart-trigger,
     .page[data-page="discover"] .filters .pick-date > .calendar-trigger {
         width: 100% !important;
