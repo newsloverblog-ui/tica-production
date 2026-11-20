@@ -5747,6 +5747,155 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 }
 
+/* Ticket journey: image-led on wide screens, reading-led on small screens. */
+.page[data-page="home"] .tk {
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, .82fr) !important;
+    gap: clamp(56px, 7vw, 112px) !important;
+    align-items: center !important;
+}
+
+.page[data-page="home"] .tk-art {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100% !important;
+    max-width: 640px !important;
+    margin: 0 !important;
+    justify-self: start !important;
+    padding: 0 0 46px 38px !important;
+}
+
+.page[data-page="home"] .tk-art .da-main {
+    aspect-ratio: 1.08 / 1 !important;
+    border-radius: 24px !important;
+}
+
+.page[data-page="home"] .tk-art .da-sub {
+    width: 35% !important;
+    border-radius: 17px !important;
+}
+
+.page[data-page="home"] .tk-art .da-badge {
+    right: 8px !important;
+    bottom: 14px !important;
+}
+
+.page[data-page="home"] .tk-copy {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: 510px;
+    justify-self: end;
+}
+
+.page[data-page="home"] .tk-copy h2 {
+    max-width: 11.5ch !important;
+    margin: 0 !important;
+    font-size: clamp(38px, 3.45vw, 52px) !important;
+    line-height: 1.06 !important;
+    letter-spacing: -.04em !important;
+    text-wrap: balance;
+}
+
+.page[data-page="home"] .tk-copy .tk-steps {
+    margin: clamp(28px, 3.4vw, 42px) 0 30px !important;
+    border-top: 1px solid #dfe6ef;
+}
+
+.page[data-page="home"] .tk-copy .tk-steps li {
+    min-height: 0 !important;
+    padding: 20px 0 20px 54px !important;
+    border-bottom: 1px solid #dfe6ef;
+}
+
+.page[data-page="home"] .tk-copy .tk-steps li::before {
+    top: 18px !important;
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 13px !important;
+}
+
+.page[data-page="home"] .tk-copy .tk-steps b {
+    margin-bottom: 5px;
+    font-size: 16px !important;
+    font-weight: 650 !important;
+    line-height: 1.25;
+}
+
+.page[data-page="home"] .tk-copy .tk-steps span {
+    display: block;
+    max-width: 40ch;
+    font-size: 14px !important;
+    line-height: 1.55;
+}
+
+.page[data-page="home"] .tk-copy > .btn {
+    width: auto !important;
+    min-width: 0 !important;
+    padding-inline: 22px !important;
+}
+
+@media (max-width: 900px) {
+    .page[data-page="home"] .tk {
+        grid-template-columns: 1fr !important;
+        gap: 44px !important;
+    }
+
+    .page[data-page="home"] .tk-copy {
+        grid-column: 1;
+        grid-row: 1;
+        max-width: 620px;
+        justify-self: start;
+    }
+
+    .page[data-page="home"] .tk-art {
+        grid-column: 1;
+        grid-row: 2;
+        width: min(100% - 18px, 660px) !important;
+        max-width: 660px !important;
+        justify-self: center !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .page[data-page="home"] .tk {
+        gap: 34px !important;
+    }
+
+    .page[data-page="home"] .tk-copy h2 {
+        max-width: 13ch !important;
+        font-size: clamp(30px, 9vw, 38px) !important;
+    }
+
+    .page[data-page="home"] .tk-copy .tk-steps {
+        margin-top: 26px !important;
+    }
+
+    .page[data-page="home"] .tk-copy .tk-steps li {
+        padding: 17px 0 17px 48px !important;
+    }
+
+    .page[data-page="home"] .tk-copy .tk-steps li::before {
+        top: 15px !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .page[data-page="home"] .tk-art {
+        width: calc(100% - 8px) !important;
+        padding: 0 0 38px 22px !important;
+    }
+
+    .page[data-page="home"] .tk-art .da-sub {
+        width: 39% !important;
+    }
+
+    .page[data-page="home"] .tk-art .da-badge {
+        right: 0 !important;
+        bottom: 8px !important;
+        max-width: 74%;
+    }
+}
+
 @media (max-width:600px){
     .partners .wrap{
         flex-direction:row;

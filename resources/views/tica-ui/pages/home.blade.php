@@ -137,17 +137,17 @@
   <!-- E-ticket -->
 @endverbatim
   <div class="wrap h-sec tk"{!! $tsOff('eticket') !!}>
-    <div>
+    <div class="tk-art duo-art" aria-hidden="true">
+      <div class="da-main"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][0] ?? '') }}" alt=""></div>
+      <div class="da-sub"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][1] ?? '') }}" alt=""></div>
+      <span class="da-badge"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2z"/></svg>E-ticket sent to your email</span>
+    </div>
+    <div class="tk-copy">
       <h2 class="display">{{ $tsHome['eticket_title'] }}</h2>
       @if ($tsHome['eticket_steps'])<ol class="tk-steps">@foreach ($tsHome['eticket_steps'] as $tsP)
         <li><b>{{ $tsP['title'] }}</b>@if ($tsP['text'])<span>{{ $tsP['text'] }}</span>@endif</li>@endforeach
       </ol>@endif
       <a class="btn btn-line" href="/how">How TICA works</a>
-    </div>
-    <div class="tk-art duo-art" aria-hidden="true">
-      <div class="da-main"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][0] ?? '') }}" alt=""></div>
-      <div class="da-sub"><img loading="lazy" decoding="async" data-src="{{ $tsImg($tsHome['eticket_images'][1] ?? '') }}" alt=""></div>
-      <span class="da-badge"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2z"/></svg>E-ticket sent to your email</span>
     </div>
   </div>
 
