@@ -87,7 +87,7 @@ class TicaWebsiteCmsTest extends TestCase
         $home = file_get_contents(resource_path('views/tica-ui/pages/home.blade.php'));
         $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
-        foreach (['event-entry-security-pexels-v1.webp', 'event-ticket-check-pexels-v1.webp'] as $asset) {
+        foreach (['event-concert-security-pexels-v2.webp', 'event-ticket-check-pexels-v1.webp'] as $asset) {
             $this->assertStringContainsString($asset, $home);
             $this->assertFileExists(public_path("assets/tica-ui/img/{$asset}"));
         }

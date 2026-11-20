@@ -141,7 +141,7 @@
 @endverbatim
   <div class="wrap h-sec tk"{!! $tsOff('eticket') !!}>
     <div class="tk-art duo-art" aria-hidden="true">
-      <div class="da-main tk-entry-main"><img loading="lazy" decoding="async" src="/assets/tica-ui/img/event-entry-security-pexels-v1.webp" width="1200" height="1798" alt=""></div>
+      <div class="da-main tk-entry-main"><img loading="lazy" decoding="async" src="/assets/tica-ui/img/event-concert-security-pexels-v2.webp" width="1200" height="1800" alt=""></div>
       <div class="da-sub tk-entry-detail"><img loading="lazy" decoding="async" src="/assets/tica-ui/img/event-ticket-check-pexels-v1.webp" width="900" height="1350" alt=""></div>
       <span class="da-badge"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2z"/></svg>E-ticket sent to your email</span>
     </div>
