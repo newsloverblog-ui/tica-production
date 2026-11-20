@@ -5,9 +5,9 @@
 
 body.tica-admin{
   --tint:#F3F6FB;--indigo:#0B2447;--indigo-2:#0F4C9E;--camwood:#E39A55;--peach:#FEF7EE;--ink:#0B2447;--soft:#526079;--line:#E2E8F1;
-  background:var(--tint)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;font-size:15px;-webkit-font-smoothing:antialiased
+  background:var(--tint)!important;color:var(--ink)!important;font-family:'Montserrat',system-ui,sans-serif!important;font-size:15px;-webkit-font-smoothing:antialiased
 }
-body.tica-admin h1,body.tica-admin h2,body.tica-admin h3,body.tica-admin h4,body.tica-admin h5,body.tica-admin .card-title,body.tica-admin .page-title{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;color:var(--ink)!important;letter-spacing:-.015em}
+body.tica-admin h1,body.tica-admin h2,body.tica-admin h3,body.tica-admin h4,body.tica-admin h5,body.tica-admin .card-title,body.tica-admin .page-title{font-family:'Montserrat',system-ui,sans-serif!important;color:var(--ink)!important;letter-spacing:-.015em}
 
 /* top bar: the design's white header */
 body.tica-admin .main-header,body.tica-admin .logo-header,body.tica-admin .navbar-header{background:#fff!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
@@ -115,7 +115,7 @@ body.tica-admin .card-stats.card-success .icon-big{background:#DCFAE6}
 body.tica-admin .card-stats.card-success .icon-big i{color:#067647!important}
 body.tica-admin .card-stats:before,body.tica-admin .card-stats:after{display:none!important}
 body.tica-admin .tica-workspace-hero .tica-eyebrow{color:var(--camwood)!important}
-body.tica-admin :where(p,span,a,li,td,th,label,small,button,input,select,textarea,h1,h2,h3,h4,h5,h6,div,strong,b,em,dt,dd,.btn){font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
+body.tica-admin :where(p,span,a,li,td,th,label,small,button,input,select,textarea,h1,h2,h3,h4,h5,h6,div,strong,b,em,dt,dd,.btn){font-family:'Montserrat',system-ui,sans-serif!important}
 body.tica-admin .tica-topbar-context strong{color:var(--ink)!important}
 body.tica-admin .tica-topbar-context a{color:var(--indigo-2)!important}
 body.tica-admin .logo-header{border-bottom:1px solid var(--line)!important;border-right:1px solid var(--line)!important}

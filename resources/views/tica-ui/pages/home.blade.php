@@ -6,6 +6,8 @@
   $tsOrder = array_flip($tsHome['section_order']);
   $tsOff = fn ($key) => ' data-home-section="' . $key . '" style="order:' . ($tsOrder[$key] ?? 99) . ';' . (($tsHome['sections'][$key] ?? true) ? '' : 'display:none;') . '"' . (($tsHome['sections'][$key] ?? true) ? '' : ' data-off');
   $tsImg = fn ($path) => \App\Support\TicaSite::imageUrl($path);
+  $tsOrganizerTitle = trim((string) ($tsHome['organisers_title'] ?? ''));
+  $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
 @endphp
 @verbatim
 <section class="page" data-page="home">
@@ -102,7 +104,7 @@
 @endverbatim
   <div class="org"{!! $tsOff('organisers') !!}><div class="wrap org-in">
     <div class="org-copy">
-      <h2 class="display">{{ $tsHome['organisers_title'] }}</h2>
+      <h2 class="display">@foreach ($tsOrganizerTitleLines as $tsOrganizerTitleLine)<span>{{ $tsOrganizerTitleLine }}</span>@endforeach</h2>
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
     </div>

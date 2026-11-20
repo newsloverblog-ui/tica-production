@@ -5,9 +5,9 @@
 
 body.tica-organizer{
   --tint:#F3F6FB;--indigo:#0B2447;--indigo-2:#0F4C9E;--camwood:#E39A55;--peach:#FEF7EE;--ink:#0B2447;--soft:#526079;--line:#E2E8F1;
-  background:var(--tint)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;font-size:15px;-webkit-font-smoothing:antialiased
+  background:var(--tint)!important;color:var(--ink)!important;font-family:'Montserrat',system-ui,sans-serif!important;font-size:15px;-webkit-font-smoothing:antialiased
 }
-body.tica-organizer h1,body.tica-organizer h2,body.tica-organizer h3,body.tica-organizer h4,body.tica-organizer h5,body.tica-organizer .card-title,body.tica-organizer .page-title{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;color:var(--ink)!important;letter-spacing:-.015em}
+body.tica-organizer h1,body.tica-organizer h2,body.tica-organizer h3,body.tica-organizer h4,body.tica-organizer h5,body.tica-organizer .card-title,body.tica-organizer .page-title{font-family:'Montserrat',system-ui,sans-serif!important;color:var(--ink)!important;letter-spacing:-.015em}
 
 /* top bar: the design's white header */
 body.tica-organizer .main-header,body.tica-organizer .logo-header,body.tica-organizer .navbar-header{background:#fff!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
@@ -404,7 +404,7 @@ body.tica-organizer .tsb-new{background:var(--c-blue)!important;border-color:var
 .tsb-out svg{flex:none;width:18px;height:18px;fill:none;stroke:#8A94A6;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* Identity and bank account page */
-.kv{max-width:1120px;margin:0 auto;padding:8px 0 40px;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.kv{max-width:1120px;margin:0 auto;padding:8px 0 40px;color:#111827;font-family:'Montserrat',system-ui,sans-serif}
 .kv-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 24px}
 .kv-crumb{margin:0 0 6px;font-size:13px;color:#9AA3B2}.kv-crumb a{color:#6B7280!important}
 .kv-top h1{margin:0 0 6px;font-size:28px;line-height:1.2;font-weight:700;letter-spacing:-.02em;color:#111827}

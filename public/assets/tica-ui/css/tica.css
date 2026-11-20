@@ -17,8 +17,8 @@
   --line:#E2E8F1;
   --shadow:0 1px 2px rgba(11,36,71,.05),0 8px 24px rgba(11,36,71,.08);
   --shadow-lg:0 2px 4px rgba(11,36,71,.06),0 16px 40px rgba(11,36,71,.14);
-  --display:'Anybody',Impact,sans-serif;
-  --body:'Hanken Grotesk',system-ui,sans-serif;
+  --display:'Montserrat',system-ui,sans-serif;
+  --body:'Montserrat',system-ui,sans-serif;
   --gutter:clamp(16px,4vw,64px);
   --sec:clamp(64px,8vw,112px);
 }
@@ -5622,6 +5622,121 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .page[data-page=account] .acd-p[data-p="overview"]:not([hidden]) > * { animation: none !important; }
   .page[data-page=account] .acd-stat { transition: none !important; }
+}
+
+/* Homepage: keep the organiser promise intentional and the featured card compact on phones. */
+.page[data-page="home"] .org-copy .display > span { display: block; }
+
+@media (min-width: 901px) {
+  .page[data-page="home"] .org-copy .display > span { white-space: nowrap; }
+}
+
+@media (max-width: 700px) {
+  .page[data-page="home"] .spot {
+    display: grid !important;
+    grid-template-columns: 112px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .page[data-page="home"] .spot-flyer {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    position: relative !important;
+    width: 112px !important;
+    height: 100% !important;
+    min-height: 250px !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+
+  .page[data-page="home"] .spot-flyer > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .page[data-page="home"] .spot-flyer > .p {
+    width: 100%;
+    height: 100%;
+    min-height: 250px;
+  }
+
+  .page[data-page="home"] .spot-body {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    padding: 16px 14px !important;
+    text-align: left !important;
+  }
+
+  .page[data-page="home"] .spot-body::before { display: none !important; }
+  .page[data-page="home"] .spot-kicker { margin-bottom: 8px !important; }
+  .page[data-page="home"] .spot-body h2 {
+    margin: 0 !important;
+    font-size: clamp(22px, 7vw, 29px) !important;
+    line-height: 1.08 !important;
+  }
+  .page[data-page="home"] #spot-meta {
+    margin-top: 7px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  .page[data-page="home"] .spot-live {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px 10px !important;
+    margin-top: 9px !important;
+    font-size: 13px !important;
+  }
+  .page[data-page="home"] .spot-buy {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-top: 12px !important;
+  }
+  .page[data-page="home"] .spot-buy b { font-size: 18px !important; }
+  .page[data-page="home"] .spot-buy .btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    padding-inline: 12px !important;
+  }
+  .page[data-page="home"] .spot-nav {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: 44px 1fr 44px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 8px 12px !important;
+    border-top: 1px solid var(--line) !important;
+    background: #fff !important;
+  }
+  .page[data-page="home"] .spot-nav span { text-align: center !important; }
+  .page[data-page="home"] .spot-nav button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .page[data-page="home"] .spot { grid-template-columns: 100px minmax(0, 1fr) !important; }
+  .page[data-page="home"] .spot-flyer { width: 100px !important; }
+  .page[data-page="home"] .spot-body { padding-inline: 12px !important; }
 }
 /* Administrator customer preview. Kept explicit so impersonation is never mistaken for a normal session. */
 .tica-customer-impersonation{display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;padding:8px 20px;border-bottom:1px solid #d8e1f3;background:#eef3fd;color:#173a78;font-size:14px;font-weight:600}

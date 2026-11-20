@@ -1,9 +1,9 @@
 @font-face {
-  font-family: "TICA Inter";
+  font-family: "Montserrat";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("../fonts/inter-latin.woff2") format("woff2");
+  src: url("../fonts/montserrat-latin.woff2") format("woff2");
 }
 
 /* TICA interface foundation
@@ -35,7 +35,7 @@ body.orgshell,
 body.orgshell-legacy {
   color: var(--tica-ink);
   background: var(--tica-page);
-  font-family: "TICA Inter", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Montserrat", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -373,7 +373,7 @@ body.tica-admin,
 body.tica-admin :where(button, input, select, textarea),
 body.tica-front-ui,
 body.tica-front-ui :where(button, input, select, textarea) {
-  font-family: "TICA Inter", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "Montserrat", system-ui, sans-serif !important;
 }
 
 :is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)
