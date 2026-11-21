@@ -18,6 +18,7 @@ class Ticket extends Model
   }
 
   protected $fillable = [
+    'admits',
     'event_id',
     'event_type',
     'title',
@@ -63,5 +64,29 @@ class Ticket extends Model
   public function waitlistEntries()
   {
     return $this->hasMany(EventWaitlistEntry::class);
+  }
+
+  /** How many people one ticket of this type lets in (a couple pass is 2, a table for 10 is 10). */
+  public function admitsPerTicket(): int
+  {
+    return max(1, min(100, (int) ($this->getAttribute('admits') ?: 1)));
+  }
+
+  /**
+   * People admitted per ticket type id. Online tickets always admit one.
+   *
+   * @param  iterable<int|string>  $ticketIds
+   * @return array<int, int>
+   */
+  public static function admitsFor(iterable $ticketIds): array
+  {
+    $ids = collect($ticketIds)->map(fn ($id) => (int) $id)->filter()->unique()->values();
+    if ($ids->isEmpty() || !\Illuminate\Support\Facades\Schema::hasColumn('tickets', 'admits')) {
+      return [];
+    }
+
+    return static::query()->whereIn('id', $ids)->get(['id', 'admits', 'event_type'])
+      ->mapWithKeys(fn (self $ticket) => [(int) $ticket->id => $ticket->event_type === 'online' ? 1 : $ticket->admitsPerTicket()])
+      ->all();
   }
 }

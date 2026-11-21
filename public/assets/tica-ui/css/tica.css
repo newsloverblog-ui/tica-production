@@ -7272,3 +7272,9 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 .qconsent summary{cursor:pointer;color:#2E4FD8;font-weight:600}
 .qconsent details p{white-space:pre-line;line-height:1.55}
 .qf.bad select,.qf.bad textarea{border-color:#B42318;border-width:1.5px}
+
+/* Group tickets: "Admits N people" on the event page, and keeping passes at checkout. */
+.tadmit{display:inline-flex;align-items:center;width:max-content;margin:4px 0 2px;padding:2px 9px;border-radius:999px;background:#EEF3FF;color:#2541B8;font-size:12.5px;font-weight:600}
+.pv-keep{display:block;margin:2px 0 14px;padding:0;border:0;background:none;color:#2E4FD8;font:600 14px/1.4 var(--body,Inter,system-ui,sans-serif);text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pv-keep:hover{color:#2541B8}
+.ce-group .ce-option-fields small{display:block;margin-top:4px;font-size:13px;color:var(--soft,#526079)}

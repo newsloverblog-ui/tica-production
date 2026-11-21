@@ -187,7 +187,8 @@ class OrganizerWorkspace
 
     $categories = $tickets->map(function (Ticket $ticket) use ($titles, $events, $units, $revenue): array {
       $unit = $units->get($ticket->id);
-      $sold = (int) ($unit->sold ?? 0);
+      // Group tickets issue one pass per person; sold counts tickets.
+      $sold = (int) ceil((int) ($unit->sold ?? 0) / $ticket->admitsPerTicket());
       $available = $ticket->ticket_available_type === 'limited' ? max(0, (int) $ticket->ticket_available) : null;
       return [
         'id' => (int) $ticket->id,
@@ -196,6 +197,7 @@ class OrganizerWorkspace
         'name' => (string) ($titles[$ticket->id] ?? $ticket->title ?: 'Ticket'),
         'inventory' => $available === null ? null : $available + $sold,
         'sold' => $sold,
+        'admits' => $ticket->admitsPerTicket(),
         'checkedIn' => (int) ($unit->checked_in ?? 0),
         'available' => $available,
         'revenue' => round((float) ($revenue[$ticket->id] ?? 0), 2),

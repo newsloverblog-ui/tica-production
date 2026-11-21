@@ -449,7 +449,8 @@ class BookingController extends Controller
         'commission'             => round($info['commission'], 2),
         'tax_percentage'         => $organizerPaysFee ? 0 : $feePercentage,
         'commission_percentage'  => $organizerPaysFee ? $feePercentage : 0,
-        'quantity'               => $info['quantity'],
+        // Booking quantity counts people: a table for 10 is 10 passes.
+        'quantity'               => TicketIssuanceService::peopleFor(is_array($selectedTickets) ? $selectedTickets : null, (int) $info['quantity']),
         'discount'               => round($info['discount'], 2),
         'early_bird_discount'    => round($info['total_early_bird_dicount'], 2),
         'currencyText'           => $info['currencyText'],

@@ -133,9 +133,9 @@ class TicaWorkspaceController extends Controller
   private function setTicketTotal(Event $event, int $ticketId, ?string $variation, int $total): void
   {
     $ticket = Ticket::query()->where('event_id', $event->id)->whereKey($ticketId)->lockForUpdate()->firstOrFail();
-    $sold = BookingTicket::query()->where('ticket_id', $ticket->id)
+    $sold = (int) ceil(BookingTicket::query()->where('ticket_id', $ticket->id)
       ->when($variation, fn ($query) => $query->where('variation_name', $variation))
-      ->whereNull('revoked_at')->count();
+      ->whereNull('revoked_at')->count() / $ticket->admitsPerTicket());
     if ($total < $sold) {
       throw ValidationException::withMessages(['totals' => "You've already sold {$sold}. Set the total to at least that."]);
     }
