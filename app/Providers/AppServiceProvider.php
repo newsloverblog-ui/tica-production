@@ -29,7 +29,8 @@ class AppServiceProvider extends ServiceProvider
   public function register()
   {
     $this->app->bind(\App\Contracts\SmsSender::class, \App\Services\TermiiSmsSender::class);
-    //
+    // Yes/no values go to Postgres as '1'/'0' (see TicaPostgresConnection).
+    \Illuminate\Database\Connection::resolverFor('pgsql', fn ($pdo, $database, $prefix, $config) => new \App\Database\TicaPostgresConnection($pdo, $database, $prefix, $config));
   }
 
   /**
