@@ -7,7 +7,7 @@
 
 @section('content')
   @php
-    $activeSection = $filters['section'] ?? 'campaigns';
+    $activeSection = $filters['section'] ?? 'queue';
     $statusTone = static function ($status) {
       return match ($status) {
         'active', 'approved', 'completed' => 'positive',
@@ -31,14 +31,11 @@
   @endphp
 
   <div class="tica-promotion-center" data-active-section="{{ $activeSection }}">
-    <header class="promotion-page-header">
+    <header class="pm-head">
       <div>
-        <h1>{{ __('Promotions') }}</h1>
-        <p class="promotion-intro">{{ __('Review campaigns, manage placements and track performance.') }}</p>
+        <h1>{{ __('Promotion management') }}</h1>
+        <p>{{ __('Review placement requests, see what is running, and set what organisers can buy.') }}</p>
       </div>
-      <button type="button" class="promotion-header-action" data-show-section="plans">
-        <i class="fas fa-sliders-h" aria-hidden="true"></i>{{ __('Manage plans') }}
-      </button>
     </header>
 
     @if ($errors->any())
@@ -54,85 +51,163 @@
         </div>
       </div>
     @endif
+    @if (session('success'))
+      <div class="pm-flash" role="status"><i class="fas fa-check-circle" aria-hidden="true"></i>{{ session('success') }}</div>
+    @endif
 
-    <section class="promotion-pulse" aria-label="{{ __('Promotion status summary') }}">
-      <div class="pulse-item is-attention">
-        <span>{{ __('Needs review') }}</span>
-        <strong>{{ number_format($stats['review']) }}</strong>
-        <small>{{ __('Awaiting a decision') }}</small>
+    <nav class="pm-tabs" role="tablist" aria-label="{{ __('Promotion management sections') }}">
+      <div class="pm-tabs__main">
+        <button type="button" id="promotion-tab-queue" data-promotion-tab="queue" aria-controls="promotion-panel-queue" class="{{ $activeSection === 'queue' ? 'is-active' : '' }}">{{ __('Review queue') }}@if ($queue->count())<b>{{ $queue->count() }}</b>@endif</button>
+        <button type="button" id="promotion-tab-placements" data-promotion-tab="placements" aria-controls="promotion-panel-placements" class="{{ $activeSection === 'placements' ? 'is-active' : '' }}">{{ __('Placements') }}</button>
+        <button type="button" id="promotion-tab-plans" data-promotion-tab="plans" aria-controls="promotion-panel-plans" class="{{ $activeSection === 'plans' ? 'is-active' : '' }}">{{ __('Platform offers') }}</button>
       </div>
-      <div class="pulse-item is-live">
-        <span>{{ __('Live now') }}</span>
-        <strong>{{ number_format($stats['live']) }}</strong>
-        <small>{{ __('Active placements') }}</small>
+      <div class="pm-tabs__more">
+        <button type="button" id="promotion-tab-campaigns" data-promotion-tab="campaigns" aria-controls="promotion-panel-campaigns" class="{{ $activeSection === 'campaigns' ? 'is-active' : '' }}">{{ __('All campaigns') }}</button>
+        <button type="button" id="promotion-tab-analytics" data-promotion-tab="analytics" aria-controls="promotion-panel-analytics" class="{{ $activeSection === 'analytics' ? 'is-active' : '' }}">{{ __('Performance') }}</button>
+        <button type="button" id="promotion-tab-tracking" data-promotion-tab="tracking" aria-controls="promotion-panel-tracking" class="{{ $activeSection === 'tracking' ? 'is-active' : '' }}">{{ __('Tracking') }}</button>
+        <button type="button" id="promotion-tab-tools" data-promotion-tab="tools" aria-controls="promotion-panel-tools" class="{{ $activeSection === 'tools' ? 'is-active' : '' }}">{{ __('Codes and links') }}</button>
       </div>
-      <div class="pulse-item">
-        <span>{{ __('Scheduled') }}</span>
-        <strong>{{ number_format($stats['scheduled']) }}</strong>
-        <small>{{ __('Starts later') }}</small>
+    </nav>
+
+    <section class="promotion-panel pm-panel" id="promotion-panel-queue" role="tabpanel" aria-labelledby="promotion-tab-queue" data-promotion-panel="queue" @if ($activeSection !== 'queue') hidden @endif>
+      <div class="pm-review">
+        <div class="pm-queue">
+          <div class="pm-queue__head"><h2>{{ __('Review queue') }}</h2><span class="pm-count">{{ trans_choice(':count request|:count requests', $queue->count(), ['count' => $queue->count()]) }}</span></div>
+          <p class="pm-sub">{{ __('Placement requests that need a decision. Oldest first.') }}</p>
+          @forelse ($queue as $item)
+            @php $itemTitle = optional(optional($item->event)->information)->title ?? __('Untitled event'); @endphp
+            <a class="pm-qcard {{ $selected && $selected->id === $item->id ? 'is-on' : '' }}" href="{{ route('admin.advertise.tica_promotions', ['section' => 'queue', 'campaign' => $item->id]) }}" @if ($selected && $selected->id === $item->id) aria-current="true" @endif>
+              <span class="pm-thumb">@if ($flyer = \App\Support\PublicImage::flyer(optional($item->event)->thumbnail))<img src="{{ $flyer }}" alt="" loading="lazy">@else<i class="{{ $placementIcon(optional($item->plan)->placement) }}" aria-hidden="true"></i>@endif</span>
+              <span class="pm-qcard__txt"><b>{{ $itemTitle }}</b><small>{{ optional($item->plan)->name ?? __('Placement') }}</small><small><i class="far fa-calendar" aria-hidden="true"></i> {{ optional($item->starts_at)->format('j M') ?? __('Date pending') }} – {{ optional($item->ends_at)->format('j M Y') ?? '' }}</small></span>
+              <span class="pm-pill is-{{ $statusTone($item->status) }}"><i aria-hidden="true"></i>{{ $item->status === 'cancellation_requested' ? __('Cancel request') : __('In review') }}</span>
+            </a>
+          @empty
+            <div class="pm-empty"><span class="pm-empty__ico"><i class="fas fa-check" aria-hidden="true"></i></span><strong>{{ __('All caught up') }}</strong><span>{{ __('New placement requests appear here.') }}</span></div>
+          @endforelse
+        </div>
+
+        @if ($selected)
+          @php
+            $sel = $selected;
+            $selTitle = optional(optional($sel->event)->information)->title ?? __('Untitled event');
+            $selFlyer = $sel->creative_path ? \App\Support\PublicImage::url('assets/admin/img/tica-promotions', $sel->creative_path) : \App\Support\PublicImage::flyer(optional($sel->event)->thumbnail);
+            $selReady = (float) $sel->price <= 0 || ($sel->payment_status === 'paid' && $sel->paid_at && $sel->payment_transaction_id);
+            $selInfo = optional($sel->event)->information;
+          @endphp
+          <article class="pm-card" aria-labelledby="pm-review-h">
+            <h2 id="pm-review-h">{{ __('Review request') }}</h2>
+            <div class="pm-flyer">@if ($selFlyer)<img src="{{ $selFlyer }}" alt="{{ __('Flyer for :event', ['event' => $selTitle]) }}">@else<span class="pm-flyer__blank"><i class="{{ $placementIcon(optional($sel->plan)->placement) }}" aria-hidden="true"></i></span>@endif</div>
+            <h3 class="pm-title">{{ $sel->headline ?: $selTitle }}</h3>
+            <ul class="pm-meta">
+              <li><i class="far fa-calendar" aria-hidden="true"></i>{{ optional($sel->event)->start_date ? \Carbon\Carbon::parse($sel->event->start_date)->format('j M Y') : __('Date to be confirmed') }}</li>
+              @if (optional($selInfo)->city)<li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ $selInfo->city }}@if ($selInfo->country), {{ $selInfo->country }}@endif</li>@endif
+              <li><i class="far fa-user" aria-hidden="true"></i>{{ $sel->organizer->username ?? __('Unknown organiser') }}</li>
+            </ul>
+            <div class="pm-chips"><span class="pm-chip">{{ optional($sel->plan)->name ?? __('Placement') }}</span><span class="pm-chip pm-chip--grey">{{ $sel->currency }} {{ number_format((float) $sel->price, 0) }} · {{ $sel->paid_at ? __('Paid') : __('Not paid') }}</span></div>
+            @if ($sel->body)<p class="pm-copy">{{ $sel->body }}</p>@endif
+            <div class="pm-dates"><span class="pm-label">{{ __('Requested dates') }}</span><div><span><i class="far fa-calendar" aria-hidden="true"></i>{{ optional($sel->starts_at)->format('j M') ?? __('Date pending') }} – {{ optional($sel->ends_at)->format('j M Y') ?? '' }}</span><span class="pm-pill is-{{ $statusTone($sel->status) }}"><i aria-hidden="true"></i>{{ ucwords(str_replace('_', ' ', $sel->status)) }}</span></div></div>
+            <ul class="pm-checks" aria-label="{{ __('Checks') }}">
+              @foreach ($checks as $check)
+                <li class="{{ $check['ok'] ? 'is-ok' : 'is-warn' }}"><span aria-hidden="true">{{ $check['ok'] ? '✓' : '!' }}</span>{{ $check['text'] }}</li>
+              @endforeach
+            </ul>
+            <form method="post" action="{{ route('admin.advertise.tica_promotions.campaign', $sel) }}" class="pm-decide" data-pm-decide>
+              @csrf
+              <div class="pm-changes" data-pm-changes hidden>
+                <span class="pm-label">{{ __('What should the organiser change?') }}</span>
+                <div class="pm-reasons">
+                  @foreach ([__('Flyer text is too small'), __('Dates clash with another booking'), __('Event details are incomplete'), __('Verify your identity first')] as $reason)
+                    <button type="button" data-pm-reason="{{ $reason }}" aria-pressed="false">{{ $reason }}</button>
+                  @endforeach
+                </div>
+                <label class="pm-field"><span class="sr-only">{{ __('Note to the organiser') }}</span><textarea name="admin_notes" rows="3" maxlength="2000" placeholder="{{ __('Add a short note for the organiser') }}" data-pm-note></textarea></label>
+              </div>
+              <label class="pm-field">{{ __('Your admin password') }}<input name="current_password" type="password" autocomplete="current-password" required></label>
+              @unless ($selReady)<p class="pm-wait"><i class="fas fa-clock" aria-hidden="true"></i>{{ __('Waiting for organizer payment through Paystack or TICA balance.') }}</p>@endunless
+              <div class="pm-actions" data-pm-main>
+                <button type="button" class="pm-btn pm-btn--line" data-pm-start-changes>{{ __('Request changes') }}</button>
+                @if ($sel->status === 'cancellation_requested')
+                  <button type="submit" name="decision" value="cancel" class="pm-btn pm-btn--blue">{{ __('Confirm cancellation') }}</button>
+                @else
+                  <button type="submit" name="decision" value="approve" class="pm-btn pm-btn--blue" @disabled(!$selReady)>{{ __('Approve placement') }}</button>
+                @endif
+              </div>
+              <div class="pm-actions" data-pm-change-actions hidden>
+                <button type="button" class="pm-btn pm-btn--ghost" data-pm-cancel-changes>{{ __('Cancel') }}</button>
+                <button type="submit" name="decision" value="reject" class="pm-btn pm-btn--ghost pm-btn--danger">{{ __('Reject request') }}</button>
+                <button type="submit" name="decision" value="request_changes" class="pm-btn pm-btn--blue">{{ __('Send to organiser') }}</button>
+              </div>
+            </form>
+          </article>
+        @endif
       </div>
-      <div class="pulse-item">
-        <span>{{ __('Promotion revenue') }}</span>
-        <strong>{{ \App\Support\TicaCurrency::base() }} {{ number_format($stats['revenue'], 0) }}</strong>
-        <small>{{ __('Paid campaigns') }}</small>
-      </div>
-      <div class="pulse-item {{ $stats['cancellations'] ? 'is-attention' : '' }}">
-        <span>{{ __('Cancellation requests') }}</span>
-        <strong>{{ number_format($stats['cancellations']) }}</strong>
-        <small>{{ __('Awaiting review') }}</small>
-      </div>
-      <div class="pulse-item">
-        <span>{{ __('Attributed tickets') }}</span>
-        <strong>{{ number_format($stats['tickets']) }}</strong>
-        <small>{{ __('From promotions') }}</small>
-      </div>
+
+      @php
+        $calDays = collect(range(0, 13))->map(fn ($i) => $calendarStart->copy()->addDays($i));
+        $calTone = fn ($b) => in_array($b->status, ['pending_review', 'cancellation_requested'], true) ? 'wait' : (str_contains((string) optional($b->plan)->placement, 'popup') ? 'pop' : (optional($b->plan)->placement === 'featured_event' ? 'hero' : 'disc'));
+      @endphp
+      <section class="pm-cal" aria-labelledby="pm-cal-h">
+        <div class="pm-cal__head"><h2 id="pm-cal-h">{{ __('Placements calendar') }}</h2>
+          <div class="pm-cal__nav"><a href="{{ route('admin.advertise.tica_promotions', ['section' => 'queue', 'week' => max(-8, $week - 2), 'campaign' => optional($selected)->id]) }}" aria-label="{{ __('Earlier weeks') }}"><i class="fas fa-chevron-left" aria-hidden="true"></i></a><b>{{ $calDays->first()->format('j M') }} – {{ $calDays->last()->format('j M Y') }}</b><a href="{{ route('admin.advertise.tica_promotions', ['section' => 'queue', 'week' => min(26, $week + 2), 'campaign' => optional($selected)->id]) }}" aria-label="{{ __('Later weeks') }}"><i class="fas fa-chevron-right" aria-hidden="true"></i></a></div>
+        </div>
+        <div class="pm-cal__grid">
+          <div class="pm-week pm-week--head">@foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)<span>{{ __($dayName) }}</span>@endforeach</div>
+          @foreach ([0, 1] as $w)
+            @php $weekStart = $calendarStart->copy()->addDays($w * 7); @endphp
+            @php $weekEnd = $weekStart->copy()->addDays(7); @endphp
+            <div class="pm-week">
+              @foreach ($calDays->slice($w * 7, 7) as $day)<span class="pm-day {{ $day->isToday() ? 'is-today' : '' }}">{{ $day->format('j') }}</span>@endforeach
+              @foreach ($calendarBookings->filter(fn ($b) => $b->starts_at < $weekEnd && $b->ends_at > $weekStart) as $booking)
+                @php
+                  $from = max(0, (int) $weekStart->diffInDays($booking->starts_at->copy()->startOfDay(), false));
+                  $to = min(6, (int) $weekStart->diffInDays($booking->ends_at->copy()->subSecond()->startOfDay(), false));
+                @endphp
+                @if ($to >= $from)
+                  <a class="pm-bar is-{{ $calTone($booking) }}" style="grid-column: {{ $from + 1 }} / {{ $to + 2 }}" href="{{ route('admin.advertise.tica_promotions', ['section' => in_array($booking->status, ['pending_review', 'cancellation_requested'], true) ? 'queue' : 'placements', 'campaign' => $booking->id, 'week' => $week]) }}" title="{{ optional(optional($booking->event)->information)->title }} · {{ optional($booking->plan)->name }}">{{ optional(optional($booking->event)->information)->title ?? __('Event') }} · {{ optional($booking->plan)->name }}</a>
+                @endif
+              @endforeach
+            </div>
+          @endforeach
+        </div>
+        <div class="pm-legend"><span><i class="is-hero"></i>{{ __('Featured') }}</span><span><i class="is-disc"></i>{{ __('Sponsored') }}</span><span><i class="is-pop"></i>{{ __('Pop events') }}</span><span><i class="is-wait"></i>{{ __('Waiting for review') }}</span></div>
+      </section>
     </section>
 
-    <section class="placement-rail" aria-labelledby="placement-rail-title">
-      <div class="placement-rail-heading">
-        <div>
-          <h2 id="placement-rail-title">{{ __('Promotion placements') }}</h2>
-          <p>{{ __('Packages available to organizers.') }}</p>
-        </div>
-        <button type="button" class="placement-edit-link" data-show-section="plans">
-          {{ __('Edit plans') }}
-        </button>
-      </div>
-      <div class="placement-track">
-        @forelse ($plans as $plan)
-          <article class="placement-node {{ $plan->is_active ? 'is-available' : 'is-unavailable' }}">
-            <i class="{{ $placementIcon($plan->placement) }}" aria-hidden="true"></i>
-            <div>
-              <span>{{ $placementLabels[$plan->placement] ?? str_replace('_', ' ', $plan->placement) }}</span>
-              <strong>{{ $plan->currency }} {{ number_format((float) $plan->price, 0) }}</strong>
-              <small>{{ trans_choice(':count day|:count days', $plan->duration_days, ['count' => $plan->duration_days]) }}</small>
-            </div>
-            <em>{{ $plan->is_active ? __('Available') : __('Hidden') }}</em>
+    <section class="promotion-panel pm-panel" id="promotion-panel-placements" role="tabpanel" aria-labelledby="promotion-tab-placements" data-promotion-panel="placements" @if ($activeSection !== 'placements') hidden @endif>
+      <div class="pm-queue__head"><h2>{{ __('Placements') }}</h2><span class="pm-count">{{ trans_choice(':count placement|:count placements', $placements->count(), ['count' => $placements->count()]) }}</span></div>
+      <p class="pm-sub">{{ __('What is live now and what starts soon.') }}</p>
+      <div class="pm-places">
+        @forelse ($placements as $place)
+          @php
+            $placeTitle = optional(optional($place->event)->information)->title ?? __('Untitled event');
+            $total = max(1, $place->starts_at && $place->ends_at ? $place->starts_at->diffInSeconds($place->ends_at) : 1);
+            $done = $place->starts_at && $place->starts_at->isPast() ? min(100, (int) round($place->starts_at->diffInSeconds(now()) / $total * 100)) : 0;
+          @endphp
+          <article class="pm-place">
+            <span class="pm-thumb">@if ($flyer = \App\Support\PublicImage::flyer(optional($place->event)->thumbnail))<img src="{{ $flyer }}" alt="" loading="lazy">@else<i class="{{ $placementIcon(optional($place->plan)->placement) }}" aria-hidden="true"></i>@endif</span>
+            <div class="pm-place__txt"><b>{{ $placeTitle }}</b><small>{{ optional($place->plan)->name }} · {{ optional($place->starts_at)->format('j M') }} – {{ optional($place->ends_at)->format('j M Y') }} · {{ $place->organizer->username ?? '' }}</small></div>
+            <div class="pm-place__prog"><div><span>{{ $done ? __(':pct% of the run done', ['pct' => $done]) : __('Starts :date', ['date' => optional($place->starts_at)->format('j M')]) }}</span><span>{{ trans_choice(':count click|:count clicks', (int) $place->clicks, ['count' => number_format((int) $place->clicks)]) }}</span></div><i aria-hidden="true"><i style="width: {{ $done }}%"></i></i></div>
+            <span class="pm-pill is-{{ $statusTone($place->status) }}"><i aria-hidden="true"></i>{{ $place->status === 'active' ? __('Live') : ucwords(str_replace('_', ' ', $place->status)) }}</span>
+            <details class="pm-manage">
+              <summary>{{ __('Manage') }}</summary>
+              <form method="post" action="{{ route('admin.advertise.tica_promotions.campaign', $place) }}">
+                @csrf
+                <label class="pm-field">{{ __('Action') }}<select name="decision" required>
+                  @if ($place->status === 'paused')<option value="resume">{{ __('Resume') }}</option>@else<option value="pause">{{ __('Pause placement') }}</option>@endif
+                  <option value="cancel">{{ __('Cancel campaign') }}</option>
+                  @if ($place->payment_status === 'paid')<option value="refund">{{ __('Refund') }}</option>@endif
+                </select></label>
+                <label class="pm-field">{{ __('Note') }}<textarea name="admin_notes" rows="2" maxlength="2000"></textarea></label>
+                <label class="pm-field">{{ __('Your admin password') }}<input name="current_password" type="password" autocomplete="current-password" required></label>
+                <button class="pm-btn pm-btn--blue" type="submit">{{ __('Save') }}</button>
+              </form>
+            </details>
           </article>
         @empty
-          <div class="promotion-empty compact"><strong>{{ __('No plans configured') }}</strong><span>{{ __('Add promotion plans before organizers can submit campaigns.') }}</span></div>
+          <div class="pm-empty"><strong>{{ __('Nothing running yet') }}</strong><span>{{ __('Approved placements appear here.') }}</span></div>
         @endforelse
       </div>
     </section>
-
-    <nav class="promotion-tabs" role="tablist" aria-label="{{ __('Promotion management sections') }}">
-      <button type="button" id="promotion-tab-campaigns" data-promotion-tab="campaigns" aria-controls="promotion-panel-campaigns" class="{{ $activeSection === 'campaigns' ? 'is-active' : '' }}">
-        <i class="fas fa-layer-group" aria-hidden="true"></i><span>{{ __('Campaigns') }}</span>
-        @if ($stats['review'])<b>{{ $stats['review'] }}</b>@endif
-      </button>
-      <button type="button" id="promotion-tab-plans" data-promotion-tab="plans" aria-controls="promotion-panel-plans" class="{{ $activeSection === 'plans' ? 'is-active' : '' }}">
-        <i class="fas fa-tags" aria-hidden="true"></i><span>{{ __('Plans') }}</span>
-      </button>
-      <button type="button" id="promotion-tab-analytics" data-promotion-tab="analytics" aria-controls="promotion-panel-analytics" class="{{ $activeSection === 'analytics' ? 'is-active' : '' }}">
-        <i class="fas fa-chart-bar" aria-hidden="true"></i><span>{{ __('Performance') }}</span>
-      </button>
-      <button type="button" id="promotion-tab-tracking" data-promotion-tab="tracking" aria-controls="promotion-panel-tracking" class="{{ $activeSection === 'tracking' ? 'is-active' : '' }}">
-        <i class="fas fa-chart-line" aria-hidden="true"></i><span>{{ __('Tracking') }}</span>
-      </button>
-      <button type="button" id="promotion-tab-tools" data-promotion-tab="tools" aria-controls="promotion-panel-tools" class="{{ $activeSection === 'tools' ? 'is-active' : '' }}">
-        <i class="fas fa-link" aria-hidden="true"></i><span>{{ __('Codes and links') }}</span>
-      </button>
-    </nav>
 
     <section class="promotion-panel" id="promotion-panel-campaigns" role="tabpanel" aria-labelledby="promotion-tab-campaigns" data-promotion-panel="campaigns" @if ($activeSection !== 'campaigns') hidden @endif>
       <div class="panel-heading">
@@ -292,7 +367,7 @@
 
     <section class="promotion-panel" id="promotion-panel-plans" role="tabpanel" aria-labelledby="promotion-tab-plans" data-promotion-panel="plans" @if ($activeSection !== 'plans') hidden @endif>
       <div class="panel-heading">
-        <div><h2>{{ __('Plans and pricing') }}</h2><p>{{ __('Set placement availability, duration and price.') }}</p></div>
+        <div><h2>{{ __('Platform offers') }}</h2><p>{{ __('The placements organisers can buy: price, length and how many can run at once.') }}</p></div>
         <span class="panel-result-count">{{ trans_choice(':count plan|:count plans', $plans->count(), ['count' => $plans->count()]) }}</span>
       </div>
       <details class="package-create">
@@ -485,7 +560,28 @@
         });
       });
 
-      showSection(root.getAttribute('data-active-section') || 'campaigns');
+      showSection(root.getAttribute('data-active-section') || 'queue');
+
+      root.querySelectorAll('[data-pm-decide]').forEach(function (form) {
+        var changes = form.querySelector('[data-pm-changes]'), main = form.querySelector('[data-pm-main]'), alt = form.querySelector('[data-pm-change-actions]'), note = form.querySelector('[data-pm-note]');
+        function mode(on) { changes.hidden = !on; main.hidden = on; alt.hidden = !on; if (on) { changes.classList.add('is-in'); note.focus(); } }
+        form.querySelector('[data-pm-start-changes]').addEventListener('click', function () { mode(true); });
+        form.querySelector('[data-pm-cancel-changes]').addEventListener('click', function () { mode(false); });
+        form.querySelectorAll('[data-pm-reason]').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            var text = chip.getAttribute('data-pm-reason'), on = chip.getAttribute('aria-pressed') !== 'true';
+            chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+            var lines = note.value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).filter(function (l) { return l !== text; });
+            if (on) lines.unshift(text);
+            note.value = lines.join('\n');
+          });
+        });
+        form.addEventListener('submit', function (event) {
+          var decision = event.submitter && event.submitter.value;
+          if (decision === 'request_changes' && !note.value.trim()) { event.preventDefault(); note.focus(); note.setAttribute('aria-invalid', 'true'); return; }
+          if (event.submitter) { event.submitter.disabled = true; event.submitter.classList.add('is-busy'); var keep = document.createElement('input'); keep.type = 'hidden'; keep.name = 'decision'; keep.value = decision; form.appendChild(keep); }
+        });
+      });
 
       root.querySelectorAll('[data-show-section]').forEach(function (button) {
         button.addEventListener('click', function () {

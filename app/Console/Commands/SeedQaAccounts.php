@@ -50,6 +50,8 @@ class SeedQaAccounts extends Command
     $admin = ['first_name' => 'QA', 'last_name' => 'Admin', 'email' => 'qa-admin@tica.test', 'password' => $hash, 'status' => 1, 'role_id' => null, 'updated_at' => $now];
     DB::table('admins')->updateOrInsert(['username' => 'qa_admin'], $admin + ['created_at' => $now]);
 
+    $this->seedPromotions();
+
     $this->info('QA accounts ready.');
     return self::SUCCESS;
   }
@@ -70,5 +72,31 @@ class SeedQaAccounts extends Command
     DB::table('organizer_infos')->updateOrInsert(['organizer_id' => $id], ['name' => $name, 'language_id' => $language ?: null, 'updated_at' => $now]);
 
     return $id;
+  }
+
+  /** One request waiting for review and one live placement, so the admin review page has something to show. */
+  private function seedPromotions(): void
+  {
+    if (!Schema::hasTable('tica_promotion_campaigns') || !Schema::hasTable('tica_promotion_plans')) {
+      return;
+    }
+    $plan = DB::table('tica_promotion_plans')->whereNull('archived_at')->orderBy('price')->first();
+    $event = DB::table('events')->where('status', 1)->orderByDesc('id')->first();
+    if (!$plan || !$event) {
+      return;
+    }
+    $now = now();
+    foreach ([
+      ['TP-QAREVIEW01', 'pending_review', $now->copy()->addDays(3), $now->copy()->addDays(10)],
+      ['TP-QALIVE0001', 'active', $now->copy()->subDays(2), $now->copy()->addDays(5)],
+    ] as [$reference, $status, $starts, $ends]) {
+      $values = collect([
+        'organizer_id' => $event->organizer_id, 'event_id' => $event->id, 'plan_id' => $plan->id,
+        'status' => $status, 'payment_status' => 'unpaid', 'placement' => $plan->placement ?? null,
+        'price' => 0, 'currency' => $plan->currency ?? 'NGN', 'priority' => 100,
+        'starts_at' => $starts, 'ends_at' => $ends, 'created_at' => $now, 'updated_at' => $now,
+      ])->filter(fn ($value, $column) => Schema::hasColumn('tica_promotion_campaigns', $column))->all();
+      DB::table('tica_promotion_campaigns')->updateOrInsert(['reference' => $reference], $values);
+    }
   }
 }

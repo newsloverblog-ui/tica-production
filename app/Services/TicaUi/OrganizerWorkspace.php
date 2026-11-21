@@ -566,6 +566,7 @@ class OrganizerWorkspace
 
     return TicaPromotionCampaign::query()->with(['plan:id,name,placement,type', 'event.information'])->where('organizer_id', $organizerId)->latest('id')->limit(50)->get()->map(fn (TicaPromotionCampaign $campaign) => [
       'id' => (int) $campaign->id,
+      'eventId' => (int) $campaign->event_id,
       'event' => (string) (optional(optional($campaign->event)->information)->title ?: 'Event'),
       'plan' => (string) optional($campaign->plan)->name,
       'placement' => (string) optional($campaign->plan)->placement,

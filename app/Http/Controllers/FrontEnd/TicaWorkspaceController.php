@@ -696,7 +696,7 @@ class TicaWorkspaceController extends Controller
       app(TicaPromotionNotificationService::class)->send($campaign, 'submitted', 'Promotion submitted', 'Your promotion request has been received and its status is now available in the organizer dashboard.');
     }
 
-    return response()->json(['message' => (float) $campaign->price > 0 ? 'Promotion reserved. Complete payment to submit it for review.' : 'Promotion sent for review.', 'campaign' => $campaign->reference]);
+    return response()->json(['message' => (float) $campaign->price > 0 ? 'Promotion reserved. Complete payment to submit it for review.' : 'Promotion sent for review.', 'campaign' => $campaign->reference, 'id' => (int) $campaign->id, 'price' => (float) $campaign->price]);
   }
 
   public function payPromotion(Request $request, int $campaign, TicaPromotionService $promotions): JsonResponse

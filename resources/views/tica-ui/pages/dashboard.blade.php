@@ -127,49 +127,38 @@
       </div>
 
       <!-- PROMOTE -->
-      <div class="od-p pr" data-p="promote" hidden>
-        <header class="pr-head">
-          <div><h1>Promote</h1><p>Share your event, reward buyers with codes and see which channels sell.</p></div>
+      <div class="od-p pr pv" data-p="promote" hidden>
+        <header class="pv-head">
+          <h1>Promote your event</h1>
+          <p>Sell more tickets with promo codes and tracking links, and get featured across TICA. Everything you run shows up below.</p>
         </header>
 
-        <section class="pr-card pr-share" aria-labelledby="pr-share-h">
-          <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-share-h">Share your event</h2><p class="pr-card__sub">Post this link anywhere. Make a tracking link below to see which channel sells.</p></div></div>
-          <div class="pr-share__grid">
-            <label class="pr-field"><span>Event</span><select class="t-select" id="pr-ev"></select></label>
-            <label class="pr-field pr-share__url"><span>Event link</span><span class="pr-copy"><input class="t-input" id="pr-url" type="text" readonly><button class="t-btn t-btn--primary" type="button" id="pr-copy">Copy link</button></span></label>
-          </div>
-          <div class="pr-social" id="pr-social" aria-label="Share to"></div>
-        </section>
-
-        <div class="pr-grid">
-          <section class="pr-card" aria-labelledby="pr-codes-h">
-            <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-codes-h">Discount codes <span class="pr-count" id="pr-codes-n"></span></h2><p class="pr-card__sub">Codes buyers enter at checkout.</p></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New code</button></div>
-            <ul class="pr-list" id="od-codes"></ul>
-          </section>
-          <section class="pr-card" aria-labelledby="pr-links-h">
-            <div class="pr-card__head"><div><h2 class="pr-card__title" id="pr-links-h">Tracking links <span class="pr-count" id="pr-links-n"></span></h2><p class="pr-card__sub">One link per channel or promoter.</p></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New link</button></div>
-            <ul class="pr-list" id="od-links"></ul>
-          </section>
+        <div class="pv-bar">
+          <div class="pv-event"><label for="pr-ev">Event</label><span class="pv-select"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/></svg><select class="t-select" id="pr-ev"></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          <button class="t-btn t-btn--primary pv-create" type="button" data-prnew="choose"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create promotion</button>
         </div>
 
-        <section class="pr-card od-promo-market" aria-labelledby="od-packages-h">
-          <div class="pr-card__head"><div><h2 class="pr-card__title" id="od-packages-h">Promote on TICA</h2><p class="pr-card__sub">Choose a placement, schedule it and follow the results. Pricing and availability come directly from TICA.</p></div><div class="od-promo-balance"><span>Available balance</span><b id="od-promo-balance">—</b></div></div>
-          <div class="od-promo-kpis" id="od-promo-kpis" aria-label="Promotion performance"></div>
-          <div class="od-package-grid" id="od-package-grid"></div>
+        <div class="pv-tools">
+          <button class="pv-tool pv-tool--code" type="button" data-prnew="code"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l9.5 9.5-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><b>Promo code</b><span>Offer a discount with a custom code</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+          <button class="pv-tool pv-tool--link" type="button" data-prnew="link"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg></span><b>Tracking link</b><span>Share a unique link to see what sells tickets</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+          <button class="pv-tool pv-tool--feat" type="button" data-prnew="featured"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><b>Featured placement</b><span id="pv-feat-from">Get your event featured across TICA</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+        </div>
+
+        <section class="pv-section" aria-labelledby="pv-camps-h">
+          <div class="pv-section__head"><h2 id="pv-camps-h">Your campaigns</h2>
+            <div class="pv-filter" role="tablist" aria-label="Show campaigns"><button type="button" role="tab" data-prfilter="all" aria-selected="true">All</button><button type="button" role="tab" data-prfilter="code" aria-selected="false">Codes</button><button type="button" role="tab" data-prfilter="link" aria-selected="false">Links</button><button type="button" role="tab" data-prfilter="feat" aria-selected="false">Placements</button></div></div>
+          <div class="pv-camps" id="od-campaigns" role="table" aria-labelledby="pv-camps-h"></div>
         </section>
 
-        <section class="pr-card od-promo-studio" aria-labelledby="od-campaign-h">
-          <div class="pr-card__head"><div><h2 class="pr-card__title" id="od-campaign-h">Campaign studio</h2><p class="pr-card__sub">Campaigns go live only after verified payment and any required TICA review.</p></div></div>
-          <div class="od-empty-state" id="od-promo-empty" hidden><h3>No packages available</h3><p>TICA will publish new promotion packages here.</p></div>
-          <form class="od-form" id="od-promo-f" novalidate>
-            <div class="od-row3"><div class="inp"><label for="od-promo-plan">Placement</label><select id="od-promo-plan" required></select></div><div class="inp"><label for="od-promo-event">Event</label><select id="od-promo-event" required></select></div><div class="inp"><label for="od-promo-start">Start date</label><input id="od-promo-start" type="date" required></div></div>
-            <div class="od-package-summary" id="od-package-summary" aria-live="polite"></div>
-            <div class="od-row2"><div class="inp"><label for="od-promo-headline">Headline <small>(optional)</small></label><input id="od-promo-headline" maxlength="160"></div><div class="inp"><label for="od-promo-url">Destination URL <small>(optional)</small></label><input id="od-promo-url" type="url" placeholder="https://..."></div></div>
-            <div class="inp"><label for="od-promo-body">Promotion copy <small>(optional)</small></label><textarea id="od-promo-body" maxlength="1000" rows="3"></textarea></div>
-            <div class="inp od-upload"><label for="od-promo-creative">Campaign image <small>(optional)</small><span>Choose a JPG, PNG, WebP or GIF up to 3 MB</span></label><input id="od-promo-creative" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
-            <button class="t-btn t-btn--primary" type="submit">Create promotion</button><p class="pr-msg" id="od-promo-m" role="status"></p>
-          </form>
-          <div class="db-ch od-campaign-heading"><div><h2>My campaigns</h2><p class="od-fine">Payment, review, schedule and placement performance.</p></div></div><div class="od-campaigns" id="od-campaigns"></div>
+        <section class="pv-section" aria-labelledby="pv-perf-h">
+          <div class="pv-section__head"><h2 id="pv-perf-h">Promotion performance</h2><span class="pv-note">Since you started promoting</span></div>
+          <div class="pv-stats" id="od-promo-kpis"></div>
+        </section>
+
+        <section class="pv-share" aria-labelledby="pr-share-h">
+          <div><h2 id="pr-share-h">Share your event link</h2><p>Post it anywhere. Use a tracking link instead when you want to see which post sells.</p></div>
+          <span class="pr-copy"><input class="t-input" id="pr-url" type="text" readonly aria-label="Event link"><button class="t-btn t-btn--secondary" type="button" id="pr-copy">Copy link</button></span>
+          <div class="pr-social" id="pr-social" aria-label="Share to"></div>
         </section>
 
         <details class="pr-card pr-more">
@@ -272,7 +261,7 @@
   <div class="sh-head"><div><h2 id="od-inv-h">Invite a team member</h2><p>They get an email with a link to join. You can change their role or remove them any time.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="od-form" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"></select><small id="od-ir-help"></small></div><button class="t-btn t-btn--primary t-btn--block" type="submit">Send invite</button><p class="hint" id="od-inv-m" role="alert"></p></form>
 </dialog>
-<dialog class="od-dlg pr-dlg" id="pr-code-dlg" aria-labelledby="pr-code-h">
+<dialog class="od-dlg pr-dlg pr-drawer" id="pr-code-dlg" aria-labelledby="pr-code-h">
   <div class="sh-head"><div><h2 id="pr-code-h">New discount code</h2><p id="pr-code-p">Buyers enter this at checkout.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="pr-form" id="od-code-f" novalidate>
     <label class="pr-field"><span>Code</span><input class="t-input" id="od-cn" type="text" placeholder="EARLYBIRD" autocapitalize="characters" maxlength="30" required></label>
@@ -286,13 +275,15 @@
       <label class="pr-field"><span>Minimum order <small>(optional)</small></span><input class="t-input" id="od-code-min" type="number" min="0" step="0.01" placeholder="0"></label>
     </div>
     <label class="pr-field"><span>Ends on <small>(optional)</small></span><input class="t-input" id="od-code-end" type="date"></label>
+    <p class="pv-preview" id="od-code-preview" aria-live="polite"></p>
     <p class="pr-msg" id="od-code-m" role="alert"></p>
     <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit" id="od-code-go">Create code</button></div>
   </form>
 </dialog>
-<dialog class="od-dlg pr-dlg" id="pr-link-dlg" aria-labelledby="pr-link-h">
+<dialog class="od-dlg pr-dlg pr-drawer" id="pr-link-dlg" aria-labelledby="pr-link-h">
   <div class="sh-head"><div><h2 id="pr-link-h">New tracking link</h2><p id="pr-link-p">Share it with one channel or promoter to see what it sells.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="pr-form" id="od-link-f" novalidate>
+    <div class="pv-chips" role="group" aria-label="Where you will share it"><button type="button" data-chan="Instagram">Instagram</button><button type="button" data-chan="WhatsApp">WhatsApp</button><button type="button" data-chan="X">X</button><button type="button" data-chan="TikTok">TikTok</button><button type="button" data-chan="Facebook">Facebook</button><button type="button" data-chan="Email">Email</button></div>
     <label class="pr-field"><span>Link name</span><input class="t-input" id="od-ln" type="text" placeholder="e.g. Chioma's Instagram" maxlength="120" required></label>
     <div class="pr-form__two">
       <label class="pr-field"><span>Channel <small>(optional)</small></span><input class="t-input" id="od-link-channel" type="text" placeholder="Instagram" maxlength="80"></label>
@@ -301,6 +292,57 @@
     <label class="pr-field"><span>Event</span><select class="t-select" id="od-link-event"></select></label>
     <p class="pr-msg" id="od-link-m" role="alert"></p>
     <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit" id="od-link-go">Create link</button></div>
+  </form>
+</dialog>
+<dialog class="od-dlg pr-dlg pr-drawer" id="pr-choose-dlg" aria-labelledby="pr-choose-h">
+  <div class="sh-head"><div><span class="pv-kicker">New promotion</span><h2 id="pr-choose-h">Create a promotion</h2><p>Pick one. Each takes a minute or two.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="pv-choose">
+    <button class="pv-opt" type="button" data-prnew="code"><span class="pv-opt__ico pv-tone-code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l9.5 9.5-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><span><b>Promo code</b><small>Money or a percentage off tickets</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <button class="pv-opt" type="button" data-prnew="link"><span class="pv-opt__ico pv-tone-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg></span><span><b>Tracking link</b><small>A link for each place you post</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <button class="pv-opt" type="button" data-prnew="featured"><span class="pv-opt__ico pv-tone-feat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><span><b>Featured placement</b><small>Home page, Discover or a pop-up across TICA</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</dialog>
+<dialog class="od-dlg pr-dlg pr-drawer" id="pr-feat-dlg" aria-labelledby="pr-feat-h">
+  <div class="sh-head"><div><span class="pv-kicker">Featured placement</span><h2 id="pr-feat-h">Get featured on TICA</h2></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="pv-steps" id="pr-feat-steps"><span id="pr-feat-step">Step 1 of 3 · Where</span><div class="pv-bars" aria-hidden="true"><i></i><i></i><i></i></div></div>
+  <form class="pr-form pv-feat" id="od-promo-f" novalidate>
+    <div class="pv-pane" data-fstep="1">
+      <p class="pv-q">Where should your event appear?</p>
+      <div class="pv-plans" id="od-package-grid" role="radiogroup" aria-label="Placement"></div>
+      <div class="od-empty-state" id="od-promo-empty" hidden><h3>No placements available right now</h3><p>TICA will publish new placements here.</p></div>
+    </div>
+    <div class="pv-pane" data-fstep="2" hidden>
+      <p class="pv-q">Which event, and when should it start?</p>
+      <label class="pr-field"><span>Event</span><select class="t-select" id="od-promo-event" required></select></label>
+      <label class="pr-field"><span>Start date</span><input class="t-input" id="od-promo-start" type="date" required></label>
+      <p class="pv-runs" id="od-package-summary" aria-live="polite"></p>
+      <details class="pv-extra"><summary>Add your own image and words <small>(optional)</small></summary>
+        <label class="pr-field"><span>Headline</span><input class="t-input" id="od-promo-headline" maxlength="160"></label>
+        <label class="pr-field"><span>Short description</span><textarea class="t-input" id="od-promo-body" maxlength="1000" rows="3"></textarea></label>
+        <label class="pr-field"><span>Link to open <small>(leave blank for your event page)</small></span><input class="t-input" id="od-promo-url" type="url" placeholder="https://..."></label>
+        <label class="pr-field"><span>Image <small>JPG, PNG, WebP or GIF up to 3 MB</small></span><input class="t-input" id="od-promo-creative" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+      </details>
+    </div>
+    <div class="pv-pane" data-fstep="3" hidden>
+      <p class="pv-q">Check and pay</p>
+      <div class="pv-ticket" id="pr-feat-card"></div>
+      <dl class="pv-sum" id="pr-feat-sum"></dl>
+      <p class="pv-fine" id="pr-feat-note"></p>
+    </div>
+    <div class="pv-pane pv-done" data-fstep="4" hidden>
+      <span class="pv-done__ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <h3 id="pr-feat-done-h">Sent for review</h3>
+      <p id="pr-feat-done-p"></p>
+      <ol class="pv-next"><li><b>We check your request</b><small>Usually within one working day.</small></li><li><b>You get an email</b><small>Approved, or what to change.</small></li><li><b>It goes live on the start date</b><small>Clicks and sales show on this page.</small></li></ol>
+    </div>
+    <p class="pr-msg" id="od-promo-m" role="alert"></p>
+    <div class="pr-form__actions pv-foot">
+      <button class="t-btn t-btn--ghost" type="button" id="pr-f-back">Back</button>
+      <button class="t-btn t-btn--secondary" type="button" id="pr-f-balance" hidden>Use TICA balance</button>
+      <button class="t-btn t-btn--primary" type="button" id="pr-f-next">Continue</button>
+      <button class="t-btn pv-pay" type="submit" id="pr-f-pay" hidden>Pay</button>
+      <button class="t-btn t-btn--primary" type="button" id="pr-f-done" data-close hidden>Done</button>
+    </div>
   </form>
 </dialog>
 <dialog class="od-dlg pr-dlg pr-qr" id="pr-qr-dlg" aria-labelledby="pr-qr-h">
