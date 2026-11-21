@@ -84,14 +84,21 @@ class CheckoutRegistrationService
     if (!$form || !$this->payload($form)) {
       return $attendees;
     }
+    $forTicket = fn (int $ticketId) => $form->questions->filter(
+      fn (EventRegistrationQuestion $question): bool => !$question->ticket_id || (int) $question->ticket_id === $ticketId
+    );
+    $asked = collect($ticketIds)->contains(fn ($ticketId) => $forTicket((int) $ticketId)->contains(
+      fn (EventRegistrationQuestion $question): bool => !in_array($question->type, ['file', 'terms'], true)
+    ));
+    if (!$asked) {
+      return $attendees;
+    }
     if (!$consented) {
       throw ValidationException::withMessages(['consent' => 'Agree to the privacy notice to continue.']);
     }
     foreach (array_values($ticketIds) as $index => $ticketId) {
       $person = is_array($attendees[$index] ?? null) ? $attendees[$index] : [];
-      $questions = $form->questions->filter(
-        fn (EventRegistrationQuestion $question): bool => !$question->ticket_id || (int) $question->ticket_id === (int) $ticketId
-      );
+      $questions = $forTicket((int) $ticketId);
       $raw = is_array($person['answers'] ?? null) ? $person['answers'] : [];
       try {
         $person['answers'] = $this->registrations->checkoutAnswers($questions, $raw, "attendees.{$index}.answers");
