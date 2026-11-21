@@ -75,7 +75,7 @@
           <div class="pm-queue__head"><h2>{{ __('Review queue') }}</h2><span class="pm-count">{{ trans_choice(':count request|:count requests', $queue->count(), ['count' => $queue->count()]) }}</span></div>
           <p class="pm-sub">{{ __('Placement requests that need a decision. Oldest first.') }}</p>
           @forelse ($queue as $item)
-            @php($itemTitle = optional(optional($item->event)->information)->title ?? __('Untitled event'))
+            @php $itemTitle = optional(optional($item->event)->information)->title ?? __('Untitled event'); @endphp
             <a class="pm-qcard {{ $selected && $selected->id === $item->id ? 'is-on' : '' }}" href="{{ route('admin.advertise.tica_promotions', ['section' => 'queue', 'campaign' => $item->id]) }}" @if ($selected && $selected->id === $item->id) aria-current="true" @endif>
               <span class="pm-thumb">@if ($flyer = \App\Support\PublicImage::flyer(optional($item->event)->thumbnail))<img src="{{ $flyer }}" alt="" loading="lazy">@else<i class="{{ $placementIcon(optional($item->plan)->placement) }}" aria-hidden="true"></i>@endif</span>
               <span class="pm-qcard__txt"><b>{{ $itemTitle }}</b><small>{{ optional($item->plan)->name ?? __('Placement') }}</small><small><i class="far fa-calendar" aria-hidden="true"></i> {{ optional($item->starts_at)->format('j M') ?? __('Date pending') }} – {{ optional($item->ends_at)->format('j M Y') ?? '' }}</small></span>
@@ -153,8 +153,8 @@
         <div class="pm-cal__grid">
           <div class="pm-week pm-week--head">@foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)<span>{{ __($dayName) }}</span>@endforeach</div>
           @foreach ([0, 1] as $w)
-            @php($weekStart = $calendarStart->copy()->addDays($w * 7))
-            @php($weekEnd = $weekStart->copy()->addDays(7))
+            @php $weekStart = $calendarStart->copy()->addDays($w * 7); @endphp
+            @php $weekEnd = $weekStart->copy()->addDays(7); @endphp
             <div class="pm-week">
               @foreach ($calDays->slice($w * 7, 7) as $day)<span class="pm-day {{ $day->isToday() ? 'is-today' : '' }}">{{ $day->format('j') }}</span>@endforeach
               @foreach ($calendarBookings->filter(fn ($b) => $b->starts_at < $weekEnd && $b->ends_at > $weekStart) as $booking)
