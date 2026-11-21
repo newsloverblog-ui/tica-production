@@ -41,7 +41,7 @@ class CheckoutRegistrationFormTest extends TestCase
     {
         $js = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $this->assertStringContainsString("'Registration form','Pay'", $js);
-        $this->assertStringContainsString('if(nxt===-1&&RF){toForm();return}', $js);
+        $this->assertStringContainsString('if(nxt===-1&&RF&&anyQs()){toForm();return}', $js);
         $this->assertStringContainsString("'Person '+(i+1)+' of '+n", $js);
         $this->assertStringContainsString('function qsFor(i)', $js);
         $this->assertStringContainsString('consent:RF?!!S.consent:null', $js);
