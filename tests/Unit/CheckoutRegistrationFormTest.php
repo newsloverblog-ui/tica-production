@@ -44,6 +44,6 @@ class CheckoutRegistrationFormTest extends TestCase
         $this->assertStringContainsString('if(nxt===-1&&RF&&anyQs()){toForm();return}', $js);
         $this->assertStringContainsString("'Person '+(i+1)+' of '+n", $js);
         $this->assertStringContainsString('function qsFor(i)', $js);
-        $this->assertStringContainsString('consent:RF?!!S.consent:null', $js);
+        $this->assertStringContainsString('consent:RF&&anyQs()?!!S.consent:null', $js);
     }
 }
