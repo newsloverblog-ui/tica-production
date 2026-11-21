@@ -972,7 +972,14 @@ var TITLES={home:'Home',discover:'Discover events',how:'How TICA works',pricing:
    page are routed here; anything else is a normal page load. */
 var SPA=['','discover','how','pricing','about','contact','join','policies','tickets','account','login','signup','forgot','create','dashboard','checkin','event','checkout','ticket'];
 function pathOf(u){return u.pathname.replace(/^\/+|\/+$/g,'')}
-function isSpa(path){var p=path.split('/')[0];return SPA.indexOf(p)!==-1&&(p!=='event'&&p!=='checkout'&&p!=='ticket'||!!bySlug(path.split('/').slice(1).join('/')))}
+function isSpa(path){var p=path.split('/')[0];
+  /* Editing an event (/create/12) needs the saved event from the server, and the
+     blank builder must never inherit an event being edited: both load as pages. */
+  if(p==='create'&&(path!=='create'||(window.TICA_DATA&&TICA_DATA.builderEdit)))return false;
+  /* The dashboard and gate check-in get their data only with a full page load. */
+  if((p==='dashboard'||p==='create')&&!(window.TICA_DATA&&TICA_DATA.dashboard))return false;
+  if(p==='checkin'&&!(window.TICA_DATA&&TICA_DATA.gate))return false;
+  return SPA.indexOf(p)!==-1&&(p!=='event'&&p!=='checkout'&&p!=='ticket'||!!bySlug(path.split('/').slice(1).join('/')))}
 var cur=(window.TICA_DATA&&typeof TICA_DATA.path==='string')?TICA_DATA.path:pathOf(location);
 function go(path){path=String(path).replace(/^\/+/,'');if(!isSpa(path.split('?')[0])){location.href='/'+path;return}cur=path;try{history.pushState(null,'','/'+path)}catch(err){}route()}
 document.addEventListener('click',function(ev){
@@ -2436,6 +2443,7 @@ function fillEdit(){
   if(E.country){var cs=$('c-country');if(![].some.call(cs.options,function(o){return o.value===E.country}))cs.insertAdjacentHTML('beforeend','<option>'+esc(E.country)+'</option>');cs.value=E.country}
   if(E.currency)set('c-cur',E.currency);
   set('c-venue',E.address);set('c-city',E.city);set('c-state',E.state);set('c-link',E.online_join_url);set('c-rev',E.join_reveal_minutes);
+  if(E.online_join_url){var lk=E.online_join_url.toLowerCase(),pl=/zoom\./.test(lk)?'Zoom':/meet\.google/.test(lk)?'Google Meet':/youtu/.test(lk)?'YouTube Live':/instagram/.test(lk)?'Instagram Live':'Other link';set('c-plat',pl)}
   if(E.multiple){$('c-multi').checked=true;$('c-multi').dispatchEvent(new Event('change'));$('ce-dates').innerHTML='';(E.dates||[]).forEach(function(d){var r=dateRow();r.querySelector('.ce-md').value=d.date;r.querySelector('.ce-mt').value=d.start;r.querySelector('.ce-me').value=d.end})}
   else{set('c-date',E.start_date);set('c-time',E.start_time);set('c-edate',E.end_date);set('c-etime',E.end_time)}
   (E.tiers||[]).forEach(function(t,i){
