@@ -76,6 +76,11 @@ class TicaWebsiteCmsTest extends TestCase
         foreach (['h-format', 'in_person', 'online'] as $control) {
             $this->assertStringContainsString($control, $home);
         }
+        $searchStart = strpos($home, '<form class="search ms"');
+        $searchEnd = strpos($home, '</form>', $searchStart);
+        $searchMarkup = substr($home, $searchStart, $searchEnd - $searchStart);
+        $this->assertSame(1, substr_count($searchMarkup, '<svg '), 'Only the primary search icon should be visible.');
+        $this->assertStringContainsString('.search.ms .ms-f label.sr', $styles);
         $this->assertStringNotContainsString('d-format', $discover . $script);
         $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
         $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);
