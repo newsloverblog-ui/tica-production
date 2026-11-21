@@ -119,6 +119,7 @@ class FlutterwaveController extends Controller
                 'selected_tickets' => Session::get('selTickets'),
                 'reservation_token' => $reservationToken,
                 'customer_id' => auth('customer')->id(),
+                'attendees' => Session::get('tica_attendees'),
             ];
 
             $intent = PaymentIntent::create([

@@ -92,6 +92,8 @@ class TicaApiController extends Controller
       'attendees.*.name' => ['nullable', 'string', 'max:200'],
       'attendees.*.email' => ['nullable', 'email:rfc', 'max:191'],
       'attendees.*.answer' => ['nullable', 'string', 'max:500'],
+      'attendees.*.answers' => ['nullable', 'array', 'max:100'],
+      'consent' => ['nullable', 'boolean'],
       'gateway' => ['nullable', 'string', 'in:' . implode(',', array_keys(\App\Support\TicaPayments::GATEWAYS))],
       'submission_id' => ['required', 'uuid'],
       'seat_ids' => ['nullable', 'array', 'max:500'],
@@ -202,11 +204,37 @@ class TicaApiController extends Controller
     }
 
     [$first, $last] = $this->splitName($validated['buyer']['name']);
-    Session::put('tica_attendees', array_values(array_map(fn ($attendee) => [
+    $attendees = array_values(array_map(fn ($attendee) => [
       'name' => trim((string) ($attendee['name'] ?? '')),
       'email' => trim((string) ($attendee['email'] ?? '')),
       'answer' => trim((string) ($attendee['answer'] ?? '')),
-    ], $validated['attendees'] ?? [])));
+      'answers' => is_array($attendee['answers'] ?? null) ? $attendee['answers'] : [],
+    ], $validated['attendees'] ?? []));
+    // The event's registration form is answered once per ticket. Check the
+    // answers now, before any payment, so a buyer is never charged for an
+    // order whose details we cannot accept.
+    $registration = app(\App\Services\CheckoutRegistrationService::class);
+    try {
+      $attendees = $registration->check(
+        $event,
+        $attendees,
+        $registration->ticketOrder(Session::get('selTickets', []) ?: [], (int) $event->id),
+        (bool) ($validated['consent'] ?? false),
+      );
+    } catch (\Illuminate\Validation\ValidationException $exception) {
+      $heldToken = (string) Session::pull('ticket_reservation_token', '');
+      if ($heldToken !== '') app(TicketReservationService::class)->release($heldToken, 'registration_answers_invalid');
+      $field = array_key_first($exception->errors());
+      return response()->json([
+        'message' => collect($exception->errors())->flatten()->first() ?: 'Check the answers and try again.',
+        'field' => $field,
+        'ticket' => preg_match('/^attendees\.(\d+)\./', (string) $field, $m) ? (int) $m[1] : null,
+      ], 422);
+    }
+    Session::put('tica_attendees', array_map(
+      fn (array $attendee) => isset($attendee['registration']) ? $attendee : array_diff_key($attendee, ['answers' => 1]),
+      $attendees
+    ));
     $booking = $this->dispatchTo('ticket.booking', [
       'fname' => $first,
       'lname' => $last,
