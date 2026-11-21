@@ -198,6 +198,121 @@
       });
     });
 
+    // Preview: the form exactly as attendees fill it in, from the fields on screen now.
+    var pv = document.getElementById('rf-preview'), pvOpen = document.querySelector('[data-rf-preview-open]');
+    if (pv && pvOpen && pv.showModal) {
+      var pvPage = pv.querySelector('[data-rf-pv-page]'), pvFrame = pv.querySelector('[data-rf-pv-frame]'), uid = 0;
+      function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+      function req(label, on) { var l = el('span', null, label); if (on) { var r = el('span', 'pv-req', ' *'); r.setAttribute('aria-hidden', 'true'); l.appendChild(r); } return l; }
+      function settingsValue(name) { var f = document.querySelector('[data-rf-live] [name="' + name + '"]'); return f ? f.value.trim() : ''; }
+      function input(type, attrs) { var i = el('input'); i.type = type; for (var k in attrs || {}) i.setAttribute(k, attrs[k]); return i; }
+      function choices(qq) { return String(qq.options || '').split('\n').map(function (o) { return o.trim(); }).filter(Boolean); }
+      function field(qq, prefix) {
+        var id = prefix + '-' + (++uid), wrap = el('div', 'pv-field'), help = qq.help ? el('small', null, qq.help) : null;
+        wrap.dataset.key = qq.key || '';
+        if (qq.condKey) { wrap.dataset.condKey = qq.condKey; wrap.dataset.condOp = qq.condOp || 'equals'; wrap.dataset.condValue = qq.condValue || ''; }
+        if (qq.type === 'terms') {
+          var t = el('div', 'pv-terms'); t.appendChild(el('h4', null, qq.label)); if (qq.help) t.appendChild(el('p', null, qq.help)); wrap.appendChild(t); return wrap;
+        }
+        if (qq.type === 'consent' || qq.type === 'checkbox') {
+          var lab = el('label', 'pv-check'), box = input('checkbox', { id: id, value: '1' });
+          lab.appendChild(box);
+          if (qq.type === 'consent') lab.appendChild(req(qq.label, qq.required));
+          else { var top = el('label', 'pv-label'); top.setAttribute('for', id); top.appendChild(req(qq.label, qq.required)); wrap.appendChild(top); lab.appendChild(el('span', null, 'Yes')); }
+          wrap.appendChild(lab); if (help) wrap.appendChild(help); return wrap;
+        }
+        if (qq.type === 'radio' || qq.type === 'multi_select') {
+          var fs = el('fieldset', 'pv-group'), lg = el('legend'); lg.appendChild(req(qq.label, qq.required)); fs.appendChild(lg);
+          choices(qq).forEach(function (o, i) {
+            var l = el('label', 'pv-check'), c = input(qq.type === 'radio' ? 'radio' : 'checkbox', { name: id, value: o, id: id + '-' + i });
+            l.appendChild(c); l.appendChild(el('span', null, o)); fs.appendChild(l);
+          });
+          wrap.appendChild(fs); if (help) wrap.appendChild(help); return wrap;
+        }
+        var label = el('label', 'pv-label'); label.setAttribute('for', id); label.appendChild(req(qq.label, qq.required)); wrap.appendChild(label);
+        var ctl;
+        if (qq.type === 'textarea') { ctl = el('textarea'); ctl.rows = 4; }
+        else if (qq.type === 'select') { ctl = el('select'); ctl.appendChild(el('option', null, 'Choose an option')).value = ''; choices(qq).forEach(function (o) { ctl.appendChild(el('option', null, o)).value = o; }); }
+        else if (qq.type === 'file') { ctl = input('file', { accept: '.pdf,.jpg,.jpeg,.png' }); }
+        else { ctl = input(qq.type === 'phone' ? 'tel' : (['email', 'number', 'date'].indexOf(qq.type) > -1 ? qq.type : 'text')); }
+        ctl.id = id; if (qq.placeholder && ctl.tagName !== 'SELECT') ctl.placeholder = qq.placeholder;
+        if (qq.max) ctl.setAttribute('maxlength', qq.max);
+        wrap.appendChild(ctl);
+        if (qq.type === 'file') wrap.appendChild(el('small', null, 'PDF, JPG or PNG. Files are stored privately.'));
+        if (help) wrap.appendChild(help);
+        return wrap;
+      }
+      function answer(scope, key) {
+        var f = scope.querySelector('.pv-field[data-key="' + key + '"]'); if (!f) return '';
+        var on = [].filter.call(f.querySelectorAll('input[type=radio],input[type=checkbox]'), function (i) { return i.checked; });
+        if (f.querySelector('input[type=radio],input[type=checkbox]')) {
+          if (f.querySelectorAll('input[type=checkbox]').length === 1 && !f.querySelector('fieldset')) return on.length ? '1' : '';
+          return on.map(function (i) { return i.value; }).join(', ');
+        }
+        var c = f.querySelector('input,select,textarea'); return c ? c.value.trim() : '';
+      }
+      function applyConditions() {
+        pvPage.querySelectorAll('[data-pv-scope]').forEach(function (scope) {
+          scope.querySelectorAll('.pv-field[data-cond-key]').forEach(function (f) {
+            var a = scope.querySelector('.pv-field[data-key="' + f.dataset.condKey + '"]') ? answer(scope, f.dataset.condKey) : answer(pvPage, f.dataset.condKey);
+            var v = f.dataset.condValue, op = f.dataset.condOp, show;
+            var hit = a.split(', ').some(function (x) { return x.toLowerCase() === v.toLowerCase(); }) || (v === '1' && a === '1') || (/^yes$/i.test(v) && a === '1');
+            show = op === 'not_empty' ? a !== '' : (op === 'not_equals' ? !hit : hit);
+            f.hidden = !show;
+          });
+        });
+      }
+      function section(n, title, copy) {
+        var fs = el('section', 'pv-section'), h = el('h3'); h.appendChild(el('span', 'pv-num', String(n))); h.appendChild(document.createTextNode(title)); fs.appendChild(h);
+        if (copy) fs.appendChild(el('p', 'pv-copy', copy)); return fs;
+      }
+      function nameEmail(prefix, emailRequired) {
+        var g = el('div', 'pv-two');
+        g.appendChild(field({ label: 'Full name', type: 'text', required: true }, prefix));
+        g.appendChild(field({ label: 'Email address', type: 'email', required: emailRequired }, prefix));
+        return g;
+      }
+      function build() {
+        uid = 0; pvPage.textContent = '';
+        var rowsNow = [].map.call(document.querySelectorAll('[data-rf-list] [data-rf-item]'), function (r) { try { return JSON.parse(r.dataset.q); } catch (e) { return null; } }).filter(Boolean);
+        var head = el('header', 'pv-head'); head.appendChild(el('p', 'pv-kicker', 'Event registration'));
+        head.appendChild(el('h2', null, (document.querySelector('[data-rf-name]') || {}).textContent || 'Registration'));
+        var intro = settingsValue('intro'); if (intro) head.appendChild(el('p', 'pv-intro', intro));
+        pvPage.appendChild(head);
+        var form = el('form', 'pv-form'); form.setAttribute('novalidate', ''); form.addEventListener('submit', function (e) { e.preventDefault(); });
+        var s1 = section(1, 'Primary contact'), b1 = el('div'); b1.setAttribute('data-pv-block', ''); b1.setAttribute('data-pv-scope', '');
+        b1.appendChild(nameEmail('pc', true));
+        rowsNow.filter(function (r) { return r.scope !== 'attendee'; }).forEach(function (r) { b1.appendChild(field(r, 'pc')); });
+        s1.appendChild(b1); form.appendChild(s1);
+        var s2 = section(2, 'Attendees', 'Add every person attending, including the primary contact when applicable.');
+        var card = el('article', 'pv-attendee'); card.setAttribute('data-pv-block', ''); card.setAttribute('data-pv-scope', '');
+        card.appendChild(el('h4', null, 'Attendee 1')); card.appendChild(nameEmail('at', false));
+        rowsNow.filter(function (r) { return r.scope === 'attendee'; }).forEach(function (r) { card.appendChild(field(r, 'at')); });
+        s2.appendChild(card); s2.appendChild(el('button', 'pv-add', '+ Add another attendee')).type = 'button'; form.appendChild(s2);
+        var consent = el('div', 'pv-consent'), cl = el('label', 'pv-check'); cl.appendChild(input('checkbox'));
+        cl.appendChild(req('I have read the privacy notice below and consent to Tica and the event organizer processing this registration for event administration.', false));
+        consent.appendChild(cl);
+        var privacy = settingsValue('privacy_notice');
+        if (privacy) { var d = el('details'); d.appendChild(el('summary', null, 'Read privacy notice')); d.appendChild(el('p', null, privacy)); consent.appendChild(d); }
+        form.appendChild(consent);
+        var go = el('button', 'pv-submit', 'Submit registration'); go.type = 'submit'; form.appendChild(go);
+        form.appendChild(el('p', 'pv-fine', 'Preview only. Submitting here sends nothing.'));
+        if (!rowsNow.length) form.insertBefore(el('p', 'pv-empty', 'Only name and email are asked so far. Add fields to see them here.'), s2);
+        pvPage.appendChild(form);
+        form.addEventListener('input', applyConditions); form.addEventListener('change', applyConditions);
+        applyConditions();
+      }
+      pvOpen.addEventListener('click', function () { build(); pv.showModal(); pvPage.scrollTop = 0; });
+      pv.querySelector('[data-rf-pv-close]').addEventListener('click', function () { pv.close(); });
+      pv.addEventListener('click', function (e) { if (e.target === pv) pv.close(); });
+      pv.querySelectorAll('[data-rf-pv-size]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          pv.querySelectorAll('[data-rf-pv-size]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+          pvFrame.dataset.size = b.dataset.rfPvSize;
+        });
+      });
+    }
+
     // Every other form posts normally: remember the scroll spot and show it is saving.
     page.addEventListener('submit', function (e) {
       if (e.defaultPrevented) return;
