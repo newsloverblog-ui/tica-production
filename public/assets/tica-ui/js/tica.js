@@ -1142,7 +1142,7 @@ if(!m)return;
 m.addEventListener('toggle',function(){document.documentElement.classList.toggle('menu-open',m.open&&innerWidth<=1040)});
 addEventListener('tica:navigate',function(){m.removeAttribute('open');document.documentElement.classList.remove('menu-open')});
 [].forEach.call(document.querySelectorAll('.h-chips button'),function(b){b.addEventListener('click',function(){
-  ['h-format','h-where','h-cat','h-month'].forEach(function(i){document.getElementById(i).value='all'});document.getElementById('h-q').value='';
+  ['h-where','h-cat','h-month'].forEach(function(i){document.getElementById(i).value='all'});document.getElementById('h-q').value='';
   document.getElementById(b.dataset.hk).value=b.dataset.hv;
   var f=document.getElementById('home-search');if(f.requestSubmit)f.requestSubmit();else f.dispatchEvent(new Event('submit',{cancelable:true}));
 })});

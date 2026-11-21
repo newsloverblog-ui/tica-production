@@ -66,16 +66,15 @@ class TicaWebsiteCmsTest extends TestCase
         }
     }
 
-    public function test_home_search_separates_event_format_from_location_and_keeps_feature_art_square(): void
+    public function test_home_search_stays_relaxed_and_keeps_feature_art_square(): void
     {
         $home = file_get_contents(resource_path('views/tica-ui/pages/home.blade.php'));
         $discover = file_get_contents(resource_path('views/tica-ui/pages/discover.blade.php'));
         $script = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
         $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
 
-        foreach (['h-format', 'in_person', 'online'] as $control) {
-            $this->assertStringContainsString($control, $home);
-        }
+        $this->assertStringNotContainsString('h-format', $home . $script);
+        $this->assertStringNotContainsString('All events', $home);
         $searchStart = strpos($home, '<form class="search ms"');
         $searchEnd = strpos($home, '</form>', $searchStart);
         $searchMarkup = substr($home, $searchStart, $searchEnd - $searchStart);
