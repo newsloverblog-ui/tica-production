@@ -31,6 +31,7 @@
       <p><span data-rf-summary>{{ trans_choice(':count field|:count fields', $form->questions->count(), ['count' => $form->questions->count()]) }}</span> · {{ trans_choice('Used on :count event|Used on :count events', $form->copies->count(), ['count' => $form->copies->count()]) }}</p>
     </div>
     <div class="rf-actions">
+      <button class="t-btn t-btn--primary t-btn--sm rf-preview-btn" type="button" data-rf-preview-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>{{ __('Preview') }}</button>
       <form method="POST" action="{{ $formRoute('duplicate', $form) }}">@csrf<button class="t-btn t-btn--secondary t-btn--sm" type="submit">{{ __('Duplicate') }}</button></form>
       <form method="POST" action="{{ $formRoute('delete', $form) }}" data-rf-confirm="{{ __('Delete form?') }}">@csrf<button class="t-btn t-btn--ghost t-btn--sm rf-danger" type="submit">{{ __('Delete form') }}</button></form>
     </div>
@@ -218,6 +219,19 @@
         <button class="t-btn t-btn--primary" type="submit">{{ __('Save field') }}</button>
       </div>
     </form>
+  </dialog>
+  <dialog class="rf-dlg rf-pv" id="rf-preview" aria-labelledby="rf-pv-h">
+    <div class="rf-pv__shell">
+      <div class="rf-pv__bar">
+        <div class="rf-pv__title"><h2 id="rf-pv-h">{{ __('Preview') }}</h2><span>{{ __('What attendees see. Try the questions: nothing is sent.') }}</span></div>
+        <div class="rf-pv__seg" role="group" aria-label="{{ __('Preview size') }}">
+          <button type="button" data-rf-pv-size="desktop" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>{{ __('Computer') }}</button>
+          <button type="button" data-rf-pv-size="phone" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>{{ __('Phone') }}</button>
+        </div>
+        <button class="rf-dlg__x" type="button" data-rf-pv-close aria-label="{{ __('Close preview') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="rf-pv__stage"><div class="rf-pv__frame" data-rf-pv-frame data-size="desktop"><div class="rf-pv__page" data-rf-pv-page></div></div></div>
+    </div>
   </dialog>
   <div class="rf-toast" role="status" aria-live="polite" data-rf-toast></div>
   <script>window.RF_OPEN = @json($editing?->public_id);</script>

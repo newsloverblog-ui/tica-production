@@ -207,4 +207,64 @@
     .rf-field__tools{width:100%;justify-content:flex-start;padding-left:32px}
     .rf-head .rf-actions{width:100%}
   }
+
+  /* Preview: the attendee form, in a computer or phone frame. */
+  .rf-preview-btn{display:inline-flex;align-items:center;gap:8px}
+  .rf-preview-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .rf-pv{width:min(1040px,calc(100% - 24px));height:calc(100vh - 48px);max-height:none}
+  .rf-pv__shell{display:flex;flex-direction:column;height:100%}
+  .rf-pv__bar{display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #E3E8F0}
+  .rf-pv__title{flex:1;min-width:0}
+  .rf-pv__title h2{margin:0;color:#0B2447;font-size:18px;line-height:26px;font-weight:600}
+  .rf-pv__title span{display:block;font-size:13px;color:#526079}
+  .rf-pv__seg{display:inline-flex;padding:3px;border-radius:10px;background:#F1F3F6}
+  .rf-pv__seg button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:#526079;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .rf-pv__seg button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .rf-pv__seg button[aria-pressed=true]{background:#fff;color:#0B2447;box-shadow:0 1px 3px rgba(11,36,71,.12)}
+  .rf-pv__seg button:focus-visible,.rf-dlg__x:focus-visible{outline:3px solid rgba(46,79,216,.35);outline-offset:2px}
+  .rf-pv__stage{flex:1;overflow:auto;background:#EEF1F6;padding:24px}
+  .rf-pv__frame{margin:0 auto;max-width:760px;background:#fff;border-radius:16px;box-shadow:0 12px 32px rgba(11,36,71,.10);transition:max-width .3s cubic-bezier(.2,.7,.2,1)}
+  .rf-pv__frame[data-size=phone]{max-width:390px;border-radius:28px;border:8px solid #0B2447}
+  .rf-pv__page{padding:32px;color:#0B2447;font-size:15px}
+  .rf-pv__frame[data-size=phone] .rf-pv__page{padding:22px 18px}
+  .pv-head{margin-bottom:24px}
+  .pv-kicker{margin:0 0 6px;font-size:13px;font-weight:600;color:#2E4FD8}
+  .pv-head h2{margin:0;font-size:26px;line-height:1.2;letter-spacing:-.01em;color:#0B2447}
+  .pv-intro{margin:10px 0 0;color:#526079;line-height:1.6;white-space:pre-line}
+  .pv-form{display:grid;gap:20px}
+  .pv-section{display:grid;gap:14px;padding:20px;border:1px solid #E3E8F0;border-radius:14px}
+  .pv-section h3{display:flex;align-items:center;gap:10px;margin:0;font-size:16px;color:#0B2447}
+  .pv-num{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#EEF2FE;color:#2E4FD8;font-size:13px}
+  .pv-copy{margin:0;color:#526079;font-size:14px}
+  .pv-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .rf-pv__frame[data-size=phone] .pv-two{grid-template-columns:1fr}
+  .pv-field{display:grid;gap:6px}
+  .pv-field[hidden]{display:none}
+  [data-pv-block]{display:grid;gap:14px}
+  .pv-label,.pv-group legend{font-size:14px;font-weight:600;color:#0B2447}
+  .pv-req{color:#C2410C}
+  .pv-field input:not([type=checkbox]):not([type=radio]),.pv-field select,.pv-field textarea{width:100%;min-height:44px;box-sizing:border-box;padding:10px 12px;border:1px solid #CBD5E4;border-radius:10px;background:#fff;color:#0B2447;font:inherit;font-size:15px}
+  .pv-field input[type=file]{padding:8px}
+  .pv-field input:focus,.pv-field select:focus,.pv-field textarea:focus{outline:3px solid rgba(46,79,216,.18);border-color:#2E4FD8}
+  .pv-field small{color:#526079;font-size:13px;line-height:1.45}
+  .pv-group{margin:0;padding:0;border:0;display:grid;gap:8px}
+  .pv-group legend{padding:0;margin-bottom:4px}
+  .pv-check{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;line-height:1.45;color:#0B2447;cursor:pointer}
+  .pv-check input{width:18px;height:18px;margin:2px 0 0;accent-color:#2E4FD8;flex:none}
+  .pv-terms{padding:14px 16px;border-radius:12px;background:#F4F6FA}
+  .pv-terms h4{margin:0 0 6px;font-size:14px}
+  .pv-terms p{margin:0;color:#526079;font-size:14px;line-height:1.55;white-space:pre-line}
+  .pv-attendee{padding:16px;border-radius:12px;background:#F8FAFC;border:1px solid #EDF1F6}
+  .pv-attendee h4{margin:0;font-size:15px}
+  .pv-add{justify-self:start;min-height:40px;padding:0 14px;border:1px dashed #AFC0DD;border-radius:10px;background:#fff;color:#2E4FD8;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .pv-consent{display:grid;gap:8px}
+  .pv-consent details{font-size:14px;color:#526079}
+  .pv-consent summary{cursor:pointer;color:#2E4FD8;font-weight:600}
+  .pv-consent details p{white-space:pre-line;line-height:1.55}
+  .pv-submit{min-height:48px;border:0;border-radius:10px;background:#F2A06B;color:#0B2447;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+  .pv-submit:hover{background:#EA9058}
+  .pv-fine{margin:0;text-align:center;color:#526079;font-size:13px}
+  .pv-empty{margin:0;padding:12px 14px;border-radius:10px;background:#EEF2FE;color:#1E3A8A;font-size:14px}
+  @media (max-width:640px){.rf-pv__bar{flex-wrap:wrap}.rf-pv__title{flex-basis:100%;order:-1}.rf-pv__stage{padding:12px}.rf-pv__page{padding:20px}.pv-two{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){.rf-pv__frame{transition:none}}
 </style>
