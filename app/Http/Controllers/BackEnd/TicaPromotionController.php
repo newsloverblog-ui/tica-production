@@ -50,7 +50,9 @@ class TicaPromotionController extends Controller
             'status' => ['nullable', Rule::in(self::CAMPAIGN_STATUSES)],
             'placement' => ['nullable', 'string', 'max:40'],
             'q' => ['nullable', 'string', 'max:100'],
-            'section' => ['nullable', Rule::in(['campaigns', 'plans', 'analytics', 'tracking', 'tools'])],
+            'section' => ['nullable', Rule::in(['queue', 'placements', 'campaigns', 'plans', 'analytics', 'tracking', 'tools'])],
+            'campaign' => ['nullable', 'integer'],
+            'week' => ['nullable', 'integer', 'between:-8,26'],
         ]);
 
         $campaigns = TicaPromotionCampaign::query()
@@ -99,7 +101,38 @@ class TicaPromotionController extends Controller
             ]];
         });
 
+        // Review queue: requests that need a decision, oldest first.
+        $queue = TicaPromotionCampaign::query()
+            ->with(['organizer:id,username,email,kyc_status', 'event.information', 'plan', 'paymentTransaction'])
+            ->whereIn('status', ['pending_review', 'cancellation_requested'])
+            ->oldest('id')->limit(50)->get();
+        $selected = $queue->firstWhere('id', (int) ($filters['campaign'] ?? 0)) ?: $queue->first();
+
+        // Placements: what is live and what starts soon.
+        $placements = TicaPromotionCampaign::query()
+            ->with(['organizer:id,username', 'event.information', 'plan:id,name,placement'])
+            ->whereIn('status', ['approved', 'scheduled', 'active', 'paused'])
+            ->where('ends_at', '>', now())->orderBy('starts_at')->limit(60)->get();
+
+        // Two-week calendar of booked and waiting placements.
+        $week = (int) ($filters['week'] ?? 0);
+        $calendarStart = now()->startOfWeek()->addWeeks($week)->startOfDay();
+        $calendarEnd = $calendarStart->copy()->addDays(14);
+        $calendarBookings = TicaPromotionCampaign::query()
+            ->with(['event.information', 'plan:id,name,placement'])
+            ->whereIn('status', ['pending_review', 'approved', 'scheduled', 'active', 'paused', 'cancellation_requested'])
+            ->whereNotNull('starts_at')->whereNotNull('ends_at')
+            ->where('starts_at', '<', $calendarEnd)->where('ends_at', '>', $calendarStart)
+            ->orderBy('starts_at')->limit(80)->get();
+
         return view('backend.tica.promotions', [
+            'queue' => $queue,
+            'selected' => $selected,
+            'checks' => $selected ? $this->reviewChecks($selected) : [],
+            'placements' => $placements,
+            'calendarStart' => $calendarStart,
+            'calendarBookings' => $calendarBookings,
+            'week' => $week,
             'plans' => $plans,
             'inventory' => $inventory,
             'campaigns' => $campaigns,
@@ -274,6 +307,30 @@ class TicaPromotionController extends Controller
             $validated['admin_notes'] ?? $record->label, url('/dashboard/promote'));
 
         return back()->with('success', __('Tracking provider review saved.'));
+    }
+
+    /** Plain-language checks shown beside a request before an admin decides. */
+    private function reviewChecks(TicaPromotionCampaign $campaign): array
+    {
+        $event = $campaign->event;
+        $paid = (float) $campaign->price <= 0 || ($campaign->payment_status === 'paid' && $campaign->paid_at && $campaign->payment_transaction_id);
+        $eventLive = $event && (int) $event->status === 1 && (!$event->end_date_time || \Carbon\Carbon::parse($event->end_date_time)->isFuture());
+        $verified = optional($campaign->organizer)->kyc_status === 'verified';
+        $slotFree = true;
+        if ($campaign->plan && $campaign->starts_at && $campaign->ends_at) {
+            try {
+                app(TicaPromotionService::class)->assertCapacity($campaign->plan, $campaign->starts_at, $campaign->ends_at, $campaign->id);
+            } catch (ValidationException) {
+                $slotFree = false;
+            }
+        }
+
+        return [
+            ['ok' => (bool) $paid, 'text' => $paid ? __('Payment received') : __('Waiting for payment')],
+            ['ok' => (bool) $eventLive, 'text' => $eventLive ? __('Event is published and upcoming') : __('Event is not published or has ended')],
+            ['ok' => $verified, 'text' => $verified ? __('Organiser identity verified') : __('Organiser identity not verified yet')],
+            ['ok' => $slotFree, 'text' => $slotFree ? __('Placement has room on these dates') : __('Placement is fully booked on these dates')],
+        ];
     }
 
     private function requirePassword(Request $request): void

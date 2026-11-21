@@ -1885,77 +1885,100 @@ function sendWd(){
   },function(er){$('wd-go').disabled=false;$('wd-m').textContent=errText(er)});
 }
 
-/* promote */
+/* promote: one page with tool cards, one campaigns list and side panels for every flow */
 function prUrl(){var id=+$('pr-ev').value,e=evById(id);return location.origin+(e?'/event/'+e.slug:'/discover')}
+function prEvent(){return +($('pr-ev')&&$('pr-ev').value)||0}
 function drawShare(){var sel=$('pr-ev');if(!sel)return;var evs=D.events.filter(function(r){return r.state==='up'||r.state==='live'});if(!evs.length)evs=D.events;var keep=sel.value;
   sel.innerHTML=evs.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('')||'<option value="">No events yet</option>';if(keep)sel.value=keep;
   var u=prUrl(),e=evById(+sel.value),txt=encodeURIComponent((e?e.name+' — get your tickets on TICA: ':'Find events on TICA: ')+u);$('pr-url').value=u;$('pr-copy').disabled=!evs.length;
   $('pr-social').innerHTML=[['WhatsApp','https://wa.me/?text='+txt],['X','https://x.com/intent/tweet?text='+txt],['Facebook','https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u)],['LinkedIn','https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(u)],['Email','mailto:?subject='+encodeURIComponent(e?e.name:'TICA')+'&body='+txt]].map(function(x){return '<a class="t-btn t-btn--secondary t-btn--sm" href="'+esc(x[1])+'" target="_blank" rel="noopener noreferrer">'+x[0]+'</a>'}).join('')}
-document.addEventListener('change',function(e){if(e.target.id==='pr-ev')drawShare()});
+document.addEventListener('change',function(e){if(e.target.id==='pr-ev'){drawShare();drawCampaigns()}});
 document.addEventListener('click',function(e){if(e.target.id!=='pr-copy')return;var u=$('pr-url').value;try{navigator.clipboard.writeText(u).then(function(){toast('Link copied.')},function(){$('pr-url').select();toast('Press Ctrl+C to copy.')})}catch(er){$('pr-url').select()}});
-/* Promote: codes and tracking links, each editable, pausable and deletable. */
-var PR={code:null,link:null,payCampaign:null};
+var PR={code:null,link:null,payCampaign:null,filter:'all',menu:null,plan:null,fstep:1,created:null};
+var PV_ICO={code:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l9.5 9.5-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>',link:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',feat:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg>',dots:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>'};
+var PV_STATUS={pending_payment:['Waiting for payment','amber'],pending_review:['In review','amber'],change_requested:['Changes requested','red'],approved:['Scheduled','blue'],scheduled:['Scheduled','blue'],active:['Live','green'],paused:['Paused','grey'],completed:['Ended','grey'],rejected:['Not approved','red'],cancelled:['Cancelled','grey'],cancellation_requested:['Cancelling','amber'],refunded:['Refunded','grey']};
 function prEvOpts(sel){return '<option value="">All events</option>'+D.events.map(function(r){return '<option value="'+r.id+'"'+(+sel===r.id?' selected':'')+'>'+esc(r.name)+'</option>'}).join('')}
 function prLinkUrl(l){var ev2=l.eventId?evById(l.eventId):(D.next||D.events[0]);return location.origin+(ev2?'/event/'+ev2.slug:'/discover')+'?ref='+l.code}
 function prCodeLabel(c){return c.type==='fixed'?N(c.value)+' off':(+c.value).toLocaleString('en-NG')+'% off'}
-function prAct(kind,id,paused){return '<span class="pr-row__act">'+(kind==='link'?'<button type="button" data-copy="'+id+'">Copy</button><button type="button" data-prqr="'+id+'">QR</button>':'')+'<button type="button" data-predit="'+kind+':'+id+'">Edit</button><button type="button" data-prpause="'+kind+':'+id+'" data-active="'+(paused?'0':'1')+'">'+(paused?'Resume':'Pause')+'</button><button type="button" class="is-danger" data-prdel="'+kind+':'+id+'">Delete</button></span>'}
+function prMoney(v,cur){return Nc(v,{code:cur,symbol:cur,position:'left'})}
+function prAct(kind,id,paused){return (kind==='link'?'<button type="button" role="menuitem" data-copy="'+id+'">Copy link</button><button type="button" role="menuitem" data-prqr="'+id+'">Show QR code</button>':'')+'<button type="button" role="menuitem" data-predit="'+kind+':'+id+'">Edit</button><button type="button" role="menuitem" data-prpause="'+kind+':'+id+'" data-active="'+(paused?'0':'1')+'">'+(paused?'Resume':'Pause')+'</button><button type="button" role="menuitem" class="is-danger" data-prdel="'+kind+':'+id+'">Delete</button>'}
+function prRows(){var ev=prEvent(),rows=[],match=function(id){return !ev||!id||+id===ev};
+  (D.promotions||[]).forEach(function(c){if(!match(c.eventId))return;var st=PV_STATUS[c.status]||[c.status.replace(/_/g,' '),'grey'],dates=c.starts?c.starts+(c.ends?' – '+c.ends:''):'Dates pending';
+    var result=c.status==='active'||c.status==='completed'?nf(c.clicks)+' clicks · '+nf(c.tickets)+' tickets':dates;
+    var acts=(c.canPay?'<button type="button" role="menuitem" data-checkoutprom="'+c.id+'">Pay with Paystack</button><button type="button" role="menuitem" data-payprom="'+c.id+'">Use TICA balance</button>':'')+(c.canCancel?'<button type="button" role="menuitem" class="is-danger" data-cancelprom="'+c.id+'">Cancel</button>':'');
+    rows.push({kind:'feat',key:'p'+c.id,name:c.plan||'Featured placement',sub:(ev?'':c.event+' · ')+prMoney(c.price,c.currency),type:'Featured placement',result:result,status:st[0],tone:st[1],note:c.status==='change_requested'||c.status==='rejected'?c.adminNote:'',acts:acts,cta:c.canPay?'<button class="t-btn t-btn--sm pv-pay" type="button" data-checkoutprom="'+c.id+'">Pay '+esc(prMoney(c.price,c.currency))+'</button>':''})});
+  (D.codes||[]).forEach(function(c){if(!match(c.eventId))return;var status=c.status||(c.active?'Active':'Paused');
+    rows.push({kind:'code',key:'c'+c.id,name:c.code,sub:prCodeLabel(c)+(c.ends?' · ends '+c.ends:''),type:'Promo code',result:nf(c.used)+(c.max?' / '+nf(c.max):'')+' uses · '+N(c.revenue)+' sales',status:status,tone:status==='Active'?'green':'grey',acts:prAct('code',c.id,c.paused)})});
+  (D.links||[]).forEach(function(l){if(!match(l.eventId))return;
+    rows.push({kind:'link',key:'l'+l.id,name:l.name,sub:[l.channel,l.influencer].filter(Boolean).join(' · ')||'?ref='+l.code,type:'Tracking link',result:nf(l.clicks)+' clicks · '+nf(l.sales)+' tickets',status:l.active?'Active':'Paused',tone:l.active?'green':'grey',acts:prAct('link',l.id,!l.active)})});
+  return rows}
+function drawCampaigns(){var box=$('od-campaigns');if(!box)return;var all=prRows(),rows=all.filter(function(r){return PR.filter==='all'||r.kind===PR.filter});
+  [].forEach.call(document.querySelectorAll('[data-prfilter]'),function(b){b.setAttribute('aria-selected',String(b.dataset.prfilter===PR.filter))});
+  if(!rows.length){box.innerHTML='<div class="pv-empty"><b>'+(all.length?'Nothing here yet':'No promotions yet')+'</b><span>'+(PR.filter==='code'?'Create a promo code to reward early buyers.':PR.filter==='link'?'Make a link for each place you post.':PR.filter==='feat'?'Get featured on the TICA home page or Discover.':'Pick a card above to start your first promotion.')+'</span></div>';return}
+  box.innerHTML='<div class="pv-row pv-row--head" role="row"><span role="columnheader">Campaign</span><span role="columnheader">Type</span><span role="columnheader" class="pv-res">Results</span><span role="columnheader">Status</span><span role="columnheader"><span class="t-sr">Actions</span></span></div>'+rows.map(function(r,i){var open=PR.menu===r.key;
+    return '<div class="pv-row'+(PR.fresh===r.key?' is-new':'')+'" role="row" style="--i:'+i+'"><span role="cell" class="pv-name"><i class="pv-ico pv-tone-'+r.kind+'">'+PV_ICO[r.kind]+'</i><span><b>'+esc(r.name)+'</b><small>'+esc(r.sub)+'</small>'+(r.note?'<small class="pv-row__note">'+esc(r.note)+'</small>':'')+'</span></span><span role="cell" class="pv-type">'+r.type+'</span><span role="cell" class="pv-res">'+esc(r.result)+'</span><span role="cell"><span class="pv-pill pv-pill--'+r.tone+'"><i></i>'+esc(r.status)+'</span></span><span role="cell" class="pv-act">'+(r.cta||'')+(r.acts?'<button class="pv-dots" type="button" data-prmenu="'+r.key+'" aria-haspopup="menu" aria-expanded="'+open+'" aria-label="Actions for '+esc(r.name)+'">'+PV_ICO.dots+'</button>'+(open?'<div class="pv-menu" role="menu">'+r.acts+'</div>':''):'')+'</span></div>'}).join('')}
+function prCount(el,to,fmt){if(!el)return;var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce||!to){el.textContent=fmt(to);return}var t0=performance.now();(function tick(n){var k=Math.min(1,(n-t0)/900),e=1-Math.pow(1-k,3);el.textContent=fmt(to*e);if(k<1)requestAnimationFrame(tick)})(t0)}
 function drawPromote(){
   drawShare();
-  var codes=D.codes||[],links=D.links||[];
-  $('pr-codes-n').textContent=codes.length?codes.length:'';$('pr-links-n').textContent=links.length?links.length:'';
-  var tone={Active:'green',Paused:'grey','Used up':'grey',Ended:'grey'};
-  $('od-codes').innerHTML=codes.length?codes.map(function(c){var pct=c.max?Math.min(100,Math.round(c.used/c.max*100)):null,status=c.status||(c.active?'Active':'Paused');
-    return '<li class="pr-row"><div class="pr-row__main"><span class="pr-code">'+esc(c.code)+'</span><span class="pr-row__text"><b>'+esc(prCodeLabel(c))+' <span class="pr-pill pr-pill--'+(tone[status]||'grey')+'">'+esc(status)+'</span></b><small>'+esc([c.scope,c.minimum?'Min '+N(c.minimum):'',c.ends?'Ends '+c.ends:''].filter(Boolean).join(' · '))+'</small></span></div>'+
-      '<div class="pr-row__stats"><span><b>'+nf(c.used)+'</b>'+(c.max?' / '+nf(c.max):'')+' used'+(pct!=null?'<i class="pr-bar"><i style="width:'+pct+'%"></i></i>':'')+'</span><span><b>'+nf(c.tickets)+'</b> tickets</span><span><b>'+esc(N(c.revenue))+'</b> sales</span></div>'+prAct('code',c.id,c.paused)+'</li>'}).join('')
-    :'<li class="pr-empty"><b>No discount codes yet</b><span>Reward early buyers or a partner\'s audience with a code.</span><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="code">Create a code</button></li>';
-  $('od-links').innerHTML=links.length?links.map(function(l){
-    return '<li class="pr-row"><div class="pr-row__main"><span class="pr-row__text"><b>'+esc(l.name)+(l.active?'':' <span class="pr-pill pr-pill--grey">Paused</span>')+'</b><small>'+esc([l.channel||'Direct',l.influencer,l.eventId&&evById(l.eventId)?evById(l.eventId).name:'All events'].filter(Boolean).join(' · '))+'</small><small class="pr-url">?ref='+esc(l.code)+'</small></span></div>'+
-      '<div class="pr-row__stats"><span><b>'+nf(l.clicks)+'</b> clicks</span><span><b>'+nf(l.sales)+'</b> tickets</span><span><b>'+(l.conversionRate||0)+'%</b> conversion</span>'+(l.revenue?'<span><b>'+esc(N(l.revenue))+'</b> sales</span>':'')+'</div>'+prAct('link',l.id,!l.active)+'</li>'}).join('')
-    :'<li class="pr-empty"><b>No tracking links yet</b><span>Give each channel or promoter its own link and see which one sells.</span><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-prnew="link">Create a link</button></li>';
+  var codes=D.codes||[],links=D.links||[],promos=D.promotions||[],ps=D.promotionStats||{},sum=function(a,k){return a.reduce(function(s,x){return s+(+x[k]||0)},0)};
+  var tickets=sum(codes,'tickets')+sum(links,'sales')+(+ps.tickets||0),uses=sum(codes,'used'),revenue=sum(codes,'revenue')+sum(links,'revenue')+sum(promos,'revenue');
+  $('od-promo-kpis').innerHTML=[['code','Ticket sales','pv-s1','From codes, links and placements'],['link','Code uses','pv-s2',codes.filter(function(c){return c.active}).length+' active '+(codes.filter(function(c){return c.active}).length===1?'code':'codes')],['feat','Revenue from promotions','pv-s3','Ticket sales they brought in']].map(function(x){return '<article class="pv-stat"><i class="pv-ico pv-tone-'+x[0]+'">'+PV_ICO[x[0]]+'</i><div><span>'+x[1]+'</span><b id="'+x[2]+'">0</b><small>'+esc(x[3])+'</small></div></article>'}).join('');
+  prCount($('pv-s1'),tickets,function(v){return nf(Math.round(v))});prCount($('pv-s2'),uses,function(v){return nf(Math.round(v))});prCount($('pv-s3'),revenue,function(v){return N(Math.round(v))});
+  var plans=D.promotionPlans||[];if(plans.length){var low=plans.reduce(function(a,p){return p.price<a.price?p:a},plans[0]);$('pv-feat-from').textContent='Get your event featured across TICA, from '+prMoney(low.price,low.currency)}
+  drawCampaigns();
   $('od-pixels').innerHTML=(D.trackingPixels||[]).length?(D.trackingPixels||[]).map(function(p){return '<li class="pr-row pr-row--plain"><span class="pr-row__text"><b>'+esc(p.label)+'</b><small>'+esc(p.provider.toUpperCase())+' · '+esc(p.identifier)+'</small></span><span class="pr-pill pr-pill--grey">'+esc(p.status.replace(/_/g,' '))+'</span></li>'}).join(''):'';
-  var plans=D.promotionPlans||[],hasPlans=plans.length>0;
-  $('od-promo-plan').innerHTML=plans.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+' · '+esc(Nc(p.price,{code:p.currency,symbol:p.currency,position:'left'}))+' / '+p.days+' days</option>'}).join('')||'<option value="">No promotion plans available</option>';
-  $('od-package-grid').innerHTML=hasPlans?plans.map(function(p){return '<article class="od-package" data-package="'+p.id+'"><i aria-hidden="true">'+(p.type==='pop_event'?'↻':'★')+'</i><span class="od-package-type">'+esc((p.type||p.placement).replace(/_/g,' '))+'</span><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||'Promote your event across TICA.')+'</p><ul>'+(p.benefits||[]).slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul><div><strong>'+esc(Nc(p.price,{code:p.currency,symbol:p.currency,position:'left'}))+'</strong><small>'+p.days+' days'+(p.availableSlots!==null?' · '+p.availableSlots+' slots open':'')+'</small></div><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-choosepackage="'+p.id+'">Choose package</button></article>'}).join(''):'<div class="od-empty-state compact"><h3>No packages available</h3><p>TICA will publish new promotion packages here.</p></div>';
-  $('od-promo-event').innerHTML=D.events.filter(function(r){return r.state==='up'}).map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('')||'<option value="">No published upcoming event</option>';
-  if(!$('od-promo-start').value)$('od-promo-start').value=new Date().toISOString().slice(0,10);
-  $('od-promo-balance').textContent=N((D.kpis||{}).available||0);$('od-promo-f').hidden=!hasPlans;$('od-promo-empty').hidden=hasPlans;
-  var ps=D.promotionStats||{};$('od-promo-kpis').innerHTML=[['Active',ps.active||0],['Pending',ps.pending||0],['Completed',ps.completed||0],['Spend',N(ps.spent||0)],['Tickets',ps.tickets||0],['Clicks',ps.clicks||0]].map(function(x){return '<article><span>'+x[0]+'</span><strong>'+x[1]+'</strong></article>'}).join('');
-  function syncPackage(){var p=plans.filter(function(x){return String(x.id)===$('od-promo-plan').value})[0];$('od-package-summary').innerHTML=p?'<span><b>'+esc(p.name)+'</b><small>'+esc(p.description||'')+'</small></span><span><b>'+esc(Nc(p.price,{code:p.currency,symbol:p.currency,position:'left'}))+'</b><small>'+p.days+' days · '+(p.approvalRequired?'TICA review required':'Starts automatically after payment')+'</small></span>':''}syncPackage();
-  $('od-promo-plan').onchange=syncPackage;
-  $('od-campaigns').innerHTML=(D.promotions||[]).length?(D.promotions||[]).map(function(c){return '<article class="od-campaign"><span><b>'+esc(c.event)+'</b><small>'+esc(c.plan)+' · '+esc(c.reference||'')+'</small><small>'+esc(c.starts||'Date pending')+' → '+esc(c.ends||'Open')+'</small></span><span><em class="st">'+esc(c.status.replace(/_/g,' '))+'</em><small>'+esc(c.paymentStatus.replace(/_/g,' '))+' · '+esc(c.currency)+' '+Number(c.price).toLocaleString('en-NG')+'</small>'+(c.adminNote?'<small class="od-campaign-note">'+esc(c.adminNote)+'</small>':'')+'</span><span class="od-campaign-metrics"><small>Views <b>'+c.impressions+'</b></small><small>Clicks <b>'+c.clicks+'</b></small><small>CTR <b>'+c.ctr+'%</b></small><small>Tickets <b>'+c.tickets+'</b></small></span><div>'+(c.canPay?'<button class="t-btn t-btn--primary t-btn--sm" type="button" data-checkoutprom="'+c.id+'">Pay with Paystack</button><button class="t-btn t-btn--secondary t-btn--sm" type="button" data-payprom="'+c.id+'">Use balance</button>':'')+(c.canCancel?'<button class="od-lk red" type="button" data-cancelprom="'+c.id+'">Cancel</button>':'')+'</div></article>'}).join(''):'<div class="od-empty-state compact"><h3>No campaigns yet</h3><p>Choose a package above to submit your first promotion.</p></div>';
 }
 function prOpenCode(c){PR.code=c||null;var f=$('od-code-f');f.reset();$('od-code-m').textContent='';
-  $('pr-code-h').textContent=c?'Edit '+c.code:'New discount code';$('pr-code-p').textContent=c?(c.used?'Used '+c.used+' times, so the code itself can\'t be renamed.':'Change anything, then save.'):'Buyers enter this at checkout.';
-  $('od-code-event').innerHTML=prEvOpts(c&&c.eventId);
+  $('pr-code-h').textContent=c?'Edit '+c.code:'Create a promo code';$('pr-code-p').textContent=c?(c.used?'Used '+c.used+' times, so the code itself can\'t be renamed.':'Change anything, then save.'):'Buyers type this at checkout.';
+  $('od-code-event').innerHTML=prEvOpts(c?c.eventId:prEvent());
   if(c){$('od-cn').value=c.code;$('od-cn').disabled=c.used>0;$('od-ct').value=c.type||'percentage';$('od-cv').value=c.value;$('od-cl').value=c.max||'';$('od-code-min').value=c.minimum||'';$('od-code-end').value=c.endsIso||''}else{$('od-cn').disabled=false;$('od-cv').value=10}
-  prTypeLabel();$('od-code-go').textContent=c?'Save changes':'Create code';$('pr-code-dlg').showModal();if(!c)$('od-cn').focus()}
+  prTypeLabel();prPreview();$('od-code-go').textContent=c?'Save changes':'Create code';$('pr-code-dlg').showModal();if(!c)$('od-cn').focus()}
 function prTypeLabel(){var f=$('od-ct').value==='fixed';$('od-cv-l').textContent=f?'Amount off ('+N(0).replace(/[\d.,\s]/g,'')+')':'Percentage';$('od-cv').max=f?100000000:100}
+function prPreview(){var p=$('od-code-preview');if(!p)return;var c=($('od-cn').value||'').trim().toUpperCase().replace(/\s+/g,''),v=+$('od-cv').value||0,f=$('od-ct').value==='fixed';p.innerHTML=c&&v?'Buyers who enter <b>'+esc(c)+'</b> get <b>'+esc(f?N(v)+' off':v+'% off')+'</b>.':'Type a code and a discount to see what buyers get.'}
 function prOpenLink(l){PR.link=l||null;var f=$('od-link-f');f.reset();$('od-link-m').textContent='';
-  $('pr-link-h').textContent=l?'Edit tracking link':'New tracking link';$('pr-link-p').textContent=l?'The link address stays the same, so shared copies keep working.':'Share it with one channel or promoter to see what it sells.';
-  $('od-link-event').innerHTML=prEvOpts(l&&l.eventId);
+  $('pr-link-h').textContent=l?'Edit tracking link':'Create a tracking link';$('pr-link-p').textContent=l?'The link address stays the same, so shared copies keep working.':'Share it in one place to see what it sells.';
+  $('od-link-event').innerHTML=prEvOpts(l?l.eventId:prEvent());
   if(l){$('od-ln').value=l.name;$('od-link-channel').value=l.channel||'';$('od-link-influencer').value=l.influencer||''}
-  $('od-link-go').textContent=l?'Save changes':'Create link';$('pr-link-dlg').showModal();$('od-ln').focus()}
+  prChips();$('od-link-go').textContent=l?'Save changes':'Create link';$('pr-link-dlg').showModal();$('od-ln').focus()}
+function prChips(){var v=($('od-link-channel').value||'').toLowerCase();[].forEach.call(document.querySelectorAll('[data-chan]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.chan.toLowerCase()===v))})}
 function prQr(l){var url=prLinkUrl(l),q=qrcode(0,'M');q.addData(url);q.make();var n=q.getModuleCount(),cv=$('pr-qr-c'),px=Math.floor(320/(n+8)),sz=(n+8)*px,c=cv.getContext('2d');cv.width=sz;cv.height=sz;c.fillStyle='#fff';c.fillRect(0,0,sz,sz);c.fillStyle='#0B2447';for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))c.fillRect((k+4)*px,(r+4)*px,px,px);
   $('pr-qr-h').textContent=l.name;$('pr-qr-p').textContent=url;$('pr-qr-dl').onclick=function(){var a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=(l.name||'tracking-link').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-qr.png';document.body.appendChild(a);a.click();a.remove()};$('pr-qr-dlg').showModal()}
-document.addEventListener('change',function(e){if(e.target.id==='od-ct')prTypeLabel()});
-document.addEventListener('click',function(e){var t=e.target;
-  var nw=t.closest('[data-prnew]');if(nw){if(nw.dataset.prnew==='code')prOpenCode();else prOpenLink();return}
-  var ed=t.closest('[data-predit]');if(ed){var p=ed.dataset.predit.split(':'),id=+p[1];if(p[0]==='code')prOpenCode((D.codes||[]).filter(function(c){return c.id===id})[0]);else prOpenLink((D.links||[]).filter(function(l){return l.id===id})[0]);return}
-  var qb=t.closest('[data-prqr]');if(qb){prQr((D.links||[]).filter(function(l){return l.id===+qb.dataset.prqr})[0]);return}
-  var pb=t.closest('[data-prpause]');if(pb){var q=pb.dataset.prpause.split(':');pb.disabled=true;api('/tica-api/organizer/'+(q[0]==='code'?'codes':'links')+'/'+q[1],{is_active:pb.dataset.active!=='1'}).then(function(r){reload(r.message)},function(er){pb.disabled=false;toast(errText(er))});return}
-  var db=t.closest('[data-prdel]');if(db){var d=db.dataset.prdel.split(':');if(!db.dataset.sure){db.dataset.sure='1';db.textContent='Delete?';setTimeout(function(){if(db.isConnected){delete db.dataset.sure;db.textContent='Delete'}},4000);return}
-    db.disabled=true;api('/tica-api/organizer/'+(d[0]==='code'?'codes':'links')+'/'+d[1]+'/delete').then(function(r){reload(r.message)},function(er){db.disabled=false;db.textContent='Delete';delete db.dataset.sure;toast(errText(er))});return}
-});
-$('od-code-f').addEventListener('submit',function(e){e.preventDefault();var c=$('od-cn').value.trim().toUpperCase().replace(/\s+/g,''),m=$('od-code-m'),go=$('od-code-go'),v=+$('od-cv').value,type=$('od-ct').value;
-  if(!PR.code||!PR.code.used){if(!/^[A-Z0-9]{3,30}$/.test(c)){m.textContent='Codes need 3 to 30 letters or numbers.';$('od-cn').focus();return}}
-  if(!(v>=1)||(type==='percentage'&&v>100)){m.textContent=type==='percentage'?'Enter a percentage from 1 to 100.':'Enter an amount of at least 1.';$('od-cv').focus();return}
-  var body={type:type,value:v,max_uses:+$('od-cl').value||null,event_id:+$('od-code-event').value||null,minimum_purchase:+$('od-code-min').value||0,end_date:$('od-code-end').value||null};
-  if(!PR.code||!PR.code.used)body.code=c;
-  go.disabled=true;m.textContent='';
-  api(PR.code?'/tica-api/organizer/codes/'+PR.code.id:'/tica-api/organizer/codes',body).then(function(r){reload(PR.code?r.message:c+' is ready to share.')},function(er){go.disabled=false;m.textContent=errText(er)})});
-$('od-link-f').addEventListener('submit',function(e){e.preventDefault();var n=$('od-ln').value.trim(),m=$('od-link-m'),go=$('od-link-go');if(n.length<2){m.textContent='Give the link a name of at least 2 letters.';$('od-ln').focus();return}
-  go.disabled=true;m.textContent='';
-  api(PR.link?'/tica-api/organizer/links/'+PR.link.id:'/tica-api/organizer/links',{name:n,channel:$('od-link-channel').value.trim(),influencer:$('od-link-influencer').value.trim(),event_id:+$('od-link-event').value||null}).then(function(r){reload(PR.link?r.message:'Tracking link created.')},function(er){go.disabled=false;m.textContent=errText(er)})});
+document.addEventListener('change',function(e){if(e.target.id==='od-ct'){prTypeLabel();prPreview()}});
+document.addEventListener('input',function(e){if(e.target.id==='od-cn'||e.target.id==='od-cv')prPreview();if(e.target.id==='od-link-channel')prChips()});
+/* featured placement: three steps, then Paystack */
+function prPlans(){return D.promotionPlans||[]}
+function prPlan(){return prPlans().filter(function(p){return String(p.id)===String(PR.plan)})[0]}
+function prAddDays(iso,n){var d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d}
+function prDay(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function prRun(){var p=prPlan(),s=$('od-promo-start').value;if(!p||!s)return '';return prDay(new Date(s+'T00:00:00'))+' – '+prDay(prAddDays(s,p.days-1))}
+function prFeatStep(n){PR.fstep=n;var labels=['','Where','Which event and when','Check and pay'];
+  [].forEach.call(document.querySelectorAll('#od-promo-f [data-fstep]'),function(el){var on=+el.dataset.fstep===n;el.hidden=!on;if(on){el.classList.remove('pv-in');void el.offsetWidth;el.classList.add('pv-in')}});
+  $('pr-feat-steps').hidden=n>3;$('pr-feat-step').textContent='Step '+n+' of 3 · '+(labels[n]||'');[].forEach.call(document.querySelectorAll('#pr-feat-steps i'),function(b,i){b.classList.toggle('on',i<n)});
+  $('pr-feat-h').textContent=n>3?'Request sent':'Get featured on TICA';
+  $('pr-f-back').hidden=n===1||n>3;$('pr-f-next').hidden=n>=3;$('pr-f-pay').hidden=n!==3;$('pr-f-balance').hidden=true;$('pr-f-done').hidden=n<4;$('od-promo-m').textContent='';
+  if(n===2){$('od-package-summary').textContent=prPlan()?'Runs for '+prPlan().days+' days: '+prRun()+'.':''}
+  if(n===3){var p=prPlan(),e=evById(+$('od-promo-event').value);
+    $('pr-feat-card').innerHTML='<span>'+esc(p.name)+'</span><b>'+esc(e?e.name:'Your event')+'</b><small>'+esc(e?[e.date,e.city].filter(Boolean).join(' · '):'')+'</small>';
+    $('pr-feat-sum').innerHTML='<div><dt>Placement</dt><dd>'+esc(p.name)+'</dd></div><div><dt>Dates</dt><dd>'+esc(prRun())+' · '+p.days+' days</dd></div><div class="pv-sum__total"><dt>Total</dt><dd>'+esc(prMoney(p.price,p.currency))+'</dd></div>';
+    $('pr-feat-note').textContent=p.approvalRequired?'We check every placement before it goes live. If we can’t approve it, your payment is refunded.':'It starts on the date you chose once payment is confirmed.';
+    $('pr-f-pay').textContent=p.price>0?'Pay '+prMoney(p.price,p.currency):'Send for review'}}
+function prOpenFeatured(){var plans=prPlans(),f=$('od-promo-f');f.reset();PR.created=null;
+  $('od-package-grid').innerHTML=plans.map(function(p,i){return '<button type="button" class="pv-plan" role="radio" aria-checked="false" data-plan="'+p.id+'"><span class="pv-radio" aria-hidden="true"></span><span class="pv-plan__txt"><b>'+esc(p.name)+'</b><small>'+esc(p.description||'Shown across TICA.')+'</small>'+(p.availableSlots===0?'<small class="pv-full">Fully booked right now</small>':'')+'</span><span class="pv-plan__price"><b>'+esc(prMoney(p.price,p.currency))+'</b><small>'+p.days+' days</small></span></button>'}).join('');
+  $('od-promo-empty').hidden=plans.length>0;$('od-package-grid').hidden=!plans.length;
+  var ups=D.events.filter(function(r){return r.state==='up'});
+  $('od-promo-event').innerHTML=ups.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>'}).join('')||'<option value="">No published upcoming event</option>';
+  if(ups.some(function(r){return r.id===prEvent()}))$('od-promo-event').value=String(prEvent());
+  $('od-promo-start').value=new Date().toISOString().slice(0,10);$('od-promo-start').min=$('od-promo-start').value;
+  PR.plan=plans.length?(plans.filter(function(p){return p.availableSlots!==0})[0]||plans[0]).id:null;prPickPlan(PR.plan);
+  prFeatStep(1);$('pr-f-next').disabled=!plans.length;$('pr-feat-dlg').showModal()}
+function prPickPlan(id){PR.plan=id;[].forEach.call(document.querySelectorAll('[data-plan]'),function(b){b.setAttribute('aria-checked',String(b.dataset.plan===String(id)))})}
+document.addEventListener('change',function(e){if(e.target.id==='od-promo-start'&&PR.fstep===2)$('od-package-summary').textContent=prPlan()?'Runs for '+prPlan().days+' days: '+prRun()+'.':''});
+$('pr-f-next').addEventListener('click',function(){var m=$('od-promo-m');
+  if(PR.fstep===1){if(!prPlan()){m.textContent='Choose a placement.';return}prFeatStep(2);return}
+  if(PR.fstep===2){if(!$('od-promo-event').value){m.textContent='Publish an upcoming event before promoting it.';return}if(!$('od-promo-start').value){m.textContent='Choose a start date.';$('od-promo-start').focus();return}prFeatStep(3)}});
+$('pr-f-back').addEventListener('click',function(){prFeatStep(Math.max(1,PR.fstep-1))});
+$('pr-f-done').addEventListener('click',function(){reload()});
+$('pr-f-balance').addEventListener('click',function(){if(!PR.created)return;$('pr-feat-dlg').close();PR.payCampaign=PR.created;$('od-promo-pay-f').reset();$('od-promo-pay-m').textContent='';$('pr-pay-dlg').showModal();$('od-promo-password').focus()});
 function promoCreative(file){
   var limit=3*1024*1024;if(!file||file.size<=limit)return Promise.resolve(file);
   if(file.type==='image/gif')return Promise.reject(new Error('GIF images must be 3 MB or smaller.'));
@@ -1978,18 +2001,46 @@ function promoCreative(file){
     img.src=url;
   });
 }
-$('od-promo-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),plan=$('od-promo-plan').value,eventId=$('od-promo-event').value,m=$('od-promo-m');if(!plan||!eventId){m.textContent='Choose a package and a published upcoming event.';return}
-  var creative=$('od-promo-creative').files&&$('od-promo-creative').files[0];b.disabled=true;m.textContent=creative&&creative.size>3*1024*1024?'Optimizing image…':'';
-  promoCreative(creative).then(function(upload){var fd=new FormData();fd.append('plan_id',plan);fd.append('event_id',eventId);fd.append('starts_at',$('od-promo-start').value);fd.append('headline',$('od-promo-headline').value.trim());fd.append('body',$('od-promo-body').value.trim());fd.append('destination_url',$('od-promo-url').value.trim());if(upload)fd.append('creative',upload);m.textContent='';
+function prGoPaystack(id,b){b.disabled=true;b.innerHTML='<span class="pv-spin" aria-hidden="true"></span>Opening Paystack…';return api('/tica-api/organizer/promotions/'+id+'/checkout').then(function(r){if(!r.authorization_url)throw new Error('Payment provider did not return a checkout link.');location.assign(r.authorization_url)})}
+$('od-promo-f').addEventListener('submit',function(e){e.preventDefault();if(PR.fstep!==3)return;var b=$('pr-f-pay'),label=b.textContent,p=prPlan(),m=$('od-promo-m');if(!p)return;
+  var fail=function(er){b.disabled=false;b.textContent=label;m.textContent=errText(er);if(PR.created&&p.price>0&&D.kpis&&(D.kpis.available||0)>=p.price)$('pr-f-balance').hidden=false};
+  if(PR.created){prGoPaystack(PR.created,b).catch(fail);return}
+  var creative=$('od-promo-creative').files&&$('od-promo-creative').files[0];b.disabled=true;b.innerHTML='<span class="pv-spin" aria-hidden="true"></span>'+(creative&&creative.size>3*1024*1024?'Optimizing image…':'Reserving your dates…');m.textContent='';
+  promoCreative(creative).then(function(upload){var fd=new FormData();fd.append('plan_id',p.id);fd.append('event_id',$('od-promo-event').value);fd.append('starts_at',$('od-promo-start').value);fd.append('headline',$('od-promo-headline').value.trim());fd.append('body',$('od-promo-body').value.trim());fd.append('destination_url',$('od-promo-url').value.trim());if(upload)fd.append('creative',upload);
     return fetch('/tica-api/organizer/promotions',{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'},body:fd}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.message||('Could not create promotion (HTTP '+r.status+').'));er.data=j;throw er}return j})});
-  }).then(function(r){reload(r.message)},function(er){b.disabled=false;m.textContent=errText(er)})});
+  }).then(function(r){PR.created=r.id||null;
+    if((r.price||p.price)>0&&PR.created)return prGoPaystack(PR.created,b);
+    $('pr-feat-done-p').textContent=p.name+', '+prRun()+'.';prFeatStep(4);
+  }).catch(fail)});
 $('od-promo-pay-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),m=$('od-promo-pay-m'),password=$('od-promo-password').value;if(!password){m.textContent='Enter your current password.';return}b.disabled=true;m.textContent='';api('/tica-api/organizer/promotions/'+PR.payCampaign+'/pay',{current_password:password}).then(function(r){$('pr-pay-dlg').close();reload(r.message)},function(er){b.disabled=false;m.textContent=errText(er)})});
-document.addEventListener('click',function(e){var choose=e.target.closest('[data-choosepackage]'),checkout=e.target.closest('[data-checkoutprom]'),pay=e.target.closest('[data-payprom]'),cancel=e.target.closest('[data-cancelprom]');
-  if(choose){$('od-promo-plan').value=choose.dataset.choosepackage;$('od-promo-plan').dispatchEvent(new Event('change'));$('od-promo-f').scrollIntoView({behavior:'smooth',block:'center'});return}
-  if(checkout){checkout.disabled=true;checkout.textContent='Opening Paystack…';api('/tica-api/organizer/promotions/'+checkout.dataset.checkoutprom+'/checkout').then(function(r){if(!r.authorization_url)throw new Error('Payment provider did not return a checkout link.');location.assign(r.authorization_url)},function(er){checkout.disabled=false;checkout.textContent='Pay with Paystack';toast(errText(er))});return}
-  if(pay){PR.payCampaign=pay.dataset.payprom;$('od-promo-pay-f').reset();$('od-promo-pay-m').textContent='';$('pr-pay-dlg').showModal();$('od-promo-password').focus();return}
-  if(cancel){if(!cancel.dataset.sure){cancel.dataset.sure='1';cancel.textContent='Confirm cancel';setTimeout(function(){if(cancel.isConnected){delete cancel.dataset.sure;cancel.textContent='Cancel'}},4000);return}cancel.disabled=true;api('/tica-api/organizer/promotions/'+cancel.dataset.cancelprom+'/cancel').then(function(r){reload(r.message)},function(er){cancel.disabled=false;toast(errText(er))})}
+document.addEventListener('click',function(e){var t=e.target;
+  var nw=t.closest('[data-prnew]');if(nw){var k=nw.dataset.prnew,open=document.querySelector('dialog.pr-drawer[open]');if(open)open.close();if(k==='code')prOpenCode();else if(k==='link')prOpenLink();else if(k==='featured')prOpenFeatured();else $('pr-choose-dlg').showModal();return}
+  var pl=t.closest('[data-plan]');if(pl){prPickPlan(pl.dataset.plan);return}
+  var ch=t.closest('[data-chan]');if(ch){$('od-link-channel').value=ch.dataset.chan;if(!$('od-ln').value.trim())$('od-ln').value=ch.dataset.chan;prChips();return}
+  var fl=t.closest('[data-prfilter]');if(fl){PR.filter=fl.dataset.prfilter;PR.menu=null;drawCampaigns();return}
+  var mb=t.closest('[data-prmenu]');if(mb){PR.menu=PR.menu===mb.dataset.prmenu?null:mb.dataset.prmenu;drawCampaigns();var fm=document.querySelector('.pv-menu [role=menuitem]');if(fm&&PR.menu)fm.focus();return}
+  if(PR.menu&&!t.closest('.pv-menu')){PR.menu=null;drawCampaigns()}
+  var ed=t.closest('[data-predit]');if(ed){var p=ed.dataset.predit.split(':'),id=+p[1];PR.menu=null;if(p[0]==='code')prOpenCode((D.codes||[]).filter(function(c){return c.id===id})[0]);else prOpenLink((D.links||[]).filter(function(l){return l.id===id})[0]);return}
+  var qb=t.closest('[data-prqr]');if(qb){prQr((D.links||[]).filter(function(l){return l.id===+qb.dataset.prqr})[0]);return}
+  var pb=t.closest('[data-prpause]');if(pb){var q=pb.dataset.prpause.split(':');pb.disabled=true;api('/tica-api/organizer/'+(q[0]==='code'?'codes':'links')+'/'+q[1],{is_active:pb.dataset.active!=='1'}).then(function(r){reload(r.message)},function(er){pb.disabled=false;toast(errText(er))});return}
+  var db=t.closest('[data-prdel]');if(db){var d=db.dataset.prdel.split(':');if(!db.dataset.sure){db.dataset.sure='1';db.textContent='Click again to delete';setTimeout(function(){if(db.isConnected){delete db.dataset.sure;db.textContent='Delete'}},4000);return}
+    db.disabled=true;api('/tica-api/organizer/'+(d[0]==='code'?'codes':'links')+'/'+d[1]+'/delete').then(function(r){reload(r.message)},function(er){db.disabled=false;db.textContent='Delete';delete db.dataset.sure;toast(errText(er))});return}
+  var checkout=t.closest('[data-checkoutprom]'),pay=t.closest('[data-payprom]'),cancel=t.closest('[data-cancelprom]');
+  if(checkout){prGoPaystack(checkout.dataset.checkoutprom,checkout).catch(function(er){checkout.disabled=false;checkout.textContent='Pay with Paystack';toast(errText(er))});return}
+  if(pay){PR.menu=null;PR.payCampaign=pay.dataset.payprom;$('od-promo-pay-f').reset();$('od-promo-pay-m').textContent='';$('pr-pay-dlg').showModal();$('od-promo-password').focus();return}
+  if(cancel){if(!cancel.dataset.sure){cancel.dataset.sure='1';cancel.textContent='Click again to cancel';setTimeout(function(){if(cancel.isConnected){delete cancel.dataset.sure;cancel.textContent='Cancel'}},4000);return}cancel.disabled=true;api('/tica-api/organizer/promotions/'+cancel.dataset.cancelprom+'/cancel').then(function(r){reload(r.message)},function(er){cancel.disabled=false;toast(errText(er))})}
 });
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&PR.menu){PR.menu=null;drawCampaigns()}});
+$('od-code-f').addEventListener('submit',function(e){e.preventDefault();var c=$('od-cn').value.trim().toUpperCase().replace(/\s+/g,''),m=$('od-code-m'),go=$('od-code-go'),v=+$('od-cv').value,type=$('od-ct').value;
+  if(!PR.code||!PR.code.used){if(!/^[A-Z0-9]{3,30}$/.test(c)){m.textContent='Codes need 3 to 30 letters or numbers.';$('od-cn').focus();return}}
+  if(!(v>=1)||(type==='percentage'&&v>100)){m.textContent=type==='percentage'?'Enter a percentage from 1 to 100.':'Enter an amount of at least 1.';$('od-cv').focus();return}
+  var body={type:type,value:v,max_uses:+$('od-cl').value||null,event_id:+$('od-code-event').value||null,minimum_purchase:+$('od-code-min').value||0,end_date:$('od-code-end').value||null};
+  if(!PR.code||!PR.code.used)body.code=c;
+  go.disabled=true;m.textContent='';
+  api(PR.code?'/tica-api/organizer/codes/'+PR.code.id:'/tica-api/organizer/codes',body).then(function(r){reload(PR.code?r.message:c+' is live. Share it anywhere.')},function(er){go.disabled=false;m.textContent=errText(er)})});
+$('od-link-f').addEventListener('submit',function(e){e.preventDefault();var n=$('od-ln').value.trim(),m=$('od-link-m'),go=$('od-link-go');if(n.length<2){m.textContent='Give the link a name of at least 2 letters.';$('od-ln').focus();return}
+  go.disabled=true;m.textContent='';
+  api(PR.link?'/tica-api/organizer/links/'+PR.link.id:'/tica-api/organizer/links',{name:n,channel:$('od-link-channel').value.trim(),influencer:$('od-link-influencer').value.trim(),event_id:+$('od-link-event').value||null}).then(function(r){reload(PR.link?r.message:'Tracking link created. Copy it from the ⋯ menu.')},function(er){go.disabled=false;m.textContent=errText(er)})});
 $('od-pixel-f').addEventListener('submit',function(e){e.preventDefault();var b=e.target.querySelector('[type=submit]'),id=$('od-pixel-id').value.trim(),label=$('od-pixel-label').value.trim();if(!/^[A-Za-z0-9_-]{5,100}$/.test(id)||label.length<2){$('od-pixel-m').textContent='Add a valid provider ID and label.';return}b.disabled=true;api('/tica-api/organizer/tracking-pixels',{provider:$('od-pixel-provider').value,pixel_identifier:id,label:label}).then(function(r){reload(r.message)},function(er){b.disabled=false;$('od-pixel-m').textContent=errText(er)})});
 
 /* team */
