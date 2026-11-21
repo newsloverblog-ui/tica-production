@@ -6944,16 +6944,16 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         width: min(100%, 1180px) !important;
         max-width: 1180px !important;
         gap: 0 !important;
-        padding: 8px !important;
-        border-radius: 24px !important;
+        padding: 6px !important;
+        border-radius: 20px !important;
     }
 
     .page[data-page="home"] .h-in .search.ms .ms-f {
         display: flex !important;
         align-items: center !important;
         min-width: 0 !important;
-        height: 64px !important;
-        padding: 0 22px !important;
+        height: 52px !important;
+        padding: 0 20px !important;
         border: 0 !important;
         border-radius: 0 !important;
         background: transparent !important;
@@ -6965,9 +6965,9 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 
     .page[data-page="home"] .h-in .search.ms .ms-q > svg {
         position: static !important;
-        flex: 0 0 22px !important;
-        width: 22px !important;
-        height: 22px !important;
+        flex: 0 0 20px !important;
+        width: 20px !important;
+        height: 20px !important;
         margin: 0 !important;
     }
 
@@ -6984,7 +6984,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     .page[data-page="home"] .h-in .search.ms .ms-f input,
     .page[data-page="home"] .h-in .search.ms .ms-f select,
     .page[data-page="home"] .h-in .search.ms .smart-trigger {
-        font-size: 15.5px !important;
+        font-size: 15px !important;
         line-height: 1.35 !important;
     }
 
@@ -6994,15 +6994,15 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 
     .page[data-page="home"] .h-in .search.ms .ms-f + .ms-f::after {
-        top: 18px !important;
-        bottom: 18px !important;
+        top: 14px !important;
+        bottom: 14px !important;
     }
 
     .page[data-page="home"] .h-in .search.ms .ms-go {
-        height: 60px !important;
+        height: 50px !important;
         min-width: 0 !important;
         padding-inline: 22px !important;
-        border-radius: 18px !important;
+        border-radius: 15px !important;
     }
 
     .page[data-page="home"] .h-in .search.ms .ms-go .sb-t {
@@ -7057,10 +7057,10 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     .page[data-page="home"] .h-in .search.ms {
         width: min(100%, 430px) !important;
         grid-template-columns: minmax(0, 1fr) 88px !important;
-        grid-template-rows: 56px !important;
+        grid-template-rows: 52px !important;
         gap: 0 !important;
-        padding: 6px !important;
-        border-radius: 20px !important;
+        padding: 5px !important;
+        border-radius: 17px !important;
     }
 
     .page[data-page="home"] .h-in .search.ms .ms-q {
@@ -7069,7 +7069,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         gap: 10px !important;
         grid-column: 1 !important;
         grid-row: 1 !important;
-        height: 56px !important;
+        height: 52px !important;
         padding: 0 14px !important;
     }
 
@@ -7097,7 +7097,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         grid-column: 2 !important;
         grid-row: 1 !important;
         width: 88px !important;
-        height: 50px !important;
+        height: 46px !important;
         padding: 0 12px !important;
         border-radius: 15px !important;
     }
@@ -7155,8 +7155,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 }
 
-/* Homepage event artwork uses a consistent square crop. This keeps uploaded
-   portrait and landscape flyers aligned without stretching either source. */
+/* Homepage event artwork uses a consistent square crop on larger screens. */
 .page[data-page="home"] .band #home-wall .cardlink,
 .page[data-page="home"] .band #home-wall .flyer,
 .page[data-page="home"] .band #home-wall .flyer > .p {
@@ -7196,44 +7195,47 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 
 @media (max-width: 700px) {
     .page[data-page="home"] .band #home-wall .card {
-        grid-template-columns: 132px minmax(0, 1fr) !important;
-        grid-template-rows: minmax(158px, auto) !important;
-        min-height: 158px !important;
+        grid-template-columns: minmax(0, 1fr) clamp(116px, 30vw, 132px) !important;
+        grid-template-rows: minmax(184px, auto) !important;
+        min-height: 184px !important;
         height: auto !important;
+        align-items: stretch !important;
     }
 
     .page[data-page="home"] .band #home-wall .cardlink {
-        align-self: start;
-        width: 132px !important;
-        height: 132px !important;
-        margin: 13px 0;
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        align-self: center !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 14px 14px 14px 0 !important;
+        aspect-ratio: 4 / 5 !important;
         overflow: hidden;
-        border-radius: 0 12px 12px 0;
+        border-radius: 12px !important;
     }
 
     .page[data-page="home"] .band #home-wall .flyer,
     .page[data-page="home"] .band #home-wall .flyer > .p {
-        width: 132px !important;
-        height: 132px !important;
-        aspect-ratio: 1 / 1 !important;
+        width: 100% !important;
+        height: 100% !important;
+        aspect-ratio: 4 / 5 !important;
+        border-radius: 12px !important;
+    }
+
+    .page[data-page="home"] .band #home-wall .flyer img {
+        object-fit: contain !important;
     }
 
     .page[data-page="home"] .band #home-wall .cardbody {
-        min-height: 158px !important;
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        min-height: 184px !important;
         height: auto !important;
-    }
-}
-
-@media (max-width: 430px) {
-    .page[data-page="home"] .band #home-wall .card {
-        grid-template-columns: 112px minmax(0, 1fr) !important;
+        padding: 15px 8px 14px 16px !important;
     }
 
-    .page[data-page="home"] .band #home-wall .cardlink,
-    .page[data-page="home"] .band #home-wall .flyer,
-    .page[data-page="home"] .band #home-wall .flyer > .p {
-        width: 112px !important;
-        height: 112px !important;
+    .page[data-page="home"] .band #home-wall .cardbody h3 {
+        font-size: clamp(15px, 4.4vw, 18px) !important;
     }
 }
 

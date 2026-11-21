@@ -80,12 +80,14 @@ class TicaWebsiteCmsTest extends TestCase
         $searchMarkup = substr($home, $searchStart, $searchEnd - $searchStart);
         $this->assertSame(1, substr_count($searchMarkup, '<svg '), 'Only the primary search icon should be visible.');
         $this->assertStringContainsString('.search.ms .ms-f label.sr', $styles);
+        $this->assertStringContainsString('height: 52px !important', $styles);
+        $this->assertStringContainsString('height: 50px !important', $styles);
         $this->assertStringNotContainsString('d-format', $discover . $script);
         $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
         $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);
     }
 
-    public function test_home_event_cards_and_ticket_entry_photos_use_square_real_image_treatments(): void
+    public function test_home_event_cards_preserve_mobile_posters_and_ticket_entry_photos(): void
     {
         $home = file_get_contents(resource_path('views/tica-ui/pages/home.blade.php'));
         $styles = file_get_contents(public_path('assets/tica-ui/css/tica.css'));
@@ -98,6 +100,9 @@ class TicaWebsiteCmsTest extends TestCase
         $this->assertStringNotContainsString('tk-pass-qr', $home);
         $this->assertStringNotContainsString('Ticket ready', $home);
         $this->assertStringContainsString('.band #home-wall .cardlink', $styles);
+        $this->assertStringContainsString('grid-template-columns: minmax(0, 1fr) clamp(116px, 30vw, 132px)', $styles);
+        $this->assertStringContainsString('aspect-ratio: 4 / 5 !important', $styles);
+        $this->assertStringContainsString('object-fit: contain !important', $styles);
         $this->assertStringContainsString('.tk-art .tk-entry-detail img', $styles);
     }
 }
