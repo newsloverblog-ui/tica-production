@@ -2427,6 +2427,7 @@ f.querySelector('.ce-steps').addEventListener('click',function(e){var a=e.target
   if(to<=at||to<=reached){stage(to,true);return}for(var k=at;k<to;k++){if(!check(k)){stage(k,false);return}}stage(to,true)},true);
 window.addEventListener('tica:navigate',function(){if(/^\/create/.test(location.pathname))setTimeout(function(){upd();stage(at)},0)});
 /* edit mode: fill the builder with the saved event */
+function ceFormPicked(){var sel=$('c-reg-form'),note=$('c-reg-form-note');if(!sel||!note)return;note.textContent=sel.value?'This form is attached in addition to every ticket type above.':'Choose the form attendees complete with their ticket.'}
 function fillEdit(){
   if(!EDIT)return;var E=EDIT.event,set=function(id,v){var el=$(id);if(el&&v!=null)el.value=v};
   var h=f.querySelector('h1.display');if(h)h.textContent='Edit event';
@@ -2479,7 +2480,7 @@ function fillEdit(){
   else pub.textContent='Publish event';
   if(!ADMIN&&EDIT.backUrl){var wb=document.querySelector('.workspace-site');if(wb)wb.href=EDIT.backUrl}
 }
-fillEdit();
+try{fillEdit()}catch(err){if(window.console)console.error('Event editor could not fill every field',err);var cm=$('c-msg');if(cm)cm.textContent='Some saved details could not be shown. Refresh the page; if this keeps happening, contact support.'}
 upd();stage(0);
 })();
 /* design script 21 */
