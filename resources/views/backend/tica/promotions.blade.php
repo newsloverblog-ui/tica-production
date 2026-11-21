@@ -579,14 +579,24 @@
         form.addEventListener('submit', function (event) {
           var decision = event.submitter && event.submitter.value;
           if (decision === 'request_changes' && !note.value.trim()) { event.preventDefault(); note.focus(); note.setAttribute('aria-invalid', 'true'); return; }
-          if (event.submitter) { event.submitter.disabled = true; event.submitter.classList.add('is-busy'); var keep = document.createElement('input'); keep.type = 'hidden'; keep.name = 'decision'; keep.value = decision; form.appendChild(keep); }
+          if (event.submitter) {
+            event.submitter.disabled = true;
+            event.submitter.classList.add('is-busy');
+            event.submitter.setAttribute('aria-busy', 'true');
+            var keep = document.createElement('input');
+            keep.type = 'hidden';
+            keep.name = 'decision';
+            keep.value = decision;
+            form.appendChild(keep);
+          }
         });
       });
 
       root.querySelectorAll('[data-show-section]').forEach(function (button) {
         button.addEventListener('click', function () {
           showSection(button.getAttribute('data-show-section'), true);
-          root.querySelector('.promotion-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          var tabRail = root.querySelector('.pm-tabs');
+          if (tabRail) tabRail.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
     }());
