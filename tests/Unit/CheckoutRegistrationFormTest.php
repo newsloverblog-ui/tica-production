@@ -37,10 +37,12 @@ class CheckoutRegistrationFormTest extends TestCase
         $this->assertStringContainsString("'attendees' => Session::get('tica_attendees')", $flutterwave);
     }
 
-    public function test_buyer_checkout_asks_the_form_for_every_ticket(): void
+    public function test_registration_form_is_its_own_step_after_checkout_details(): void
     {
         $js = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
-        $this->assertStringContainsString('rfHtml(i)', $js);
+        $this->assertStringContainsString("'Registration form','Pay'", $js);
+        $this->assertStringContainsString('if(nxt===-1&&RF){toForm();return}', $js);
+        $this->assertStringContainsString("'Person '+(i+1)+' of '+n", $js);
         $this->assertStringContainsString('function qsFor(i)', $js);
         $this->assertStringContainsString('consent:RF?!!S.consent:null', $js);
     }

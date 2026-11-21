@@ -368,8 +368,8 @@ function checkoutSubmissionId(slug,candidate){
 }
 function clearCheckoutSubmission(slug){try{sessionStorage.removeItem('tica_checkout_'+slug)}catch(e){}}
 function feeFor(net,paidCount){return paidCount&&net>0?Math.round(net*FEE_PCT)/100+FEE_FLAT*paidCount:0}
-function stepsBar(n){
-  return '<ol class="steps">'+['Choose tickets','Your details','Pay','Get your tickets'].map(function(t,i){
+function stepsBar(n,withForm){
+  return '<ol class="steps">'+(withForm?['Choose tickets','Your details','Registration form','Pay','Get your tickets']:['Choose tickets','Your details','Pay','Get your tickets']).map(function(t,i){
     return '<li class="'+(i===n?'on':(i<n?'done':''))+'"'+(i===n?' aria-current="step"':'')+'>'+(i+1)+'. '+t+'</li>'}).join('')+'</ol>';
 }
 function renderCheckout(e){
@@ -403,7 +403,7 @@ function renderCheckout(e){
     if(S.stage==='choose')action='<button class="btn btn-hot" type="button" id="to-details"'+(count()?'':' disabled')+'>Continue</button>';
     return '<aside class="summary">'+(S.stage!=='choose'&&HOLD?'<p class="hold" role="timer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/></svg>Tickets held for <b data-hold="'+HOLD.end+'" data-slug="'+e.slug+'">10:00</b></p>':'')+'<h2>Order summary</h2><p class="sumevent">'+esc(e.name)+'<br><span>'+dstr(e)+', '+esc(meta(e))+'</span></p>'+(lines||'<p class="hint">No tickets chosen yet.</p>')+
     (S.disc&&total()?'<div class="sumline"><span>'+esc(discountLabel(S.disc))+'</span><span>-'+naira(discountOf(S.disc,total()))+'</span></div>':'')+(isFree()?'':'<div class="sumline"><span>Booking fee</span><span>'+(e.absorb?'Included':naira(fee()))+'</span></div>')+'<div class="sumline sumtotal"><span>Total</span><span>'+money()+'</span></div>'+action+
-    (S.stage==='details'?'<p class="hint">Complete every ticket form to continue to payment.</p>':'')+'</aside>';
+    (S.stage==='details'?'<p class="hint">'+(RF?'Complete every ticket form to continue to the registration form.':'Complete every ticket form to continue to payment.')+'</p>':'')+(S.stage==='form'?'<p class="hint">Fill the form for every person to continue to payment.</p>':'')+'</aside>';
   }
   function chooseHtml(){
     return '<h1 class="display">'+esc(e.name)+'</h1><p class="sub2">'+dstr(e)+', '+esc(meta(e))+'</p><h2>Choose your tickets</h2>'+
@@ -446,8 +446,48 @@ function renderCheckout(e){
     var type={email:'email',phone:'tel',number:'number',date:'date'}[q.type]||'text';
     return open+label+'<input id="'+id+'"'+name+' type="'+type+'" value="'+esc(val)+'"'+ph+mx+inv+(type==='tel'?' autocomplete="tel"':'')+'>'+help+bad+'</div>';
   }
-  function rfHtml(i){var qs=qsFor(i);if(!qs.length)return '';return '<div class="qblock"><p class="qblock-h">'+(i===0?'Your details for this ticket':'Details for this ticket')+'</p>'+qs.map(function(q){return qHtml(i,q)}).join('')+'</div>'}
   function consentHtml(){if(!RF)return '';var err=S.err.consent;return '<div class="qconsent'+(err?' bad':'')+'"><label class="qcheck"><input type="checkbox" name="rf-consent" value="1"'+(S.consent?' checked':'')+(err?' aria-invalid="true" aria-describedby="rf-consent-e"':'')+'><span>I agree that TICA and the organiser can use these details to run this event.</span></label>'+(RF.privacy?'<details><summary>Read the privacy notice</summary><p>'+esc(RF.privacy)+'</p></details>':'')+(err?'<p class="ferr" id="rf-consent-e">'+esc(err)+'</p>':'')+'</div>'}
+  function toForm(){S.stage='form';S.err={};S.fopen=0;for(var k=0;k<count();k++){if(!(S.people[k]&&S.people[k].fdone)){S.fopen=k;break}if(k===count()-1)S.fopen=k}track('registration_form',{event_id:e.id});draw('.rform input, .rform select, .rform textarea');window.scrollTo(0,0)}
+  function formHtml(){
+    var sl=slots(),n=sl.length;
+    return '<button class="backlink" type="button" id="back-details">Back to your details</button><p class="rf-kicker">Registration form</p><h1 class="display">'+esc(RF.name||'A few questions')+'</h1><p class="sub2">'+(n>1?'Fill this form once for each person. The next person opens when you finish.':'Answer these questions to finish your booking.')+'</p>'+(RF.intro?'<p class="rf-intro">'+esc(RF.intro)+'</p>':'')+'<div class="stackforms">'+
+    sl.map(function(tier,i){
+      var p=S.people[i]||{},who=esc(p.name||('Ticket '+(i+1))),head='Person '+(i+1)+' of '+n+'<span>'+who+', '+esc(tier)+'</span>';
+      if(i===S.fopen){
+        var last=i===n-1,next=!last?'Continue to person '+(i+2):(isFree()?(n===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
+        var qs=qsFor(i);
+        return '<form class="pform rform open" data-i="'+i+'" novalidate><h3>'+head+'</h3>'+(qs.length?qs.map(function(q){return qHtml(i,q)}).join(''):'<p class="hint">No questions for this ticket type.</p>')+(last?consentHtml():'')+
+        '<button class="btn btn-hot" type="submit">'+next+'</button>'+
+        (last?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
+      }
+      if(p.fdone)return '<div class="pform done"><div><h3>'+head+'</h3><p>Form complete</p></div><button class="editbtn" type="button" data-fedit="'+i+'" aria-label="Edit the form for person '+(i+1)+'">Edit</button></div>';
+      return '<div class="pform later"><h3>'+head+'</h3></div>';
+    }).join('')+'</div>';
+  }
+  function bindForm(){
+    var bd=$('back-details');if(bd)bd.addEventListener('click',function(){S.stage='details';S.err={};S.open=count()-1;draw('.pform.open input')});
+    view.querySelectorAll('[data-fedit]').forEach(function(b){b.addEventListener('click',function(){S.fopen=+b.dataset.fedit;S.err={};draw('.rform input, .rform select, .rform textarea')})});
+    view.querySelectorAll('form.rform').forEach(function(f){
+      qSync(f);f.addEventListener('change',function(){qSync(f)});f.addEventListener('input',function(){qSync(f)});
+      f.addEventListener('submit',function(ev){
+        ev.preventDefault();
+        var i=+f.dataset.i,all=qAnswers(f,i),kept={},er={};
+        qsFor(i).forEach(function(q){if(q.type==='terms'||!qShown(q,all))return;var v=all[q.key];kept[q.key]=v;
+          if(q.required&&qEmpty(v))er['q:'+q.key]=q.type==='consent'?'Tick this box to continue.':'Answer this question.';
+          else if(!qEmpty(v)&&q.type==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))er['q:'+q.key]='Enter a valid email address.'});
+        var cb=f.elements['rf-consent'];if(cb){S.consent=cb.checked;if(!cb.checked)er.consent='Agree to this to continue.'}
+        S.people[i]=Object.assign(S.people[i]||{},{answers:kept,fdone:!Object.keys(er).length});
+        if(Object.keys(er).length){S.err={};S.err[i]=er;if(er.consent)S.err.consent=er.consent;draw('.rform [aria-invalid=true]');return}
+        S.err={};
+        var nxt=-1;for(var k=0;k<count();k++){if(!(S.people[k]&&S.people[k].fdone)){nxt=k;break}}
+        if(nxt>-1){S.fopen=nxt;draw('.rform input, .rform select, .rform textarea');var box=view.querySelector('.rform');if(box)box.scrollIntoView({block:'start'});return}
+        var submit=f.querySelector('[type=submit]'),label=submit.textContent;
+        submit.disabled=true;submit.textContent=isFree()?'Issuing your tickets…':'Opening '+gwLabel()+'…';
+        var status=$('pay-msg');if(status){status.className='hint checkout-status';status.textContent=isFree()?'Creating your tickets…':'Connecting securely to '+gwLabel()+'…'}
+        place(function(){submit.disabled=false;submit.textContent=label});
+      });
+    });
+  }
   function acctHtml(){
     var u=window.TICA_USER;
     if(u&&u.email)return '<div class="acct in"><span class="acct-av" aria-hidden="true">'+esc((u.name||u.email)[0].toUpperCase())+'</span><div><b>Checking out as '+esc(u.name||u.email)+'</b><span>'+esc(u.email)+'. This order will be saved to your account.</span></div><button class="lk-btn" type="button" id="acct-out">Not you?</button></div>';
@@ -464,19 +504,18 @@ function renderCheckout(e){
   }
   function detailsHtml(){
     var sl=slots();
-    return '<button class="backlink" type="button" id="back-choose">Back to tickets</button><h1 class="display">Who\'s attending?</h1><p class="sub2">Fill in one form for each ticket. '+(sl.length>1?'The next form opens when you finish this one.':'')+'</p>'+(RF&&RF.intro?'<p class="rf-intro">'+esc(RF.intro)+'</p>':'')+acctHtml()+(S.mode==='login'&&!(window.TICA_USER&&window.TICA_USER.email)?'':'<div class="stackforms">')+
+    return '<button class="backlink" type="button" id="back-choose">Back to tickets</button><h1 class="display">Who\'s attending?</h1><p class="sub2">Fill in one form for each ticket. '+(sl.length>1?'The next form opens when you finish this one.':'')+'</p>'+acctHtml()+(S.mode==='login'&&!(window.TICA_USER&&window.TICA_USER.email)?'':'<div class="stackforms">')+
     sl.map(function(tier,i){
       var head='Ticket '+(i+1)+' of '+sl.length+'<span>'+esc(tier)+(i===0?', buyer':'')+'</span>',p=S.people[i];
       if(i===S.open){
-        var next=i<sl.length-1?'Continue to ticket '+(i+2):(isFree()?(sl.length===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
+        var next=i<sl.length-1?'Continue to ticket '+(i+2):RF?'Continue to registration form':(isFree()?(sl.length===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
         return '<form class="pform open" data-i="'+i+'" novalidate><h3>'+head+'</h3>'+
         (i===0?'<p class="hint top">We\'ll send all tickets and your receipt to this email.</p>':'')+
         field(i,'name','Full name','text','name')+
         '<div class="two">'+(i===0?field(i,'email','Email address','email','email')+field(i,'phone','Phone number','tel','tel'):field(i,'email','Email address (optional)','email','off','Leave blank to send this ticket to the buyer.')+'<div></div>')+'</div>'+
         (e.question?field(i,'answer',esc(e.question),'text','off'):'')+
-        rfHtml(i)+(i===sl.length-1?consentHtml():'')+
         '<button class="btn btn-hot" type="submit">'+next+'</button>'+
-        (i===sl.length-1?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
+        (i===sl.length-1&&!RF?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
       }
       if(p&&p.done)return '<div class="pform done"><div><h3>'+head+'</h3><p>'+esc(p.name)+(p.email?', '+esc(p.email):', sent to buyer')+'</p></div><button class="editbtn" type="button" data-edit="'+i+'" aria-label="Edit ticket '+(i+1)+'">Edit</button></div>';
       return '<div class="pform later"><h3>'+head+'</h3></div>';
@@ -490,8 +529,8 @@ function renderCheckout(e){
   function gwLabel(){var k=gwKey(),g=gateways().filter(function(x){return x.key===k})[0];return g?g.label:'Our payment partner'}
   function prefill(){var u=window.TICA_USER;if(u&&u.email&&!(S.people[0]&&S.people[0].done)){S.people[0]=Object.assign({name:u.name||'',email:u.email,phone:(S.people[0]&&S.people[0].phone)||''},{fromUser:1})}}
   function draw(focusSel){
-    var n={choose:0,details:1}[S.stage];
-    view.innerHTML=stepsBar(n)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():detailsWrap())+'</div>'+summary()+'</div>';
+    var n={choose:0,details:1,form:2}[S.stage];
+    view.innerHTML=stepsBar(n,!!RF)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():S.stage==='form'?formHtml():detailsWrap())+'</div>'+summary()+'</div>';
     bind();
     if(S.stage==='choose')loadSeats();
     if(focusSel){var f=view.querySelector(focusSel);if(f)f.focus()}
@@ -509,7 +548,8 @@ function renderCheckout(e){
       S.placing=false;
       onFail&&onFail();
       if(er.data&&er.data.login){S.stage='details';S.login='id';draw('#al-id');return}
-      if(er.data&&er.data.ticket!=null&&S.people[er.data.ticket]){var t=er.data.ticket;S.people[t].done=false;S.open=t;S.err={};draw('.pform.open input');var pm=$('pay-msg'),box=view.querySelector('.pform.open');if(box){var note=document.createElement('p');note.className='payerr';note.setAttribute('role','alert');note.textContent=er.message;box.insertBefore(note,box.querySelector('[type=submit]'))}return}
+      if(er.data&&er.data.field==='consent'&&RF){S.stage='form';S.fopen=count()-1;S.people[S.fopen].fdone=false;S.err={consent:er.message};draw('.rform [aria-invalid=true]');return}
+      if(er.data&&er.data.ticket!=null&&S.people[er.data.ticket]){var t=er.data.ticket,inForm=RF&&/answers/.test(er.data.field||'');if(inForm){S.stage='form';S.people[t].fdone=false;S.fopen=t}else{S.stage='details';S.people[t].done=false;S.open=t}S.err={};draw(inForm?'.rform input':'.pform.open input');var pm=$('pay-msg'),box=view.querySelector('.pform.open');if(box){var note=document.createElement('p');note.className='payerr';note.setAttribute('role','alert');note.textContent=er.message;box.insertBefore(note,box.querySelector('[type=submit]'))}return}
       var mm=$('pay-msg');if(mm){mm.className='payerr';mm.textContent=er.message}else flash(er.message)});
   }
   function finish(){
@@ -549,23 +589,20 @@ function renderCheckout(e){
 
     var bc=$('back-choose');if(bc)bc.addEventListener('click',function(){PENDING={slug:e.slug,qty:S.qty.slice(),disc:S.disc,date:S.date,people:S.people.slice(),submission:S.submission};go('event/'+e.slug)});
     view.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){S.open=+b.dataset.edit;S.err={};draw('.pform.open input')})});
-    view.querySelectorAll('form.pform').forEach(function(f){if(RF){qSync(f);f.addEventListener('change',function(){qSync(f)});f.addEventListener('input',function(){qSync(f)})}});
-    view.querySelectorAll('form.pform').forEach(function(f){f.addEventListener('submit',function(ev){
+    bindForm();
+    view.querySelectorAll('form.pform:not(.rform)').forEach(function(f){f.addEventListener('submit',function(ev){
       ev.preventDefault();
       var i=+f.dataset.i,g=function(k){var x=f.elements[k];return x?x.value.trim():''},p={name:g('name'),email:g('email'),phone:g('phone'),answer:g('answer')},er={};
       if(e.question&&!p.answer)er.answer='Answer the question for this ticket.';
-      if(RF){var all=qAnswers(f,i),kept={};qsFor(i).forEach(function(q){if(q.type==='terms'||!qShown(q,all))return;var v=all[q.key];kept[q.key]=v;
-          if(q.required&&qEmpty(v))er['q:'+q.key]=q.type==='consent'?'Tick this box to continue.':'Answer this question.';
-          else if(!qEmpty(v)&&q.type==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))er['q:'+q.key]='Enter a valid email address.'});
-        p.answers=kept;
-        var cb=f.elements['rf-consent'];if(cb){S.consent=cb.checked;if(!cb.checked)er.consent='Agree to this to continue.'}}
+
       if(p.name.length<2)er.name='Enter this person\'s full name.';
       if((i===0||p.email)&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))er.email='Enter a valid email address, like name@example.com.';
       if(i===0&&p.phone.replace(/\D/g,'').length<10)er.phone='Enter a phone number with at least 10 digits.';
-      S.people[i]=Object.assign(p,{done:!Object.keys(er).length});
-      if(Object.keys(er).length){S.err={};S.err[i]=er;if(er.consent)S.err.consent=er.consent;draw('.pform.open [aria-invalid=true]');return}
+      var prev=S.people[i]||{};S.people[i]=Object.assign(p,{done:!Object.keys(er).length,answers:prev.answers,fdone:prev.fdone});
+      if(Object.keys(er).length){S.err={};S.err[i]=er;draw('.pform.open [aria-invalid=true]');return}
       S.err={};
       var nxt=-1;for(var k=0;k<count();k++){if(!(S.people[k]&&S.people[k].done)){nxt=k;break}}
+      if(nxt===-1&&RF){toForm();return}
       if(nxt===-1){
         var submit=f.querySelector('[type=submit]'),label=submit.textContent;
         submit.disabled=true;submit.textContent=isFree()?'Issuing your tickets…':'Opening '+gwLabel()+'…';
