@@ -524,6 +524,7 @@ class BookingController extends Controller
         $units = (new TicketIssuanceService())->issueForBooking($booking, $reservationToken ?: null);
         $this->assignAttendees($units, $info['attendees'] ?? null);
       }
+      app(\App\Services\CheckoutRegistrationService::class)->record($booking, $info['attendees'] ?? null, $units ?? null);
 
       return $booking;
     }, 3);

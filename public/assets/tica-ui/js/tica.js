@@ -368,8 +368,8 @@ function checkoutSubmissionId(slug,candidate){
 }
 function clearCheckoutSubmission(slug){try{sessionStorage.removeItem('tica_checkout_'+slug)}catch(e){}}
 function feeFor(net,paidCount){return paidCount&&net>0?Math.round(net*FEE_PCT)/100+FEE_FLAT*paidCount:0}
-function stepsBar(n){
-  return '<ol class="steps">'+['Choose tickets','Your details','Pay','Get your tickets'].map(function(t,i){
+function stepsBar(n,withForm){
+  return '<ol class="steps">'+(withForm?['Choose tickets','Your details','Registration form','Pay','Get your tickets']:['Choose tickets','Your details','Pay','Get your tickets']).map(function(t,i){
     return '<li class="'+(i===n?'on':(i<n?'done':''))+'"'+(i===n?' aria-current="step"':'')+'>'+(i+1)+'. '+t+'</li>'}).join('')+'</ol>';
 }
 function renderCheckout(e){
@@ -403,7 +403,7 @@ function renderCheckout(e){
     if(S.stage==='choose')action='<button class="btn btn-hot" type="button" id="to-details"'+(count()?'':' disabled')+'>Continue</button>';
     return '<aside class="summary">'+(S.stage!=='choose'&&HOLD?'<p class="hold" role="timer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/></svg>Tickets held for <b data-hold="'+HOLD.end+'" data-slug="'+e.slug+'">10:00</b></p>':'')+'<h2>Order summary</h2><p class="sumevent">'+esc(e.name)+'<br><span>'+dstr(e)+', '+esc(meta(e))+'</span></p>'+(lines||'<p class="hint">No tickets chosen yet.</p>')+
     (S.disc&&total()?'<div class="sumline"><span>'+esc(discountLabel(S.disc))+'</span><span>-'+naira(discountOf(S.disc,total()))+'</span></div>':'')+(isFree()?'':'<div class="sumline"><span>Booking fee</span><span>'+(e.absorb?'Included':naira(fee()))+'</span></div>')+'<div class="sumline sumtotal"><span>Total</span><span>'+money()+'</span></div>'+action+
-    (S.stage==='details'?'<p class="hint">Complete every ticket form to continue to payment.</p>':'')+'</aside>';
+    (S.stage==='details'?'<p class="hint">'+(RF&&anyQs()?'Complete every ticket form to continue to the registration form.':'Complete every ticket form to continue to payment.')+'</p>':'')+(S.stage==='form'?'<p class="hint">Fill the form for every person to continue to payment.</p>':'')+'</aside>';
   }
   function chooseHtml(){
     return '<h1 class="display">'+esc(e.name)+'</h1><p class="sub2">'+dstr(e)+', '+esc(meta(e))+'</p><h2>Choose your tickets</h2>'+
@@ -417,6 +417,84 @@ function renderCheckout(e){
   function field(i,k,label,type,ac,hint){
     var id='p'+i+'-'+k,err=S.err[i]&&S.err[i][k],v=(S.people[i]&&S.people[i][k])||'';
     return '<div class="inp'+(err?' bad':'')+'"><label for="'+id+'">'+label+'</label><input id="'+id+'" name="'+k+'" type="'+type+'" autocomplete="'+ac+'" value="'+esc(v)+'"'+(err?' aria-invalid="true" aria-describedby="'+id+'-e"':'')+'>'+(err?'<p class="ferr" id="'+id+'-e">'+err+'</p>':(hint?'<p class="hint">'+hint+'</p>':''))+'</div>';
+  }
+  /* The event's registration form, asked once for every ticket. */
+  var RF=e.form&&e.form.questions&&e.form.questions.length?e.form:null;
+  function slotTicket(i){var ids=[];S.qty.forEach(function(q,t){for(var k=0;k<q;k++)ids.push(tierInfo(t).ticketId)});return ids[i]}
+  function qsFor(i){if(!RF)return [];var tid=slotTicket(i);return RF.questions.filter(function(q){return !q.ticketId||String(q.ticketId)===String(tid)})}
+  function qVal(f,q){var els=f.querySelectorAll('[name="q:'+q.key+'"]');if(!els.length)return null;var first=els[0];
+    if(q.type==='consent'||q.type==='checkbox')return !!first.checked;
+    if(q.type==='multi_select')return [].filter.call(els,function(x){return x.checked}).map(function(x){return x.value});
+    if(q.type==='radio'){var on=[].filter.call(els,function(x){return x.checked})[0];return on?on.value:''}
+    return first.value.trim()}
+  function qEmpty(v){return v===null||v===''||v===false||(Array.isArray(v)&&!v.length)}
+  function qShown(q,answers){var c=q.condition;if(!c||!c.key)return true;var a=answers[c.key];if(c.op==='not_empty')return !qEmpty(a);
+    var have=(Array.isArray(a)?a:[a]).map(function(x){return x===true?'1':x===false?'0':String(x==null?'':x)}),want=(Array.isArray(c.value)?c.value:[c.value]).map(function(x){return x===true?'1':x===false?'0':String(x==null?'':x)});
+    var hit=have.some(function(x){return want.indexOf(x)>-1});return c.op==='not_equals'?!hit:hit}
+  function hasQs(i){return qsFor(i).some(function(q){return q.type!=='terms'})}
+  function anyQs(){for(var k=0;k<count();k++)if(hasQs(k))return true;return false}
+  function lastQ(){for(var k=count()-1;k>=0;k--)if(hasQs(k))return k;return -1}
+  /* A person's form counts as done only for the ticket type it was filled for. */
+  function fDone(i){var p=S.people[i];if(!hasQs(i))return true;return !!(p&&p.fdone&&String(p.fticket)===String(slotTicket(i)))}
+  function qAnswers(f,i){var out={};qsFor(i).forEach(function(q){if(q.type!=='terms')out[q.key]=qVal(f,q)});return out}
+  function qSync(f){var i=+f.dataset.i,ans=qAnswers(f,i);qsFor(i).forEach(function(q){var w=f.querySelector('[data-qkey="'+q.key+'"]');if(w)w.hidden=!qShown(q,ans)})}
+  function qHtml(i,q){
+    var id='p'+i+'-q-'+q.key,err=S.err[i]&&S.err[i]['q:'+q.key],saved=(S.people[i]&&S.people[i].answers)||{},v=saved[q.key],req=q.required?' <span class="qreq" aria-hidden="true">*</span>':'',
+      help=q.help?'<p class="hint">'+esc(q.help)+'</p>':'',bad=err?'<p class="ferr" id="'+id+'-e">'+esc(err)+'</p>':'',inv=err?' aria-invalid="true" aria-describedby="'+id+'-e"':'',
+      name=' name="q:'+esc(q.key)+'"',open='<div class="inp qf'+(err?' bad':'')+'" data-qkey="'+esc(q.key)+'">',ans=saved;
+    if(q.type==='terms')return '<div class="qterms" data-qkey="'+esc(q.key)+'"><b>'+esc(q.label)+'</b>'+(q.help?'<p>'+esc(q.help)+'</p>':'')+'</div>';
+    if(q.type==='consent'||q.type==='checkbox')return open+(q.type==='checkbox'?'<span class="qlabel">'+esc(q.label)+req+'</span>':'')+'<label class="qcheck"><input type="checkbox" id="'+id+'"'+name+' value="1"'+(v===true?' checked':'')+inv+'><span>'+(q.type==='consent'?esc(q.label)+req:'Yes')+'</span></label>'+help+bad+'</div>';
+    if(q.type==='radio'||q.type==='multi_select'){var pick=Array.isArray(v)?v:[v];return '<fieldset class="inp qf qgroup'+(err?' bad':'')+'" data-qkey="'+esc(q.key)+'"'+(err?' aria-describedby="'+id+'-e"':'')+'><legend>'+esc(q.label)+req+'</legend>'+q.options.map(function(o,k){return '<label class="qcheck"><input type="'+(q.type==='radio'?'radio':'checkbox')+'" id="'+id+'-'+k+'"'+name+' value="'+esc(o)+'"'+(pick.indexOf(o)>-1?' checked':'')+(err&&k===0?' aria-invalid="true"':'')+'><span>'+esc(o)+'</span></label>'}).join('')+help+bad+'</fieldset>'}
+    var label='<label for="'+id+'">'+esc(q.label)+req+'</label>',ph=q.placeholder?' placeholder="'+esc(q.placeholder)+'"':'',mx=q.max?' maxlength="'+q.max+'"':'',val=v==null?'':String(v);
+    if(q.type==='select')return open+label+'<select id="'+id+'"'+name+inv+'><option value="">Choose an option</option>'+q.options.map(function(o){return '<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>'+help+bad+'</div>';
+    if(q.type==='textarea')return open+label+'<textarea id="'+id+'"'+name+' rows="3"'+ph+mx+inv+'>'+esc(val)+'</textarea>'+help+bad+'</div>';
+    var type={email:'email',phone:'tel',number:'number',date:'date'}[q.type]||'text';
+    return open+label+'<input id="'+id+'"'+name+' type="'+type+'" value="'+esc(val)+'"'+ph+mx+inv+(type==='tel'?' autocomplete="tel"':'')+'>'+help+bad+'</div>';
+  }
+  function consentHtml(){if(!RF)return '';var err=S.err.consent;return '<div class="qconsent'+(err?' bad':'')+'"><label class="qcheck"><input type="checkbox" name="rf-consent" value="1"'+(S.consent?' checked':'')+(err?' aria-invalid="true" aria-describedby="rf-consent-e"':'')+'><span>I agree that TICA and the organiser can use these details to run this event.</span></label>'+(RF.privacy?'<details><summary>Read the privacy notice</summary><p>'+esc(RF.privacy)+'</p></details>':'')+(err?'<p class="ferr" id="rf-consent-e">'+esc(err)+'</p>':'')+'</div>'}
+  function nextForm(){for(var k=0;k<count();k++)if(!fDone(k))return k;return -1}
+  function toForm(){S.stage='form';S.err={};var k=nextForm();S.fopen=k>-1?k:lastQ();track('registration_form',{event_id:e.id});draw('.rform input, .rform select, .rform textarea');window.scrollTo(0,0)}
+  function formHtml(){
+    var sl=slots(),n=sl.length;
+    var askN=sl.filter(function(t,i){return hasQs(i)}).length;
+    return '<button class="backlink" type="button" id="back-details">Back to your details</button><h1 class="display">Registration form</h1><p class="sub2">'+(askN>1?'The organiser asks a few questions for each person. The next person opens when you finish.':'The organiser asks a few questions before you pay.')+'</p>'+(RF.intro?'<p class="rf-intro">'+esc(RF.intro)+'</p>':'')+'<div class="stackforms">'+
+    sl.map(function(tier,i){
+      var p=S.people[i]||{},who=esc(p.name||('Ticket '+(i+1))),head='Person '+(i+1)+' of '+n+'<span>'+who+', '+esc(tier)+'</span>';
+      if(!hasQs(i))return '';
+      if(i===S.fopen){
+        var last=i===lastQ(),nq=-1;for(var k=i+1;k<n;k++)if(hasQs(k)){nq=k;break}
+        var next=!last?'Continue to person '+(nq+1):(isFree()?(n===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
+        return '<form class="pform rform open" data-i="'+i+'" novalidate><h3>'+head+'</h3>'+qsFor(i).map(function(q){return qHtml(i,q)}).join('')+(last?consentHtml():'')+
+        '<button class="btn btn-hot" type="submit">'+next+'</button>'+
+        (last?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
+      }
+      if(fDone(i))return '<div class="pform done"><div><h3>'+head+'</h3><p>Form complete</p></div><button class="editbtn" type="button" data-fedit="'+i+'" aria-label="Edit the form for person '+(i+1)+'">Edit</button></div>';
+      return '<div class="pform later"><h3>'+head+'</h3></div>';
+    }).join('')+'</div>';
+  }
+  function bindForm(){
+    var bd=$('back-details');if(bd)bd.addEventListener('click',function(){S.stage='details';S.err={};S.open=count()-1;draw('.pform.open input')});
+    view.querySelectorAll('[data-fedit]').forEach(function(b){b.addEventListener('click',function(){S.fopen=+b.dataset.fedit;S.err={};draw('.rform input, .rform select, .rform textarea')})});
+    view.querySelectorAll('form.rform').forEach(function(f){
+      qSync(f);f.addEventListener('change',function(){qSync(f)});f.addEventListener('input',function(){qSync(f)});
+      f.addEventListener('submit',function(ev){
+        ev.preventDefault();
+        var i=+f.dataset.i,all=qAnswers(f,i),kept={},er={};
+        qsFor(i).forEach(function(q){if(q.type==='terms'||!qShown(q,all))return;var v=all[q.key];kept[q.key]=v;
+          if(q.required&&qEmpty(v))er['q:'+q.key]=q.type==='consent'?'Tick this box to continue.':'Answer this question.';
+          else if(!qEmpty(v)&&q.type==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))er['q:'+q.key]='Enter a valid email address.'});
+        var cb=f.elements['rf-consent'];if(cb){S.consent=cb.checked;if(!cb.checked)er.consent='Agree to this to continue.'}
+        S.people[i]=Object.assign(S.people[i]||{},{answers:kept,fdone:!Object.keys(er).length,fticket:slotTicket(i)});
+        if(Object.keys(er).length){S.err={};S.err[i]=er;if(er.consent)S.err.consent=er.consent;draw('.rform [aria-invalid=true]');return}
+        S.err={};
+        var nxt=nextForm();
+        if(nxt>-1){S.fopen=nxt;draw('.rform input, .rform select, .rform textarea');var box=view.querySelector('.rform');if(box)box.scrollIntoView({block:'start'});return}
+        var submit=f.querySelector('[type=submit]'),label=submit.textContent;
+        submit.disabled=true;submit.textContent=isFree()?'Issuing your tickets…':'Opening '+gwLabel()+'…';
+        var status=$('pay-msg');if(status){status.className='hint checkout-status';status.textContent=isFree()?'Creating your tickets…':'Connecting securely to '+gwLabel()+'…'}
+        place(function(){submit.disabled=false;submit.textContent=label});
+      });
+    });
   }
   function acctHtml(){
     var u=window.TICA_USER;
@@ -438,14 +516,14 @@ function renderCheckout(e){
     sl.map(function(tier,i){
       var head='Ticket '+(i+1)+' of '+sl.length+'<span>'+esc(tier)+(i===0?', buyer':'')+'</span>',p=S.people[i];
       if(i===S.open){
-        var next=i<sl.length-1?'Continue to ticket '+(i+2):(isFree()?(sl.length===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
+        var next=i<sl.length-1?'Continue to ticket '+(i+2):RF&&anyQs()?'Continue to registration form':(isFree()?(sl.length===1?'Get my free ticket':'Get my free tickets'):'Continue to secure payment');
         return '<form class="pform open" data-i="'+i+'" novalidate><h3>'+head+'</h3>'+
         (i===0?'<p class="hint top">We\'ll send all tickets and your receipt to this email.</p>':'')+
         field(i,'name','Full name','text','name')+
         '<div class="two">'+(i===0?field(i,'email','Email address','email','email')+field(i,'phone','Phone number','tel','tel'):field(i,'email','Email address (optional)','email','off','Leave blank to send this ticket to the buyer.')+'<div></div>')+'</div>'+
         (e.question?field(i,'answer',esc(e.question),'text','off'):'')+
         '<button class="btn btn-hot" type="submit">'+next+'</button>'+
-        (i===sl.length-1?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
+        (i===sl.length-1&&!(RF&&anyQs())?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
       }
       if(p&&p.done)return '<div class="pform done"><div><h3>'+head+'</h3><p>'+esc(p.name)+(p.email?', '+esc(p.email):', sent to buyer')+'</p></div><button class="editbtn" type="button" data-edit="'+i+'" aria-label="Edit ticket '+(i+1)+'">Edit</button></div>';
       return '<div class="pform later"><h3>'+head+'</h3></div>';
@@ -459,8 +537,8 @@ function renderCheckout(e){
   function gwLabel(){var k=gwKey(),g=gateways().filter(function(x){return x.key===k})[0];return g?g.label:'Our payment partner'}
   function prefill(){var u=window.TICA_USER;if(u&&u.email&&!(S.people[0]&&S.people[0].done)){S.people[0]=Object.assign({name:u.name||'',email:u.email,phone:(S.people[0]&&S.people[0].phone)||''},{fromUser:1})}}
   function draw(focusSel){
-    var n={choose:0,details:1}[S.stage];
-    view.innerHTML=stepsBar(n)+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():detailsWrap())+'</div>'+summary()+'</div>';
+    var n={choose:0,details:1,form:2}[S.stage];
+    view.innerHTML=stepsBar(n,!!(RF&&anyQs()))+'<div class="chgrid st-'+S.stage+'"><div class="panel">'+(S.stage==='choose'?chooseHtml():S.stage==='form'?formHtml():detailsWrap())+'</div>'+summary()+'</div>';
     bind();
     if(S.stage==='choose')loadSeats();
     if(focusSel){var f=view.querySelector(focusSel);if(f)f.focus()}
@@ -472,11 +550,14 @@ function renderCheckout(e){
     var m=$('pay-msg');if(m){m.className='hint';m.textContent=''}
     api('/tica-api/checkout',{event_id:e.id,event_date:S.date||null,quantities:S.qty,coupon:S.disc?S.disc.code:null,submission_id:S.submission,seat_ids:S.seats,
       buyer:{name:S.people[0].name,email:S.people[0].email,phone:S.people[0].phone},gateway:isFree()?null:gwKey(),
-      attendees:S.people.map(function(p){return {name:p.name,email:p.email||'',answer:p.answer||''}})})
+      consent:RF&&anyQs()?!!S.consent:null,
+      attendees:S.people.map(function(p){return {name:p.name,email:p.email||'',answer:p.answer||'',answers:p.answers||{}}})})
     .then(function(r){clearCheckoutSubmission(e.slug);HOLD=null;PENDING=null;location.href=r.redirect},function(er){
       S.placing=false;
       onFail&&onFail();
       if(er.data&&er.data.login){S.stage='details';S.login='id';draw('#al-id');return}
+      if(er.data&&er.data.field==='consent'&&RF){S.stage='form';S.fopen=count()-1;S.people[S.fopen].fdone=false;S.err={consent:er.message};draw('.rform [aria-invalid=true]');return}
+      if(er.data&&er.data.ticket!=null&&S.people[er.data.ticket]){var t=er.data.ticket,inForm=RF&&/answers/.test(er.data.field||'');if(inForm){S.stage='form';S.people[t].fdone=false;S.fopen=t}else{S.stage='details';S.people[t].done=false;S.open=t}S.err={};draw(inForm?'.rform input':'.pform.open input');var pm=$('pay-msg'),box=view.querySelector('.pform.open');if(box){var note=document.createElement('p');note.className='payerr';note.setAttribute('role','alert');note.textContent=er.message;box.insertBefore(note,box.querySelector('[type=submit]'))}return}
       var mm=$('pay-msg');if(mm){mm.className='payerr';mm.textContent=er.message}else flash(er.message)});
   }
   function finish(){
@@ -516,17 +597,20 @@ function renderCheckout(e){
 
     var bc=$('back-choose');if(bc)bc.addEventListener('click',function(){PENDING={slug:e.slug,qty:S.qty.slice(),disc:S.disc,date:S.date,people:S.people.slice(),submission:S.submission};go('event/'+e.slug)});
     view.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){S.open=+b.dataset.edit;S.err={};draw('.pform.open input')})});
-    view.querySelectorAll('form.pform').forEach(function(f){f.addEventListener('submit',function(ev){
+    bindForm();
+    view.querySelectorAll('form.pform:not(.rform)').forEach(function(f){f.addEventListener('submit',function(ev){
       ev.preventDefault();
       var i=+f.dataset.i,g=function(k){var x=f.elements[k];return x?x.value.trim():''},p={name:g('name'),email:g('email'),phone:g('phone'),answer:g('answer')},er={};
       if(e.question&&!p.answer)er.answer='Answer the question for this ticket.';
+
       if(p.name.length<2)er.name='Enter this person\'s full name.';
       if((i===0||p.email)&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))er.email='Enter a valid email address, like name@example.com.';
       if(i===0&&p.phone.replace(/\D/g,'').length<10)er.phone='Enter a phone number with at least 10 digits.';
-      S.people[i]=Object.assign(p,{done:!Object.keys(er).length});
+      var prev=S.people[i]||{};S.people[i]=Object.assign(p,{done:!Object.keys(er).length,answers:prev.answers,fdone:prev.fdone});
       if(Object.keys(er).length){S.err={};S.err[i]=er;draw('.pform.open [aria-invalid=true]');return}
       S.err={};
       var nxt=-1;for(var k=0;k<count();k++){if(!(S.people[k]&&S.people[k].done)){nxt=k;break}}
+      if(nxt===-1&&RF&&anyQs()){toForm();return}
       if(nxt===-1){
         var submit=f.querySelector('[type=submit]'),label=submit.textContent;
         submit.disabled=true;submit.textContent=isFree()?'Issuing your tickets…':'Opening '+gwLabel()+'…';

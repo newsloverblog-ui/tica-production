@@ -161,7 +161,9 @@ class EventCatalog
         ->where('tica_promotion_plans.placement', 'sponsored_event')->pluck('tica_promotion_campaigns.id', 'tica_promotion_campaigns.event_id')
       : collect();
 
-    return $contents->map(function ($content) use ($tickets, $ticketContents, $dates, $sold, $categories, $organizers, $organizerNames, $programmePeople, $agendaItems, $sponsored) {
+    $checkoutForms = app(\App\Services\CheckoutRegistrationService::class)->payloads($eventIds);
+
+    return $contents->map(function ($content) use ($tickets, $ticketContents, $dates, $sold, $categories, $organizers, $organizerNames, $programmePeople, $agendaItems, $sponsored, $checkoutForms) {
       $eventId = (int) $content->id;
       $category = $categories->get($content->event_category_id);
       $organizer = $organizers->get($content->organizer_id);
@@ -221,6 +223,7 @@ class EventCatalog
         'hideStock' => isset($content->show_remaining) && !$content->show_remaining,
         'waitlist' => !isset($content->waitlist_enabled) || (bool) $content->waitlist_enabled,
         'question' => (string) ($content->attendee_question ?? ''),
+        'form' => $checkoutForms->get($eventId),
         'visibility' => (string) ($content->visibility ?? 'public'),
         'sold' => $tiers !== [] && $left === 0 ? 1 : 0,
         'unlimited' => $tiers !== [] && collect($tiers)->every(fn ($tier) => $tier[4]['unlimited']),

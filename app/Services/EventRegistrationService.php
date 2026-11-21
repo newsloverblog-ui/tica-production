@@ -796,6 +796,19 @@ class EventRegistrationService
         }
     }
 
+    /**
+     * Check one ticket holder's checkout answers. Returns plain values keyed by
+     * question key, so they can travel with a payment and be saved later.
+     */
+    public function checkoutAnswers(iterable $questions, array $answers, string $prefix): array
+    {
+        $usable = collect($questions)->reject(fn (EventRegistrationQuestion $question): bool => $question->type === 'file');
+
+        return collect($this->validateQuestionSet($usable, $answers, $prefix))
+            ->map(fn (array $answer) => $answer['value'])
+            ->all();
+    }
+
     private function validateQuestionSet(iterable $questions, array $answers, string $prefix): array
     {
         $validated = [];

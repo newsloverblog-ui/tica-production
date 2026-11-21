@@ -1538,7 +1538,7 @@ h1,h2,h3{overflow-wrap:break-word}
 .tp-row{flex-wrap:wrap}
 .tp-row>div:first-child{flex:1 1 180px;min-width:0}
 .tp-row .stepper{margin-left:auto}
-@media (max-width:880px){.chgrid.st-details .summary,.chgrid.st-choose .summary{order:-1;position:static}}
+@media (max-width:880px){.chgrid.st-details .summary,.chgrid.st-choose .summary,.chgrid.st-form .summary{order:-1;position:static}}
 @media (max-width:600px){
   .grid4{grid-template-columns:1fr!important;gap:12px!important}
   .grid4 .card{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:start}
@@ -7252,3 +7252,23 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     white-space: nowrap !important;
     border: 0 !important;
 }
+
+/* Checkout: the event's registration form, asked once per ticket. */
+.rf-intro{margin:-6px 0 18px;color:var(--soft);font-size:15px;line-height:1.55;white-space:pre-line}
+.rf-kicker{margin:0 0 6px;font-size:14px;font-weight:600;color:#2E4FD8}
+.qf[hidden],.qterms[hidden]{display:none}
+.qreq{color:#B42318}
+.qlabel{display:block;font-weight:500;font-size:14px;margin-bottom:6px}
+.qgroup{border:0;padding:0;margin:0 0 14px;min-width:0}
+.qgroup legend{padding:0;margin-bottom:6px;font-weight:500;font-size:14px}
+.qcheck{display:flex!important;align-items:flex-start;gap:10px;min-height:32px;margin:0 0 6px!important;font-weight:500!important;font-size:15px!important;line-height:1.4;cursor:pointer}
+.qcheck input{width:20px!important;min-height:0!important;height:20px;margin:1px 0 0;flex:none;accent-color:#2E4FD8}
+.qterms{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:var(--tint)}
+.qterms b{display:block;font-size:14px}
+.qterms p{margin:4px 0 0;font-size:14px;color:var(--soft);line-height:1.5;white-space:pre-line}
+.qconsent{margin:4px 0 16px;padding:14px;border:1px solid var(--line);border-radius:10px}
+.qconsent.bad{border-color:#B42318}
+.qconsent details{margin-top:6px;font-size:14px;color:var(--soft)}
+.qconsent summary{cursor:pointer;color:#2E4FD8;font-weight:600}
+.qconsent details p{white-space:pre-line;line-height:1.55}
+.qf.bad select,.qf.bad textarea{border-color:#B42318;border-width:1.5px}
