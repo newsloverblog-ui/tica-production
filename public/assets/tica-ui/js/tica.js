@@ -526,7 +526,7 @@ function renderCheckout(e){
         (i===0?'<p class="hint top">We\'ll send all tickets and your receipt to this email.</p>':'')+
         field(i,'name',guest?'Full name (optional)':'Full name','text',i===0?'name':'off',guest?'Leave blank to keep this pass with you.':'')+
         '<div class="two">'+(i===0?field(i,'email','Email address','email','email')+field(i,'phone','Phone number','tel','tel'):field(i,'email','Email address (optional)','email','off','Leave blank to send this pass to the buyer.')+'<div></div>')+'</div>'+
-        (guest&&sm.member<sm.size-1?'<button class="lk-btn pv-keep" type="button" data-keep="'+i+'">Keep the other '+(sm.size-sm.member)+' passes for this ticket with me</button>':'')+
+        (guest&&sm.member<sm.size-1?'<button class="lk-btn pv-keep" type="button" data-keep="'+i+'">Keep the remaining passes for this '+esc(tier)+' with me</button>':'')+
         (e.question?field(i,'answer',esc(e.question),'text','off'):'')+
         '<button class="btn btn-hot" type="submit">'+next+'</button>'+
         (i===sl.length-1&&!(RF&&anyQs())?'<p class="paylegal">By continuing, you agree to TICA\'s <a href="/policies/tickets">terms</a> and <a href="/policies/refunds">refund policy</a>.</p><p class="hint checkout-status" id="pay-msg" role="status"></p>':'')+'</form>';
