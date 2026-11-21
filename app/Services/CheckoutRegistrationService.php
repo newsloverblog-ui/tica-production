@@ -117,8 +117,9 @@ class CheckoutRegistrationService
   public function ticketOrder(array $selectedTickets, int $eventId): array
   {
     $order = [];
+    $admits = \App\Models\Event\Ticket::admitsFor(array_column($selectedTickets, 'ticket_id'));
     foreach ($selectedTickets as $selection) {
-      $quantity = max(0, (int) ($selection['qty'] ?? 0));
+      $quantity = max(0, (int) ($selection['qty'] ?? 0)) * ($admits[(int) ($selection['ticket_id'] ?? 0)] ?? 1);
       for ($k = 0; $k < $quantity; $k++) {
         $order[] = (int) ($selection['ticket_id'] ?? 0);
       }

@@ -75,7 +75,7 @@ class AdvancedTicketController extends Controller
         $sequences = TicketNumberSequence::query()->whereIn('event_id', $ticketTypes->pluck('event_id'))
             ->get()->keyBy(fn (TicketNumberSequence $sequence) => $sequence->event_id . '|' . $sequence->scope_key);
         $categoryRows = $ticketTypes->map(function (Ticket $ticket) use ($soldByTicket, $sequences, $eventNames) {
-            $sold = (int) ($soldByTicket[$ticket->id] ?? 0);
+            $sold = (int) ceil((int) ($soldByTicket[$ticket->id] ?? 0) / $ticket->admitsPerTicket());
             $limited = $ticket->ticket_available_type === 'limited';
             $scope = $ticket->numbering_scope === 'event' ? 'event' : 'ticket:' . $ticket->id;
             $sequence = $sequences->get($ticket->event_id . '|' . $scope);

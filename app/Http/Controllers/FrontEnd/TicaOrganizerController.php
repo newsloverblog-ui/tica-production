@@ -28,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Mews\Purifier\Facades\Purifier;
@@ -421,7 +422,9 @@ class TicaOrganizerController extends Controller
           'number_padding' => (int) ($tier['number_padding'] ?? 3),
           'number_format' => $tier['number_format'] ?? '{PREFIX}-{NUMBER}',
           'seating_mode' => $tier['seating_mode'] ?? 'general_admission',
-        ];
+        ] + $this->admitsColumn($tier, $online);
+      } elseif ($this->admitsColumn($tier, $online) !== [] && $this->admitsColumn($tier, $online)['admits'] !== $ticket->admitsPerTicket()) {
+        throw ValidationException::withMessages(["tiers.$index.admits" => "You've sold {$sold} {$ticket->title} tickets, so the number of people each one admits can't change."]);
       } elseif (($tier['seating_mode'] ?? $ticket->seating_mode) !== $ticket->seating_mode) {
         throw ValidationException::withMessages(["tiers.$index.seating_mode" => 'Seating mode cannot change after tickets are sold.']);
       }
@@ -514,6 +517,7 @@ class TicaOrganizerController extends Controller
       'tiers.*.number_padding' => ['nullable', 'integer', 'between:1,10'],
       'tiers.*.number_format' => ['nullable', 'string', 'max:80', 'regex:/\{NUMBER\}/'],
       'tiers.*.seating_mode' => ['nullable', Rule::in(['general_admission', 'reserved'])],
+      'tiers.*.admits' => ['nullable', 'integer', 'between:1,100'],
       'tiers.*.design_settings' => ['nullable', 'array:accent,show_logo,show_attendee,show_category,show_number,show_seat,show_section,show_row,show_date,show_venue,show_status'],
       'tiers.*.design_settings.accent' => ['nullable', 'regex:/\A#[0-9A-Fa-f]{6}\z/'],
       'tiers.*.design_settings.show_logo' => ['nullable', 'boolean'],
@@ -722,6 +726,20 @@ class TicaOrganizerController extends Controller
     }
   }
 
+  /** Group tickets admit several people; online tickets and reserved seats always admit one. */
+  private function admitsColumn(array $tier, bool $online): array
+  {
+    if (!Schema::hasColumn('tickets', 'admits')) {
+      return [];
+    }
+    $admits = (int) ($tier['admits'] ?? 1);
+    if ($online || ($tier['seating_mode'] ?? 'general_admission') === 'reserved') {
+      $admits = 1;
+    }
+
+    return ['admits' => max(1, min(100, $admits))];
+  }
+
   private function storeTickets(Event $event, array $tiers, bool $online): void
   {
     $languages = Language::all();
@@ -759,7 +777,7 @@ class TicaOrganizerController extends Controller
         'number_format' => $tier['number_format'] ?? '{PREFIX}-{NUMBER}',
         'seating_mode' => $tier['seating_mode'] ?? 'general_admission',
         'design_settings' => $tier['design_settings'] ?? null,
-      ]);
+      ] + $this->admitsColumn($tier, $online));
       foreach ($languages as $language) {
         TicketContent::create([
           'language_id' => $language->id,

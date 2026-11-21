@@ -37,7 +37,10 @@ class EventBuilderPrefill
 
   public static function soldFor(Ticket $ticket): int
   {
-    return BookingTicket::query()->where('ticket_id', $ticket->id)->whereNull('revoked_at')->count();
+    // A group ticket issues one pass per person; "sold" counts tickets.
+    $people = BookingTicket::query()->where('ticket_id', $ticket->id)->whereNull('revoked_at')->count();
+
+    return (int) ceil($people / $ticket->admitsPerTicket());
   }
 
   public function build(Event $event, int $languageId): array
@@ -92,6 +95,7 @@ class EventBuilderPrefill
         'number_padding' => (int) ($ticket->number_padding ?: 3),
         'number_format' => (string) ($ticket->number_format ?: '{PREFIX}-{NUMBER}'),
         'seating_mode' => (string) ($ticket->seating_mode ?: 'general_admission'),
+        'admits' => $ticket->admitsPerTicket(),
         'design_settings' => $ticket->design_settings ?: [],
         // Tickets with options (variations) were made in the old editor; the builder leaves them as they are.
         'locked' => $ticket->pricing_type === 'variation',

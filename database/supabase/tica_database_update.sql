@@ -718,6 +718,15 @@ BEGIN
   PERFORM pg_temp.tica_mark_migration('2026_11_19_180000_add_account_type_controls');
 END $$;
 
+-- 14b. Group tickets: one ticket admits several people --------------------
+DO $$
+BEGIN
+  IF to_regclass('public.tickets') IS NOT NULL THEN
+    ALTER TABLE public.tickets ADD COLUMN IF NOT EXISTS admits smallint NOT NULL DEFAULT 1;
+  END IF;
+  PERFORM pg_temp.tica_mark_migration('2026_11_21_190000_add_admits_to_tickets');
+END $$;
+
 -- 15. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;

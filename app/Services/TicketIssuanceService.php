@@ -100,17 +100,35 @@ class TicketIssuanceService
      *
      * @return array<int, array{ticket_id: int|null, variation_name: string|null}>
      */
+    /** People covered by a ticket selection: tickets × people each ticket admits. */
+    public static function peopleFor(?array $selections, int $fallback): int
+    {
+        if (!is_array($selections) || $selections === []) {
+            return $fallback;
+        }
+        $admits = \App\Models\Event\Ticket::admitsFor(array_column($selections, 'ticket_id'));
+        $people = 0;
+        foreach ($selections as $selection) {
+            $people += max(0, (int) ($selection['qty'] ?? 0)) * ($admits[(int) ($selection['ticket_id'] ?? 0)] ?? 1);
+        }
+
+        return $people > 0 ? $people : $fallback;
+    }
+
     public function expectedAllocations(Booking $booking): array
     {
         $selections = json_decode((string) $booking->variation, true);
         $allocations = [];
 
         if (is_array($selections) && $selections !== []) {
+            // A group ticket (a couple pass, a table for 10) issues one pass per person.
+            $admits = \App\Models\Event\Ticket::admitsFor(array_column($selections, 'ticket_id'));
             foreach ($selections as $selection) {
                 $quantity = (int) ($selection['qty'] ?? 0);
                 if ($quantity < 1) {
                     throw new RuntimeException('Booking contains an invalid ticket allocation.');
                 }
+                $quantity *= $admits[(int) ($selection['ticket_id'] ?? 0)] ?? 1;
 
                 for ($i = 0; $i < $quantity; $i++) {
                     $allocations[] = [

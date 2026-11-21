@@ -313,7 +313,9 @@ class EventCatalog
         && (!$ticket->sales_end_at || $ticket->sales_end_at->isFuture());
       if (!$available) $left = 0;
       $maxBuy = $ticket->max_ticket_buy_type === 'limited' ? max(1, (int) $ticket->max_buy_ticket) : null;
-      $tiers[] = $this->tier($title, $price, $left, $sold[$ticket->id . '|*'] ?? 0, [
+      $admits = $ticket->event_type === 'online' ? 1 : $ticket->admitsPerTicket();
+      $tiers[] = $this->tier($title, $price, $left, (int) ceil(($sold[$ticket->id . '|*'] ?? 0) / $admits), [
+        'admits' => $admits,
         'ticketId' => (int) $ticket->id,
         'variation' => null,
         'description' => $description,
