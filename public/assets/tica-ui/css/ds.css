@@ -1631,25 +1631,37 @@ dialog.pr-drawer .t-btn{min-height:46px}
 body.orgshell .pr.pv,
 .od-p.pv{
   width:100%;
-  max-width:1160px;
-  gap:26px;
+  max-width:1440px!important;
+  gap:24px;
   margin:0 auto;
   font-family:var(--t-font,"Montserrat",system-ui,sans-serif);
+  font-size:14px;
+  line-height:1.5;
   font-weight:400;
   letter-spacing:0;
 }
+body.orgshell .pr.pv .pv-head{margin-bottom:0!important}
 .pv-head h1{
-  font-size:clamp(28px,2.35vw,36px);
-  line-height:1.18;
-  letter-spacing:-.022em;
+  font-size:28px;
+  line-height:36px;
+  letter-spacing:-.018em;
   font-weight:600;
 }
 .pv-head p{
   max-width:68ch;
   margin-top:8px;
-  font-size:15px;
-  line-height:1.7;
+  font-size:14px;
+  line-height:21px;
   font-weight:400;
+}
+.pv-start{
+  display:grid;
+  gap:16px;
+  padding:18px;
+  border:1px solid var(--pv-line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(11,36,71,.04);
 }
 .pv-bar{
   align-items:center;
@@ -1657,26 +1669,49 @@ body.orgshell .pr.pv,
   padding:16px 18px;
   border-radius:14px;
 }
-.pv-event label{font-size:14px;font-weight:500;color:var(--pv-text)}
-.pv-select select{min-height:46px;font-size:14px;font-weight:500;border-radius:10px}
-.pv-create{min-height:46px;padding-inline:20px;font-weight:500;border-radius:10px;box-shadow:none}
+.pv-start .pv-bar{
+  padding:0 0 16px;
+  border:0;
+  border-bottom:1px solid var(--pv-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.pv-event label{font-size:13px;font-weight:500;color:var(--pv-text)}
+.pv-select select{min-height:46px;font-size:14px;font-weight:400;border-radius:10px}
+.pv-create{min-height:46px;padding-inline:20px;font-size:14px;font-weight:600;border-radius:10px;box-shadow:none}
 .pv-create:hover{box-shadow:0 8px 18px rgba(46,79,216,.14)}
 .pv-tools{gap:14px}
+.pv-start .pv-tools{gap:12px}
 .pv-tool{
-  min-height:164px;
+  min-height:148px;
   padding:20px;
   gap:6px;
   border-radius:14px;
   box-shadow:none;
 }
 .pv-tool__ico{width:42px;height:42px;border-radius:10px}
-.pv-tool b{margin-top:6px;font-size:18px;line-height:1.35;font-weight:600;letter-spacing:-.012em}
+.pv-tool b{margin-top:6px;font-size:16px;line-height:24px;font-weight:600;letter-spacing:-.008em}
 .pv-tool>span:not(.pv-tool__ico){font-size:14px;line-height:1.55;font-weight:400}
 .pv-tool__go{right:20px;bottom:18px}
 .pv-section{gap:14px}
 .pv-section__head{min-height:40px;align-items:end}
-.pv-section__head h2,.pv-share h2{font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.015em}
+.pv-section__head h2,.pv-share h2{font-size:18px;line-height:26px;font-weight:600;letter-spacing:-.01em}
 .pv-note{font-size:13px;font-weight:400}
+.pv-overview{
+  display:grid;
+  grid-template-columns:minmax(0,1.75fr) minmax(280px,.75fr);
+  gap:20px;
+  align-items:start;
+}
+.pv-overview>*{min-width:0}
+.pv-section--performance .pv-section__head{
+  align-items:flex-start;
+  flex-direction:column;
+  gap:2px;
+}
+.pv-section--performance .pv-stats{grid-template-columns:1fr;gap:10px}
+.pv-section--performance .pv-stat{min-height:94px}
 .pv-filter{padding:3px;border-radius:10px}
 .pv-filter button{min-height:36px;padding-inline:12px;font-size:13px;font-weight:500;border-radius:8px}
 .pv-camps{border-radius:14px}
@@ -1688,7 +1723,7 @@ body.orgshell .pr.pv,
 }
 .pv-row--head{min-height:44px;font-size:12px;font-weight:500;letter-spacing:.01em}
 .pv-name{gap:12px}
-.pv-name b{font-size:15px;font-weight:550;line-height:1.4}
+.pv-name b{font-size:14px;font-weight:600;line-height:21px}
 .pv-name small,.pv-res,.pv-type{font-size:13px;font-weight:400}
 .pv-ico{width:38px;height:38px;border-radius:9px}
 .pv-pill{height:27px;padding-inline:10px;font-size:12px;font-weight:500}
@@ -1696,40 +1731,56 @@ body.orgshell .pr.pv,
 .pv-act:has(.pv-menu){z-index:30}
 .pv-menu{top:42px;min-width:188px;padding:5px;border-radius:10px;box-shadow:0 16px 38px rgba(11,36,71,.14)}
 .pv-row:last-child .pv-menu{top:auto;bottom:42px}
-.pv-menu button{min-height:38px;padding-inline:11px;font-size:13px;font-weight:450;border-radius:7px}
+.pv-menu button{min-height:38px;padding-inline:11px;font-size:13px;font-weight:500;border-radius:7px}
 .pv-pay{font-weight:600}
 .pv-stats{gap:14px}
 .pv-stat{min-height:108px;padding:18px;border-radius:14px;box-shadow:none}
 .pv-stat span{font-size:13px;font-weight:400}
-.pv-stat b{margin:1px 0;font-size:27px;line-height:1.2;font-weight:600}
+.pv-stat b{margin:1px 0;font-size:24px;line-height:32px;font-weight:600}
 .pv-stat small{font-size:12px;line-height:1.45}
 .pv-share{padding:20px;border-radius:14px;box-shadow:none}
-.pv-share h2{font-size:18px}
+.pv-share h2{font-size:16px;line-height:24px}
 .pv-share p{font-weight:400;line-height:1.55}
 .pr-card.pr-more{box-shadow:none}
 .pr-more summary{min-height:58px;font-weight:500}
 dialog.pr-drawer .sh-head h2{font-weight:600}
-.pv-kicker,.pv-steps,.pv-chips button,.pv-full,.pv-extra summary{font-weight:500}
-.pv-q{font-weight:600}
-.pv-plan__txt b,.pv-opt b{font-weight:550}
+.pv-kicker,.pv-steps,.pv-chips button,.pv-full,.pv-extra summary{font-size:13px;font-weight:500}
+.pv-q{font-size:16px;line-height:24px;font-weight:600}
+.pv-plan__txt b,.pv-opt b{font-weight:600}
 .pv-ticket b{font-weight:600}
 .pv-sum dd{font-weight:500}
 .pv-sum__total dt{font-weight:600}
-.pv-sum__total dd{font-weight:650}
-.pv-done h3{font-weight:600}
+.pv-sum__total dd{font-weight:600}
+.pv-done h3{font-size:20px;line-height:28px;font-weight:600}
 .pv-next li::before{font-weight:600}
+dialog.pr-drawer .sh-head h2{font-size:18px;line-height:26px}
+dialog.pr-drawer .t-input,
+dialog.pr-drawer .t-select,
+dialog.pr-drawer .t-textarea{font-size:14px;font-weight:400}
+dialog.pr-drawer .t-btn{font-size:14px;font-weight:600}
 
 @media(max-width:980px){
   body.orgshell .pr.pv,.od-p.pv{margin-inline:0}
   .pv-row:last-child .pv-menu{top:40px;bottom:auto}
 }
+@media(max-width:1180px){
+  .pv-overview{grid-template-columns:1fr}
+  .pv-section--performance .pv-section__head{align-items:end;flex-direction:row}
+  .pv-section--performance .pv-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+}
 @media(max-width:720px){
   body.orgshell .pr.pv,.od-p.pv{gap:22px}
-  .pv-head h1{font-size:clamp(27px,8vw,34px);font-weight:600}
+  .pv-head h1{font-size:22px;line-height:30px;font-weight:600}
+  .pv-start{gap:14px;padding:14px}
   .pv-bar{padding:15px}
+  .pv-start .pv-bar{padding:0 0 14px}
   .pv-tool,.pv-tool:last-child{padding:15px}
   .pv-tool b{font-size:16px;font-weight:600}
-  .pv-section__head h2,.pv-share h2{font-size:20px}
+  .pv-section__head{align-items:flex-start;flex-direction:column}
+  .pv-section__head h2{font-size:18px;line-height:26px}
+  .pv-share h2{font-size:16px;line-height:24px}
+  .pv-section--performance .pv-section__head{align-items:flex-start;flex-direction:column}
+  .pv-section--performance .pv-stats{grid-template-columns:1fr}
   .pv-stat{min-height:102px;padding:15px}
-  .pv-stat b{font-size:25px}
+  .pv-stat b{font-size:24px;line-height:32px}
 }

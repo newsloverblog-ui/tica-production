@@ -1051,3 +1051,186 @@
   .pm-reasons{display:grid;grid-template-columns:1fr}
   .pm-reasons button{border-radius:10px;text-align:left}
 }
+
+/* Shared admin typography scale: Montserrat with regular body copy, medium
+   labels and semibold hierarchy. Keep promotion tools consistent with the
+   rest of the control centre instead of introducing page-only weights. */
+body.tica-admin .tica-promotion-center{
+  font-family:var(--t-font,"Montserrat",system-ui,sans-serif);
+  font-size:14px;
+  line-height:1.5;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .promotion-page-header h1,
+body.tica-admin .tica-promotion-center .pm-head h1{
+  font-size:24px;
+  line-height:32px;
+  font-weight:600;
+  letter-spacing:-.015em;
+}
+body.tica-admin .tica-promotion-center .promotion-intro,
+body.tica-admin .tica-promotion-center .pm-head p{
+  font-size:14px;
+  line-height:21px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .placement-rail h2,
+body.tica-admin .tica-promotion-center .panel-heading h2,
+body.tica-admin .tica-promotion-center .pm-queue__head h2,
+body.tica-admin .tica-promotion-center .pm-card h2,
+body.tica-admin .tica-promotion-center .pm-cal h2{
+  font-size:16px;
+  line-height:24px;
+  font-weight:600;
+  letter-spacing:-.008em;
+}
+body.tica-admin .tica-promotion-center .placement-rail p,
+body.tica-admin .tica-promotion-center .panel-heading p,
+body.tica-admin .tica-promotion-center .pm-sub{
+  font-size:13px;
+  line-height:20px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .pm-title{
+  font-size:20px;
+  line-height:28px;
+  font-weight:600;
+  letter-spacing:-.012em;
+}
+body.tica-admin .tica-promotion-center .pm-meta,
+body.tica-admin .tica-promotion-center .pm-copy,
+body.tica-admin .tica-promotion-center .pm-checks{
+  font-size:14px;
+  line-height:21px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .pm-tabs__main button,
+body.tica-admin .tica-promotion-center .pm-tabs__more button,
+body.tica-admin .tica-promotion-center .promotion-tabs button{
+  font-size:13px;
+  line-height:1;
+  font-weight:500;
+}
+body.tica-admin .tica-promotion-center .pm-tabs button.is-active,
+body.tica-admin .tica-promotion-center .promotion-tabs button.is-active{
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .pm-qcard__txt b,
+body.tica-admin .tica-promotion-center .pm-place__txt b,
+body.tica-admin .tica-promotion-center .campaign-identity strong,
+body.tica-admin .tica-promotion-center .plan-editor-identity strong,
+body.tica-admin .tica-promotion-center .tool-ledger li strong{
+  font-size:14px;
+  line-height:21px;
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .pm-qcard__txt small,
+body.tica-admin .tica-promotion-center .pm-place__txt small,
+body.tica-admin .tica-promotion-center .campaign-identity span,
+body.tica-admin .tica-promotion-center .campaign-identity small,
+body.tica-admin .tica-promotion-center .plan-editor-identity span,
+body.tica-admin .tica-promotion-center .plan-editor-identity small,
+body.tica-admin .tica-promotion-center .tool-ledger li small,
+body.tica-admin .tica-promotion-center .tool-ledger li em{
+  font-size:12px;
+  line-height:18px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .pm-label,
+body.tica-admin .tica-promotion-center .pm-field,
+body.tica-admin .tica-promotion-center .review-drawer label,
+body.tica-admin .tica-promotion-center .plan-editor label{
+  font-size:13px;
+  line-height:20px;
+  font-weight:500;
+}
+body.tica-admin .tica-promotion-center .promotion-filters input,
+body.tica-admin .tica-promotion-center .promotion-filters select,
+body.tica-admin .tica-promotion-center .review-drawer input,
+body.tica-admin .tica-promotion-center .review-drawer select,
+body.tica-admin .tica-promotion-center .review-drawer textarea,
+body.tica-admin .tica-promotion-center .plan-editor input,
+body.tica-admin .tica-promotion-center .plan-editor select,
+body.tica-admin .tica-promotion-center .plan-editor textarea,
+body.tica-admin .tica-promotion-center .pm-field input,
+body.tica-admin .tica-promotion-center .pm-field select,
+body.tica-admin .tica-promotion-center .pm-field textarea{
+  font-family:inherit;
+  font-size:14px;
+  line-height:21px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .promotion-header-action,
+body.tica-admin .tica-promotion-center .placement-edit-link,
+body.tica-admin .tica-promotion-center .btn-filter,
+body.tica-admin .tica-promotion-center .btn-review-save,
+body.tica-admin .tica-promotion-center .btn-plan-save,
+body.tica-admin .tica-promotion-center .btn-plan-secondary,
+body.tica-admin .tica-promotion-center .btn-plan-danger,
+body.tica-admin .tica-promotion-center .pm-btn,
+body.tica-admin .tica-promotion-center .pm-reasons button,
+body.tica-admin .tica-promotion-center .review-drawer > summary,
+body.tica-admin .tica-promotion-center .package-create > summary,
+body.tica-admin .tica-promotion-center .placement-label{
+  font-family:inherit;
+  font-size:13px;
+  line-height:1;
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .promotion-table th{
+  font-size:12px;
+  line-height:18px;
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .promotion-table td{
+  font-size:13px;
+  line-height:20px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .pulse-item span,
+body.tica-admin .tica-promotion-center .pulse-item small,
+body.tica-admin .tica-promotion-center .analytics-summary span{
+  font-size:12px;
+  line-height:18px;
+  font-weight:400;
+}
+body.tica-admin .tica-promotion-center .pulse-item strong,
+body.tica-admin .tica-promotion-center .analytics-summary strong{
+  font-size:22px;
+  line-height:30px;
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .pm-chip,
+body.tica-admin .tica-promotion-center .pm-pill,
+body.tica-admin .tica-promotion-center .status-pill,
+body.tica-admin .tica-promotion-center .provider-chip,
+body.tica-admin .tica-promotion-center .panel-result-count,
+body.tica-admin .tica-promotion-center .oversight-label{
+  font-size:12px;
+  line-height:18px;
+  font-weight:500;
+}
+body.tica-admin .tica-promotion-center .tool-ledger header h3{
+  font-size:14px;
+  line-height:21px;
+  font-weight:600;
+}
+body.tica-admin .tica-promotion-center .tool-ledger header p,
+body.tica-admin .tica-promotion-center .promotion-empty span,
+body.tica-admin .tica-promotion-center .review-safety{
+  font-size:12px;
+  line-height:18px;
+  font-weight:400;
+}
+
+@media(max-width:640px){
+  body.tica-admin .tica-promotion-center .promotion-page-header h1,
+  body.tica-admin .tica-promotion-center .pm-head h1{
+    font-size:22px;
+    line-height:30px;
+  }
+  body.tica-admin .tica-promotion-center .pm-title{
+    font-size:18px;
+    line-height:26px;
+  }
+}

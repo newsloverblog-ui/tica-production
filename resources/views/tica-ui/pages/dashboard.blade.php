@@ -128,32 +128,38 @@
 
       <!-- PROMOTE -->
       <div class="od-p pr pv" data-p="promote" hidden>
-        <header class="pv-head">
-          <h1>Promote your event</h1>
-          <p>Sell more tickets with promo codes and tracking links, and get featured across TICA. Everything you run shows up below.</p>
+        <header class="pr-head pv-head">
+          <div>
+            <h1>Promote your event</h1>
+            <p>Sell more tickets with promo codes and tracking links, and get featured across TICA. Everything you run shows up below.</p>
+          </div>
         </header>
 
-        <div class="pv-bar">
-          <div class="pv-event"><label for="pr-ev">Event</label><span class="pv-select"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/></svg><select class="t-select" id="pr-ev"></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></div>
-          <button class="t-btn t-btn--primary pv-create" type="button" data-prnew="choose"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create promotion</button>
-        </div>
+        <section class="pv-start" aria-label="Create a promotion">
+          <div class="pv-bar">
+            <div class="pv-event"><label for="pr-ev">Event</label><span class="pv-select"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/></svg><select class="t-select" id="pr-ev"></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></div>
+            <button class="t-btn t-btn--primary pv-create" type="button" data-prnew="choose"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create promotion</button>
+          </div>
 
-        <div class="pv-tools">
-          <button class="pv-tool pv-tool--code" type="button" data-prnew="code"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l9.5 9.5-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><b>Promo code</b><span>Offer a discount with a custom code</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
-          <button class="pv-tool pv-tool--link" type="button" data-prnew="link"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg></span><b>Tracking link</b><span>Share a unique link to see what sells tickets</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
-          <button class="pv-tool pv-tool--feat" type="button" data-prnew="featured"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><b>Featured placement</b><span id="pv-feat-from">Get your event featured across TICA</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
-        </div>
-
-        <section class="pv-section" aria-labelledby="pv-camps-h">
-          <div class="pv-section__head"><h2 id="pv-camps-h">Your campaigns</h2>
-            <div class="pv-filter" role="tablist" aria-label="Show campaigns"><button type="button" role="tab" data-prfilter="all" aria-selected="true">All</button><button type="button" role="tab" data-prfilter="code" aria-selected="false">Codes</button><button type="button" role="tab" data-prfilter="link" aria-selected="false">Links</button><button type="button" role="tab" data-prfilter="feat" aria-selected="false">Placements</button></div></div>
-          <div class="pv-camps" id="od-campaigns" role="table" aria-labelledby="pv-camps-h"></div>
+          <div class="pv-tools">
+            <button class="pv-tool pv-tool--code" type="button" data-prnew="code"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l9.5 9.5-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><b>Promo code</b><span>Offer a discount with a custom code</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+            <button class="pv-tool pv-tool--link" type="button" data-prnew="link"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg></span><b>Tracking link</b><span>Share a unique link to see what sells tickets</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+            <button class="pv-tool pv-tool--feat" type="button" data-prnew="featured"><span class="pv-tool__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><b>Featured placement</b><span id="pv-feat-from">Get your event featured across TICA</span><i class="pv-tool__go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+          </div>
         </section>
 
-        <section class="pv-section" aria-labelledby="pv-perf-h">
-          <div class="pv-section__head"><h2 id="pv-perf-h">Promotion performance</h2><span class="pv-note">Since you started promoting</span></div>
-          <div class="pv-stats" id="od-promo-kpis"></div>
-        </section>
+        <div class="pv-overview">
+          <section class="pv-section pv-section--campaigns" aria-labelledby="pv-camps-h">
+            <div class="pv-section__head"><h2 id="pv-camps-h">Your campaigns</h2>
+              <div class="pv-filter" role="tablist" aria-label="Show campaigns"><button type="button" role="tab" data-prfilter="all" aria-selected="true">All</button><button type="button" role="tab" data-prfilter="code" aria-selected="false">Codes</button><button type="button" role="tab" data-prfilter="link" aria-selected="false">Links</button><button type="button" role="tab" data-prfilter="feat" aria-selected="false">Placements</button></div></div>
+            <div class="pv-camps" id="od-campaigns" role="table" aria-labelledby="pv-camps-h"></div>
+          </section>
+
+          <section class="pv-section pv-section--performance" aria-labelledby="pv-perf-h">
+            <div class="pv-section__head"><h2 id="pv-perf-h">Promotion performance</h2><span class="pv-note">Since you started promoting</span></div>
+            <div class="pv-stats" id="od-promo-kpis"></div>
+          </section>
+        </div>
 
         <section class="pv-share" aria-labelledby="pr-share-h">
           <div><h2 id="pr-share-h">Share your event link</h2><p>Post it anywhere. Use a tracking link instead when you want to see which post sells.</p></div>
