@@ -370,10 +370,11 @@
         <div><h2>{{ __('Platform offers') }}</h2><p>{{ __('The placements organisers can buy: price, length and how many can run at once.') }}</p></div>
         <span class="panel-result-count">{{ trans_choice(':count plan|:count plans', $plans->count(), ['count' => $plans->count()]) }}</span>
       </div>
-      <details class="package-create">
+      <details class="package-create" @if($errors->any() && old('_plan_context') === 'create') open @endif>
         <summary><i class="fas fa-plus" aria-hidden="true"></i>{{ __('Create promotion package') }}</summary>
         <form method="post" action="{{ route('admin.advertise.tica_promotions.plan.store') }}" class="plan-editor plan-editor--create">
           @csrf
+          <input type="hidden" name="_plan_context" value="create">
           <div class="plan-editor-fields">
             <label>{{ __('Package name') }}<input name="name" required maxlength="100"></label>
             <label>{{ __('Type') }}<select name="type" required><option value="featured_event">{{ __('Featured Event') }}</option><option value="pop_event">{{ __('Pop Events') }}</option><option value="sponsored_event">{{ __('Sponsored event') }}</option></select></label>
@@ -399,41 +400,73 @@
       </details>
       <div class="plan-editor-list">
         @forelse ($plans as $plan)
-          <form method="post" action="{{ route('admin.advertise.tica_promotions.plan', $plan) }}" class="plan-editor">
-            @csrf
-            <div class="plan-editor-identity">
-              <i class="{{ $placementIcon($plan->placement) }}" aria-hidden="true"></i>
-              <div>
-                <span>{{ $placementLabels[$plan->placement] ?? str_replace('_', ' ', $plan->placement) }}</span>
-                <strong>{{ $plan->name }}</strong>
-                <small>{{ $plan->is_active ? __('Visible to organizers') : __('Currently hidden') }} · {{ number_format($inventory[$plan->id]['reserved'] ?? 0) }} {{ __('reserved') }}@if(($inventory[$plan->id]['limit'] ?? 0) > 0) / {{ number_format($inventory[$plan->id]['limit']) }}@endif</small>
+          @php
+            $planReserved = (int) ($inventory[$plan->id]['reserved'] ?? 0);
+            $planLimit = (int) ($inventory[$plan->id]['limit'] ?? 0);
+            $nextPlanSlot = ($inventory[$plan->id]['next'] ?? collect())->first();
+            $planIsArchived = (bool) $plan->archived_at || $plan->status === 'archived';
+          @endphp
+          <details class="plan-card {{ $planIsArchived ? 'is-archived' : '' }}" id="promotion-plan-{{ $plan->id }}" @if($errors->any() && old('_plan_context') === 'plan-'.$plan->id) open @endif>
+            <summary class="plan-card__summary">
+              <span class="plan-card__head">
+                <span class="plan-card__icon"><i class="{{ $placementIcon($plan->placement) }}" aria-hidden="true"></i></span>
+                <span class="plan-card__copy">
+                  <small>{{ $placementLabels[$plan->placement] ?? ucwords(str_replace('_', ' ', $plan->placement)) }}</small>
+                  <strong>{{ $plan->name }}</strong>
+                  <span>{{ $plan->description ?: __('Promotion placement package') }}</span>
+                </span>
+                <span class="plan-card__status {{ $planIsArchived ? 'is-archived' : ($plan->is_active ? 'is-live' : 'is-hidden') }}">
+                  <i aria-hidden="true"></i>{{ $planIsArchived ? __('Archived') : ($plan->is_active ? __('Available') : __('Hidden')) }}
+                </span>
+              </span>
+              <span class="plan-card__metrics">
+                <span><small>{{ __('Price') }}</small><b>{{ \App\Support\TicaCurrency::base() }} {{ number_format((float) $plan->price, 0) }}</b></span>
+                <span><small>{{ __('Duration') }}</small><b>{{ trans_choice(':count day|:count days', (int) $plan->duration_days, ['count' => number_format((int) $plan->duration_days)]) }}</b></span>
+                <span><small>{{ __('Reservations') }}</small><b>{{ number_format($planReserved) }}@if($planLimit > 0) / {{ number_format($planLimit) }}@endif</b></span>
+              </span>
+              <span class="plan-card__footer">
+                <span>
+                  @if($nextPlanSlot)
+                    <i class="far fa-calendar" aria-hidden="true"></i>{{ __('Next: :date', ['date' => optional($nextPlanSlot->starts_at)->format('j M') ?: __('scheduled')]) }}
+                  @elseif($plan->approval_required)
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>{{ __('Approval required') }}
+                  @else
+                    <i class="fas fa-bolt" aria-hidden="true"></i>{{ __('Automatic approval') }}
+                  @endif
+                </span>
+                <span class="plan-card__open"><span class="when-closed">{{ __('Edit plan') }}</span><span class="when-open">{{ __('Close editor') }}</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+              </span>
+            </summary>
+
+            <form method="post" action="{{ route('admin.advertise.tica_promotions.plan', $plan) }}" class="plan-editor plan-card__editor">
+              @csrf
+              <input type="hidden" name="_plan_context" value="plan-{{ $plan->id }}">
+              @if(($inventory[$plan->id]['next'] ?? collect())->isNotEmpty())
+                <div class="inventory-strip" aria-label="{{ __('Upcoming occupied inventory') }}">@foreach($inventory[$plan->id]['next'] as $slot)<span><b>{{ $slot->reference }}</b><small>{{ optional($slot->starts_at)->format('j M') }}–{{ optional($slot->ends_at)->format('j M') }} · {{ str_replace('_',' ', $slot->status) }}</small></span>@endforeach</div>
+              @endif
+              <div class="plan-editor-fields">
+                <label>{{ __('Plan name') }}<input name="name" value="{{ $plan->name }}" required maxlength="100"></label>
+                <label>{{ __('Type') }}<select name="type"><option value="featured_event" @selected($plan->type === 'featured_event')>{{ __('Featured Event') }}</option><option value="pop_event" @selected($plan->type === 'pop_event')>{{ __('Pop Events') }}</option><option value="sponsored_event" @selected($plan->type === 'sponsored_event')>{{ __('Sponsored event') }}</option><option value="{{ $plan->type }}" @selected(!in_array($plan->type, ['featured_event','pop_event','sponsored_event']))>{{ ucwords(str_replace('_',' ', $plan->type)) }}</option></select></label>
+                <label>{{ __('Placement key') }}<input name="placement" value="{{ $plan->placement }}" required maxlength="40"></label>
+                <label class="field-wide">{{ __('Organizer-facing description') }}<textarea name="description" maxlength="500" rows="2">{{ $plan->description }}</textarea></label>
+                <label class="field-wide">{{ __('Benefits (one per line)') }}<textarea name="benefits" maxlength="2000" rows="3">{{ implode("\n", $plan->benefits ?: []) }}</textarea></label>
+                <label>{{ __('Price') }} <small>({{ \App\Support\TicaCurrency::base() }})</small><input name="price" type="number" min="0" max="100000000" step="0.01" value="{{ $plan->price }}" required></label>
+                <label>{{ __('Duration') }} <small>{{ __('days') }}</small><input name="duration_days" type="number" min="1" max="365" value="{{ $plan->duration_days }}" required></label>
+                <label>{{ __('Status') }}<select name="status"><option value="draft" @selected($plan->status === 'draft')>{{ __('Draft') }}</option><option value="published" @selected($plan->status === 'published')>{{ __('Published') }}</option><option value="unpublished" @selected($plan->status === 'unpublished')>{{ __('Unpublished') }}</option><option value="archived" @selected($plan->status === 'archived')>{{ __('Archived') }}</option></select></label>
+                <label>{{ __('Priority') }}<input name="priority" type="number" min="1" max="1000" value="{{ $plan->priority ?: 100 }}" required></label>
+                <label>{{ __('Capacity') }}<input name="capacity" type="number" min="1" max="10000" value="{{ $plan->capacity }}"></label>
+                <label>{{ __('Maximum concurrent') }}<input name="max_concurrent" type="number" min="1" max="10000" value="{{ $plan->max_concurrent }}"></label>
+                <label>{{ __('Available from') }}<input name="available_from" type="datetime-local" value="{{ optional($plan->available_from)->format('Y-m-d\TH:i') }}"></label>
+                <label>{{ __('Available until') }}<input name="available_until" type="datetime-local" value="{{ optional($plan->available_until)->format('Y-m-d\TH:i') }}"></label>
+                <label>{{ __('Rotation interval') }}<input name="rotation_interval_seconds" type="number" min="10" max="86400" value="{{ data_get($plan->settings, 'rotation_interval_seconds', 30) }}"></label>
+                <label>{{ __('Display seconds') }}<input name="display_seconds" type="number" min="3" max="3600" value="{{ data_get($plan->settings, 'display_seconds', 8) }}"></label>
+                <label class="plan-switch"><input name="approval_required" value="1" type="checkbox" @checked($plan->approval_required)><span aria-hidden="true"></span><em>{{ __('Approval required') }}</em></label>
+                <label class="plan-switch"><input name="is_active" value="1" type="checkbox" @checked($plan->is_active)><span aria-hidden="true"></span><em>{{ __('Available to organizers') }}</em></label>
+                <label>{{ __('Admin password') }}<input name="current_password" type="password" autocomplete="current-password" required placeholder="{{ __('Required to save') }}"></label>
               </div>
-            </div>
-            @if(($inventory[$plan->id]['next'] ?? collect())->isNotEmpty())
-              <div class="inventory-strip" aria-label="{{ __('Upcoming occupied inventory') }}">@foreach($inventory[$plan->id]['next'] as $slot)<span><b>{{ $slot->reference }}</b><small>{{ optional($slot->starts_at)->format('j M') }}–{{ optional($slot->ends_at)->format('j M') }} · {{ str_replace('_',' ', $slot->status) }}</small></span>@endforeach</div>
-            @endif
-            <div class="plan-editor-fields">
-              <label>{{ __('Plan name') }}<input name="name" value="{{ $plan->name }}" required maxlength="100"></label>
-              <label>{{ __('Type') }}<select name="type"><option value="featured_event" @selected($plan->type === 'featured_event')>{{ __('Featured Event') }}</option><option value="pop_event" @selected($plan->type === 'pop_event')>{{ __('Pop Events') }}</option><option value="sponsored_event" @selected($plan->type === 'sponsored_event')>{{ __('Sponsored event') }}</option><option value="{{ $plan->type }}" @selected(!in_array($plan->type, ['featured_event','pop_event','sponsored_event']))>{{ ucwords(str_replace('_',' ', $plan->type)) }}</option></select></label>
-              <label>{{ __('Placement key') }}<input name="placement" value="{{ $plan->placement }}" required maxlength="40"></label>
-              <label class="field-wide">{{ __('Organizer-facing description') }}<textarea name="description" maxlength="500" rows="2">{{ $plan->description }}</textarea></label>
-              <label class="field-wide">{{ __('Benefits (one per line)') }}<textarea name="benefits" maxlength="2000" rows="3">{{ implode("\n", $plan->benefits ?: []) }}</textarea></label>
-              <label>{{ __('Price') }} <small>({{ \App\Support\TicaCurrency::base() }})</small><input name="price" type="number" min="0" max="100000000" step="0.01" value="{{ $plan->price }}" required></label>
-              <label>{{ __('Duration') }} <small>{{ __('days') }}</small><input name="duration_days" type="number" min="1" max="365" value="{{ $plan->duration_days }}" required></label>
-              <label>{{ __('Status') }}<select name="status"><option value="draft" @selected($plan->status === 'draft')>{{ __('Draft') }}</option><option value="published" @selected($plan->status === 'published')>{{ __('Published') }}</option><option value="unpublished" @selected($plan->status === 'unpublished')>{{ __('Unpublished') }}</option><option value="archived" @selected($plan->status === 'archived')>{{ __('Archived') }}</option></select></label>
-              <label>{{ __('Priority') }}<input name="priority" type="number" min="1" max="1000" value="{{ $plan->priority ?: 100 }}" required></label>
-              <label>{{ __('Capacity') }}<input name="capacity" type="number" min="1" max="10000" value="{{ $plan->capacity }}"></label>
-              <label>{{ __('Maximum concurrent') }}<input name="max_concurrent" type="number" min="1" max="10000" value="{{ $plan->max_concurrent }}"></label>
-              <label>{{ __('Available from') }}<input name="available_from" type="datetime-local" value="{{ optional($plan->available_from)->format('Y-m-d\TH:i') }}"></label>
-              <label>{{ __('Available until') }}<input name="available_until" type="datetime-local" value="{{ optional($plan->available_until)->format('Y-m-d\TH:i') }}"></label>
-              <label>{{ __('Rotation interval') }}<input name="rotation_interval_seconds" type="number" min="10" max="86400" value="{{ data_get($plan->settings, 'rotation_interval_seconds', 30) }}"></label>
-              <label>{{ __('Display seconds') }}<input name="display_seconds" type="number" min="3" max="3600" value="{{ data_get($plan->settings, 'display_seconds', 8) }}"></label>
-              <label class="plan-switch"><input name="approval_required" value="1" type="checkbox" @checked($plan->approval_required)><span aria-hidden="true"></span><em>{{ __('Approval required') }}</em></label>
-              <label class="plan-switch"><input name="is_active" value="1" type="checkbox" @checked($plan->is_active)><span aria-hidden="true"></span><em>{{ __('Available to organizers') }}</em></label>
-              <label>{{ __('Admin password') }}<input name="current_password" type="password" autocomplete="current-password" required placeholder="{{ __('Required to save') }}"></label>
-            </div>
-            <div class="plan-actions"><button class="btn-plan-save" type="submit"><i class="fas fa-save" aria-hidden="true"></i>{{ __('Save plan') }}</button><button class="btn-plan-secondary" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.duplicate', $plan) }}"><i class="fas fa-copy"></i>{{ __('Duplicate') }}</button>@if(!$plan->archived_at)<button class="btn-plan-danger" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.archive', $plan) }}"><i class="fas fa-archive"></i>{{ __('Archive') }}</button>@endif</div>
-          </form>
+              <div class="plan-actions"><button class="btn-plan-save" type="submit"><i class="fas fa-save" aria-hidden="true"></i>{{ __('Save plan') }}</button><button class="btn-plan-secondary" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.duplicate', $plan) }}"><i class="fas fa-copy"></i>{{ __('Duplicate') }}</button>@if(!$plan->archived_at)<button class="btn-plan-danger" type="submit" formaction="{{ route('admin.advertise.tica_promotions.plan.archive', $plan) }}"><i class="fas fa-archive"></i>{{ __('Archive') }}</button>@endif</div>
+            </form>
+          </details>
         @empty
           <div class="promotion-empty"><i class="fas fa-tags" aria-hidden="true"></i><strong>{{ __('No promotion plans') }}</strong><span>{{ __('Run the promotion governance migration to create the supported TICA placements.') }}</span></div>
         @endforelse

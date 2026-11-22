@@ -58,6 +58,14 @@ test.describe('promote panels', () => {
     for (const section of ['queue', 'placements', 'plans']) {
       const res = await page.goto(`/admin/advertise/tica-promotions?section=${section}`, { waitUntil: 'networkidle' });
       expect(res?.status() ?? 0).toBeLessThan(500);
+      if (section === 'plans' && await page.locator('.plan-card').count()) {
+        const firstPlan = page.locator('.plan-card').first();
+        await expect(firstPlan).not.toHaveAttribute('open', '');
+        await firstPlan.locator('.plan-card__summary').click();
+        await expect(firstPlan.locator('.plan-card__editor')).toBeVisible();
+        await firstPlan.locator('.plan-card__summary').click();
+        await expect(firstPlan.locator('.plan-card__editor')).not.toBeVisible();
+      }
       await page.waitForTimeout(500);
       await shot(page, `admin-promotions-${section}`);
     }

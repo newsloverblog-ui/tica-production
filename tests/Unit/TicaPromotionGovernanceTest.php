@@ -92,9 +92,15 @@ class TicaPromotionGovernanceTest extends TestCase
         $this->assertStringContainsString("$" . "approvalReady = (float) $" . "campaign->price <= 0", $view);
         $this->assertStringContainsString("value=\"\" selected disabled", $view);
         $this->assertStringContainsString("Waiting for organizer payment through Paystack or TICA balance.", $view);
+        $this->assertStringContainsString('class="plan-card ', $view);
+        $this->assertStringContainsString('class="plan-card__summary"', $view);
+        $this->assertStringContainsString('class="plan-editor plan-card__editor"', $view);
+        $this->assertStringContainsString("old('_plan_context') === 'plan-'.\$plan->id", $view);
 
         $this->assertIsString($styles);
         $this->assertStringContainsString('.plan-editor--create {', $styles);
+        $this->assertStringContainsString('.plan-card[open] {', $styles);
+        $this->assertStringContainsString('.plan-card__metrics {', $styles);
         $this->assertStringContainsString('grid-template-areas:', $styles);
         $this->assertStringContainsString('grid-area: fields', $styles);
         $this->assertStringContainsString('grid-area: inventory', $styles);

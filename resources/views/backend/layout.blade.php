@@ -21,6 +21,7 @@
     {{-- additional style --}}
     @yield('style')
     <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/dashboard-consistency.css') }}?v={{ tica_asset_version('assets/tica-ui/css/dashboard-consistency.css') }}">
   </head>
 
   <body class="tica-control-center tica-admin" data-background-color="white">{{-- The TICA design is light-only --}}

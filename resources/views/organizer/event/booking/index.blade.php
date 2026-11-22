@@ -15,69 +15,55 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-        <div class="card-header">
-          <div class="row">
-            <div class="col-lg-3">
-              <div class="card-title">{{ __('Event Booking') }}</div>
+        <div class="card-header booking-toolbar">
+          <div class="booking-toolbar__head">
+            <div>
+              <div class="card-title">{{ __('Event bookings') }}</div>
+              <p>{{ __('Search purchases or narrow the list by payment status.') }}</p>
             </div>
-
-            <div class="col-lg-9">
-              <div class="row justify-content-lg-end justify-content-start">
-                <div class="col-lg-1">
-                  <button class="btn btn-danger btn-sm d-none bulk-delete ml-3 mt-1"
-                    data-href="{{ route('organizer.event_booking.bulk_delete') }}">
-                    <i class="flaticon-interface-5"></i> {{ __('Delete') }}
-                  </button>
-                </div>
-                <div class="col-lg-2">
-                  <form class="d-flex" action="{{ route('organizer.event_bookings.export') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="booking_id" value="{{ request('booking_id') }}">
-                    <input type="hidden" name="event_title" value="{{ request('event_title') }}">
-                    <input type="hidden" name="status" value="{{ request('status') }}">
-                    <select class="form-control form-control-sm" name="fileType" aria-label="{{ __('Export format') }}">
-                      <option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pdf">PDF</option>
-                    </select>
-                    <button class="btn btn-primary btn-sm ml-1" type="submit">{{ __('Export') }}</button>
-                  </form>
-                  <a class="btn btn-link btn-sm" href="{{ route('organizer.data_exports.index') }}">{{ __('History') }}</a>
-                </div>
-                <div class="col-lg-3">
-                  <form class="ml-3" action="{{ route('organizer.event.booking') }}" method="GET">
-                    <input name="booking_id" type="text" class="form-control" placeholder="Search By Order ID"
-                      value="{{ !empty(request()->input('booking_id')) ? request()->input('booking_id') : '' }}">
-                  </form>
-                </div>
-                <div class="col-lg-3">
-                  <form class="ml-3" action="{{ route('organizer.event.booking') }}" method="GET">
-                    <input name="event_title" type="text" class="form-control" placeholder="Search By Event Title"
-                      value="{{ !empty(request()->input('event_title')) ? request()->input('event_title') : '' }}">
-                  </form>
-                </div>
-                <div class="col-lg-3">
-                  <form id="searchByStatusForm" class="d-flex flex-row align-items-center"
-                    action="{{ route('organizer.event.booking') }}" method="GET">
-                    <label class="mr-2">{{ __('Payment') }}</label>
-                    <select class="form-control" name="status"
-                      onchange="document.getElementById('searchByStatusForm').submit()">
-                      <option value="" {{ empty(request()->input('status')) ? 'selected' : '' }}>
-                        {{ __('All') }}
-                      </option>
-                      <option value="completed" {{ request()->input('status') == 'completed' ? 'selected' : '' }}>
-                        {{ __('Completed') }}
-                      </option>
-                      <option value="pending" {{ request()->input('status') == 'pending' ? 'selected' : '' }}>
-                        {{ __('Pending') }}
-                      </option>
-                      <option value="rejected" {{ request()->input('status') == 'rejected' ? 'selected' : '' }}>
-                        {{ __('Rejected') }}
-                      </option>
-                    </select>
-                  </form>
-                </div>
-              </div>
+            <div class="booking-toolbar__actions">
+              <button class="btn btn-danger btn-sm d-none bulk-delete" data-href="{{ route('organizer.event_booking.bulk_delete') }}">
+                <i class="flaticon-interface-5" aria-hidden="true"></i> {{ __('Delete selected') }}
+              </button>
+              <form class="booking-export" action="{{ route('organizer.event_bookings.export') }}" method="POST">
+                @csrf
+                <input type="hidden" name="booking_id" value="{{ request('booking_id') }}">
+                <input type="hidden" name="event_title" value="{{ request('event_title') }}">
+                <input type="hidden" name="status" value="{{ request('status') }}">
+                <label class="sr-only" for="organizer-booking-export">{{ __('Export format') }}</label>
+                <select id="organizer-booking-export" class="form-control form-control-sm" name="fileType">
+                  <option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pdf">PDF</option>
+                </select>
+                <button class="btn btn-outline-primary btn-sm" type="submit">{{ __('Export') }}</button>
+              </form>
+              <a class="btn btn-outline-primary btn-sm" href="{{ route('organizer.data_exports.index') }}">{{ __('Export history') }}</a>
             </div>
           </div>
+          <form class="booking-filters" action="{{ route('organizer.event.booking') }}" method="GET">
+            <label>
+              <span>{{ __('Booking ID') }}</span>
+              <input name="booking_id" type="search" class="form-control" placeholder="{{ __('Search booking ID') }}" value="{{ request('booking_id') }}">
+            </label>
+            <label>
+              <span>{{ __('Event') }}</span>
+              <input name="event_title" type="search" class="form-control" placeholder="{{ __('Search event title') }}" value="{{ request('event_title') }}">
+            </label>
+            <label>
+              <span>{{ __('Payment status') }}</span>
+              <select class="form-control" name="status">
+                <option value="" @selected(!request()->filled('status'))>{{ __('All statuses') }}</option>
+                <option value="completed" @selected(request('status') === 'completed')>{{ __('Completed') }}</option>
+                <option value="pending" @selected(request('status') === 'pending')>{{ __('Pending') }}</option>
+                <option value="rejected" @selected(request('status') === 'rejected')>{{ __('Rejected') }}</option>
+              </select>
+            </label>
+            <div class="booking-filters__actions">
+              <button class="btn btn-primary" type="submit">{{ __('Apply filters') }}</button>
+              @if(request()->hasAny(['booking_id', 'event_title', 'status']))
+                <a class="btn btn-outline-secondary" href="{{ route('organizer.event.booking') }}">{{ __('Clear') }}</a>
+              @endif
+            </div>
+          </form>
         </div>
 
         <div class="card-body">

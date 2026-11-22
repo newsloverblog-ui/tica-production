@@ -158,30 +158,39 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-        <div class="card-header">
-          <div class="row mb-3">
-            <div class="col-lg-12">
-              <div class="card-title d-inline-block">{{ __('Transactions') }}</div>
-              <a href="{{ route('admin.payment_reconciliation.index') }}" class="btn btn-sm btn-secondary ml-2">{{ __('Reconciliation') }}</a>
-              <a href="{{ route('admin.funnel_analytics.index') }}" class="btn btn-sm btn-secondary ml-2">{{ __('Conversion analytics') }}</a>
-              <a href="{{ route('admin.audit_logs.index') }}" class="btn btn-sm btn-secondary ml-2">{{ __('Audit history') }}</a>
-              <a href="{{ route('admin.operational_incidents.index') }}" class="btn btn-sm btn-secondary ml-2">{{ __('Incidents') }}</a>
-              <a href="{{ route('admin.webhook_operations.index') }}" class="btn btn-sm btn-secondary ml-2">{{ __('Webhooks') }}</a>
+        <div class="card-header transaction-toolbar">
+          <div class="transaction-toolbar__head">
+            <div>
+              <div class="card-title">{{ __('Transactions') }}</div>
+              <p>{{ __('Review money movement, payment state and operational exceptions.') }}</p>
             </div>
+            <nav class="transaction-toolbar__links" aria-label="{{ __('Transaction tools') }}">
+              <a href="{{ route('admin.payment_reconciliation.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Reconciliation') }}</a>
+              <a href="{{ route('admin.funnel_analytics.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Conversion analytics') }}</a>
+              <a href="{{ route('admin.audit_logs.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Audit history') }}</a>
+              <a href="{{ route('admin.operational_incidents.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Incidents') }}</a>
+              <a href="{{ route('admin.webhook_operations.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Webhooks') }}</a>
+            </nav>
           </div>
-          <form action="{{ route('admin.transcation') }}" method="get" class="row align-items-end">
-            <div class="col-md-3 form-group"><label>{{ __('Transaction reference') }}</label><input type="search" maxlength="100" value="{{ request('transcation_id') }}" name="transcation_id" placeholder="{{ __('Search reference') }}" class="form-control"></div>
-            <div class="col-md-2 form-group"><label>{{ __('Type') }}</label><select name="transaction_type" class="form-control"><option value="">{{ __('All types') }}</option>@foreach([1=>'Event booking',2=>'Product order',3=>'Withdrawal',4=>'Balance credit',5=>'Balance debit',6=>'Event refund',7=>'Product refund'] as $value=>$label)<option value="{{ $value }}" @selected((string)request('transaction_type')===(string)$value)>{{ __($label) }}</option>@endforeach</select></div>
-            <div class="col-md-2 form-group"><label>{{ __('Status') }}</label><select name="payment_status" class="form-control"><option value="">{{ __('All statuses') }}</option><option value="0" @selected(request('payment_status')==='0')>{{ __('Unpaid') }}</option><option value="1" @selected(request('payment_status')==='1')>{{ __('Paid') }}</option><option value="2" @selected(request('payment_status')==='2')>{{ __('Declined') }}</option></select></div>
-            <div class="col-md-2 form-group"><label>{{ __('From') }}</label><input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}"></div>
-            <div class="col-md-2 form-group"><label>{{ __('To') }}</label><input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}"></div>
-            <div class="col-md-1 form-group"><button class="btn btn-primary btn-block" type="submit">{{ __('Filter') }}</button></div>
+          <form action="{{ route('admin.transcation') }}" method="get" class="transaction-filters">
+            <label><span>{{ __('Transaction reference') }}</span><input type="search" maxlength="100" value="{{ request('transcation_id') }}" name="transcation_id" placeholder="{{ __('Search reference') }}" class="form-control"></label>
+            <label><span>{{ __('Type') }}</span><select name="transaction_type" class="form-control"><option value="">{{ __('All types') }}</option>@foreach([1=>'Event booking',2=>'Product order',3=>'Withdrawal',4=>'Balance credit',5=>'Balance debit',6=>'Event refund',7=>'Product refund'] as $value=>$label)<option value="{{ $value }}" @selected((string)request('transaction_type')===(string)$value)>{{ __($label) }}</option>@endforeach</select></label>
+            <label><span>{{ __('Status') }}</span><select name="payment_status" class="form-control"><option value="">{{ __('All statuses') }}</option><option value="0" @selected(request('payment_status')==='0')>{{ __('Unpaid') }}</option><option value="1" @selected(request('payment_status')==='1')>{{ __('Paid') }}</option><option value="2" @selected(request('payment_status')==='2')>{{ __('Declined') }}</option></select></label>
+            <label><span>{{ __('From') }}</span><input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}"></label>
+            <label><span>{{ __('To') }}</span><input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}"></label>
+            <button class="btn btn-primary" type="submit">{{ __('Apply filters') }}</button>
           </form>
-          <div class="d-flex flex-wrap align-items-center border-top pt-3">
-            <form method="POST" action="{{ route('admin.transaction_exports.store') }}" class="form-inline mr-2 mb-2">@csrf
+          <div class="transaction-toolbar__export">
+            <form method="POST" action="{{ route('admin.transaction_exports.store') }}" class="transaction-export">@csrf
               <input type="hidden" name="transcation_id" value="{{ request('transcation_id') }}"><input type="hidden" name="transaction_type" value="{{ request('transaction_type') }}"><input type="hidden" name="payment_status" value="{{ request('payment_status') }}"><input type="hidden" name="from_date" value="{{ request('from_date') }}"><input type="hidden" name="to_date" value="{{ request('to_date') }}">
-              <select name="format" class="form-control form-control-sm mr-2" required><option value="csv">CSV</option><option value="xlsx">XLSX</option></select><button class="btn btn-success btn-sm" type="submit"><i class="fas fa-file-export"></i> {{ __('Queue private export') }}</button>
-            </form><a class="btn btn-outline-primary btn-sm mb-2 mr-2" href="{{ route('admin.transaction_exports.index') }}">{{ __('Export history') }}</a><a class="btn btn-outline-secondary btn-sm mb-2" href="{{ route('admin.transcation') }}">{{ __('Reset filters') }}</a>
+              <label class="sr-only" for="transaction-export-format">{{ __('Export format') }}</label>
+              <select id="transaction-export-format" name="format" class="form-control form-control-sm" required><option value="csv">CSV</option><option value="xlsx">XLSX</option></select>
+              <button class="btn btn-outline-primary btn-sm" type="submit"><i class="fas fa-file-export" aria-hidden="true"></i> {{ __('Queue export') }}</button>
+            </form>
+            <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.transaction_exports.index') }}">{{ __('Export history') }}</a>
+            @if(request()->hasAny(['transcation_id', 'transaction_type', 'payment_status', 'from_date', 'to_date']))
+              <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.transcation') }}">{{ __('Clear filters') }}</a>
+            @endif
           </div>
         </div>
 
