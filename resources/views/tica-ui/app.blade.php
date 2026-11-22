@@ -27,10 +27,11 @@ body.tica-admin-event-builder .page[data-page=create] .wrap.pagehead.creategrid{
 @media(max-width:767px){body.tica-admin-event-builder #tica-main-content{padding:18px 14px 36px}}
 </style>
 @endif
+<link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 <style id="tica-first-page">.page:not([data-page="{{ $initialPage }}"]){display:none}</style>
 @if(!empty($structuredData))<script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>@endif
 </head>
-<body class="{{ $adminShell ? 'tica-control-center tica-admin tica-admin-event-builder' : (Auth::guard('organizer')->check() && in_array($initialPage, ['dashboard', 'create', 'checkin'], true) ? 'orgshell t-app' : '') }}" data-background-color="white">
+<body class="tica-app-ui {{ $adminShell ? 'tica-control-center tica-admin tica-admin-event-builder' : (Auth::guard('organizer')->check() && in_array($initialPage, ['dashboard', 'create', 'checkin'], true) ? 'orgshell t-app' : '') }}" data-background-color="white">
 @if ($adminShell)
 <a class="tica-skip-link" href="#tica-main-content">{{ __('Skip to main content') }}</a>
 <div class="wrapper">

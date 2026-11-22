@@ -38,9 +38,9 @@ class DashboardConsistencyTest extends TestCase
         $this->assertStringContainsString('.at-head h1', $css);
         $this->assertStringContainsString('.tica-report-heading h1', $css);
         $this->assertStringContainsString('.page-inner .table h2.d-inline-block', $css);
-        $this->assertStringContainsString('font-size: 24px !important', $css);
+        $this->assertStringContainsString('font-size: var(--tica-type-page, 30px) !important', $css);
         $this->assertStringContainsString('font-weight: 600 !important', $css);
-        $this->assertStringContainsString('font-size: 21px !important', $css);
+        $this->assertStringContainsString('font-size: var(--tica-type-page-mobile, 26px) !important', $css);
     }
 
     public function test_booking_and_transaction_filters_use_responsive_shared_toolbars(): void

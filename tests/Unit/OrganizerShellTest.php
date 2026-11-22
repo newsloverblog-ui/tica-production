@@ -113,17 +113,22 @@ class OrganizerShellTest extends TestCase
     $this->assertStringNotContainsString('>Verified organiser</span>', $html);
   }
 
-  public function test_shell_styles_load_last_in_both_layouts(): void
+  public function test_shell_is_the_last_structural_layer_and_typography_is_final(): void
   {
-    $legacy = file_get_contents(resource_path('views/organizer/partials/styles.blade.php'));
+    $legacyStyles = file_get_contents(resource_path('views/organizer/partials/styles.blade.php'));
+    $legacyLayout = file_get_contents(resource_path('views/organizer/layout.blade.php'));
     $app = file_get_contents(resource_path('views/tica-ui/app.blade.php'));
-    foreach (['legacy' => $legacy, 'app' => $app] as $name => $html) {
-      $shell = strrpos($html, 'tica-ui/css/shell.css');
-      $this->assertNotFalse($shell, $name);
+
+    $this->assertGreaterThan(strrpos($legacyStyles, 'organizer-blend.css'), strrpos($legacyStyles, 'shell.css'));
+    $this->assertGreaterThan(strrpos($app, 'ds.css'), strrpos($app, 'shell.css'));
+
+    foreach (['legacy' => $legacyLayout, 'app' => $app] as $name => $html) {
+      $typography = strrpos($html, 'typography.css');
+      $this->assertNotFalse($typography, $name);
       preg_match_all('/\.css/', $html, $all, PREG_OFFSET_CAPTURE);
-      $lastCss = end($all[0])[1];
-      $this->assertGreaterThanOrEqual($lastCss, $shell + strlen('tica-ui/css/shell'), $name.': shell.css must be the last stylesheet.');
+      $this->assertSame(end($all[0])[1], $typography + strlen('typography'), $name.': typography.css must be the final stylesheet.');
     }
+
     foreach (['tica.css', 'ds.css', 'shell.css'] as $stylesheet) {
       $this->assertStringContainsString(
         "tica_asset_version('assets/tica-ui/css/{$stylesheet}')",

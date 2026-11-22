@@ -1,0 +1,335 @@
+/* TICA application typography
+   This file is loaded last in every application shell. Page styles may own
+   layout and colour; this layer owns the shared, readable type hierarchy. */
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../fonts/montserrat-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F, U+2122;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../fonts/montserrat-currency.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+20A0-20C0;
+}
+
+:root {
+  --tica-font-sans: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --tica-type-page: clamp(28px, 1.55vw, 30px);
+  --tica-type-page-mobile: clamp(24px, 7vw, 27px);
+  --tica-type-section: clamp(20px, 1.15vw, 22px);
+  --tica-type-card: clamp(16px, .95vw, 18px);
+  --tica-type-body: clamp(15px, .2vw + 14.4px, 16px);
+  --tica-type-secondary: clamp(14px, .15vw + 13.6px, 15px);
+  --tica-type-nav: 15px;
+  --tica-type-label: 14px;
+  --tica-type-input: 15px;
+  --tica-type-button: 14px;
+  --tica-type-table-head: 14px;
+  --tica-type-table-body: 15px;
+  --tica-type-badge: 13px;
+  --tica-type-helper: 13px;
+  --tica-leading-tight: 1.25;
+  --tica-leading-heading: 1.35;
+  --tica-leading-body: 1.55;
+
+  /* Keep legacy design-system components on the same scale. */
+  --t-font: var(--tica-font-sans);
+  --t-text-sm: var(--tica-type-helper);
+  --t-text: var(--tica-type-body);
+  --t-text-lg: var(--tica-type-section);
+  --t-text-xl: var(--tica-type-page);
+}
+
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa, body.orgshell, body.orgshell-legacy, body.t-app) {
+  font-family: var(--tica-font-sans) !important;
+  font-size: var(--tica-type-body);
+  font-weight: 400;
+  line-height: var(--tica-leading-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa, body.orgshell, body.orgshell-legacy, body.t-app)
+  :where(button, input, select, textarea, optgroup, table, dialog) {
+  font-family: inherit !important;
+}
+
+/* Application page hierarchy. Marketing display headings keep their own scale. */
+:is(body.tica-admin, body.tica-organizer)
+  :where(.page-header .page-title, .t-page-head h1, .directory-page-header h1, .organizer-form-header h1, .organizer-create-header h1, .coupon-page-header h1, .promotion-page-header h1, .mail-templates-title h1, .db-head h1, .pr-head h1, .pv-head h1, .pm-head h1, .at-head h1, .ta-head h1, .as-head h1, .cd-top h1, .tad-hero h1, .tdb-hero h1, .tica-report-heading h1, .tica-workspace-hero h1, .tsc-head h1, .kv-top h1, .gl-head h1, .ov-head h1),
+body.taa .taa-card h1 {
+  font-size: var(--tica-type-page) !important;
+  font-weight: 600 !important;
+  line-height: var(--tica-leading-tight) !important;
+  letter-spacing: -.02em !important;
+}
+
+:is(body.tica-admin, body.tica-organizer) .page-inner h1 {
+  font-size: var(--tica-type-page) !important;
+  font-weight: 600 !important;
+  line-height: var(--tica-leading-tight) !important;
+}
+
+:is(body.tica-admin, body.tica-organizer) .page-inner h2,
+:is(body.tica-admin, body.tica-organizer) :where(.panel-heading h2, .pm-card h2, .pm-cal h2, .directory-section-title) {
+  font-size: var(--tica-type-section) !important;
+  font-weight: 600 !important;
+  line-height: var(--tica-leading-heading) !important;
+}
+
+:is(body.tica-admin, body.tica-organizer) .page-inner h3,
+:is(body.tica-admin, body.tica-organizer) :where(.card-title, .t-card__title, .directory-card-title, .tool-ledger h3) {
+  font-size: var(--tica-type-card) !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer) .page-inner :where(h4, h5, h6) {
+  font-size: var(--tica-type-body) !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.t-page-head p, .directory-page-header p, .organizer-form-header p, .organizer-create-header p, .coupon-page-header p, .promotion-page-header p, .mail-templates-title p, .db-head p, .pr-head p, .pv-head p, .pm-head p, .ta-head p, .as-head p, .cd-top p, .tica-report-heading p, .tica-workspace-hero p, .tsc-head p, .kv-top p, .gl-head p, .ov-head p) {
+  font-size: var(--tica-type-secondary) !important;
+  font-weight: 400 !important;
+  line-height: var(--tica-leading-body) !important;
+}
+
+/* Navigation */
+body.tica-admin .sidebar .nav > .nav-item > a p,
+body.tica-admin .sidebar .nav > .nav-item > button p,
+body.tica-admin .sidebar .nav-collapse li a .sub-item,
+#tica-shell :where(.tsh-link, .tsh-sublink),
+:is(body.tica-admin, body.tica-organizer) :where(.sidebar-link, .nav-link) {
+  font-family: var(--tica-font-sans) !important;
+  font-size: var(--tica-type-nav) !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+}
+
+body.tica-admin .sidebar .nav-section .text-section,
+#tica-shell :where(.tsh-group-label, .tsh-kicker) {
+  font-size: var(--tica-type-badge) !important;
+  font-weight: 600 !important;
+}
+
+/* Forms, filters and controls */
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa)
+  :where(.form-group > label, .form-label, .t-label, .control-label, fieldset > legend, .field-label, .filter-label) {
+  font-size: var(--tica-type-label) !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa)
+  :where(.form-control, .t-input, .t-select, .t-textarea, .select2-selection, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  font-size: var(--tica-type-input) !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa)
+  :where(.btn, .t-btn, button:not(.close):not([class*="icon"]), [role="button"]) {
+  font-size: var(--tica-type-button) !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+/* Tables retain hierarchy without shrinking content to fit. */
+:is(body.tica-admin, body.tica-organizer)
+  :where(.table, .t-table, .directory-table, .at-table, .promotion-table, .tracking-table, .tica-report-table) {
+  font-size: var(--tica-type-table-body) !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.table, .t-table, .directory-table, .at-table, .promotion-table, .tracking-table, .tica-report-table) :where(th, thead td) {
+  font-size: var(--tica-type-table-head) !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.table, .t-table, .directory-table, .at-table, .promotion-table, .tracking-table, .tica-report-table) td {
+  font-size: var(--tica-type-table-body) !important;
+  font-weight: 400;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.table, .t-table, .directory-table, .at-table, .promotion-table, .tracking-table, .tica-report-table) td :where(strong, b) {
+  font-size: inherit !important;
+  font-weight: 600 !important;
+}
+
+/* Metadata */
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui)
+  :where(.badge, .t-badge, .status-pill, .payment-state, .provider-chip, .pm-pill, .pm-chip, .coupon-status, .directory-status) {
+  font-size: var(--tica-type-badge) !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+:is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa)
+  :where(.text-muted, .t-help, .help-block, .form-text, .helper-text, small) {
+  font-size: var(--tica-type-helper) !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+/* Common Tailwind utility output used by the React application. */
+:is(body.tica-front-ui, body.tica-app-ui, body.orgshell, body.t-app) .text-xs {
+  font-size: var(--tica-type-helper) !important;
+  line-height: 1.45 !important;
+}
+
+:is(body.tica-front-ui, body.tica-app-ui, body.orgshell, body.t-app) .text-sm {
+  font-size: var(--tica-type-secondary) !important;
+  line-height: 1.5 !important;
+}
+
+/* Coupons: use the same proportions as Orders and Attendees. */
+body.tica-admin .coupon-page-header h1 { font-size: var(--tica-type-page) !important; }
+body.tica-admin .coupon-page-header p { font-size: var(--tica-type-secondary) !important; }
+body.tica-admin .coupon-btn { font-size: var(--tica-type-button) !important; font-weight: 600 !important; }
+body.tica-admin .coupon-stats span { font-size: var(--tica-type-secondary) !important; font-weight: 500 !important; }
+body.tica-admin .coupon-stats strong { font-size: 28px !important; font-weight: 600 !important; }
+body.tica-admin :where(.coupon-search input, .coupon-toolbar select, .tica-coupons-page .modal input, .tica-coupons-page .modal select, .tica-coupons-page .modal textarea) { font-size: var(--tica-type-input) !important; }
+body.tica-admin .coupon-clear { font-size: var(--tica-type-button) !important; font-weight: 500 !important; }
+body.tica-admin .coupon-list-header { font-size: var(--tica-type-table-head) !important; font-weight: 600 !important; }
+body.tica-admin .coupon-row { font-size: var(--tica-type-table-body) !important; }
+body.tica-admin .coupon-code-block :where(strong, span),
+body.tica-admin .coupon-primary :where(strong, span),
+body.tica-admin .coupon-value,
+body.tica-admin .coupon-dates,
+body.tica-admin .coupon-usage { font-size: var(--tica-type-table-body) !important; }
+body.tica-admin :where(.coupon-code-block small, .coupon-primary small, .coupon-usage small, .coupon-modal p, .coupon-modal .help-text) { font-size: var(--tica-type-helper) !important; }
+body.tica-admin :where(.coupon-code-block strong, .coupon-code-input) { font-family: var(--tica-font-sans) !important; letter-spacing: 0 !important; }
+body.tica-admin .coupon-actions .dropdown-item { font-size: var(--tica-type-body) !important; font-weight: 500 !important; }
+body.tica-admin .tica-coupons-page .modal label { font-size: var(--tica-type-label) !important; font-weight: 500 !important; }
+
+/* Admin directory, ticketing and promotion pages contain older compact rules. */
+:is(body.tica-admin, body.tica-organizer)
+  :where(.directory-stat span, .at-stat span, .promotion-stat span, .oversight-label, .inventory-strip small, .analytics-summary span, .panel-result-count) {
+  font-size: var(--tica-type-secondary) !important;
+  font-weight: 500 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.directory-filter input, .directory-filter select, .at-filter input, .at-filter select, .promotion-filters input, .promotion-filters select, .plan-editor input, .plan-editor select, .plan-editor textarea, .review-drawer input, .review-drawer select, .review-drawer textarea) {
+  font-size: var(--tica-type-input) !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.directory-table-head > *, .at-table-head > *, .promotion-table-head > *, .tracking-table-head > *) {
+  font-size: var(--tica-type-table-head) !important;
+  font-weight: 600 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.directory-table-row, .at-table-row, .promotion-table-row, .tracking-table-row) {
+  font-size: var(--tica-type-table-body) !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.campaign-identity small, .date-range, .admin-note, .review-form-heading span, .review-safety, .promotion-empty span, .plan-card__copy small, .plan-card__copy > span, .plan-card__metrics small, .plan-card__footer, .plan-editor-identity small, .analytics-summary small, .tracking-table small, .tool-ledger header p, .tool-ledger li code, .tool-ledger li strong, .tool-ledger li em) {
+  font-size: var(--tica-type-helper) !important;
+  line-height: 1.5 !important;
+}
+
+/* The reference Orders and Attendees report must remain readable at every width. */
+body.tica-organizer .tica-report-table td { font-size: var(--tica-type-table-body) !important; line-height: 1.5 !important; }
+body.tica-organizer .tica-report-table :where(td small, time) { font-size: var(--tica-type-helper) !important; }
+body.tica-organizer .tica-report-table td::before { font-size: var(--tica-type-badge) !important; font-weight: 600 !important; }
+
+/* Shared toolbar labels and pagination. */
+:is(body.tica-admin, body.tica-organizer)
+  :where(.booking-filters > label > span, .transaction-filters > label > span) {
+  font-size: var(--tica-type-label) !important;
+  font-weight: 500 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer)
+  :where(.at-form label > span, .directory-eyebrow, .coupon-mobile-label, td::before) {
+  font-size: var(--tica-type-badge) !important;
+  font-weight: 600 !important;
+}
+
+/* Public/customer application controls and data views use the same readable
+   roles while retaining their existing marketing display typography. */
+:is(body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui)
+  :where(.nav-links, .user-sidebar a, .account-nav a) {
+  font-size: var(--tica-type-nav) !important;
+  font-weight: 500 !important;
+}
+
+:is(body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui)
+  :where(table, .table) {
+  font-size: var(--tica-type-table-body) !important;
+  line-height: 1.5 !important;
+}
+
+:is(body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui)
+  :where(table, .table) th {
+  font-size: var(--tica-type-table-head) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+:is(body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui)
+  :where(.pick > span, .field-label, .search-label) {
+  font-size: var(--tica-type-label) !important;
+  font-weight: 500 !important;
+}
+
+body.tica-front-ui :where(.cdate, .spot-kicker, .row-date) {
+  font-size: var(--tica-type-badge) !important;
+  font-weight: 600 !important;
+}
+
+body.tica-front-ui :where(.meta, .line, .tk-steps span, .order-info p, .billing-add-area p) {
+  font-size: var(--tica-type-secondary) !important;
+  line-height: 1.55 !important;
+}
+
+body.tica-front-ui :where(.cardbody h3, .row-title) {
+  font-size: var(--tica-type-card) !important;
+  font-weight: 600 !important;
+}
+
+body.tica-front-ui :where(.buy > a, .spot-all) {
+  font-size: var(--tica-type-button) !important;
+  font-weight: 600 !important;
+}
+
+:is(body.tica-admin, body.tica-organizer) .page-link {
+  font-size: var(--tica-type-button) !important;
+  font-weight: 500 !important;
+}
+
+@media (max-width: 767px) {
+  :is(body.tica-admin, body.tica-organizer)
+    :where(.page-header .page-title, .t-page-head h1, .directory-page-header h1, .organizer-form-header h1, .organizer-create-header h1, .coupon-page-header h1, .promotion-page-header h1, .mail-templates-title h1, .db-head h1, .pr-head h1, .pv-head h1, .pm-head h1, .at-head h1, .ta-head h1, .as-head h1, .cd-top h1, .tad-hero h1, .tdb-hero h1, .tica-report-heading h1, .tica-workspace-hero h1, .tsc-head h1, .kv-top h1, .gl-head h1, .ov-head h1),
+  :is(body.tica-admin, body.tica-organizer) .page-inner h1,
+  body.taa .taa-card h1 {
+    font-size: var(--tica-type-page-mobile) !important;
+  }
+
+  :is(body.tica-admin, body.tica-organizer, body.tica-front-ui, body.tica-app-ui, body.tica-embed-ui, body.taa)
+    :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+    font-size: 16px !important;
+  }
+}

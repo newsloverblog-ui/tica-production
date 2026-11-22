@@ -8,6 +8,7 @@
     <link rel="shortcut icon" type="image/png" href="{{ asset('assets/admin/img/' . $websiteInfo->favicon) }}">
     <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/admin-auth.css') }}?v={{ tica_asset_version('assets/tica-ui/css/admin-auth.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
   </head>
   <body class="taa">
     <aside class="taa-brand" aria-hidden="true">

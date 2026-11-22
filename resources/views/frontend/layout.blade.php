@@ -68,6 +68,7 @@
   @if(trim($__env->yieldContent('react-only')) === 'true')
     @vite(['resources/js/tica-app.tsx'])
   @endif
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 </head>
 
 <body class="tica-front-ui @yield('body-class')">

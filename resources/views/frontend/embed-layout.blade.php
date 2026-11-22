@@ -9,8 +9,9 @@
   <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.5.9.0.min.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/front/css/bootstrap.4.5.3.min.css') }}">
   @yield('custom-style')
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 </head>
-<body class="@yield('body-class')">
+<body class="tica-embed-ui @yield('body-class')">
   @yield('content')
   @yield('custom-script')
   <script>
