@@ -5,6 +5,7 @@ namespace App\Services\TicaUi;
 use App\Models\Event\Booking;
 use App\Models\Event\BookingTicket;
 use App\Support\TicaCurrency;
+use App\Support\EventFinancialBreakdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -51,7 +52,8 @@ class OrganizerOverviewMetrics
         $paid = Booking::query()->where('organizer_id', $organizerId)->where('paymentStatus', 'completed')
             ->where('created_at', '>=', $from)->where('created_at', '<', $to);
         $this->baseCurrencyOnly($paid);
-        $gross = (float) ((clone $paid)->selectRaw('COALESCE(SUM(price + COALESCE(tax, 0)), 0) as total')->value('total') ?? 0);
+        $revenueSql = EventFinancialBreakdown::bookingOrganizerRevenueSql();
+        $gross = (float) ((clone $paid)->selectRaw("COALESCE(SUM({$revenueSql}), 0) as total")->value('total') ?? 0);
         $orders = Booking::query()->where('organizer_id', $organizerId)->whereIn('paymentStatus', ['completed', 'free'])
             ->where('created_at', '>=', $from)->where('created_at', '<', $to)->count();
         $sold = $eventIds === [] ? 0 : BookingTicket::query()->whereIn('event_id', $eventIds)->whereNull('revoked_at')
@@ -84,10 +86,11 @@ class OrganizerOverviewMetrics
 
         $this->baseCurrencyOnly($query);
 
+        $revenueSql = EventFinancialBreakdown::bookingOrganizerRevenueSql();
         $row = $query->selectRaw(
-            'COALESCE(SUM(price + COALESCE(tax, 0)), 0) as all_total, '
-            .'COALESCE(SUM(CASE WHEN created_at >= ? THEN price + COALESCE(tax, 0) ELSE 0 END), 0) as d14, '
-            .'COALESCE(SUM(CASE WHEN created_at >= ? THEN price + COALESCE(tax, 0) ELSE 0 END), 0) as d30',
+            "COALESCE(SUM({$revenueSql}), 0) as all_total, "
+            ."COALESCE(SUM(CASE WHEN created_at >= ? THEN {$revenueSql} ELSE 0 END), 0) as d14, "
+            ."COALESCE(SUM(CASE WHEN created_at >= ? THEN {$revenueSql} ELSE 0 END), 0) as d30",
             [$fourteenDaysAgo, $thirtyDaysAgo]
         )->first();
 

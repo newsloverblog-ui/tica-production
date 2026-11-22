@@ -28,6 +28,7 @@ class OrganizerFinanceQueryExport implements FromQuery, WithHeadings, WithMappin
         return [
             $this->safe($row['id']), $this->safe($row['reference']), $row['occurred_at'], $row['type'],
             $this->safe($row['payment_method']), $row['status'], $row['gross_amount'],
+            $row['ticket_sales'], $row['checkout_fee'], $row['organizer_fee'],
             $row['platform_fee'], $row['net_amount'], $row['pre_balance'],
             $row['after_balance'], $this->safe($row['currency']),
         ];
@@ -37,7 +38,8 @@ class OrganizerFinanceQueryExport implements FromQuery, WithHeadings, WithMappin
     {
         return [
             'transaction_id', 'reference', 'occurred_at', 'type', 'payment_method',
-            'status', 'gross_amount', 'platform_fee', 'net_amount', 'pre_balance',
+            'status', 'customer_paid_amount', 'ticket_sales_amount', 'checkout_fee',
+            'organizer_paid_fee', 'tica_platform_revenue', 'organizer_revenue', 'pre_balance',
             'after_balance', 'currency_symbol',
         ];
     }

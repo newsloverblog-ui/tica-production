@@ -33,6 +33,7 @@ use App\Services\ApplicationMailService;
 use App\Services\AccountMfaService;
 use App\Services\TransactionExportQueryService;
 use App\Services\TicketIssuanceService;
+use App\Support\EventFinancialBreakdown;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
@@ -66,7 +67,7 @@ class OrganizerController extends Controller
       ->where('organizer_id', Auth::guard('organizer')->user()->id)
       ->where('paymentStatus', 'completed')
       ->whereDate('created_at', today())
-      ->selectRaw('COALESCE(SUM(price + COALESCE(tax, 0)), 0) as aggregate')
+      ->selectRaw('COALESCE(SUM('.EventFinancialBreakdown::bookingOrganizerRevenueSql().'), 0) as aggregate')
       ->value('aggregate');
     $information['today_bookings'] = Booking::query()
       ->where('organizer_id', Auth::guard('organizer')->user()->id)
@@ -80,7 +81,7 @@ class OrganizerController extends Controller
 
     //income of event bookings
     $eventBookingTotalIncomes = DB::table('bookings')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(price) as total'))
+      ->select(DB::raw('month(created_at) as month'), DB::raw('sum('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') as total'))
       ->where('paymentStatus', '=', 'completed')
       ->groupBy('month')
       ->whereYear('created_at', '=', date('Y'))

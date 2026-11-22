@@ -38,7 +38,7 @@ class OrganizerFinanceStatementServiceTest extends TestCase
     public function test_statement_totals_reconcile_sales_refunds_adjustments_and_payouts(): void
     {
         $organizer = $this->organizer();
-        $this->transaction($organizer->id, 1, 10000, 1000, 1, 'sale-1');
+        $this->transaction($organizer->id, 1, 10000, 1000, 1, 'sale-1', 700);
         $refund = $this->transaction($organizer->id, 6, 2000, 200, 'processed', 'refund-1');
         $this->transaction($organizer->id, 4, 500, 0, 1, 'credit-1');
         $this->transaction($organizer->id, 5, 100, 0, 1, 'debit-1');
@@ -50,7 +50,10 @@ class OrganizerFinanceStatementServiceTest extends TestCase
         );
 
         $this->assertSame(10000.0, $statement['gross_sales']);
-        $this->assertSame(1000.0, $statement['platform_fees']);
+        $this->assertSame(10700.0, $statement['customer_paid']);
+        $this->assertSame(700.0, $statement['checkout_fees']);
+        $this->assertSame(1000.0, $statement['organizer_fees']);
+        $this->assertSame(1700.0, $statement['platform_fees']);
         $this->assertSame(2000.0, $statement['refunds']);
         $this->assertSame(200.0, $statement['refunded_platform_fees']);
         $this->assertSame(500.0, $statement['manual_credits']);
@@ -61,6 +64,13 @@ class OrganizerFinanceStatementServiceTest extends TestCase
         $this->assertSame(2900.0, $statement['paid_out']);
         $this->assertSame(100.0, $statement['payout_fees']);
         $this->assertNull($statement['gateway_fees']);
+        $saleLine = $statement['transactions']->firstWhere('reference', 'sale-1');
+        $this->assertSame(10700.0, $saleLine['gross_amount']);
+        $this->assertSame(10000.0, $saleLine['ticket_sales']);
+        $this->assertSame(700.0, $saleLine['checkout_fee']);
+        $this->assertSame(1000.0, $saleLine['organizer_fee']);
+        $this->assertSame(1700.0, $saleLine['platform_fee']);
+        $this->assertSame(9000.0, $saleLine['net_amount']);
         $refundLine = $statement['transactions']->firstWhere('reference', $refund->transcation_id);
         $this->assertSame(-1800.0, $refundLine['net_amount']);
     }
@@ -154,7 +164,7 @@ class OrganizerFinanceStatementServiceTest extends TestCase
     }
 
     private function transaction(
-        int $organizerId, int $type, float $amount, float $commission, $status, string $reference
+        int $organizerId, int $type, float $amount, float $commission, $status, string $reference, float $tax = 0
     ): Transaction {
         return Transaction::create([
             'transcation_id' => $reference,
@@ -165,6 +175,7 @@ class OrganizerFinanceStatementServiceTest extends TestCase
             'payment_method' => 'Paystack',
             'grand_total' => $amount,
             'commission' => $commission,
+            'tax' => $tax,
             'pre_balance' => 0,
             'after_balance' => 0,
             'currency_symbol' => '₦',

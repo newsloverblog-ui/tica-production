@@ -65,10 +65,11 @@
     <section class="t-card" aria-labelledby="fin-br-h">
       <div class="t-card__head"><h2 class="t-card__title" id="fin-br-h">{{ __('Breakdown') }}</h2></div>
       <dl class="lg-dl">
-        <div><dt>{{ __('Gross sales') }}</dt><dd>{{ $money($statement['gross_sales']) }}</dd></div>
-        <div><dt>{{ __('Platform fees') }}</dt><dd>−{{ $money($statement['platform_fees']) }}</dd></div>
-        <div><dt>{{ __('Refunds') }}</dt><dd>−{{ $money($statement['refunds']) }}</dd></div>
-        <div class="is-total"><dt>{{ __('Net sales') }}</dt><dd>{{ $money($statement['net_sales']) }}</dd></div>
+        <div><dt>{{ __('Ticket sales') }}</dt><dd>{{ $money($statement['gross_sales']) }}</dd></div>
+        <div><dt>{{ __('Checkout fees collected for TICA') }}</dt><dd>{{ $money($statement['checkout_fees']) }}</dd></div>
+        <div><dt>{{ __('Organizer-paid fees') }}</dt><dd>−{{ $money($statement['organizer_fees']) }}</dd></div>
+        <div><dt>{{ __('Refunds') }}</dt><dd>−{{ $money($statement['refunds'] - $statement['refunded_platform_fees']) }}</dd></div>
+        <div class="is-total"><dt>{{ __('Organizer revenue') }}</dt><dd>{{ $money($statement['net_sales']) }}</dd></div>
         <div><dt>{{ __('Pending payouts') }}</dt><dd>{{ $money($statement['pending_payouts']) }}</dd></div>
         <div><dt>{{ __('Payout fees') }}</dt><dd>{{ $money($statement['payout_fees']) }}</dd></div>
       </dl>
@@ -94,7 +95,7 @@
       <div class="t-card"><div class="t-empty"><h3>{{ __('No finance activity in this period') }}</h3><p>{{ __('Try a wider date range.') }}</p></div></div>
     @else
       <div class="t-table-wrap"><table class="t-table t-table--cards">
-        <thead><tr><th scope="col">{{ __('Date') }}</th><th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col" class="t-num">{{ __('Gross') }}</th><th scope="col" class="t-num">{{ __('Fee') }}</th><th scope="col" class="t-num">{{ __('Net') }}</th></tr></thead>
+        <thead><tr><th scope="col">{{ __('Date') }}</th><th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col" class="t-num">{{ __('Customer paid') }}</th><th scope="col" class="t-num">{{ __('TICA fee') }}</th><th scope="col" class="t-num">{{ __('Organizer revenue') }}</th></tr></thead>
         <tbody>
           @foreach ($transactions as $row)
             <tr>
@@ -102,9 +103,9 @@
               <td data-label="{{ __('Reference') }}">{{ $row['reference'] }}</td>
               <td data-label="{{ __('Type') }}">{{ __(ucfirst(str_replace('_', ' ', $row['type']))) }}</td>
               <td data-label="{{ __('Status') }}"><span class="t-badge t-badge--{{ $row['status'] === 'completed' ? 'green' : ($row['status'] === 'rejected' ? 'red' : 'orange') }}">{{ __(ucfirst($row['status'])) }}</span></td>
-              <td data-label="{{ __('Gross') }}" class="t-num">{{ $money($row['gross_amount']) }}</td>
-              <td data-label="{{ __('Fee') }}" class="t-num">{{ $money($row['platform_fee']) }}</td>
-              <td data-label="{{ __('Net') }}" class="t-num"><b>{{ $money($row['net_amount']) }}</b></td>
+              <td data-label="{{ __('Customer paid') }}" class="t-num">{{ $money($row['gross_amount']) }}</td>
+              <td data-label="{{ __('TICA fee') }}" class="t-num">{{ $money($row['platform_fee']) }}</td>
+              <td data-label="{{ __('Organizer revenue') }}" class="t-num"><b>{{ $money($row['net_amount']) }}</b></td>
             </tr>
           @endforeach
         </tbody>

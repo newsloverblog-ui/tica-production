@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Organizer;
 use App\Models\Transaction;
+use App\Support\EventFinancialBreakdown;
 use App\Support\TicaCurrency;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class TransactionLedgerService
                 : null;
             // Sales in another currency move that currency's separate balance.
             $currency = TicaCurrency::normalize($booking->currencyText ?? null);
-            $net = (float) $booking->price - (float) $booking->commission;
+            $net = EventFinancialBreakdown::fromBooking($booking)['organizer_revenue'];
             if ($organizer && !TicaCurrency::isBase($currency)) {
                 $current = DB::table('organizer_currency_balances')->where('organizer_id', $organizer->id)->where('currency', $currency)->lockForUpdate()->value('amount');
                 $preBalance = round((float) $current, 2);

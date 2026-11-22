@@ -31,6 +31,7 @@ class OrganizerOverviewMetricsTest extends TestCase
             $table->string('paymentStatus');
             $table->decimal('price', 14, 2)->default(0);
             $table->decimal('tax', 14, 2)->default(0);
+            $table->decimal('commission', 14, 2)->default(0);
             $table->string('currencyText')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();
@@ -84,11 +85,11 @@ class OrganizerOverviewMetricsTest extends TestCase
         $metrics = (new OrganizerOverviewMetrics())->build(1, [10], 12345.67);
 
         // Orders count completed and free bookings; each period also carries the window just before it.
-        $this->assertSame(['gross' => 318.0, 'sold' => 3, 'views' => 2, 'orders' => 4, 'available' => 12345.67,
-            'prev' => ['gross' => 318.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['14']);
-        $this->assertSame(['gross' => 636.0, 'sold' => 4, 'views' => 3, 'orders' => 5, 'available' => 12345.67,
-            'prev' => ['gross' => 424.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['30']);
-        $this->assertSame(['gross' => 1060.0, 'sold' => 5, 'views' => 4, 'orders' => 6, 'available' => 12345.67, 'prev' => null], $metrics['all']);
+        $this->assertSame(['gross' => 300.0, 'sold' => 3, 'views' => 2, 'orders' => 4, 'available' => 12345.67,
+            'prev' => ['gross' => 300.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['14']);
+        $this->assertSame(['gross' => 600.0, 'sold' => 4, 'views' => 3, 'orders' => 5, 'available' => 12345.67,
+            'prev' => ['gross' => 400.0, 'sold' => 1, 'views' => 1, 'orders' => 1]], $metrics['30']);
+        $this->assertSame(['gross' => 1000.0, 'sold' => 5, 'views' => 4, 'orders' => 6, 'available' => 12345.67, 'prev' => null], $metrics['all']);
     }
 
     public function test_overview_range_control_updates_cards_and_chart_together(): void
@@ -159,6 +160,7 @@ class OrganizerOverviewMetricsTest extends TestCase
             'paymentStatus' => $status,
             'price' => $price,
             'tax' => $tax,
+            'commission' => 0,
             'currencyText' => $currency,
             'email' => $email,
             'created_at' => $createdAt,

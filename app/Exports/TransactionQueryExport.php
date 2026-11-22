@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Transaction;
+use App\Support\EventFinancialBreakdown;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
@@ -23,6 +24,11 @@ class TransactionQueryExport implements FromQuery, WithHeadings, WithMapping, Wi
     public function map($transaction): array
     {
         /** @var Transaction $transaction */
+        $isEventSale = (int) $transaction->transcation_type === 1;
+        $breakdown = $isEventSale
+            ? EventFinancialBreakdown::fromTransaction($transaction)
+            : null;
+
         return [
             (int) $transaction->id,
             $this->safe($transaction->transcation_id),
@@ -39,9 +45,12 @@ class TransactionQueryExport implements FromQuery, WithHeadings, WithMapping, Wi
             $this->safe($transaction->transcation_type == 3
                 ? ($transaction->method?->name ?: $transaction->payment_method)
                 : $transaction->payment_method),
-            (string) ((float) $transaction->grand_total),
-            (string) ((float) $transaction->commission),
-            (string) ((float) $transaction->tax),
+            (string) ($breakdown['customer_paid'] ?? (float) $transaction->grand_total),
+            $breakdown ? (string) $breakdown['ticket_sales'] : null,
+            $breakdown ? (string) $breakdown['checkout_fee'] : null,
+            $breakdown ? (string) $breakdown['organizer_fee'] : null,
+            $breakdown ? (string) $breakdown['platform_revenue'] : null,
+            $breakdown ? (string) $breakdown['organizer_revenue'] : null,
             (string) ((float) $transaction->pre_balance),
             (string) ((float) $transaction->after_balance),
             $this->safe($transaction->currency_symbol),
@@ -57,7 +66,8 @@ class TransactionQueryExport implements FromQuery, WithHeadings, WithMapping, Wi
             'ledger_id', 'transaction_reference', 'gateway', 'gateway_reference',
             'booking_or_order_id', 'customer_id', 'organizer_id', 'organizer_username',
             'transaction_type_code', 'transaction_type', 'payment_status_code', 'payment_status',
-            'payment_method', 'gross_amount', 'commission_amount', 'tax_amount',
+            'payment_method', 'customer_paid_amount', 'ticket_sales_amount',
+            'checkout_fee', 'organizer_paid_fee', 'tica_platform_revenue', 'organizer_revenue',
             'balance_before', 'balance_after', 'currency_symbol', 'currency_symbol_position',
             'created_at', 'updated_at',
         ];

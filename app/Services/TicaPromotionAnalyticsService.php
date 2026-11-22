@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Event\Booking;
 use App\Models\TicaPromotionCampaign;
 use App\Models\TicaPromotionEvent;
+use App\Support\EventFinancialBreakdown;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -29,7 +30,7 @@ class TicaPromotionAnalyticsService
     {
         if ((int) $campaign->event_id !== (int) $booking->event_id || !in_array($booking->paymentStatus, ['completed', 'free'], true)) return false;
         return DB::transaction(function () use ($campaign, $booking): bool {
-            $amount = round((float) $booking->price + (float) $booking->tax, 2);
+            $amount = EventFinancialBreakdown::fromBooking($booking)['organizer_revenue'];
             $event = TicaPromotionEvent::query()->firstOrCreate(
                 ['campaign_id' => $campaign->id, 'event_type' => 'conversion', 'booking_id' => $booking->id],
                 ['occurred_at' => now(), 'amount' => $amount, 'currency' => $booking->currencyText ?: $campaign->currency]

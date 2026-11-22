@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Services\BookingExportFieldPolicyService;
+use App\Support\EventFinancialBreakdown;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -30,6 +31,7 @@ class BookingQueryExport implements FromQuery, WithHeadings, WithMapping
 
     public function map($booking): array
     {
+        $breakdown = EventFinancialBreakdown::fromBooking($booking);
         $refundedAmount = (float) ($booking->snapshot_refunded_amount ?? 0);
         $chargedAmount = (float) ($booking->ledger_charged_amount ?? 0);
         $refundStatus = $refundedAmount <= 0
@@ -43,7 +45,10 @@ class BookingQueryExport implements FromQuery, WithHeadings, WithMapping
             'discount' => $this->money($booking->discount),
             'early_bird_discount' => $this->money($booking->early_bird_discount ?: 0),
             'quantity' => (int) $booking->quantity,
-            'total' => $this->money($booking->price ?: 0),
+            'total' => $this->money($breakdown['ticket_sales']),
+            'checkout_fee' => $this->money($breakdown['checkout_fee']),
+            'platform_revenue' => $this->money($breakdown['platform_revenue']),
+            'organizer_revenue' => $this->money($breakdown['organizer_revenue']),
             'attendee_name' => $this->safeCell(trim($booking->fname . ' ' . $booking->lname)),
             'email' => $this->safeCell($booking->email),
             'phone' => $this->safeCell($booking->phone),

@@ -10,7 +10,9 @@ class BookingExportFieldPolicyService
     public const FIELDS = [
         'booking_id' => 'Booking Id', 'event' => 'Event', 'customer_name' => 'Customer Name',
         'discount' => 'Discount', 'early_bird_discount' => 'Early Bird Discount',
-        'quantity' => 'Quantity', 'total' => 'Total', 'attendee_name' => 'Name',
+        'quantity' => 'Quantity', 'total' => 'Ticket Sales',
+        'checkout_fee' => 'Checkout Fee', 'platform_revenue' => 'TICA Platform Revenue',
+        'organizer_revenue' => 'Organizer Revenue', 'attendee_name' => 'Name',
         'email' => 'Email', 'phone' => 'Phone', 'city' => 'City', 'state' => 'State',
         'country' => 'Country', 'zip_code' => 'Zip Code', 'payment_method' => 'Payment Method',
         'payment_status' => 'Payment Status', 'ledger_gateway' => 'Ledger Gateway',

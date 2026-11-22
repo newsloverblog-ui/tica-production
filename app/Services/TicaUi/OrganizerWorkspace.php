@@ -19,6 +19,7 @@ use App\Models\TicaTrackingPixel;
 use App\Models\Withdraw;
 use App\Models\WithdrawPaymentMethod;
 use App\Support\TicaCurrency;
+use App\Support\EventFinancialBreakdown;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class OrganizerWorkspace
       'orders' => $recentBookings->map(fn ($b) => [
         'name' => trim($b->fname . ' ' . $b->lname),
         'tickets' => $this->ticketSummary($b),
-        'amount' => round((float) $b->price + (float) $b->tax, 2),
+        'amount' => EventFinancialBreakdown::fromBooking($b)['organizer_revenue'],
         'cur' => $this->cur($b->currencyText),
         'ago' => Carbon::parse($b->created_at)->diffForHumans(),
       ])->values()->all(),
@@ -133,7 +134,7 @@ class OrganizerWorkspace
     return Booking::query()
       ->where('organizer_id', $organizerId)
       ->whereIn('paymentStatus', ['completed', 'free'])
-      ->selectRaw('event_id, SUM(price - COALESCE(commission, 0)) as revenue')
+      ->selectRaw('event_id, SUM('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') as revenue')
       ->groupBy('event_id')
       ->pluck('revenue', 'event_id')
       ->map(fn ($value) => round((float) $value, 2));
@@ -182,7 +183,7 @@ class OrganizerWorkspace
       ->whereIn('booking_tickets.ticket_id', $ticketIds)
       ->whereIn('bookings.paymentStatus', ['completed', 'free', '1'])
       ->whereIn('booking_tickets.status', ['issued', 'checked_in'])
-      ->selectRaw('booking_tickets.ticket_id, SUM((bookings.price + COALESCE(bookings.tax, 0)) / NULLIF(bookings.quantity, 0)) as total')
+      ->selectRaw('booking_tickets.ticket_id, SUM(('.EventFinancialBreakdown::bookingOrganizerRevenueSql('bookings').') / NULLIF(bookings.quantity, 0)) as total')
       ->groupBy('booking_tickets.ticket_id')->pluck('total', 'ticket_id');
 
     $categories = $tickets->map(function (Ticket $ticket) use ($titles, $events, $units, $revenue): array {
@@ -318,13 +319,16 @@ class OrganizerWorkspace
       ->where('organizer_id', $organizer->id)
       ->whereIn('paymentStatus', ['completed', 'free', '1'])
       ->whereYear('created_at', $year)
-      ->get(['price', 'created_at', 'currencyText', 'paymentStatus']);
+      ->get(['price', 'commission', 'created_at', 'currencyText', 'paymentStatus']);
     $income = array_fill(1, 12, 0.0);
     $bookings = array_fill(1, 12, 0);
     foreach ($monthly as $booking) {
       $month = (int) Carbon::parse($booking->created_at)->format('n');
       if ($booking->paymentStatus === 'completed' && TicaCurrency::isBase($booking->currencyText)) {
-        $income[$month] = round($income[$month] + (float) $booking->price, 2);
+        $income[$month] = round(
+          $income[$month] + EventFinancialBreakdown::fromBooking($booking)['organizer_revenue'],
+          2
+        );
       }
       $bookings[$month]++;
     }
@@ -361,10 +365,11 @@ class OrganizerWorkspace
     }
     $paid = fn () => Booking::query()->where('organizer_id', $organizerId)->where('paymentStatus', 'completed')
       ->where(fn ($q) => $q->whereNull('currencyText')->orWhere('currencyText', '')->orWhere('currencyText', TicaCurrency::base()));
+    $revenueSql = EventFinancialBreakdown::bookingOrganizerRevenueSql();
     $dailyRevenue = $organizerId ? $paid()->where('created_at', '>=', $since)
-      ->selectRaw('DATE(created_at) as day, COALESCE(SUM(price + COALESCE(tax, 0)), 0) as total')->groupBy('day')->pluck('total', 'day')->all() : [];
+      ->selectRaw("DATE(created_at) as day, COALESCE(SUM({$revenueSql}), 0) as total")->groupBy('day')->pluck('total', 'day')->all() : [];
     $monthlyRevenue = $organizerId ? $paid()
-      ->selectRaw($monthExpr('created_at') . ' as month, COALESCE(SUM(price + COALESCE(tax, 0)), 0) as total')
+      ->selectRaw($monthExpr('created_at') . " as month, COALESCE(SUM({$revenueSql}), 0) as total")
       ->groupByRaw($monthExpr('created_at'))->pluck('total', 'month')->all() : [];
     $months = array_unique(array_merge(array_keys($monthly), array_keys($monthlyRevenue)));
     sort($months);
@@ -476,7 +481,7 @@ class OrganizerWorkspace
 
     $sales = Schema::hasColumn('bookings', 'coupon_id')
       ? Booking::query()->where('organizer_id', $organizerId)->whereNotNull('coupon_id')->whereIn('paymentStatus', ['completed', 'free'])
-        ->selectRaw('coupon_id, SUM(quantity) as tickets, SUM(price + tax) as revenue')->groupBy('coupon_id')->get()->keyBy('coupon_id')
+        ->selectRaw('coupon_id, SUM(quantity) as tickets, SUM('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') as revenue')->groupBy('coupon_id')->get()->keyBy('coupon_id')
       : collect();
     return Coupon::query()->where('organizer_id', $organizerId)->latest('id')->get()->map(function (Coupon $coupon) use ($sales) {
       $events = json_decode((string) $coupon->events, true) ?: [];
@@ -510,7 +515,7 @@ class OrganizerWorkspace
   {
     $sales = Schema::hasColumn('bookings', 'tracking_link_id')
       ? Booking::query()->where('organizer_id', $organizerId)->whereNotNull('tracking_link_id')->whereIn('paymentStatus', ['completed', 'free'])
-        ->selectRaw('tracking_link_id, SUM(quantity) as total, SUM(price + tax) as revenue, COUNT(*) as conversions')->groupBy('tracking_link_id')->get()->keyBy('tracking_link_id')
+        ->selectRaw('tracking_link_id, SUM(quantity) as total, SUM('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') as revenue, COUNT(*) as conversions')->groupBy('tracking_link_id')->get()->keyBy('tracking_link_id')
       : collect();
 
     return TicaTrackingLink::query()->where('organizer_id', $organizerId)->orderBy('id')->get()->map(fn (TicaTrackingLink $link) => [

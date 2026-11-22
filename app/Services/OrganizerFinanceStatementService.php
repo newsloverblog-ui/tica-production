@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use App\Support\Money;
+use App\Support\EventFinancialBreakdown;
 
 class OrganizerFinanceStatementService
 {
@@ -43,7 +44,9 @@ class OrganizerFinanceStatementService
             $manualCredits = $transactions->where('transcation_type', 4)->filter(fn ($row) => $this->isPaid($row));
             $manualDebits = $transactions->where('transcation_type', 5)->filter(fn ($row) => $this->isPaid($row));
             $grossSales = $this->sum($sales, 'grand_total');
-            $platformFees = $this->sum($sales, 'commission');
+            $checkoutFees = $this->sum($sales, 'tax');
+            $organizerFees = $this->sum($sales, 'commission');
+            $platformFees = round($checkoutFees + $organizerFees, 2);
             $refundAmount = $this->sum($refunds, 'grand_total');
             $refundedPlatformFees = $this->sum($refunds, 'commission');
             $credits = $this->sum($manualCredits, 'grand_total');
@@ -55,14 +58,16 @@ class OrganizerFinanceStatementService
             $manualCredits = (clone $baseQuery)->where('transcation_type', 4)->whereIn('payment_status', $paidStatuses);
             $manualDebits = (clone $baseQuery)->where('transcation_type', 5)->whereIn('payment_status', $paidStatuses);
             $grossSales = $this->querySum($sales, 'grand_total');
-            $platformFees = $this->querySum($sales, 'commission');
+            $checkoutFees = $this->querySum($sales, 'tax');
+            $organizerFees = $this->querySum($sales, 'commission');
+            $platformFees = round($checkoutFees + $organizerFees, 2);
             $refundAmount = $this->querySum($refunds, 'grand_total');
             $refundedPlatformFees = $this->querySum($refunds, 'commission');
             $credits = $this->querySum($manualCredits, 'grand_total');
             $debits = $this->querySum($manualDebits, 'grand_total');
         }
         $netSales = round(
-            $grossSales - $platformFees - $refundAmount + $refundedPlatformFees + $credits - $debits,
+            $grossSales - $organizerFees - $refundAmount + $refundedPlatformFees + $credits - $debits,
             2
         );
 
@@ -84,6 +89,9 @@ class OrganizerFinanceStatementService
             'from' => $from->startOfDay(),
             'to' => $to->endOfDay(),
             'gross_sales' => $grossSales,
+            'customer_paid' => round($grossSales + $checkoutFees, 2),
+            'checkout_fees' => $checkoutFees,
+            'organizer_fees' => $organizerFees,
             'platform_fees' => $platformFees,
             'refunds' => $refundAmount,
             'refunded_platform_fees' => $refundedPlatformFees,
@@ -113,10 +121,23 @@ class OrganizerFinanceStatementService
     {
         $type = (int) $transaction->transcation_type;
         $gross = round((float) $transaction->grand_total, 2);
-        $fee = round((float) $transaction->commission, 2);
-        $net = $gross - $fee;
+        $checkoutFee = round((float) $transaction->tax, 2);
+        $organizerFee = round((float) $transaction->commission, 2);
+        $platformFee = round($checkoutFee + $organizerFee, 2);
+        $customerPaid = $gross;
+        $net = $gross;
+        if ($type === 1) {
+            $breakdown = EventFinancialBreakdown::fromTransaction($transaction);
+            $customerPaid = $breakdown['customer_paid'];
+            $platformFee = $breakdown['platform_revenue'];
+            $net = $breakdown['organizer_revenue'];
+        }
         if (in_array($type, [3, 5], true)) $net = -$gross;
-        if ($type === 6) $net = -($gross - $fee);
+        if ($type === 6) {
+            $customerPaid = -$gross;
+            $platformFee = -$organizerFee;
+            $net = -($gross - $organizerFee);
+        }
         if ($type === 3 && (string) $transaction->payment_status === '2') $net = 0.0;
 
         return [
@@ -126,8 +147,11 @@ class OrganizerFinanceStatementService
             'type' => $this->typeLabel($type),
             'payment_method' => (string) ($transaction->payment_method ?? ''),
             'status' => $this->statusLabel($transaction->payment_status),
-            'gross_amount' => $gross,
-            'platform_fee' => $fee,
+            'gross_amount' => round($customerPaid, 2),
+            'ticket_sales' => $type === 1 ? $gross : null,
+            'checkout_fee' => $type === 1 ? $checkoutFee : null,
+            'organizer_fee' => $type === 1 ? $organizerFee : null,
+            'platform_fee' => $platformFee,
             'net_amount' => round($net, 2),
             'pre_balance' => round((float) $transaction->pre_balance, 2),
             'after_balance' => round((float) $transaction->after_balance, 2),

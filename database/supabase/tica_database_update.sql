@@ -727,6 +727,43 @@ BEGIN
   PERFORM pg_temp.tica_mark_migration('2026_11_21_190000_add_admits_to_tickets');
 END $$;
 
+-- 14c. Reconcile promotion revenue to organizer ticket proceeds ----------
+-- Conversion events are derived analytics. Customer-paid checkout fees
+-- belong to TICA and must not inflate the organizer revenue attributed to a
+-- promotion. Source bookings and payment records are left untouched.
+DO $$
+BEGIN
+  IF to_regclass('public.tica_promotion_events') IS NOT NULL
+    AND to_regclass('public.tica_promotion_campaigns') IS NOT NULL
+    AND to_regclass('public.bookings') IS NOT NULL THEN
+    UPDATE public.tica_promotion_events AS promotion_event
+       SET amount = GREATEST(0, COALESCE(booking.price, 0) - COALESCE(booking.commission, 0))
+      FROM public.bookings AS booking
+     WHERE promotion_event.booking_id = booking.id
+       AND promotion_event.event_type = 'conversion';
+
+    UPDATE public.tica_promotion_campaigns AS campaign
+       SET attributed_revenue = COALESCE(conversions.revenue, 0)
+      FROM (
+        SELECT campaign_id, SUM(amount) AS revenue
+          FROM public.tica_promotion_events
+         WHERE event_type = 'conversion'
+         GROUP BY campaign_id
+      ) AS conversions
+     WHERE conversions.campaign_id = campaign.id;
+
+    UPDATE public.tica_promotion_campaigns AS campaign
+       SET attributed_revenue = 0
+     WHERE NOT EXISTS (
+       SELECT 1
+         FROM public.tica_promotion_events AS promotion_event
+        WHERE promotion_event.campaign_id = campaign.id
+          AND promotion_event.event_type = 'conversion'
+     );
+  END IF;
+  PERFORM pg_temp.tica_mark_migration('2026_11_22_180000_reconcile_promotion_ticket_revenue');
+END $$;
+
 -- 15. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
@@ -1105,6 +1142,7 @@ SELECT 'update not recorded', m.name
   ,('2026_11_18_120000_add_transactional_mail_templates')
   ,('2026_11_19_150000_add_recipient_context_to_support_tickets')
   ,('2026_11_19_180000_add_account_type_controls')
+  ,('2026_11_22_180000_reconcile_promotion_ticket_revenue')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

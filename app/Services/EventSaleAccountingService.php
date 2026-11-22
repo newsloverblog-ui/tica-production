@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Organizer;
 use App\Models\Transaction;
+use App\Support\EventFinancialBreakdown;
 use App\Support\TicaCurrency;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -28,10 +29,11 @@ class EventSaleAccountingService
         string $reference,
         ?float $grossRevenue = null
     ): Transaction {
-        $price = round((float) $booking->price, 2);
-        $tax = round((float) $booking->tax, 2);
-        $commission = round((float) $booking->commission, 2);
-        $grossRevenue = round($grossRevenue ?? ($price + $tax), 2);
+        $breakdown = EventFinancialBreakdown::fromBooking($booking);
+        $price = $breakdown['ticket_sales'];
+        $tax = $breakdown['checkout_fee'];
+        $commission = $breakdown['organizer_fee'];
+        $grossRevenue = round($grossRevenue ?? $breakdown['customer_paid'], 2);
 
         if ($price < 0 || $tax < 0 || $commission < 0 || $grossRevenue < 0) {
             throw new LogicException('Event sale accounting amounts cannot be negative.');
@@ -47,7 +49,8 @@ class EventSaleAccountingService
             $grossRevenue,
             $price,
             $tax,
-            $commission
+            $commission,
+            $breakdown
         ): Transaction {
             // Keep the global lock order aligned with other accounting services:
             // platform earnings first, then organizer balance via the ledger.
@@ -64,7 +67,7 @@ class EventSaleAccountingService
             }
 
             $platformEarning = !empty($booking->organizer_id)
-                ? $tax + $commission
+                ? $breakdown['platform_revenue']
                 : $grossRevenue;
             $currency = TicaCurrency::normalize($booking->currencyText ?? null);
             if (!TicaCurrency::isBase($currency)) {

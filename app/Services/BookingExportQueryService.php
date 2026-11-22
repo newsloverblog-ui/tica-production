@@ -48,7 +48,7 @@ class BookingExportQueryService
                     ->select('gateway_reference')->whereColumn('transactions.booking_id', 'bookings.id')
                     ->where('transcation_type', 1)->orderByDesc('transactions.id')->limit(1),
                 'ledger_charged_amount' => DB::table('transactions')
-                    ->select('grand_total')->whereColumn('transactions.booking_id', 'bookings.id')
+                    ->selectRaw('grand_total + COALESCE(tax, 0)')->whereColumn('transactions.booking_id', 'bookings.id')
                     ->where('transcation_type', 1)->orderByDesc('transactions.id')->limit(1),
                 'snapshot_refunded_amount' => DB::table('payment_refunds')
                     ->selectRaw('COALESCE(SUM(amount), 0)')

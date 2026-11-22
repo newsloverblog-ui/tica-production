@@ -67,6 +67,7 @@ class TransactionDataExportTest extends TestCase
         $this->assertSame('ready', $ready->status);
         $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
         $this->assertStringContainsString('"ledger_id","transaction_reference","gateway","gateway_reference"', $csv);
+        $this->assertStringContainsString('"customer_paid_amount","ticket_sales_amount","checkout_fee","organizer_paid_fee","tica_platform_revenue","organizer_revenue"', $csv);
         $this->assertStringContainsString("'=TX-ONE", $csv);
         $this->assertStringContainsString("'+GATEWAY-REF", $csv);
         $this->assertStringContainsString('event_booking', $csv);

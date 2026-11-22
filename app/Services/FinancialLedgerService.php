@@ -12,6 +12,7 @@ use App\Models\TicaPromotionCampaign;
 use App\Models\Transaction;
 use App\Models\Withdraw;
 use App\Support\Money;
+use App\Support\EventFinancialBreakdown;
 use App\Support\TicaCurrency;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
@@ -44,9 +45,10 @@ class FinancialLedgerService
         }
 
         $currency = TicaCurrency::normalize($booking->currencyText ?? $legacy->currency ?? null);
-        $gross = Money::toMinor((float) $booking->price + (float) $booking->tax);
-        $platformFee = Money::toMinor((float) $booking->commission + (float) $booking->tax);
-        $organizerAmount = Money::toMinor((float) $booking->price - (float) $booking->commission);
+        $breakdown = EventFinancialBreakdown::fromBooking($booking);
+        $gross = Money::toMinor($breakdown['customer_paid']);
+        $platformFee = Money::toMinor($breakdown['platform_revenue']);
+        $organizerAmount = Money::toMinor($breakdown['organizer_revenue']);
         $processorFeeMinor = max(0, (int) ($processorFeeMinor ?? 0));
         if ($gross !== $platformFee + $organizerAmount) {
             throw new LogicException('Sale amounts do not balance in minor units.');

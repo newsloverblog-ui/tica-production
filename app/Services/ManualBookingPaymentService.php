@@ -8,6 +8,7 @@ use App\Models\Event\Ticket;
 use App\Models\BookingDelivery;
 use App\Models\Organizer;
 use App\Models\Transaction;
+use App\Support\EventFinancialBreakdown;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -82,13 +83,14 @@ class ManualBookingPaymentService
     {
         $earning = app(PlatformEarningService::class)->lock();
 
-        $price = (float) $booking->price;
-        $tax = (float) $booking->tax;
-        $commission = (float) $booking->commission;
+        $breakdown = EventFinancialBreakdown::fromBooking($booking);
+        $price = $breakdown['ticket_sales'];
+        $tax = $breakdown['checkout_fee'];
+        $commission = $breakdown['organizer_fee'];
         $earning->update([
-            'total_revenue' => (float) $earning->total_revenue + $price + $tax,
+            'total_revenue' => (float) $earning->total_revenue + $breakdown['customer_paid'],
             'total_earning' => (float) $earning->total_earning
-                + ($booking->organizer_id ? $tax + $commission : $price + $tax),
+                + ($booking->organizer_id ? $breakdown['platform_revenue'] : $breakdown['customer_paid']),
         ]);
 
         $organizer = null;
@@ -97,7 +99,7 @@ class ManualBookingPaymentService
         if ($booking->organizer_id) {
             $organizer = Organizer::query()->lockForUpdate()->findOrFail($booking->organizer_id);
             $preBalance = (float) $organizer->amount;
-            $afterBalance = $preBalance + $price - $commission;
+            $afterBalance = $preBalance + $breakdown['organizer_revenue'];
             $organizer->update(['amount' => $afterBalance]);
         }
 
