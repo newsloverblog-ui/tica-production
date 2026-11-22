@@ -112,6 +112,9 @@ class OrganizerAttendeeDirectoryTest extends TestCase
         $this->assertNotNull($first['nextCursor']);
         $this->assertSame(['Newer one', 'Newer two'], array_column($first['rows'], 'name'));
         $this->assertSame(['VIP', 'VIP'], array_column($first['rows'], 'tier'));
+        $this->assertSame(100.0, $first['rows'][0]['amount']);
+        $this->assertSame(106.0, $first['rows'][0]['orderTotal']);
+        $this->assertSame(100.0, $first['rows'][0]['orderTickets']);
 
         $metadataQueries = collect(DB::getQueryLog())->filter(fn (array $query) => str_contains($query['query'], 'ticket_contents'));
         $this->assertCount(1, $metadataQueries);

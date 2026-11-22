@@ -16,6 +16,7 @@ use App\Services\AuditLogger;
 use App\Services\BookingTicketDeliveryService;
 use App\Services\DataExportService;
 use App\Services\EventBookingDocumentStorage;
+use App\Services\EventBookingInvoiceService;
 use App\Services\ManualBookingPaymentService;
 use App\Services\PaidBookingFulfillmentService;
 use App\Services\ManualPaymentDecisionNotificationService;
@@ -176,9 +177,14 @@ class EventBookingController extends Controller
     ));
   }
 
-  public function invoice($id, EventBookingDocumentStorage $documents)
+  public function invoice(
+    $id,
+    EventBookingDocumentStorage $documents,
+    EventBookingInvoiceService $invoices
+  )
   {
     $booking = $this->ownedBooking($id);
+    $invoices->ensureAvailable($booking);
     AuditLogger::record('event_booking.invoice_viewed', $booking);
 
     return $documents->response($booking, 'invoice', 'inline');

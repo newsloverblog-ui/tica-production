@@ -879,7 +879,8 @@ class OrganizerController extends Controller
     $filters['transaction_reference'] = trim((string) $request->input('transcation_id', ''));
     $transcations = app(TransactionExportQueryService::class)->query(
       $filters, (int) Auth::guard('organizer')->id()
-    )->orderByDesc('id')->paginate(10)->withQueryString();
+    )->with('event_booking:id,organizer_id,invoice')
+      ->orderByDesc('id')->paginate(10)->withQueryString();
 
     return view('organizer.transaction', compact('transcations'));
   }

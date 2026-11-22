@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Event\Booking;
 use App\Models\Organizer;
 use App\Services\EventBookingDocumentStorage;
+use App\Services\EventBookingInvoiceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
@@ -97,13 +98,47 @@ class EventBookingDocumentAccessTest extends TestCase
         ])->save();
         $foreign->forceFill(['invoice' => $documents->storeInvoice($foreign, '%PDF-other')])->save();
         Auth::guard('organizer')->login($organizer);
+        $invoices = app(EventBookingInvoiceService::class);
 
-        $this->assertSame(200, app(OrganizerBookingController::class)->invoice($owned->id, $documents)->getStatusCode());
+        $this->assertSame(200, app(OrganizerBookingController::class)->invoice($owned->id, $documents, $invoices)->getStatusCode());
         $this->assertSame(200, app(OrganizerBookingController::class)->attachment($owned->id, $documents)->getStatusCode());
         $this->assertDatabaseCount('audit_logs', 2);
 
         $this->expectException(ModelNotFoundException::class);
-        app(OrganizerBookingController::class)->invoice($foreign->id, $documents);
+        app(OrganizerBookingController::class)->invoice($foreign->id, $documents, $invoices);
+    }
+
+    public function test_organizer_invoice_link_repairs_a_missing_document_before_streaming_it(): void
+    {
+        $organizer = Organizer::create([
+            'email' => 'invoice-repair@example.com', 'password' => bcrypt('secret'),
+            'status' => 1, 'email_verified_at' => now(),
+        ]);
+        $booking = $this->booking([
+            'organizer_id' => $organizer->id,
+            'booking_id' => 'ORG-REPAIR-1',
+            'invoice' => null,
+        ]);
+        $documents = app(EventBookingDocumentStorage::class);
+        $invoices = \Mockery::mock(EventBookingInvoiceService::class);
+        $invoices->shouldReceive('ensureAvailable')->once()->andReturnUsing(
+            function (Booking $ownedBooking) use ($documents): string {
+                $path = $documents->storeInvoice($ownedBooking, '%PDF-rebuilt');
+                $ownedBooking->forceFill(['invoice' => $path])->save();
+
+                return $path;
+            }
+        );
+        Auth::guard('organizer')->login($organizer);
+
+        $response = app(OrganizerBookingController::class)->invoice($booking->id, $documents, $invoices);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(
+            'private/event-bookings/'.$booking->id.'/invoices/ORG-REPAIR-1.pdf',
+            $booking->fresh()->invoice
+        );
+        $this->assertSame('%PDF-rebuilt', Storage::disk('local')->get($booking->fresh()->invoice));
     }
 
     private function booking(array $attributes): Booking

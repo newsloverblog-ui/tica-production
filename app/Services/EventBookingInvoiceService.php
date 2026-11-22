@@ -33,6 +33,32 @@ class EventBookingInvoiceService
         return $this->renderAndStore($booking, true, true);
     }
 
+    /**
+     * Ensure the booking has a readable private invoice.
+     *
+     * Fulfilment normally creates the invoice asynchronously. Rebuilding a
+     * missing document here keeps authorized invoice links useful while the
+     * queue is still catching up, and also repairs legacy records whose file
+     * reference no longer resolves.
+     */
+    public function ensureAvailable(Booking $booking): string
+    {
+        if ((string) $booking->invoice !== '') {
+            try {
+                $this->documents->invoiceAttachmentPath($booking);
+
+                return (string) $booking->invoice;
+            } catch (RuntimeException) {
+                // Rebuild the organizer-owned document below.
+            }
+        }
+
+        $path = $this->generate($booking);
+        $booking->forceFill(['invoice' => $path])->save();
+
+        return $path;
+    }
+
     private function renderAndStore(Booking $booking, bool $bookingRecipientOnly, bool $currentTickets): string
     {
         $this->tickets->generateQrCodes($booking, $bookingRecipientOnly);

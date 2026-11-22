@@ -10,7 +10,7 @@
 @endphp
 
 @section('content')
-  <div class="t-page-head">
+  <div class="t-page-head tx-head">
     <div>
       <h1 class="page-title">{{ __('Transactions') }}</h1>
       <p>{{ __('Every movement of money in your TICA balance: sales, refunds and withdrawals.') }}</p>
@@ -28,7 +28,7 @@
     </div>
   </div>
 
-  <form action="{{ route('organizer.transcation') }}" method="get" class="t-toolbar lg-filters">
+  <form action="{{ route('organizer.transcation') }}" method="get" class="t-toolbar lg-filters tx-filters">
     <label class="t-search"><span class="t-sr">{{ __('Search by reference') }}</span><input class="t-input" type="search" maxlength="100" value="{{ request('transcation_id') }}" name="transcation_id" placeholder="{{ __('Search by reference') }}"></label>
     <select name="transaction_type" class="t-select" aria-label="{{ __('Type') }}"><option value="">{{ __('All types') }}</option>@foreach ($types as $value => $label)<option value="{{ $value }}" @selected((string) request('transaction_type') === (string) $value)>{{ $label }}</option>@endforeach</select>
     <select name="payment_status" class="t-select" aria-label="{{ __('Status') }}"><option value="">{{ __('Any status') }}</option><option value="1" @selected(request('payment_status') === '1')>{{ __('Paid') }}</option><option value="0" @selected(request('payment_status') === '0')>{{ __('Unpaid') }}</option><option value="2" @selected(request('payment_status') === '2')>{{ __('Declined') }}</option></select>
@@ -44,32 +44,36 @@
       <p>{{ $filtered ? __('Try a different type, status or date.') : __('Ticket sales, refunds and withdrawals will appear here.') }}</p>
     </div></div>
   @else
-    <div class="t-table-wrap">
-      <table class="t-table t-table--cards">
+    <div class="t-table-wrap tx-table-wrap">
+      <table class="t-table t-table--cards tx-table">
+        <colgroup>
+          <col class="tx-col--reference"><col class="tx-col--type"><col class="tx-col--method">
+          <col class="tx-col--amount"><col class="tx-col--balance"><col class="tx-col--status"><col class="tx-col--action">
+        </colgroup>
         <thead><tr>
           <th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Method') }}</th>
-          <th scope="col" class="t-num">{{ __('Amount') }}</th><th scope="col" class="t-num">{{ __('Balance after') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col"><span class="t-sr">{{ __('Actions') }}</span></th>
+          <th scope="col" class="t-num tx-table__number">{{ __('Amount') }}</th><th scope="col" class="t-num tx-table__number">{{ __('Balance after') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col" class="tx-table__action"><span class="t-sr">{{ __('Actions') }}</span></th>
         </tr></thead>
         <tbody>
           @foreach ($transcations as $transcation)
             @php
               $out = in_array((int) $transcation->transcation_type, [3, 5, 6, 7], true);
-              $method = (int) $transcation->transcation_type === 3 ? optional($transcation->method()->first())->name : $transcation->payment_method;
-              $booking = (int) $transcation->transcation_type === 1 ? $transcation->event_booking()->first() : null;
+              $method = (int) $transcation->transcation_type === 3 ? optional($transcation->method)->name : $transcation->payment_method;
+              $booking = (int) $transcation->transcation_type === 1 ? $transcation->event_booking : null;
             @endphp
             <tr>
-              <td data-label="{{ __('Reference') }}">#{{ $transcation->transcation_id }}<span class="t-muted lg-sub">{{ optional($transcation->created_at)->format('j M Y, g:i a') }}</span></td>
-              <td data-label="{{ __('Type') }}">{{ $types[(int) $transcation->transcation_type] ?? __('Other') }}</td>
-              <td data-label="{{ __('Method') }}">{{ $method ?: '—' }}</td>
-              <td data-label="{{ __('Amount') }}" class="t-num lg-amt {{ $out ? 'is-out' : 'is-in' }}">{{ $out ? '−' : '+' }}{{ $money($transcation, $transcation->grand_total - $transcation->commission) }}</td>
-              <td data-label="{{ __('Balance after') }}" class="t-num">{{ $money($transcation, $transcation->after_balance) }}</td>
+              <td data-label="{{ __('Reference') }}" class="tx-reference"><span class="tx-reference__code">#{{ $transcation->transcation_id }}</span><span class="tx-reference__date">{{ optional($transcation->created_at)->format('j M Y, g:i a') }}</span></td>
+              <td data-label="{{ __('Type') }}" class="tx-label">{{ $types[(int) $transcation->transcation_type] ?? __('Other') }}</td>
+              <td data-label="{{ __('Method') }}" class="tx-label">{{ $method ?: '—' }}</td>
+              <td data-label="{{ __('Amount') }}" class="t-num lg-amt tx-amount {{ $out ? 'is-out' : 'is-in' }}"><span class="tx-money"><span class="tx-money__sign" aria-hidden="true">{{ $out ? '−' : '+' }}</span><span>{{ $money($transcation, $transcation->grand_total - $transcation->commission) }}</span></span></td>
+              <td data-label="{{ __('Balance after') }}" class="t-num tx-balance">{{ $money($transcation, $transcation->after_balance) }}</td>
               <td data-label="{{ __('Status') }}">
                 @if ((int) $transcation->payment_status === 1)<span class="t-badge t-badge--green">{{ __('Paid') }}</span>
                 @elseif ((int) $transcation->payment_status === 2)<span class="t-badge t-badge--orange">{{ __('Declined') }}</span>
                 @else<span class="t-badge t-badge--red">{{ __('Unpaid') }}</span>@endif
               </td>
-              <td class="ev-actions">
-                @if ($booking)<a class="t-btn t-btn--ghost t-btn--sm" target="_blank" rel="noopener" href="{{ route('organizer.event_booking.invoice', $booking->id) }}">{{ __('Invoice') }}</a>@endif
+              <td data-label="{{ __('Invoice') }}" class="ev-actions tx-table__action">
+                @if ($booking)<a class="tx-invoice" target="_blank" rel="noopener" href="{{ route('organizer.event_booking.invoice', $booking->id) }}">{{ __('View invoice') }}</a>@else<span class="tx-empty" aria-hidden="true">—</span>@endif
               </td>
             </tr>
           @endforeach

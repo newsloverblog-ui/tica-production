@@ -206,7 +206,8 @@ class OrganizerAttendeeDirectory
 
         return $tickets->map(function ($ticket) use ($titles, $ticketTitles, $refundable): array {
             $quantity = max(1, (int) $ticket->order_quantity);
-            $orderTotal = round((float) $ticket->order_price + (float) $ticket->order_tax, 2);
+            $ticketTotal = round((float) $ticket->order_price, 2);
+            $customerPaid = round($ticketTotal + (float) $ticket->order_tax, 2);
             $statusLabel = match (true) {
                 in_array($ticket->status, ['refunded', 'revoked'], true) || $ticket->paymentStatus === 'refunded' => 'Refunded',
                 in_array((string) $ticket->refund_status, ['approval_pending', 'pending', 'processing'], true) => 'Refund requested',
@@ -228,9 +229,11 @@ class OrganizerAttendeeDirectory
                 'seat' => (string) ($ticket->seat_label ?: ''),
                 'row' => (string) ($ticket->row_label ?: ''),
                 'section' => (string) ($ticket->section_label ?: ''),
-                'amount' => round($orderTotal / $quantity, 2),
-                'orderTotal' => $orderTotal,
-                'orderTickets' => round((float) $ticket->order_price, 2),
+                // The organizer-facing amount is ticket money only. Keep the
+                // full customer-paid total separately for full refunds.
+                'amount' => round($ticketTotal / $quantity, 2),
+                'orderTotal' => $customerPaid,
+                'orderTickets' => $ticketTotal,
                 'cur' => TicaCurrency::isBase($ticket->order_currency) ? null : [
                     'code' => TicaCurrency::normalize($ticket->order_currency),
                     'symbol' => TicaCurrency::symbol($ticket->order_currency),

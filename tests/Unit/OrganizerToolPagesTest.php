@@ -42,6 +42,10 @@ class OrganizerToolPagesTest extends TestCase
     $tx = file_get_contents(resource_path('views/organizer/transaction.blade.php'));
     $this->assertStringContainsString("route('organizer.transaction_exports.store')", $tx);
     $this->assertStringContainsString("route('organizer.event_booking.invoice'", $tx);
+    $this->assertStringContainsString('tx-table', $tx);
+    $this->assertStringContainsString('tx-money__sign', $tx);
+    $this->assertStringContainsString("__('View invoice')", $tx);
+    $this->assertStringNotContainsString('event_booking()->first()', $tx);
 
     $fin = file_get_contents(resource_path('views/organizer/finance/index.blade.php'));
     foreach (['csv', 'xlsx', 'pdf'] as $format) {
