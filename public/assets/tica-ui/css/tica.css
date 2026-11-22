@@ -126,6 +126,28 @@ h2.display{font-size:clamp(29px,3.5vw,46px)}
 .pagehead{padding-block:clamp(40px,5vw,72px)}
 .pagehead .btn{margin-top:20px}
 
+/* Shared not-found experience: intentionally open, calm and recognisably TICA. */
+.missing-page{background:#fff}
+.missing-hero{display:grid;min-height:clamp(430px,56vh,650px);place-items:center;padding-block:clamp(72px,9vw,132px)}
+.missing-copy{max-width:920px;text-align:center;animation:missing-in .7s cubic-bezier(.2,.75,.2,1) both}
+.missing-copy h1.display{font-size:clamp(40px,5.4vw,76px);font-weight:720;line-height:1.06;letter-spacing:-.045em;text-wrap:balance}
+.missing-copy .lead{max-width:720px;margin:24px auto 0;font-size:clamp(17px,1.55vw,23px);line-height:1.55;text-wrap:balance}
+.missing-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:32px}
+.missing-cta{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 28px;border:1px solid var(--indigo-2);border-radius:10px;background:var(--indigo-2);color:#fff;font-size:15px;font-weight:650;line-height:1;text-decoration:none;box-shadow:0 10px 24px rgba(46,79,216,.18);transition:transform .2s cubic-bezier(.2,.7,.2,1),background-color .2s,box-shadow .2s}
+.missing-cta:hover{background:#2443BD;box-shadow:0 14px 28px rgba(46,79,216,.26);transform:translateY(-2px)}
+.missing-cta:active{box-shadow:0 5px 12px rgba(46,79,216,.16);transform:none}
+.missing-cta.secondary{border-color:var(--line);background:#fff;color:var(--ink);box-shadow:none}
+.missing-cta.secondary:hover{border-color:#C8D2E1;background:var(--tint)}
+@keyframes missing-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media (max-width:640px){
+  .missing-hero{min-height:420px;padding-block:72px}
+  .missing-copy h1.display{font-size:clamp(34px,10vw,48px)}
+  .missing-copy .lead{margin-top:18px;font-size:16px}
+  .missing-actions{display:grid;margin-top:28px}
+  .missing-cta{width:100%;min-height:52px}
+}
+@media (prefers-reduced-motion:reduce){.missing-copy{animation:none}.missing-cta{transition:none}.missing-cta:hover{transform:none}}
+
 /* event card */
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
 @media (max-width:1100px){.grid4{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -151,7 +173,10 @@ h2.display{font-size:clamp(29px,3.5vw,46px)}
 .by svg path{stroke:#fff}
 .buy{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:14px}
 .price{font-weight:800;font-size:18px;line-height:1.2}
-.get{min-height:44px;padding:0 16px;font-size:14px;background:var(--indigo);color:#fff;white-space:nowrap}
+.buy-meta{display:grid;min-width:0;gap:2px;align-content:center;margin-right:auto}
+.get{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid var(--indigo);border-radius:9px;background:var(--indigo);color:#fff;font-size:13px;font-weight:650;line-height:1;text-decoration:none;white-space:nowrap;transition:transform .18s cubic-bezier(.2,.7,.2,1),background-color .18s,border-color .18s,box-shadow .18s}
+.get:hover{border-color:var(--indigo-2);background:var(--indigo-2);box-shadow:0 7px 16px rgba(11,36,71,.18);transform:translateY(-1px)}
+.get:active{box-shadow:none;transform:none}
 .off{display:inline-flex;align-items:center;min-height:44px;font-weight:700;font-size:14px;color:var(--soft)}
 .soldout .flyer{filter:grayscale(1) brightness(.8)}
 .tag{display:inline-block;align-self:flex-start;background:var(--peach);color:#8F3D05;font-weight:700;font-size:13px;line-height:1;padding:6px 10px;border-radius:999px;margin-bottom:8px}
@@ -1260,10 +1285,10 @@ body.authmode .topbar,body.authmode footer{display:none}
 .stk-t{display:block;font-size:13px;font-weight:600;color:var(--soft)}
 .stk-t.low{color:#A84806;font-weight:700}
 .cdm{font-size:12px;font-weight:600;color:var(--soft);white-space:nowrap}
-.buy .cdm{margin-left:auto;margin-right:-4px}
+.buy-meta .cdm{display:block;margin:0}
 .card .buy{padding-top:6px;gap:6px}
 .card .price{white-space:nowrap}
-@media (max-width:820px){.card .buy{flex-wrap:wrap}.card .buy .save{margin-left:auto}.card .buy .cdm{order:3;width:100%;margin:0}}
+@media (max-width:820px){.card .buy{flex-wrap:wrap}.card .buy .save{margin-left:0}}
 .rowprice .cdm{margin-left:8px;font-weight:600}
 .row .stk{max-width:260px}
 .cf-cap .cdm{display:block;color:var(--indigo-2);margin-top:2px}
@@ -1551,7 +1576,6 @@ h1,h2,h3{overflow-wrap:break-word}
   .grid4 .card .cardbody h3{font-size:15px}
   .grid4 .card .stk{margin-top:8px}
   .card .buy{flex-wrap:nowrap!important}
-  .card .buy .cdm{order:0!important;width:auto!important;margin-left:auto!important}
   .card .buy .save{margin-left:0!important}
   .bars{gap:3px}
   .bars .b:not(:nth-child(4n+1)) span{visibility:hidden}
@@ -1562,14 +1586,14 @@ h1,h2,h3{overflow-wrap:break-word}
 }
 @media (max-width:340px){
   .grid4 .card{grid-template-columns:84px minmax(0,1fr)}
-  .card .buy .cdm{display:none}
+  .card .buy-meta .cdm{display:none}
   .wrap{padding-inline:12px}
   .h-in h1{font-size:28px}
   .ac-o{grid-template-columns:64px minmax(0,1fr)}
 }
 @media (min-width:601px) and (max-width:820px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:2000px){.wrap{max-width:calc(1440px + 2*var(--gutter))}body{font-size:17px}}
-@media (max-width:420px){.card .buy .cdm{display:none!important}}
+@media (max-width:420px){.card .buy-meta .cdm{display:none!important}.card .get{min-height:38px;padding-inline:11px;font-size:12px}}
 select{text-overflow:ellipsis}
 @media (max-width:400px){.field{padding:6px 12px}.field select,.field input{font-size:15px}}
 .menu:not([open]) nav{display:none}
