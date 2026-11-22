@@ -80,7 +80,7 @@
                           <input type="checkbox" class="bulk-check" data-val="all">
                         </th>
                         <th scope="col">{{ __('Title') }}</th>
-                        <th scope="col">{{ __('Price') }}</th>
+                        <th scope="col" class="t-num">{{ __('Price') }}</th>
                         <th scope="col">{{ __('Type') }}</th>
                         <th scope="col">{{ __('Category') }}</th>
                         <th scope="col">{{ __('Status') }}</th>
@@ -97,7 +97,7 @@
                           <td width="20%">
                             {{ $product->title }}
                           </td>
-                          <td>{{ $product->current_price }}</td>
+                          <td class="t-num">{{ $product->current_price }}</td>
                           <td>{{ $product->type }}</td>
                           <td>
                             {{ $product->category }}

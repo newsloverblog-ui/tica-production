@@ -34,7 +34,7 @@
                 <tr>
                   <th>{{ __('Case') }}</th>
                   <th>{{ __('Booking') }}</th>
-                  <th>{{ __('Amount') }}</th>
+                  <th class="t-num">{{ __('Amount') }}</th>
                   <th>{{ __('Evidence summary') }}</th>
                   <th>{{ __('Actions') }}</th>
                 </tr>
@@ -51,7 +51,7 @@
                       #{{ optional($dispute->booking)->booking_id ?: $dispute->booking_id }}<br>
                       <small>{{ optional($dispute->organizer)->username ?: __('Platform event') }}</small>
                     </td>
-                    <td>
+                    <td class="t-num">
                       {{ number_format((float) $dispute->requested_amount, 2) }} {{ $dispute->currency }}<br>
                       <small>{{ trans_choice(':count checked-in ticket|:count checked-in tickets', $dispute->checked_in_ticket_count, ['count' => $dispute->checked_in_ticket_count]) }}</small>
                     </td>
@@ -117,7 +117,7 @@
                   <th>{{ __('Organizer') }}</th>
                   <th>{{ __('Booking') }}</th>
                   <th>{{ __('Gateway') }}</th>
-                  <th>{{ __('Amount') }}</th>
+                  <th class="t-num">{{ __('Amount') }}</th>
                   <th>{{ __('Reason') }}</th>
                   <th>{{ __('Actions') }}</th>
                 </tr>
@@ -129,7 +129,7 @@
                     <td>{{ optional($refundRequest->organizer)->username ?: '#'.$refundRequest->organizer_id }}</td>
                     <td>#{{ optional($refundRequest->booking)->booking_id ?: $refundRequest->booking_id }}</td>
                     <td>{{ ucfirst($refundRequest->gateway) }}</td>
-                    <td>{{ number_format((float) $refundRequest->amount, 2) }} {{ $refundRequest->currency }}</td>
+                    <td class="t-num">{{ number_format((float) $refundRequest->amount, 2) }} {{ $refundRequest->currency }}</td>
                     <td style="min-width: 220px">{{ $refundRequest->reason }}</td>
                     <td style="min-width: 260px">
                       <form method="post" action="{{ route('admin.refunds.approve', $refundRequest) }}" class="d-inline-block mb-2">
@@ -208,9 +208,9 @@
                         <th scope="col">{{ __('Organizer') }}</th>
                         <th scope="col">{{ __('Transaction Type') }}</th>
                         <th scope="col">{{ __('Payment Method') }}</th>
-                        <th scope="col">{{ __('Pre Balance') }}</th>
-                        <th scope="col">{{ __('Amount') }}</th>
-                        <th scope="col">{{ __('After Balance') }}</th>
+                        <th scope="col" class="t-num">{{ __('Pre Balance') }}</th>
+                        <th scope="col" class="t-num">{{ __('Amount') }}</th>
+                        <th scope="col" class="t-num">{{ __('After Balance') }}</th>
                         <th scope="col">{{ __('Status') }}</th>
                         <th scope="col">{{ __('Refund') }}</th>
                         <th scope="col">{{ __('Actions') }}</th>
@@ -262,12 +262,12 @@
                               {{ $transcation->payment_method != null ? $transcation->payment_method : '-' }}
                             @endif
                           </td>
-                          <td>
+                          <td class="t-num">
                             {{ $transcation->currency_symbol_position == 'left' ? $transcation->currency_symbol : '' }}
                             {{ $transcation->pre_balance }}
                             {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}
                           </td>
-                          <td>
+                          <td class="t-num">
                             @if (in_array($transcation->transcation_type, [3, 5, 6, 7]))
                               <span class="text-danger">{{ '(-)' }}</span>
                             @else
@@ -278,7 +278,7 @@
                             {{ $transcation->grand_total - $transcation->commission }}
                             {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}
                           </td>
-                          <td>
+                          <td class="t-num">
                             {{ $transcation->currency_symbol_position == 'left' ? $transcation->currency_symbol : '' }}
                             {{ $transcation->after_balance }}
                             {{ $transcation->currency_symbol_position == 'right' ? $transcation->currency_symbol : '' }}

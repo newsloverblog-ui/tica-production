@@ -88,8 +88,8 @@
                           <input type="checkbox" class="bulk-check" data-val="all">
                         </th>
                         <th scope="col">{{ __('Title') }}</th>
-                        <th scope="col">{{ __('Ticket Available') }}</th>
-                        <th scope="col">{{ __('Price') }}</th>
+                        <th scope="col" class="t-num">{{ __('Ticket Available') }}</th>
+                        <th scope="col" class="t-num">{{ __('Price') }}</th>
                         <th scope="col">{{ __('Actions') }}</th>
                       </tr>
                     </thead>
@@ -108,7 +108,7 @@
                             @endphp
                             {{ @$ticket_content->title }}
                           </td>
-                          <td width="20%">
+                          <td width="20%" class="t-num">
                             @if ($ticket->pricing_type == 'variation')
                               @php
                                 $variation = json_decode($ticket->variations, true);
@@ -132,7 +132,7 @@
                             @endif
 
                           </td>
-                          <td>
+                          <td class="t-num">
                             @if ($ticket->pricing_type == 'normal')
                               @if ($ticket->early_bird_discount == 'enable')
                                 @php

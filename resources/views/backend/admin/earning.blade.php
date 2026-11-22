@@ -62,7 +62,7 @@
                 <thead>
                   <tr>
                     <th scope="col">{{ __('Month Name') }}</th>
-                    <th scope="col">{{ __('Total Earning') }}</th>
+                    <th scope="col" class="t-num">{{ __('Total Earning') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -76,7 +76,7 @@
                         @endphp
                         {{ $monthName }}
                       </td>
-                      <td>
+                      <td class="t-num">
                         {{ $settings->base_currency_symbol_position == 'left' ? $settings->base_currency_symbol : '' }}
                         {{ round($value + $taxs[$key], 2) }}
                         {{ $settings->base_currency_symbol_position == 'right' ? $settings->base_currency_symbol : '' }}

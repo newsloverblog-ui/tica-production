@@ -61,7 +61,7 @@
                 <thead>
                   <tr>
                     <th scope="col">{{ __('Month Name') }}</th>
-                    <th scope="col">{{ __('Total Income') }}</th>
+                    <th scope="col" class="t-num">{{ __('Total Income') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -76,7 +76,7 @@
                         {{ $monthName }}
                       </td>
 
-                      <td>
+                      <td class="t-num">
                         {{ $settings->base_currency_symbol_position == 'left' ? $settings->base_currency_symbol : '' }}
                         {{ round($value + $rejects[$key] - ($commissions[$key] + $expenses[$key]), 2) }}
                         {{ $settings->base_currency_symbol_position == 'right' ? $settings->base_currency_symbol : '' }}

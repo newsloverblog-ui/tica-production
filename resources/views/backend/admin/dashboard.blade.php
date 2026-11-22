@@ -141,7 +141,7 @@
         @if ($o['payouts'])
           <div class="cd-scroll">
             <table>
-              <thead><tr><th>{{ __('Request') }}</th><th>{{ __('Organiser') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Requested on') }}</th><th>{{ __('Status') }}</th><th>{{ __('Processed on') }}</th><th><span class="sr-only">{{ __('Actions') }}</span></th></tr></thead>
+              <thead><tr><th>{{ __('Request') }}</th><th>{{ __('Organiser') }}</th><th class="cd-num">{{ __('Amount') }}</th><th>{{ __('Requested on') }}</th><th>{{ __('Status') }}</th><th>{{ __('Processed on') }}</th><th><span class="sr-only">{{ __('Actions') }}</span></th></tr></thead>
               <tbody>
                 @foreach ($o['payouts'] as $row)
                   <tr>

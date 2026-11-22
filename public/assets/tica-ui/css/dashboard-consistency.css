@@ -223,6 +223,21 @@
   vertical-align: middle !important;
 }
 
+/* Numeric columns share one alignment contract across modern and legacy tables. */
+:is(body.tica-admin, body.tica-organizer) .page-inner :is(th, td).t-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  :is(body.tica-admin, body.tica-organizer) .page-inner td.t-num[data-label]::before {
+    float: left;
+    margin-right: 16px;
+    text-align: left;
+  }
+}
+
 :is(body.tica-admin, body.tica-organizer) .page-inner .table tbody tr:hover td {
   background: #fafbfe;
 }

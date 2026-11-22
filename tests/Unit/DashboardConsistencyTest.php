@@ -61,4 +61,31 @@ class DashboardConsistencyTest extends TestCase
         $this->assertStringContainsString('class="transaction-filters"', $transactions);
         $this->assertStringContainsString('class="transaction-toolbar__links"', $transactions);
     }
+
+    public function test_numeric_table_headers_and_values_share_the_same_alignment_contract(): void
+    {
+        $consistency = file_get_contents(public_path('assets/tica-ui/css/dashboard-consistency.css'));
+        $designSystem = file_get_contents(public_path('assets/tica-ui/css/ds.css'));
+        $client = file_get_contents(public_path('assets/tica-ui/js/tica.js'));
+        $adminTransactions = file_get_contents(resource_path('views/backend/admin/transaction.blade.php'));
+        $organizerWithdrawals = file_get_contents(resource_path('views/organizer/withdraw/index.blade.php'));
+
+        $this->assertStringContainsString('.page-inner :is(th, td).t-num', $consistency);
+        $this->assertStringContainsString('text-align: right !important', $consistency);
+        $this->assertStringContainsString('.t-table :is(th,td).t-num', $designSystem);
+        $this->assertStringContainsString('font-variant-numeric:tabular-nums', $designSystem);
+
+        foreach (['Inventory', 'Sold', 'Available', 'Revenue'] as $heading) {
+            $this->assertStringContainsString('<th scope="col" class="t-num">'.$heading.'</th>', $client);
+            $this->assertStringContainsString('data-label="'.$heading.'" class="t-num"', $client);
+        }
+
+        foreach (['Pre Balance', 'Amount', 'After Balance'] as $heading) {
+            $this->assertStringContainsString('class="t-num">{{ __(\''.$heading.'\') }}</th>', $adminTransactions);
+        }
+
+        foreach (['Total Amount', 'Total Charge', 'Total Payable Amount'] as $heading) {
+            $this->assertStringContainsString('class="t-num">{{ __(\''.$heading.'\') }}</th>', $organizerWithdrawals);
+        }
+    }
 }

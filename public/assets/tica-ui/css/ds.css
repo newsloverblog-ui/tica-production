@@ -131,7 +131,9 @@
 .t-table td{padding:var(--t-3) var(--t-4);border-bottom:1px solid var(--t-line);vertical-align:middle;color:var(--t-text-c)}
 .t-table tr:last-child td{border-bottom:0}
 .t-table tbody tr:hover td{background:#FAFBFC}
-.t-table td.t-num{text-align:right;font-variant-numeric:tabular-nums;color:var(--t-ink);font-weight:600}
+.t-table :is(th,td).t-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.t-table th.t-num{color:var(--t-muted);font-weight:600}
+.t-table td.t-num{color:var(--t-ink);font-weight:600}
 @media (max-width:767px){
   .t-table--cards thead{display:none}
   .t-table--cards,.t-table--cards tbody,.t-table--cards tr,.t-table--cards td{display:block;width:100%}

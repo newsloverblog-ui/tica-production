@@ -95,9 +95,9 @@
                     </th>
                     <th scope="col">{{ __('Withdraw Id') }}</th>
                     <th scope="col">{{ __('Method Name') }}</th>
-                    <th scope="col">{{ __('Total Amount') }}</th>
-                    <th scope="col">{{ __('Total Charge') }}</th>
-                    <th scope="col">{{ __('Total Payable Amount') }}</th>
+                    <th scope="col" class="t-num">{{ __('Total Amount') }}</th>
+                    <th scope="col" class="t-num">{{ __('Total Charge') }}</th>
+                    <th scope="col" class="t-num">{{ __('Total Payable Amount') }}</th>
                     <th scope="col">{{ __('Status') }}</th>
                     <th scope="col">{{ __('Dispute') }}</th>
                     <th scope="col">{{ __('Action') }}</th>
@@ -115,17 +115,17 @@
                       <td>
                         {{ optional($item->method)->name }}
                       </td>
-                      <td>
+                      <td class="t-num">
                         {{ $currencyInfo->base_currency_symbol_position == 'left' ? $currencyInfo->base_currency_symbol : '' }}
                         {{ $item->amount }}
                         {{ $currencyInfo->base_currency_symbol_position == 'right' ? $currencyInfo->base_currency_symbol : '' }}
                       </td>
-                      <td>
+                      <td class="t-num">
                         {{ $currencyInfo->base_currency_symbol_position == 'left' ? $currencyInfo->base_currency_symbol : '' }}
                         {{ $item->total_charge }}
                         {{ $currencyInfo->base_currency_symbol_position == 'right' ? $currencyInfo->base_currency_symbol : '' }}
                       </td>
-                      <td>
+                      <td class="t-num">
                         {{ $currencyInfo->base_currency_symbol_position == 'left' ? $currencyInfo->base_currency_symbol : '' }}
                         {{ $item->payable_amount }}
                         {{ $currencyInfo->base_currency_symbol_position == 'right' ? $currencyInfo->base_currency_symbol : '' }}
