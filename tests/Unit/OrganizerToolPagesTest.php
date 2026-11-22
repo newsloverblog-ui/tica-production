@@ -48,6 +48,7 @@ class OrganizerToolPagesTest extends TestCase
     $this->assertStringNotContainsString('event_booking()->first()', $tx);
     $styles = file_get_contents(public_path('assets/tica-ui/css/ds.css'));
     $this->assertStringContainsString('body.tica-organizer .tx-filters{display:flex', $styles);
+    $this->assertStringContainsString('.tx-filters>.tx-apply{flex:1 1 140px', $styles);
     $this->assertStringNotContainsString('.tx-filters{display:grid', $styles);
 
     $fin = file_get_contents(resource_path('views/organizer/finance/index.blade.php'));

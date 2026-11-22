@@ -706,6 +706,7 @@ body.tica-organizer .tx-filters .t-search{flex:1 1 320px;width:auto;max-width:46
 body.tica-organizer .tx-filters .t-select{flex:0 1 190px;width:190px;min-width:160px}
 body.tica-organizer .tx-filters .t-input[type=date]{flex:0 1 160px;width:160px;min-width:145px}
 body.tica-organizer .tx-filters>.t-btn{flex:0 0 auto}
+body.tica-organizer .tx-filters>.tx-apply{flex:1 1 140px;min-width:140px;justify-content:center}
 .tx-table-wrap{max-height:none}
 .tx-table{table-layout:fixed;font-size:15px}
 .tx-table .tx-col--reference{width:36%}.tx-table .tx-col--type{width:11%}.tx-table .tx-col--method{width:10%}.tx-table .tx-col--amount{width:13%}.tx-table .tx-col--balance{width:14%}.tx-table .tx-col--status{width:8%}.tx-table .tx-col--action{width:8%}

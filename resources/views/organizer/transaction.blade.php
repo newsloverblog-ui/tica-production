@@ -34,7 +34,7 @@
     <select name="payment_status" class="t-select" aria-label="{{ __('Status') }}"><option value="">{{ __('Any status') }}</option><option value="1" @selected(request('payment_status') === '1')>{{ __('Paid') }}</option><option value="0" @selected(request('payment_status') === '0')>{{ __('Unpaid') }}</option><option value="2" @selected(request('payment_status') === '2')>{{ __('Declined') }}</option></select>
     <input type="date" name="from_date" class="t-input" value="{{ request('from_date') }}" aria-label="{{ __('From') }}">
     <input type="date" name="to_date" class="t-input" value="{{ request('to_date') }}" aria-label="{{ __('To') }}">
-    <button class="t-btn t-btn--secondary" type="submit">{{ __('Apply') }}</button>
+    <button class="t-btn t-btn--secondary tx-apply" type="submit">{{ __('Apply') }}</button>
     @if ($filtered)<a class="t-btn t-btn--ghost" href="{{ route('organizer.transcation') }}">{{ __('Clear filters') }}</a>@endif
   </form>
 
