@@ -46,6 +46,9 @@ class OrganizerToolPagesTest extends TestCase
     $this->assertStringContainsString('tx-money__sign', $tx);
     $this->assertStringContainsString("__('View invoice')", $tx);
     $this->assertStringNotContainsString('event_booking()->first()', $tx);
+    $styles = file_get_contents(public_path('assets/tica-ui/css/ds.css'));
+    $this->assertStringContainsString('body.tica-organizer .tx-filters{display:flex', $styles);
+    $this->assertStringNotContainsString('.tx-filters{display:grid', $styles);
 
     $fin = file_get_contents(resource_path('views/organizer/finance/index.blade.php'));
     foreach (['csv', 'xlsx', 'pdf'] as $format) {
