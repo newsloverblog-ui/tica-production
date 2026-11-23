@@ -138,12 +138,17 @@ class Controller extends BaseController
     $subscriber = Subscriber::firstOrNew([
       'email_id' => strtolower(trim($validator->validated()['email_id'])),
     ]);
-    $subscriber->fill([
+    $consent = [
       'source' => 'website_footer',
       'subscribed_at' => now(),
       'unsubscribed_at' => null,
       'consent_ip_hash' => hash_hmac('sha256', (string) $request->ip(), (string) config('app.key')),
-    ])->save();
+    ];
+    $subscriber->fill(array_filter(
+      $consent,
+      fn ($value, $column) => Subscriber::hasConsentColumn($column),
+      ARRAY_FILTER_USE_BOTH
+    ))->save();
 
     return Response::json([
       'success' => 'You’re subscribed. Watch your inbox for TICA event picks.'

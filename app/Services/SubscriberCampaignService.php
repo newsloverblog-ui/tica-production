@@ -21,7 +21,7 @@ class SubscriberCampaignService
             throw new DomainException('A valid campaign subject and message are required.');
         }
 
-        if (!Subscriber::query()->whereNull('unsubscribed_at')->exists()) {
+        if (!Subscriber::query()->currentlySubscribed()->exists()) {
             throw new DomainException('There are no subscribers to receive this campaign.');
         }
 
@@ -37,7 +37,7 @@ class SubscriberCampaignService
             $total = 0;
             Subscriber::query()
                 ->select(['id', 'email_id'])
-                ->whereNull('unsubscribed_at')
+                ->currentlySubscribed()
                 ->orderBy('id')
                 ->chunkById(500, function ($subscribers) use ($campaign, &$total): void {
                     $now = now();

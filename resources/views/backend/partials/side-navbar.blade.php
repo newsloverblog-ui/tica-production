@@ -362,7 +362,7 @@
                     <li class="nav-item {{ request()->routeIs('admin.audience.index', 'admin.user_management.subscribers', 'admin.user_management.mail_for_subscribers') ? 'active' : '' }}">
                         <a href="{{ route('admin.audience.index') }}">
                             <i class="fal fa-users" aria-hidden="true"></i>
-                            <p>{{ __('Customers & audience') }}</p>
+                            <p>{{ __('Subscribers') }}</p>
                         </a>
                     </li>
                 @endif

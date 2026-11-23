@@ -16,10 +16,14 @@ class AudienceExperienceTest extends TestCase
         $directory = file_get_contents(resource_path('views/backend/end-user/subscriber/index.blade.php'));
         $composer = file_get_contents(resource_path('views/backend/end-user/subscriber/write-email.blade.php'));
         $sidebar = file_get_contents(resource_path('views/backend/partials/side-navbar.blade.php'));
-        $this->assertStringContainsString("['customers', 'attendees', 'subscribers']", file_get_contents(app_path('Http/Controllers/BackEnd/User/SubscriberController.php')));
+        $controller = file_get_contents(app_path('Http/Controllers/BackEnd/User/SubscriberController.php'));
+        $this->assertStringContainsString("DB::table('subscribers')", $controller);
+        $this->assertStringNotContainsString("DB::table('customers')", $controller);
+        $this->assertStringNotContainsString("DB::table('booking_tickets')", $controller);
         $this->assertStringContainsString('data-audience-row', $directory);
-        $this->assertStringContainsString('Customers & audience', $sidebar);
-        $this->assertStringContainsString('Create email', $composer);
+        $this->assertStringContainsString('Customer accounts and ticket buyers are kept separate', $directory);
+        $this->assertStringContainsString("__('Subscribers')", $sidebar);
+        $this->assertStringContainsString('Create newsletter email', $composer);
         $this->assertStringNotContainsString('Mail to Subscribers', $sidebar);
     }
 
@@ -28,7 +32,7 @@ class AudienceExperienceTest extends TestCase
         $footer = file_get_contents(resource_path('views/tica-ui/partials/footer.blade.php'));
         $this->assertStringContainsString('data-newsletter-form', $footer);
         $this->assertStringContainsString('Unsubscribe whenever you like', $footer);
-        $this->assertStringContainsString("whereNull('unsubscribed_at')", file_get_contents(app_path('Services/SubscriberCampaignService.php')));
+        $this->assertStringContainsString('currentlySubscribed()', file_get_contents(app_path('Services/SubscriberCampaignService.php')));
     }
 
     public function test_public_navigation_and_purchase_actions_share_final_responsive_rules(): void

@@ -145,6 +145,20 @@ class SubscriberCampaignServiceTest extends TestCase
         $this->assertNull($campaign->fresh()->dispatch_last_error);
     }
 
+    public function test_campaigns_remain_available_before_consent_columns_are_migrated(): void
+    {
+        Schema::table('subscribers', function (Blueprint $table): void {
+            $table->dropColumn(['source', 'subscribed_at', 'unsubscribed_at', 'consent_ip_hash']);
+        });
+
+        Subscriber::create(['email_id' => 'legacy@example.com']);
+        $campaign = (new SubscriberCampaignService())->create('Service update', '<p>Ready</p>', 7);
+
+        $this->assertSame(1, $campaign->total_count);
+        $this->assertSame('legacy@example.com', Subscriber::query()->firstOrFail()->email_id);
+        Queue::assertPushed(DispatchSubscriberCampaign::class);
+    }
+
     private function createSchema(): void
     {
         Schema::create('subscribers', function (Blueprint $table): void {
