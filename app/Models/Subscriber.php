@@ -14,5 +14,10 @@ class Subscriber extends Model
    *
    * @var array
    */
-  protected $fillable = ['email_id'];
+  protected $fillable = ['email_id', 'source', 'subscribed_at', 'unsubscribed_at', 'consent_ip_hash'];
+
+  protected $casts = [
+    'subscribed_at' => 'datetime',
+    'unsubscribed_at' => 'datetime',
+  ];
 }

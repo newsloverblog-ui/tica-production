@@ -107,7 +107,13 @@ class SubscriberCampaignServiceTest extends TestCase
         $mailer = Mockery::mock(ConfiguredMailer::class);
         $mailer->shouldReceive('sendHtml')
             ->once()
-            ->with('buyer@example.com', 'New events', '<p>Ready</p>');
+            ->withArgs(function (string $email, string $subject, string $body): bool {
+                return $email === 'buyer@example.com'
+                    && $subject === 'New events'
+                    && str_contains($body, '<p>Ready</p>')
+                    && str_contains($body, 'newsletter/unsubscribe/')
+                    && str_contains($body, 'Unsubscribe');
+            });
 
         (new SendSubscriberCampaignDelivery($delivery->id))->handle($mailer, $service);
 
@@ -142,7 +148,9 @@ class SubscriberCampaignServiceTest extends TestCase
     private function createSchema(): void
     {
         Schema::create('subscribers', function (Blueprint $table): void {
-            $table->id(); $table->string('email_id'); $table->timestamps();
+            $table->id(); $table->string('email_id'); $table->string('source')->default('website');
+            $table->timestamp('subscribed_at')->nullable(); $table->timestamp('unsubscribed_at')->nullable();
+            $table->char('consent_ip_hash', 64)->nullable(); $table->timestamps();
         });
         Schema::create('audit_logs', function (Blueprint $table): void {
             $table->id(); $table->string('actor_type')->default('system'); $table->unsignedBigInteger('actor_id')->nullable();

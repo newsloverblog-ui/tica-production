@@ -906,6 +906,7 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
 
   // subscriber route start
   Route::middleware('permission:Subscribers')->group(function () {
+    Route::get('/audience', 'BackEnd\User\SubscriberController@index')->name('admin.audience.index');
     Route::get('/subscribers', 'BackEnd\User\SubscriberController@index')->name('admin.user_management.subscribers');
 
     Route::post(

@@ -363,6 +363,8 @@ Route::get('/change-language', 'Controller@changeLanguage')->name('change_langua
 
 Route::post('/store-subscriber', 'Controller@storeSubscriber')
   ->middleware('throttle:public-form')->name('store_subscriber');
+Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', 'FrontEnd\NewsletterController@unsubscribe')
+  ->middleware(['signed', 'throttle:30,1'])->name('newsletter.unsubscribe');
 
 /*
 |---------------------------------------------------------------------------------

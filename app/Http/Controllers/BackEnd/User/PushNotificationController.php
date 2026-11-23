@@ -61,8 +61,10 @@ class PushNotificationController extends Controller
   public function writeNotification()
   {
     $campaigns = PushNotificationCampaign::query()->latest('id')->limit(10)->get();
+    $recipientCount = \App\Models\Guest::query()->whereHas('pushSubscriptions')->count();
+    $vapidConfigured = filled(config('webpush.vapid.public_key')) && filled(config('webpush.vapid.private_key'));
 
-    return view('backend.end-user.push-notification.write-notification', compact('campaigns'));
+    return view('backend.end-user.push-notification.write-notification', compact('campaigns', 'recipientCount', 'vapidConfigured'));
   }
 
   public function sendNotification(Request $request, PushNotificationCampaignService $campaigns)

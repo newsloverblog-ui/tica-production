@@ -359,32 +359,11 @@
 
                 <li class="nav-section"><span class="text-section">{{ __('Audience') }}</span></li>
                 @if (is_null($roleInfo) || (!empty($rolePermissions) && in_array('Subscribers', $rolePermissions)))
-                    <li
-                        class="nav-item
-          @if (request()->routeIs('admin.user_management.subscribers')) active
-          @elseif(request()->routeIs('admin.user_management.mail_for_subscribers')) active @endif">
-                        <a data-toggle="collapse" href="#subscribers">
-                            <i class="fal fa-envelope" aria-hidden="true"></i>
-                            <p>{{ __('Subscribers') }}</p>
-                            <span class="caret"></span>
+                    <li class="nav-item {{ request()->routeIs('admin.audience.index', 'admin.user_management.subscribers', 'admin.user_management.mail_for_subscribers') ? 'active' : '' }}">
+                        <a href="{{ route('admin.audience.index') }}">
+                            <i class="fal fa-users" aria-hidden="true"></i>
+                            <p>{{ __('Customers & audience') }}</p>
                         </a>
-                        <div class="collapse
-            @if (request()->routeIs('admin.user_management.subscribers')) show
-            @elseif(request()->routeIs('admin.user_management.mail_for_subscribers')) show @endif"
-                            id="subscribers">
-                            <ul class="nav nav-collapse">
-                                <li class="@if (request()->routeIs('admin.user_management.subscribers')) active @endif">
-                                    <a href="{{ route('admin.user_management.subscribers') }}">
-                                        <span class="sub-item">{{ __('Subscribers') }}</span>
-                                    </a>
-                                </li>
-                                <li class="@if (request()->routeIs('admin.user_management.mail_for_subscribers')) active @endif">
-                                    <a href="{{ route('admin.user_management.mail_for_subscribers') }}">
-                                        <span class="sub-item">{{ __('Mail to Subscribers') }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
                 @endif
 

@@ -135,12 +135,18 @@ class Controller extends BaseController
       ], 400);
     }
 
-    Subscriber::firstOrCreate([
+    $subscriber = Subscriber::firstOrNew([
       'email_id' => strtolower(trim($validator->validated()['email_id'])),
     ]);
+    $subscriber->fill([
+      'source' => 'website_footer',
+      'subscribed_at' => now(),
+      'unsubscribed_at' => null,
+      'consent_ip_hash' => hash_hmac('sha256', (string) $request->ip(), (string) config('app.key')),
+    ])->save();
 
     return Response::json([
-      'success' => 'You have successfully subscribed to our newsletter.'
+      'success' => 'You’re subscribed. Watch your inbox for TICA event picks.'
     ], 200);
   }
 }

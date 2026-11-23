@@ -15,6 +15,7 @@ use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Throwable;
 
 class SendSubscriberCampaignDelivery implements ShouldQueue, ShouldBeEncrypted, ShouldBeUnique
@@ -72,10 +73,19 @@ class SendSubscriberCampaignDelivery implements ShouldQueue, ShouldBeEncrypted, 
         }
 
         try {
+            $body = (string) $delivery->campaign->body;
+            if ($delivery->subscriber_id) {
+                $unsubscribeUrl = URL::temporarySignedRoute('newsletter.unsubscribe', now()->addYears(5), [
+                    'subscriber' => $delivery->subscriber_id,
+                ]);
+                $body .= '<hr style="margin:32px 0 18px;border:0;border-top:1px solid #e2e8f1">'
+                    .'<p style="color:#667085;font-size:12px;line-height:1.5">You received this because you subscribed to TICA event updates. '
+                    .'<a href="'.e($unsubscribeUrl).'">Unsubscribe</a>.</p>';
+            }
             $mailer->sendHtml(
                 (string) $delivery->recipient_email,
                 (string) $delivery->campaign->subject,
-                (string) $delivery->campaign->body
+                $body
             );
 
             SubscriberCampaignDelivery::query()->whereKey($delivery->id)->update([

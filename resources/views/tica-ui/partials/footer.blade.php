@@ -50,6 +50,16 @@
       <div class="ft-lead">
         <p class="ft-line">{!! nl2br(e($tsFooter['tagline'])) !!}</p>
         <div class="ft-cta"><a class="ft-go" href="/discover">Discover events<i aria-hidden="true"></i></a><a class="ft-go alt" href="/create">Create an event<i aria-hidden="true"></i></a></div>
+        <form class="ft-newsletter" action="{{ route('store_subscriber') }}" method="POST" data-newsletter-form>
+          @csrf
+          <label for="footer-newsletter-email">Get event picks in your inbox</label>
+          <div class="ft-newsletter-row">
+            <input id="footer-newsletter-email" name="email_id" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="Email address" required>
+            <button type="submit">Subscribe</button>
+          </div>
+          <p>Occasional event news from TICA. Unsubscribe whenever you like.</p>
+          <span class="ft-newsletter-status" role="status" aria-live="polite"></span>
+        </form>
       </div>
       <nav class="ft-nav" aria-label="Footer">
 @foreach ($tsFooter['columns'] as $tsColumn)

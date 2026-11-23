@@ -764,6 +764,19 @@ BEGIN
   PERFORM pg_temp.tica_mark_migration('2026_11_22_180000_reconcile_promotion_ticket_revenue');
 END $$;
 
+-- 14d. Record newsletter consent and unsubscribe state -------------------
+DO $$
+BEGIN
+  IF to_regclass('public.subscribers') IS NOT NULL THEN
+    ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS source varchar(40) NOT NULL DEFAULT 'website';
+    ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS subscribed_at timestamp NULL;
+    ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS unsubscribed_at timestamp NULL;
+    ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS consent_ip_hash char(64) NULL;
+    CREATE INDEX IF NOT EXISTS subscribers_unsubscribed_at_index ON public.subscribers (unsubscribed_at);
+  END IF;
+  PERFORM pg_temp.tica_mark_migration('2026_11_23_000001_add_consent_fields_to_subscribers_table');
+END $$;
+
 -- 15. Keep these tables private -------------------------------------------
 -- The app talks to Postgres directly; Supabase's public API must not see them.
 ALTER TABLE public.organizer_notifications ENABLE ROW LEVEL SECURITY;
@@ -994,6 +1007,14 @@ SELECT 'missing update', 'support_tickets.' || required.column_name || ' column'
       WHERE table_schema = 'public' AND table_name = 'support_tickets' AND column_name = required.column_name
    )
 UNION ALL
+SELECT 'missing update', 'subscribers.' || required.column_name || ' column'
+  FROM (VALUES ('source'), ('subscribed_at'), ('unsubscribed_at'), ('consent_ip_hash')) AS required(column_name)
+ WHERE to_regclass('public.subscribers') IS NOT NULL
+   AND NOT EXISTS (
+     SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'subscribers' AND column_name = required.column_name
+   )
+UNION ALL
 SELECT 'update not recorded', m.name
   FROM (VALUES
   ('2023_03_04_134315_drop_secondary_color_from_basic_settings_table'),
@@ -1143,6 +1164,7 @@ SELECT 'update not recorded', m.name
   ,('2026_11_19_150000_add_recipient_context_to_support_tickets')
   ,('2026_11_19_180000_add_account_type_controls')
   ,('2026_11_22_180000_reconcile_promotion_ticket_revenue')
+  ,('2026_11_23_000001_add_consent_fields_to_subscribers_table')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

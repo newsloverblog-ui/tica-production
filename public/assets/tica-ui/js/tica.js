@@ -2859,3 +2859,34 @@ upd();stage(0);
     start();
   });
 })();
+
+(() => {
+  document.querySelectorAll('[data-newsletter-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector('.ft-newsletter-status');
+      const input = form.querySelector('input[name="email_id"]');
+      button.disabled = true;
+      status.textContent = 'Subscribing…';
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': TICA_DATA.csrf, 'X-Requested-With': 'XMLHttpRequest' },
+          body: new FormData(form)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const errors = data.error || data.errors || {};
+          throw new Error(Object.values(errors).flat()[0] || 'Enter a valid email address.');
+        }
+        status.textContent = data.success || 'You’re subscribed.';
+        input.value = '';
+      } catch (error) {
+        status.textContent = error.message || 'We could not subscribe you. Try again.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+})();

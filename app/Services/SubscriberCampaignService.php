@@ -21,7 +21,7 @@ class SubscriberCampaignService
             throw new DomainException('A valid campaign subject and message are required.');
         }
 
-        if (!Subscriber::query()->exists()) {
+        if (!Subscriber::query()->whereNull('unsubscribed_at')->exists()) {
             throw new DomainException('There are no subscribers to receive this campaign.');
         }
 
@@ -37,6 +37,7 @@ class SubscriberCampaignService
             $total = 0;
             Subscriber::query()
                 ->select(['id', 'email_id'])
+                ->whereNull('unsubscribed_at')
                 ->orderBy('id')
                 ->chunkById(500, function ($subscribers) use ($campaign, &$total): void {
                     $now = now();
@@ -66,6 +67,74 @@ class SubscriberCampaignService
                 'status' => 'pending', 'recipient_count' => $total,
             ]);
 
+            DB::afterCommit(fn () => $this->dispatchCampaign($campaign->id));
+
+            return $campaign;
+        }, 3);
+    }
+
+    /**
+     * Queue a consent-aware audience campaign for an explicit recipient stream.
+     * Each item contains email and may contain subscriber_id. Addresses are
+     * normalised and deduplicated before any delivery is created.
+     */
+    public function createForRecipients(string $subject, string $body, ?int $adminId, iterable $recipients): SubscriberCampaign
+    {
+        $subject = trim($subject);
+        if ($subject === '' || mb_strlen($subject) > 255 || trim(strip_tags($body)) === '') {
+            throw new DomainException('A valid campaign subject and message are required.');
+        }
+
+        return DB::transaction(function () use ($subject, $body, $adminId, $recipients): SubscriberCampaign {
+            $campaign = SubscriberCampaign::create([
+                'public_id' => (string) Str::uuid(),
+                'created_by_admin_id' => $adminId,
+                'subject' => $subject,
+                'body' => $body,
+                'status' => 'pending',
+            ]);
+
+            $now = now();
+            $rows = [];
+            $seen = [];
+            $total = 0;
+            foreach ($recipients as $recipient) {
+                $email = mb_strtolower(trim((string) data_get($recipient, 'email')));
+                if ($email === '') continue;
+                $hash = hash_hmac('sha256', $email, (string) config('app.key'));
+                if (isset($seen[$hash])) continue;
+                $seen[$hash] = true;
+                $valid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+                $rows[] = [
+                    'campaign_id' => $campaign->id,
+                    'subscriber_id' => data_get($recipient, 'subscriber_id'),
+                    'recipient_hash' => $hash,
+                    'recipient_email' => Crypt::encryptString($email),
+                    'status' => $valid ? 'pending' : 'failed',
+                    'attempts' => 0,
+                    'last_error' => $valid ? null : Crypt::encryptString('The recipient email address is invalid.'),
+                    'failed_at' => $valid ? null : $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                if (count($rows) >= 500) {
+                    SubscriberCampaignDelivery::query()->insert($rows);
+                    $total += count($rows);
+                    $rows = [];
+                }
+            }
+            if ($rows) {
+                SubscriberCampaignDelivery::query()->insert($rows);
+                $total += count($rows);
+            }
+            if ($total === 0) {
+                throw new DomainException('There are no valid recipients in this audience.');
+            }
+
+            $campaign->forceFill(['total_count' => $total])->save();
+            AuditLogger::record('audience_campaign.queued', $campaign, [], [
+                'status' => 'pending', 'recipient_count' => $total,
+            ]);
             DB::afterCommit(fn () => $this->dispatchCampaign($campaign->id));
 
             return $campaign;

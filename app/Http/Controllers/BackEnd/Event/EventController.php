@@ -295,23 +295,8 @@ class EventController extends Controller
 
   public function edit($id)
   {
-    // Editing uses the same six-step builder as creating. ?legacy=1 keeps the old form reachable.
-    if (!request()->boolean('legacy')) {
-      return redirect()->route('admin.event_builder.edit', ['id' => $id]);
-    }
-    $event = Event::with('ticket')->findOrFail($id);
-    $information['event'] = $event;
-
-    $information['languages'] = Language::all();
-    $information['countries'] = Country::get();
-    $information['cities'] = City::where('country_id',  $event->country)->orderBy('name', 'asc')->get();
-    $information['states'] = State::where('country_id',  $event->country)->orderBy('name', 'asc')->get();
-    $organizers = Organizer::get();
-    $information['organizers'] = $organizers;
-
-    $information['getCurrencyInfo']  = $this->getCurrencyInfo();
-
-    return view('backend.event.edit', $information);
+    // The six-step event builder is the only supported editor.
+    return redirect()->route('admin.event_builder.edit', ['id' => $id]);
   }
   public function imagedbrmv(Request $request)
   {
