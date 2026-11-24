@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\BasicSettings\Basic;
 use App\Services\EventFeeCalculatorService;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 /**
  * The editable parts of the public TICA pages: home page text, images and
@@ -111,10 +112,21 @@ final class TicaSite
     if (self::$cache !== null) {
       return self::$cache;
     }
+
     $stored = [];
-    if (Schema::hasColumn('basic_settings', 'tica_site')) {
-      $stored = json_decode((string) Basic::query()->value('tica_site'), true) ?: [];
+    $databaseAvailable = true;
+
+    try {
+      if (Schema::hasColumn('basic_settings', 'tica_site')) {
+        $stored = json_decode((string) Basic::query()->value('tica_site'), true) ?: [];
+      }
+    } catch (Throwable) {
+      // Error pages also use this class. If the database is unavailable, the
+      // branded defaults must remain renderable instead of masking a 404/503
+      // with a second exception and turning it into a 500 response.
+      $databaseAvailable = false;
     }
+
     $site = self::defaults();
     foreach ($site as $area => $value) {
       if (!isset($stored[$area]) || !is_array($stored[$area])) {
@@ -131,6 +143,12 @@ final class TicaSite
     );
     $order = array_values(array_unique(array_filter((array) ($site['home']['section_order'] ?? []), fn ($key) => isset(self::SECTIONS[$key]))));
     $site['home']['section_order'] = array_values(array_merge($order, array_diff(array_keys(self::SECTIONS), $order)));
+
+    // Do not cache a database-outage fallback for the lifetime of a warm
+    // serverless process; a later request should retry the stored settings.
+    if (!$databaseAvailable) {
+      return $site;
+    }
 
     return self::$cache = $site;
   }

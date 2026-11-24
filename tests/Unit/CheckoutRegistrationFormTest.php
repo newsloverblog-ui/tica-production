@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\CheckoutRegistrationService;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
 
@@ -10,6 +11,11 @@ class CheckoutRegistrationFormTest extends TestCase
 {
     public function test_ticket_order_expands_each_selection_by_quantity(): void
     {
+        Schema::shouldReceive('hasColumn')
+            ->once()
+            ->with('tickets', 'admits')
+            ->andReturnFalse();
+
         $service = app(CheckoutRegistrationService::class);
 
         $this->assertSame([4, 4, 9], $service->ticketOrder([
