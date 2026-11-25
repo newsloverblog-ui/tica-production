@@ -29,7 +29,7 @@
 <link rel="stylesheet" href="{{ asset('assets/admin/css/monokai-sublime.css') }}">
 
 {{-- atlantis css --}}
-<link rel="stylesheet" href="{{ asset('assets/admin/css/atlantis.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/admin/css/atlantis.css') }}?v={{ tica_asset_version('assets/admin/css/atlantis.css') }}">
 
 {{-- admin-main css --}}
 <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-main.css') }}">

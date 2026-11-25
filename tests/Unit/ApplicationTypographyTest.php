@@ -79,14 +79,15 @@ class ApplicationTypographyTest extends TestCase
 
         $this->assertStringContainsString('@font-face', $css);
         $this->assertStringContainsString('font-family: "Montserrat"', $css);
-        $this->assertStringContainsString('font-family: "Inter"', $css);
+        $this->assertStringNotContainsString('font-family: "Inter"', $css);
+        $this->assertStringNotContainsString('inter-latin', $css);
         $this->assertStringContainsString('font-weight: 400 800', $css);
-        $this->assertStringContainsString('font-weight: 400 700', $css);
         $this->assertStringContainsString('--tica-font-brand: "Montserrat"', $css);
-        $this->assertStringContainsString('--tica-font-ui: "Inter"', $css);
+        $this->assertStringContainsString('--tica-font-ui: var(--tica-font-brand)', $css);
         $this->assertStringContainsString('--tica-type-display-xl: clamp(', $css);
         $this->assertStringContainsString('--tica-type-body: 1rem', $css);
         $this->assertStringContainsString('--tica-type-input: 1rem', $css);
+        $this->assertStringContainsString('--tica-type-caption: .8125rem', $css);
         $this->assertStringNotContainsString('@import', $css);
     }
 

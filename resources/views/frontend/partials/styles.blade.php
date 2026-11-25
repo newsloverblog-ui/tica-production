@@ -48,8 +48,8 @@
     --heading-color: var(--tica-navy);
     --primary-color: var(--tica-blue);
     --light-color: var(--tica-gray);
-    --base-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --heading-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --base-font: var(--tica-font-ui);
+    --heading-font: var(--tica-font-brand);
   }
 
   .overlay:before {

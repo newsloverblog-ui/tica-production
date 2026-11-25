@@ -107,7 +107,7 @@ td,
 button.close {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: 'Lato', sans-serif;
+  font-family: var(--tica-font-ui, system-ui), sans-serif;
 }
 
 body {

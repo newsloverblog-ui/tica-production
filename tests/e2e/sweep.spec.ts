@@ -54,12 +54,17 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(page.locator('.h-photo[data-slide-src]')).not.toHaveCount(0);
           const hero = page.locator('.h-in h1');
           await expect(hero).toHaveCSS('font-family', /Montserrat/);
-          await expect(hero).toHaveCSS('font-weight', '700');
+          await expect(hero).toHaveCSS('font-weight', '800');
           await expect(hero).toHaveCSS('font-size', test.info().project.name === 'desktop' ? '48px' : '32px');
-          await expect(page.locator('.h-in > p').first()).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.h-in > p').first()).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('.h-in > p').first()).toHaveCSS('font-weight', '400');
+          await expect(page.locator('.h-org')).toHaveCSS('font-size', '13px');
+          await expect(page.locator('.h-org')).toHaveCSS('font-weight', '400');
+          await expect(page.getByRole('button', { name: 'Search events', exact: true })).toHaveCSS('font-weight', '600');
           await expect(page.locator('.spot-body h2')).toHaveCSS('font-family', /Montserrat/);
-          await expect(page.locator('.ft-nav h2').first()).toHaveCSS('font-family', /Inter/);
-          await expect(page.locator('#h-q')).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.spot-kicker')).toHaveCSS('font-size', '13px');
+          await expect(page.locator('.ft-nav h2').first()).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('#h-q')).toHaveCSS('font-family', /Montserrat/);
           await expect(page.locator('#h-q')).toHaveCSS('font-size', '16px');
           await expect(page.locator('#h-q')).toHaveCSS('font-weight', '400');
           if (test.info().project.name === 'desktop') {
@@ -91,25 +96,28 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
         }
         if (role === 'admin' && path === '/admin/dashboard') {
           await expect(page.locator('.cd-top h1')).toHaveCSS('font-weight', '600');
-          await expect(page.locator('.cd-card h2').first()).toHaveCSS('font-family', /Inter/);
-          await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.cd-actions .cd-btn').first()).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('.cd-card h2').first()).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('.cd-card h2').first()).toHaveCSS('font-weight', '600');
+          await expect(page.locator('.cd-period h2')).toHaveCSS('font-weight', '700');
+          await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-family', /Montserrat/);
           await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
           await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-weight', '600');
         }
         if (role === 'admin' && path === '/admin/transcation') {
           const filter = page.locator('.transaction-filters input').first();
-          await expect(filter).toHaveCSS('font-family', /Inter/);
+          await expect(filter).toHaveCSS('font-family', /Montserrat/);
           await expect(filter).toHaveCSS('font-size', '16px');
         }
         if (role === 'owner' && path === '/dashboard') {
           await expect(page.locator('#db-hi')).toHaveCSS('font-family', /Montserrat/);
-          await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-family', /Montserrat/);
           await expect(page.locator('#db-hi')).toHaveCSS('font-weight', '600');
-          await expect(page.locator('.ov-card__title').first()).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.ov-card__title').first()).toHaveCSS('font-family', /Montserrat/);
           await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
         }
         if (role === 'owner' && path === '/organizer/finance') {
-          await expect(page.locator('#fin-balance-h')).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('#fin-balance-h')).toHaveCSS('font-family', /Montserrat/);
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-variant-numeric', 'tabular-nums');
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-weight', '600');
         }
@@ -134,7 +142,9 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(filters).toBeFocused();
         }
         if (role === 'guest' && path === '/pricing') {
-          await expect(page.getByRole('heading', { name: 'Ticketing fees for your event' })).toBeVisible();
+          const hero = page.getByRole('heading', { name: 'Ticketing fees for your event' });
+          await expect(hero).toBeVisible();
+          await expect(hero).toHaveCSS('font-weight', '800');
           await expect(page.locator('#c1')).toHaveAttribute('aria-valuetext', /5,000/);
           await expect(page.locator('#c2')).toHaveAttribute('aria-valuetext', '200 tickets');
         }
@@ -284,7 +294,7 @@ test('checkout fits an intact naira total at 320px', async ({ page }) => {
   const checkout = page.locator('#checkout-view');
   await expect(checkout.locator('h1')).toHaveCSS('font-family', /Montserrat/);
   const total = checkout.locator('.sumtotal > :last-child');
-  await expect(total).toHaveCSS('font-family', /Inter/);
+  await expect(total).toHaveCSS('font-family', /Montserrat/);
   await expect(total).toHaveCSS('font-weight', '600');
   await expect(total).toHaveCSS('font-variant-numeric', 'tabular-nums');
   const lines = await total.evaluate(async amount => {

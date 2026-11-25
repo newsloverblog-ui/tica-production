@@ -20,27 +20,9 @@
   unicode-range: U+0100-02FF, U+1D00-1DBF, U+1E00-1EFF, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F;
 }
 
-@font-face {
-  font-family: "Inter";
-  src: url("../fonts/inter-latin.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+FEFF;
-}
-
-@font-face {
-  font-family: "Inter";
-  src: url("../fonts/inter-latin-ext.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  unicode-range: U+0100-0130, U+0132-0151, U+0154-02BA, U+02BD-02C5, U+02C7-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A7FF;
-}
-
 :root {
   --tica-font-brand: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --tica-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --tica-font-ui: var(--tica-font-brand);
 
   --tica-weight-regular: 400;
   --tica-weight-medium: 500;
@@ -79,7 +61,7 @@
   --tica-type-body-lg: 1rem;
   --tica-type-body: 1rem;
   --tica-type-body-sm: .875rem;
-  --tica-type-caption: .75rem;
+  --tica-type-caption: .8125rem;
   --tica-type-nav: .875rem;
   --tica-type-button: .875rem;
   --tica-type-label: .875rem;
@@ -91,13 +73,13 @@
   --tica-type-dashboard-title: clamp(1.5rem, 1.375rem + .45vw, 1.75rem);
   --tica-type-interface-heading: clamp(1.125rem, 1.0625rem + .22vw, 1.25rem);
   --tica-type-metric: clamp(1.5rem, 1.25rem + 1vw, 2rem);
-  --tica-type-financial: var(--tica-type-body);
+  --tica-type-financial: 1rem;
   --tica-type-order-total: clamp(1.25rem, 1.1rem + .35vw, 1.5rem);
   --tica-type-secondary: var(--tica-type-body-sm);
 
   --tica-text-display-xl: var(--tica-weight-extrabold) var(--tica-type-display-xl)/var(--tica-leading-display) var(--tica-font-brand);
-  --tica-text-display-l: var(--tica-weight-bold) var(--tica-type-display-l)/var(--tica-leading-hero) var(--tica-font-brand);
-  --tica-text-hero: var(--tica-weight-bold) var(--tica-type-hero)/var(--tica-leading-hero) var(--tica-font-brand);
+  --tica-text-display-l: var(--tica-weight-extrabold) var(--tica-type-display-l)/var(--tica-leading-hero) var(--tica-font-brand);
+  --tica-text-hero: var(--tica-weight-extrabold) var(--tica-type-hero)/var(--tica-leading-hero) var(--tica-font-brand);
   --tica-text-h1: var(--tica-weight-bold) var(--tica-type-h1)/var(--tica-leading-h1) var(--tica-font-brand);
   --tica-text-h2: var(--tica-weight-bold) var(--tica-type-h2)/var(--tica-leading-h2) var(--tica-font-brand);
   --tica-text-h3: var(--tica-weight-semibold) var(--tica-type-h3)/var(--tica-leading-h3) var(--tica-font-brand);
@@ -120,6 +102,7 @@
   --tica-text-table-head: var(--tica-weight-medium) var(--tica-type-table-head)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-dashboard-title: var(--tica-weight-semibold) var(--tica-type-dashboard-title)/var(--tica-leading-h2) var(--tica-font-brand);
   --tica-text-interface-heading: var(--tica-weight-semibold) var(--tica-type-interface-heading)/var(--tica-leading-label) var(--tica-font-ui);
+  --tica-text-interface-section: var(--tica-weight-bold) var(--tica-type-interface-heading)/var(--tica-leading-h2) var(--tica-font-ui);
   --tica-text-metric: var(--tica-weight-semibold) var(--tica-type-metric)/var(--tica-leading-h1) var(--tica-font-ui);
   --tica-text-financial: var(--tica-weight-semibold) var(--tica-type-financial)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-order-total: var(--tica-weight-semibold) var(--tica-type-order-total)/var(--tica-leading-h1) var(--tica-font-ui);
@@ -148,6 +131,9 @@
     --tica-type-h2: 2rem;
     --tica-type-h3: 1.5rem;
     --tica-type-event: 1.125rem;
+    --tica-type-body: 1.0625rem;
+    --tica-type-body-sm: .9375rem;
+    --tica-type-nav: .9375rem;
   }
 }
 
@@ -206,7 +192,12 @@ body :is(.card-title, .t-card__title, .directory-card-title, .ov-card__title, .d
   letter-spacing: var(--tica-tracking-ui) !important;
 }
 
-body :is(.hero, .h-in) h1,
+body .pv-section__head h2,
+body.tica-admin .page-inner .cd-period h2 {
+  font: var(--tica-text-interface-section) !important;
+}
+
+body :is(.hero, .h-in, .x-hero) h1,
 .page[data-page=home] .h-in h1 {
   font: var(--tica-text-hero) !important;
   letter-spacing: var(--tica-tracking-hero) !important;
@@ -259,20 +250,18 @@ body :is(.tc-body, .policy, .tica-prose, .evc > p) {
 }
 
 body :is(.pagebar a, .nav-links a, .mobile-menu a:not(.btn), .menu nav a, .sidebar-link, .nav-link, .user-sidebar a, .account-nav a),
-body.tica-admin .sidebar :is(.nav > .nav-item > a p, .nav > .nav-item > button p, .nav-collapse li a .sub-item),
+html body.tica-admin .sidebar :is(.nav > .nav-item > a p, .nav > .nav-item > button p, .nav-collapse li a .sub-item,
+  .nav > .nav-item:is(.active, .submenu) > a p),
+html body.tica-admin .sidebar[data-background-color] .nav > .nav-item:is(.active, .submenu) > a p,
 #tica-shell :is(.tsh-link, .tsh-sublink) {
   font: var(--tica-text-nav) !important;
   letter-spacing: var(--tica-tracking-ui) !important;
 }
 
-body :is(.btn, .t-btn, [role="button"], .coupon-btn, .buy > a, .spot-all, .page-link, .seeall),
+body :is(.btn, .t-btn, .cd-btn, [role="button"], .coupon-btn, .buy > a, .spot-all, .page-link, .seeall),
 body button:where(:not(.close, [class*="icon"])) {
   font: var(--tica-text-button) !important;
   letter-spacing: var(--tica-tracking-ui);
-}
-
-body.tica-app-ui .h-motion {
-  font: var(--tica-text-caption) !important;
 }
 
 body :is(.form-group > label, .form-label, .t-label, .control-label, fieldset > legend, .field-label, .filter-label,
@@ -305,9 +294,10 @@ body :is(table th, table thead td, .directory-table-head > *, .at-table-head > *
   text-transform: none !important;
 }
 
-body :is(small, .text-xs, .cdate, .row-date, .coupon-mobile-label, figcaption),
+body :is(small, .text-xs, .cdate, .row-date, .coupon-mobile-label, .ft-newsletter-status,
+  .ft-base > span:first-child, .cdf, .cdm, figcaption),
 body :is(.tica-report-table td, td[data-label])::before,
-#tica-shell :is(.tsh-group-label, .tsh-kicker) {
+#tica-shell :is(.tsh-group, .tsh-subgroup, .tsh-group-label, .tsh-kicker) {
   font: var(--tica-text-caption) !important;
 }
 
@@ -316,7 +306,7 @@ body :is(.badge, .t-badge, .status-pill, .payment-state, .provider-chip, .pm-pil
   font: var(--tica-text-status) !important;
 }
 
-body :is(.checkout-eyebrow, .directory-eyebrow, .fin-eyebrow, .ov-eyebrow) {
+body :is(.checkout-eyebrow, .directory-eyebrow, .fin-eyebrow, .ov-eyebrow, .acd-k, .scanner-eyebrow) {
   font: var(--tica-text-eyebrow) !important;
   letter-spacing: var(--tica-tracking-eyebrow);
 }
@@ -395,7 +385,7 @@ body :is(.t-num, .price, .spot-buy b, .payment-amount, .tx-amount, .tx-balance, 
   .ov-kpi__value, .ov-summary__value, .ov-money__value, .cd-kpi-value, .org-metric strong, .acd-stat strong,
   .directory-stat strong, .at-stat strong, .promotion-stat strong, .coupon-stats strong,
   .fin-balance__primary > strong, .fin-flow__step strong, .fin-two .lg-dl dd, .scanner-metric > span,
-  .cdm, .cd-full, time[data-cd]) {
+  .cdf, .cdm, .cd-full, time[data-cd]) {
   font-variant-numeric: tabular-nums !important;
 }
 

@@ -40,30 +40,32 @@
 
 ### Typography
 
-Use **Montserrat** for brand statements, marketing headings, major page titles, and event names. Use **Inter** for paragraphs, controls, operational headings, captions, tables, and figures. The [shared typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads both self-hosted variable fonts and defines the reusable text roles.
+Use **Montserrat** throughout TICA, including brand headings, paragraphs, controls, dashboards, and financial figures. The [shared typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads the self-hosted variable font with weights 400–800 and defines the reusable text roles.
 
 | Role | Token | Desktop / mobile | Weight | Line height |
 |------|-------|-----------------:|-------:|------------:|
 | Display XL | `--tica-text-display-xl` | 64 / 40px | 800 | 1.10 |
-| Display L | `--tica-text-display-l` | 56 / 36px | 700 | 1.12 |
-| Hero | `--tica-text-hero` | 48 / 32px | 700 | 1.12 |
+| Display L | `--tica-text-display-l` | 56 / 36px | 800 | 1.12 |
+| Hero | `--tica-text-hero` | 48 / 32px | 800 | 1.12 |
 | Page title | `--tica-text-h1` | 36 / 28px | 700 | 1.20 |
 | Section heading | `--tica-text-h2` | 32 / 24px | 700 | 1.25 |
 | Subheading | `--tica-text-h3` | 24 / 20px | 600 | 1.30 |
 | Event preview title | `--tica-text-event` | 18 / 16px | 600 | 1.35 |
 | Dashboard title | `--tica-text-dashboard-title` | 28 / 24px | 600 | 1.25 |
 | Operational heading | `--tica-text-interface-heading` | 20 / 18px | 600 | 1.40 |
+| Workspace section | `--tica-text-interface-section` | 20 / 18px | 700 | 1.25 |
 | Body large | `--tica-text-body-lg` | 18 / 16px | 400 | 1.65 |
-| Body | `--tica-text-body` | 16px | 400 | 1.60 |
-| Supporting text | `--tica-text-body-sm`, `--tica-text-secondary` | 14px | 400 | 1.50 |
-| Navigation and labels | `--tica-text-nav`, `--tica-text-label` | 14px | 500 | 1.40 |
+| Body | `--tica-text-body` | 17 / 16px | 400 | 1.60 |
+| Supporting text | `--tica-text-body-sm`, `--tica-text-secondary` | 15 / 14px | 400 | 1.50 |
+| Navigation | `--tica-text-nav` | 15 / 14px | 500 | 1.40 |
+| Form labels | `--tica-text-label` | 14px | 500 | 1.40 |
 | Buttons | `--tica-text-button` | 14px | 600 | 1.40 |
 | Inputs | `--tica-text-input` | 16px | 400 | 1.50 |
 | Table cells | `--tica-text-table` | 14px | 400 | 1.50 |
-| Captions | `--tica-text-caption` | 12px | 400 | 1.50 |
+| Captions | `--tica-text-caption` | 13px | 400 | 1.50 |
 | Financial metrics | `--tica-text-metric` | 32 / 24px | 600 | 1.20 |
 
-Reserve the 800 weight for the largest display role. Keep descriptions within the shared reading measure and use the heading-to-copy and copy-to-action spacing tokens. Apply normal tracking and tabular numerals to prices, balances, and numeric columns.
+Use 800 for hero headlines and display roles. Keep descriptions within the shared reading measure and use the heading-to-copy and copy-to-action spacing tokens. Apply normal tracking and tabular numerals to prices, balances, and numeric columns.
 
 ### Spacing Variables
 
