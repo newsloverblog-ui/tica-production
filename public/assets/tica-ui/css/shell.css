@@ -124,7 +124,6 @@ body:not(.orgshell):not(.orgshell-legacy) #tica-shell{display:none}
    controls touch when a toolbar wraps at narrower widths. */
 .or-actions,
 .ev-actions,
-.f-foot,
 .nav-actions,
 .workspace-actions,
 .ov-head__actions,

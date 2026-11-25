@@ -237,8 +237,6 @@ h2.display{font-size:clamp(29px,3.5vw,46px)}
 .railc .over em{display:block;font-style:normal;font-size:12px;font-weight:700;margin-bottom:2px}
 .railc .over b{display:block;font-size:17px}
 .railc .over span{font-size:14px}
-.filters{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:4px;background:#fff;border-radius:16px;padding:8px;box-shadow:var(--shadow)}
-@media (max-width:900px){.filters{grid-template-columns:1fr 1fr}.pick.wide{grid-column:1/-1}}
 .pick{padding:4px 12px;min-width:0}
 .pick label{display:block;font-size:13px;font-weight:600;color:var(--soft)}
 .pick select,.pick input{width:100%;min-height:36px;border:0;background:transparent;color:var(--ink);font:600 16px/1.2 var(--body);padding:0}
@@ -497,7 +495,6 @@ h2.display{font-size:clamp(26px,2.8vw,38px)}
 .railc .over em{font-weight:600;font-size:11px;opacity:.85}
 .railc .over b{font-size:15px;font-weight:600}
 .railc .over span{font-size:13px}
-.filters{border-radius:12px;box-shadow:none;border:1px solid var(--line)}
 .head.small h2{font-size:18px;font-weight:700}
 .row{border-radius:12px;box-shadow:none;border:1px solid var(--line);padding:14px}
 .row:hover{transform:none;box-shadow:var(--shadow)}
@@ -1414,8 +1411,6 @@ body.isorg .menu .org-only{display:flex!important}
 .expired{max-width:560px;margin:40px auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px}
 .expired h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
 .expired p{color:var(--soft);margin-bottom:20px}
-.filters{grid-template-columns:1.5fr repeat(5,1fr)}
-@media (max-width:900px){.filters{grid-template-columns:1fr 1fr}}
 
 /* my tickets */
 .mt-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:40px clamp(40px,6vw,96px);align-items:start;padding-block:clamp(48px,6vw,88px)}
@@ -1747,41 +1742,59 @@ body.isuser .m-login,body.isorg .m-login{display:none!important}
 .nav-actions .m-cta .btn{display:flex!important;padding:0 20px}
 body.isuser .nav-actions .m-cta .m-login,body.isorg .nav-actions .m-cta .m-login{display:none!important}
 
-/* v24: discover filters, header search, hero refinements */
+/* Discover search and filters */
+.filters{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:16px;border:1px solid #dce4ee;border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+.d-query{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;min-width:0}
+.d-query input,.f-grid .pick :is(input,select,.smart-trigger,.calendar-trigger){
+  width:100%;min-width:0;min-height:44px;height:auto;padding:8px 10px;border:1px solid #CBD5E3;border-radius:10px;
+  background:#fff;color:var(--ink)
+}
+.d-query input{padding-inline:12px}
+.d-query input::placeholder{color:var(--soft)}
+.d-query .d-search{min-width:44px;min-height:44px;padding-inline:16px;gap:8px}
+.d-search svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.f-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.f-grid .pick{padding:0}
+.f-grid .pick label{margin-bottom:4px}
+.f-grid .smart-trigger > span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .f-btn,.f-head,.f-foot,.f-active{display:none}
-.f-more,.f-grid{display:contents}
 .f-sheet{position:fixed;inset:auto 0 0;width:100%;max-width:none;max-height:none;margin:0;padding:0;overflow:visible;border:0;border-radius:20px 20px 0 0;background:#fff;color:var(--ink)}
 .f-sheet::backdrop{background:rgba(11,36,71,.5)}
+#d-results{scroll-margin-top:calc(var(--hdr,64px) + 16px)}
 html.filters-open{overflow:hidden}
+@media (min-width:1180px){
+  .page[data-page=discover] .tint>.wrap.sec.tight{max-width:calc(1540px + 2*var(--gutter))}
+  .f-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
 @media (max-width:700px){
-  .filters{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:6px!important;align-items:center}
-  .pick.wide{grid-column:auto!important;display:flex;align-items:center;gap:8px;padding:0 10px!important;min-height:48px}
-  .pick.wide::before{content:"";flex:none;width:18px;height:18px;background:var(--soft);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/contain no-repeat}
-  .pick.wide label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-  .pick.wide input{font-size:16px!important;min-height:44px}
-  .f-btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border:1px solid #CBD5E3;border-radius:10px;background:#fff;color:var(--ink);font:600 15px/1 var(--body);cursor:pointer}
+  .filters{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px;align-items:center}
+  .d-query .d-search{padding-inline:10px}
+  .d-search span{display:none}
+  .f-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:0 10px;border:1px solid #CBD5E3;border-radius:10px;background:#fff;color:var(--ink);cursor:pointer}
   .f-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
   .f-btn i{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--indigo-2);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
   .f-btn i[hidden]{display:none}
   .f-more{display:none}
-  .f-sheet .f-more{display:block;max-height:86vh;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
-  .f-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .f-head h2{font-size:19px;font-weight:700}
-  .f-x{width:44px;height:44px;border:0;border-radius:50%;background:var(--tint);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+  .f-sheet .f-more{
+    display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;max-height:86vh;max-height:86dvh;
+    padding:16px 16px calc(12px + env(safe-area-inset-bottom))
+  }
+  .f-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .f-x{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:var(--tint);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
   .f-x svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
-  .f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .f-grid .pick{padding:0!important}
-  .f-grid .pick label{font-size:13px;margin-bottom:4px}
-  .f-grid .pick select{min-height:48px;border:1px solid #CBD5E3!important;border-radius:10px;padding:0 10px!important;font-size:16px!important;background:#fff}
-  .f-foot{display:grid;grid-template-columns:1fr 1.6fr;gap:10px;margin-top:20px;position:sticky;bottom:0;background:#fff;padding-top:8px}
-  .f-foot .btn{min-height:50px}
+  .f-sheet .f-grid{grid-template-columns:repeat(2,minmax(0,1fr));overflow-y:auto;overscroll-behavior:contain;margin-inline:-4px;padding:4px}
+  .f-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .f-foot .btn{min-height:44px;padding:6px 10px;text-align:center}
   .f-active{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:12px -16px 0;padding:0 16px}
   .f-active:empty{display:none}
   .f-active button{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 10px 0 12px;border:0;border-radius:999px;background:#E6EEF9;color:var(--indigo-2);font:600 13px/1 var(--body);cursor:pointer}
   .f-active svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
   .head.small{margin-top:20px}
 }
-@media (max-width:360px){.f-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.f-grid{grid-template-columns:1fr}}
+@media (max-width:360px){
+  .f-btn span{display:none}
+  .f-sheet .f-grid{grid-template-columns:minmax(0,1fr)}
+}
 /* hero on tablets: search on its own row, three filters, one button */
 @media (min-width:701px) and (max-width:980px){
   .h-in .search{grid-template-columns:repeat(3,minmax(0,1fr))!important}
@@ -2988,7 +3001,7 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
 }
 .smart-select.is-open .smart-chevron{transform:rotate(225deg) translate(-1px,-1px)}
 .smart-menu{
-  position:fixed;z-index:9999;min-width:210px;max-height:258px;
+  position:fixed;z-index:9999;min-width:210px;max-height:min(258px,calc(100vh - 24px));max-height:min(258px,calc(100dvh - 24px));
   padding:5px;overflow:auto;overscroll-behavior:contain;border:1px solid #dce4ee;border-radius:12px;background:#fff;
   box-shadow:0 18px 45px rgba(4,25,57,.2),0 3px 10px rgba(4,25,57,.09)
 }
@@ -3068,29 +3081,6 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
   }
 }
 
-@media (min-width:1180px){
-  .page[data-page=discover] .tint>.wrap.sec.tight{
-    max-width:calc(1540px + 2*var(--gutter))!important
-  }
-  .page[data-page=discover] .filters{
-    display:grid!important;
-    grid-template-columns:minmax(230px,1.45fr) minmax(135px,.85fr) minmax(145px,.9fr) minmax(165px,1fr) minmax(135px,.82fr) minmax(185px,1.1fr) minmax(165px,1fr)!important;
-    align-items:stretch!important;gap:0!important;padding:10px 12px!important
-  }
-  .page[data-page=discover] .filters>.pick{
-    display:flex;min-width:0;min-height:62px;padding:6px 16px!important;flex-direction:column;justify-content:center
-  }
-  .page[data-page=discover] .filters>.pick+.pick{border-left:1px solid #e1e7ef}
-  .page[data-page=discover] .filters>.pick label{margin-bottom:2px;font-size:11px!important;line-height:15px}
-  .page[data-page=discover] .filters>.pick input,
-  .page[data-page=discover] .filters>.pick .smart-trigger{
-    height:28px!important;min-height:28px!important;padding:0!important;border:0!important;border-radius:0!important;
-    background:transparent!important;box-shadow:none!important
-  }
-  .page[data-page=discover] .filters>.pick.wide{max-width:none!important}
-  .page[data-page=discover] .filters>.pick-date input[type=date]{padding:0!important}
-}
-
 /* Ticket journey: preserve the original collage, refine only rhythm and scale. */
 .page[data-page=home] .tk{
   grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr)!important;
@@ -3160,62 +3150,6 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
   .page[data-page=home] .tk h2{max-width:19ch!important}
 }
 
-/* Discover search uses the same grouped-control language as the hero. */
-.page[data-page=discover] .filters{
-  border:1px solid #dce4ee!important;border-radius:18px!important;background:rgba(255,255,255,.98)!important;
-  box-shadow:0 16px 38px rgba(8,31,65,.1)!important
-}
-.page[data-page=discover] .filters>.pick{position:relative;min-width:0}
-.page[data-page=discover] .filters>.pick label{color:#526079!important;font-weight:580!important}
-.page[data-page=discover] .filters>.pick .smart-trigger,
-.page[data-page=discover] .filters>.pick input,
-.page[data-page=discover] .filters>.pick-date>.calendar-trigger{
-  color:#0B2447!important
-}
-.page[data-page=discover] .d-search{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0;height:52px;margin:auto 0;padding:0 18px;
-  border:0;border-radius:14px;background:#ef762c;color:#0b2445;font:620 13px/1 var(--ui);
-  box-shadow:0 5px 14px rgba(201,80,15,.18);cursor:pointer;transition:background-color .16s ease,transform .16s ease
-}
-.page[data-page=discover] .d-search svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
-.page[data-page=discover] .d-search:hover{background:#f58338;transform:translateY(-1px)}
-.page[data-page=discover] .d-search:focus-visible{outline:3px solid rgba(22,79,153,.18);outline-offset:2px}
-
-@media (min-width:1180px){
-  .page[data-page=discover] .filters{
-    grid-template-columns:minmax(230px,1.45fr) minmax(125px,.8fr) minmax(135px,.85fr) minmax(155px,.95fr) minmax(125px,.78fr) minmax(175px,1.05fr) minmax(155px,.95fr) 126px!important;
-    align-items:center!important;padding:7px!important;gap:4px!important
-  }
-  .page[data-page=discover] .filters>.pick{
-    min-height:54px!important;padding:5px 13px!important;justify-content:center!important
-  }
-  .page[data-page=discover] .filters>.pick+.pick{border-left:1px solid #e1e7ef}
-  .page[data-page=discover] .filters>.pick label{margin-bottom:0!important;font-size:10px!important;line-height:14px!important}
-  .page[data-page=discover] .filters>.pick input,
-  .page[data-page=discover] .filters>.pick .smart-trigger,
-  .page[data-page=discover] .filters>.pick-date>.calendar-trigger{
-    width:100%!important;height:24px!important;min-height:24px!important;padding:0!important;border:0!important;border-radius:0!important;
-    background:transparent!important;box-shadow:none!important
-  }
-  .page[data-page=discover] .d-search{width:100%}
-}
-
-@media (min-width:901px) and (max-width:1179px){
-  .page[data-page=discover] .d-search{width:100%;height:48px}
-}
-
-@media (max-width:900px){
-  .page[data-page=discover] .d-search{width:100%;grid-column:1/-1}
-}
-
-@media (min-width:901px) and (max-width:1179px){
-  .page[data-page=discover] .filters{
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;padding:10px!important
-  }
-  .page[data-page=discover] .filters>.pick{padding:5px 10px!important}
-  .page[data-page=discover] .filters>.pick.wide{grid-column:span 2!important;max-width:none!important}
-}
-
 /* Consistent cross-browser calendar picker. */
 .calendar-native{
   position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;
@@ -3226,13 +3160,11 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
   color:#0B2447;text-align:left;font:520 13.5px/1.25 var(--ui);cursor:pointer
 }
 .page[data-page=home] .h-in .search.ms .ms-date>.calendar-trigger{grid-column:2;grid-row:2;height:24px}
-.page[data-page=discover] .pick-date>.calendar-trigger{
-  width:100%;min-height:45px;padding:0 12px;border:1px solid #dce3ed;border-radius:10px;background:#fff;font-size:13px
-}
 .calendar-trigger.is-open{color:#0d4c98}
 .calendar-panel{
   position:fixed;z-index:10000;padding:0 14px 14px;border:1px solid #dce4ee;border-radius:14px;background:#fff;
-  color:#0B2447;font-family:var(--ui);box-shadow:0 22px 56px rgba(4,25,57,.22),0 4px 12px rgba(4,25,57,.08)
+  color:#0B2447;font-family:var(--ui);box-shadow:0 22px 56px rgba(4,25,57,.22),0 4px 12px rgba(4,25,57,.08);
+  max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain
 }
 .calendar-panel[hidden]{display:none!important}
 .calendar-head{display:grid;grid-template-columns:38px 1fr 38px;align-items:center;height:58px;border-bottom:1px solid #e6ebf2}
@@ -3255,12 +3187,6 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
 .calendar-days button.is-selected{background:#164f99;color:#fff;box-shadow:none}
 .calendar-days button.is-past{color:#c3cad4;cursor:not-allowed}
 .calendar-days button.is-past:hover{background:transparent;color:#c3cad4}
-
-@media (min-width:1180px){
-  .page[data-page=discover] .filters>.pick-date>.calendar-trigger{
-    height:28px!important;min-height:28px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important
-  }
-}
 
 /* Restored ticket panel, widened to use the page canvas. */
 .page[data-page=home] .tk{
@@ -4288,13 +4214,13 @@ body.admin-builder footer{display:none}
 
 /* Calm action palette: orange remains an accent, never the dominant CTA. */
 :root{--action:#1F5FCC;--action-hover:#174DA8;--action-soft:#EEF3FD;--action-line:#D5E0F7}
-.btn-hot,.ms-go,.filter-submit,.f-foot button{
+.btn-hot,.ms-go,.filter-submit{
   background:var(--action)!important;
   border-color:var(--action)!important;
   color:#fff!important;
   box-shadow:none!important;
 }
-.btn-hot:hover,.ms-go:hover,.filter-submit:hover,.f-foot button:hover{
+.btn-hot:hover,.ms-go:hover,.filter-submit:hover{
   background:var(--action-hover)!important;
   border-color:var(--action-hover)!important;
   color:#fff!important;
@@ -5149,12 +5075,12 @@ body.isorg.appmode .workspace-context{gap:0}
    Nollydic Blue #2E4FD8 for actions; Orange #F2A06B with navy text for
    buying and registering. Nothing else on the page changes. */
 html body .btn-hot,html body .ms-go,html body .filter-submit,html body .acd-primary,html body .acd-find,
-html body .page[data-page=home] .h-in .search.ms .ms-go,html body .page[data-page=discover] .d-search,
+html body .page[data-page=home] .h-in .search.ms .ms-go,
 html body .page[data-page=create] .btn-hot,html body .page[data-page=dashboard] .btn-hot,html body .ce-side .btn-hot,
 html body .page[data-page=account] .btn-hot,html body .page[data-page=checkin] .btn-hot{
   background:#2E4FD8!important;border-color:#2E4FD8!important;color:#fff!important;box-shadow:none!important}
 html body .btn-hot:hover,html body .ms-go:hover,html body .filter-submit:hover,html body .acd-primary:hover,html body .acd-find:hover,
-html body .page[data-page=home] .h-in .search.ms .ms-go:hover,html body .page[data-page=discover] .d-search:hover{
+html body .page[data-page=home] .h-in .search.ms .ms-go:hover{
   background:#2541B8!important;border-color:#2541B8!important;color:#fff!important}
 
 html body #spot-link,html body #bb-go,html body #pay-now,html body #to-details,html body .btn-hot.tp-go{
@@ -6863,20 +6789,6 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     }
 }
 
-@media (min-width: 1180px) {
-    .page[data-page="discover"] .filters {
-        grid-template-columns:
-            minmax(220px, 1.35fr)
-            minmax(130px, .76fr)
-            minmax(125px, .72fr)
-            minmax(135px, .76fr)
-            minmax(145px, .82fr)
-            minmax(125px, .72fr)
-            minmax(150px, .88fr)
-            minmax(145px, .82fr) !important;
-    }
-}
-
 /* Homepage event artwork uses a consistent square crop on larger screens. */
 .page[data-page="home"] .band #home-wall .cardlink,
 .page[data-page="home"] .band #home-wall .flyer,
@@ -6955,20 +6867,6 @@ body.isuser.appmode .workspace-badge { display: none !important; }
         height: auto !important;
         padding: 15px 8px 14px 16px !important;
     }
-}
-
-/* Discover keeps semantic form labels without showing repeated field headings. */
-.page[data-page="discover"] .filters .pick > label {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    margin: -1px !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    clip: rect(0 0 0 0) !important;
-    clip-path: inset(50%) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
 }
 
 /* Checkout: the event's registration form, asked once per ticket. */

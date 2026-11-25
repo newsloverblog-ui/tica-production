@@ -121,6 +121,24 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-variant-numeric', 'tabular-nums');
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-weight', '600');
         }
+        if (role === 'guest' && path === '/discover') {
+          if (test.info().project.name === 'desktop') {
+            await page.setViewportSize({ width: 1180, height: 900 });
+            await noSidewaysScroll(page);
+          }
+          const search = page.getByRole('searchbox', { name: 'Search events' });
+          await search.fill('zzzz-no-matching-event-9c72');
+          if (test.info().project.name === 'mobile') {
+            await page.getByRole('search', { name: 'Find events' }).getByRole('button', { name: 'Search', exact: true }).click();
+          } else {
+            await search.press('Enter');
+          }
+          await expect(page.locator('#count')).toHaveText('0 events');
+          await expect(page.locator('#d-results')).toBeFocused();
+          await expect(page).toHaveURL(/q=zzzz-no-matching-event-9c72/);
+          await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
+          await expect(search).toHaveValue('');
+        }
         if (role === 'guest' && path === '/discover' && test.info().project.name === 'mobile') {
           const filters = page.getByRole('button', { name: /^Filters/ });
           await filters.focus();
@@ -140,6 +158,21 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await page.keyboard.press('Escape');
           await expect(dialog).toBeHidden();
           await expect(filters).toBeFocused();
+          await filters.click();
+          await expect(dialog.getByRole('button', { name: 'Search', exact: true })).toHaveCount(0);
+          const date = dialog.getByRole('button', { name: 'Pick a date' });
+          const apply = dialog.locator('#f-apply');
+          const dateBox = (await date.boundingBox())!;
+          const applyBox = (await apply.boundingBox())!;
+          expect(dateBox.y + dateBox.height).toBeLessThan(applyBox.y);
+          await date.click();
+          const calendar = dialog.getByRole('dialog', { name: 'Choose a date' });
+          await calendar.locator('.calendar-days button:enabled').first().click();
+          await expect(page).toHaveURL(/date=\d{4}-\d{2}-\d{2}/);
+          await apply.click();
+          await expect(dialog).toBeHidden();
+          await expect(page.locator('#d-results')).toBeFocused();
+          await page.goto('/discover', { waitUntil: 'networkidle' });
         }
         if (role === 'guest' && path === '/pricing') {
           const hero = page.getByRole('heading', { name: 'Ticketing fees for your event' });

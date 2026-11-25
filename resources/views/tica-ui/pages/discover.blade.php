@@ -12,19 +12,23 @@
   </div>
   <div class="tint"><div class="wrap sec tight">
     <div class="filters" role="group" aria-label="Filter events">
-      <div class="pick wide"><label for="d-q">Search</label><input id="d-q" type="search" placeholder="Artist, event or organiser" autocomplete="off"></div>
+      <form class="d-query" id="d-query" action="/discover" method="get" role="search" aria-label="Find events">
+        <label class="sr" for="d-q">Search events</label>
+        <input id="d-q" name="q" type="search" placeholder="Artist, event or organiser" autocomplete="off" enterkeyhint="search">
+        <button class="btn btn-hot d-search" id="d-submit" type="submit" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span>Search</span></button>
+      </form>
       <button class="f-btn" type="button" id="f-btn" aria-haspopup="dialog" aria-controls="f-sheet" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span><i id="f-n" hidden></i></button>
       <div class="f-more" id="f-more"><div class="f-head"><h2 id="f-h">Filter events</h2><button class="f-x" type="button" id="f-x" aria-label="Close filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="f-grid">
       <div class="pick"><label for="d-country">Country</label><select id="d-country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div class="pick"><label for="d-where">City</label><select id="d-where" data-city><option value="all">All cities</option></select></div>
       <div class="pick"><label for="d-cat">Category</label><select id="d-cat" class="catselect"></select></div>
       <div class="pick"><label for="d-price">Price</label><select id="d-price"><option value="all">Any price</option><option value="free">Free</option><option value="low">Under ₦5,000</option><option value="high">₦5,000 and above</option></select></div>
       <div class="pick"><label for="d-sort">Sort by</label><select id="d-sort"><option value="soon">Soonest first</option><option value="low">Price, low to high</option><option value="high">Price, high to low</option></select></div>
-      <div class="pick pick-date"><label for="d-date">Date</label><input id="d-date" type="date" aria-label="Choose event date"></div><button class="d-search" id="d-submit" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span>Search</span></button>
+      <div class="pick pick-date"><label for="d-date">Date</label><input id="d-date" type="date" aria-label="Choose event date"></div>
       </div><div class="f-foot"><button class="btn btn-line" type="button" id="f-clear">Clear all</button><button class="btn btn-hot" type="button" id="f-apply">Show results</button></div></div>
     </div>
     <div class="f-active" id="f-active"></div>
     <dialog class="f-sheet" id="f-sheet" aria-labelledby="f-h"></dialog>
-    <div class="head small"><h2>All events</h2><p class="count" id="count" aria-live="polite"></p></div>
+    <div class="head small"><h2 id="d-results" tabindex="-1">All events</h2><p class="count" id="count" aria-live="polite"></p></div>
     <div class="rows" id="rows"></div>
     <div class="empty" id="empty" hidden><p>No events match those filters.</p><button class="btn btn-line" type="button" id="reset">Clear filters</button></div>
     

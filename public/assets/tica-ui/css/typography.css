@@ -266,7 +266,7 @@ body button:where(:not(.close, [class*="icon"])) {
 
 body :is(.form-group > label, .form-label, .t-label, .control-label, fieldset > legend, .field-label, .filter-label,
   .booking-filters > label > span, .transaction-filters > label > span, .at-form label > span, .taa-field label,
-  .tica-coupons-page .modal label, .pick > span, .search-label, .inp > label, .au-f label, .acd-form label,
+  .tica-coupons-page .modal label, .f-grid .pick > label, .search-label, .inp > label, .au-f label, .acd-form label,
   .tp-code label, .wl label, .ck-manual label, .ck-ev label, .field label, .checkout-field label, .c-f label) {
   font: var(--tica-text-label) !important;
   letter-spacing: var(--tica-tracking-ui);
@@ -274,7 +274,7 @@ body :is(.form-group > label, .form-label, .t-label, .control-label, fieldset > 
 
 /* Keep editable controls at 16px to avoid zoom on focus in iOS Safari. */
 body :is(.form-control, .custom-select, .t-input, .t-select, .t-textarea, .select2-selection, .h-in .smart-trigger,
-  .filters .smart-trigger, .filters .calendar-trigger, select, textarea,
+  .f-grid .smart-trigger, .f-grid .calendar-trigger, select, textarea,
   input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="reset"], [type="submit"])) {
   font: var(--tica-text-input) !important;
   letter-spacing: var(--tica-tracking-ui);
