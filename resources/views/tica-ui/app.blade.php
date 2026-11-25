@@ -39,6 +39,7 @@ body.tica-admin-event-builder .page[data-page=create] .wrap.pagehead.creategrid{
 @includeIf('backend.partials.side-navbar')
 <div class="main-panel"><div class="content"><main class="page-inner" id="tica-main-content" tabindex="-1"><div id="main">
 @else
+<a class="tica-public-skip" href="#main">{{ __('Skip to main content') }}</a>
 @include('tica-ui.partials.header')
 
 @if (session('secret_login') && session('impersonator_admin_id') && Auth::guard('customer')->check())

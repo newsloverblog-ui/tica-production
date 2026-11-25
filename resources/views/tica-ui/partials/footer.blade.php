@@ -18,7 +18,7 @@
   <span class="ckb-ic" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 3a13 13 0 1 0 13 13 4 4 0 0 1-4.6-4.3A4.2 4.2 0 0 1 20 7.2 4.3 4.3 0 0 1 16 3z"/><g fill="#fff"><circle cx="11" cy="12" r="2"/><circle cx="18.5" cy="19" r="2.2"/><circle cx="10.5" cy="20.5" r="1.5"/><circle cx="16" cy="12.5" r="1.1"/><circle cx="23" cy="22" r="1.2"/></g></svg></span>
   <div class="ckb-main">
     <h2>Cookies on TICA</h2>
-    <p>We use essential cookies to run the site and keep payments safe. With your permission, we'd also use your approximate city to show events near you, and analytics to improve TICA. Read our <a href="/policies/cookies" data-ck-pol>cookie policy</a> or <button class="ckb-link" type="button" data-ck="manage">manage your choices</button>.</p>
+    <p>Essential cookies keep TICA and payments working. With your permission, we suggest events using your approximate city and use analytics to improve TICA. Read our <a href="/policies/cookies" data-ck-pol>cookie policy</a> or <button class="ckb-link" type="button" data-ck="manage">manage your choices</button>.</p>
   </div>
   <div class="ckb-acts"><button class="btn btn-line" type="button" data-ck="reject">Reject non-essential</button><button class="btn btn-hot" type="button" data-ck="accept">Accept all</button></div>
   <button class="ckb-x" type="button" data-ck="reject" aria-label="Close and use essential cookies only"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>

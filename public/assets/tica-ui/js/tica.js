@@ -1038,7 +1038,7 @@ function route(){
   document.title=(e&&['event','checkout','ticket'].indexOf(p)!==-1?e.name:p==='content'?TICA_DATA.content.title:TITLES[p])+' | TICA';
   window.scrollTo({top:0,behavior:'instant'});
   var pg=document.querySelector('.page[data-page="'+p+'"]');pg.classList.remove('enter');void pg.offsetWidth;pg.classList.add('enter');
-  reveal(pg);cdTick();refreshStock();
+  if(p!=='home')reveal(pg);cdTick();refreshStock();
   var main=$('main');if(parts[0]!==undefined&&route.ran)main.focus({preventScroll:true});route.ran=true;
   if(p==='discover')filter();
   hydrateImages(pg);
@@ -1287,21 +1287,6 @@ ui();
 })();
 /* design script 11 */
 (function(){if(window.TICA_ADMIN)return;function p(){var s=innerWidth<=480;var d=document.getElementById('d-q');if(d)d.placeholder=s?'Search events':'Artist, event or organiser'}p();addEventListener('resize',p)})();
-/* design script 12 */
-(function(){
-if(window.TICA_ADMIN)return;
-var s=[].slice.call(document.querySelectorAll('.h-slide'));if(s.length<2)return;
-var i=0,loading=false,motion=matchMedia('(prefers-reduced-motion: reduce)');
-setInterval(function(){
-  if(loading||motion.matches||document.hidden||document.querySelector('[data-page=home]').hidden)return;
-  var next=(i+1)%s.length,img=s[next].querySelector('img');
-  function show(){s[i].classList.remove('on');i=next;s[i].classList.add('on');loading=false}
-  if(img.src){show();return}
-  loading=true;
-  img.src=img.dataset.heroSrc;
-  img.decode().then(show,function(){loading=false});
-},6500);
-})();
 /* design script 14 */
 (function(){
 if(window.TICA_ADMIN)return;
@@ -2540,59 +2525,6 @@ upd();stage(0);
 /* design script 21 */
 (() => {
   if (window.TICA_ADMIN) return;
-  if (document.querySelector('.home-progress')) return;
-
-  const progress = document.createElement('div');
-  progress.className = 'home-progress';
-  progress.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(progress);
-
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  let ticking = false;
-
-  const isHome = () => !document.querySelector('.page[data-page="home"]')?.hidden;
-  const update = () => {
-    ticking = false;
-    const home = isHome();
-    document.body.classList.toggle('home-route', home);
-    document.body.classList.toggle('home-scrolled', home && window.scrollY > 18);
-    if (!home) return;
-
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    progress.style.transform = `scaleX(${Math.min(1, window.scrollY / max)})`;
-
-    if (!reduced.matches && window.innerWidth > 700) {
-      const amount = Math.min(window.scrollY, 520);
-      const homePage = document.querySelector('.page[data-page="home"]');
-      homePage?.style.setProperty('--hero-y', `${amount * 0.12}px`);
-      homePage?.style.setProperty('--hero-copy-y', `${amount * 0.045}px`);
-      homePage?.style.setProperty('--hero-scale', String(1 + amount * 0.00008));
-    }
-  };
-
-  const requestUpdate = () => {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(update);
-    }
-  };
-
-  window.addEventListener('scroll', requestUpdate, { passive: true });
-  window.addEventListener('resize', requestUpdate, { passive: true });
-  window.addEventListener('tica:navigate', () => requestAnimationFrame(update));
-
-  if (!reduced.matches && finePointer.matches) {
-    const spot = document.querySelector('.page[data-page="home"] .spot');
-    spot?.addEventListener('pointermove', (event) => {
-      const rect = spot.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - .5;
-      const y = (event.clientY - rect.top) / rect.height - .5;
-      spot.style.transform = `perspective(1200px) rotateX(${-y * 1.4}deg) rotateY(${x * 1.8}deg) translateY(-2px)`;
-    }, { passive: true });
-    spot?.addEventListener('pointerleave', () => { spot.style.transform = ''; }, { passive: true });
-  }
-
   const citiesByCountry = {
     Nigeria: ['Owerri', 'Port Harcourt', 'Abuja', 'Lagos', 'Enugu', 'Uyo', 'Aba', 'Calabar', 'Benin City'],
     Ghana: ['Accra', 'Kumasi', 'Takoradi'],
@@ -2888,7 +2820,6 @@ upd();stage(0);
   });
   window.addEventListener('scroll', () => { closeSmartSelects(); datePickers.forEach((picker) => picker.close()); }, { passive: true });
   window.addEventListener('resize', () => { closeSmartSelects(); datePickers.forEach((picker) => picker.close()); }, { passive: true });
-  update();
 })();
 
 (() => {

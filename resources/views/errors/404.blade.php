@@ -23,6 +23,7 @@
   <style>:root{--tica-brand-primary:{{ $ticaBrand['primary_color'] }};--tica-brand-deep:{{ $ticaBrand['secondary_color'] }};--tica-brand-accent:{{ $ticaBrand['accent_color'] }};--indigo-2:var(--tica-brand-primary);--indigo:var(--tica-brand-deep);--ink:var(--tica-brand-deep);--camwood:var(--tica-brand-accent)}</style>
 </head>
 <body class="tica-app-ui tica-missing-page {{ $organizerSignedIn ? 'isorg' : '' }} {{ $customerSignedIn ? 'isuser' : '' }}">
+  <a class="tica-public-skip" href="#main">{{ __('Skip to main content') }}</a>
   @include('tica-ui.partials.header')
 
   <main id="main" tabindex="-1">

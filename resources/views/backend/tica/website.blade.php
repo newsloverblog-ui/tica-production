@@ -96,17 +96,19 @@
         <form method="POST" action="{{ route('admin.tica.website.update', 'home') }}" enctype="multipart/form-data" class="ta-forms">
           @csrf
           <section class="ta-card">
-            <div class="ta-card-h"><span class="ta-ic orange" aria-hidden="true"><i class="fal fa-image"></i></span><div><h2>{{ __('Top of the page') }}</h2><p>{{ __('The big headline over the photos, with the event search under it.') }}</p></div></div>
+            <div class="ta-card-h"><span class="ta-ic orange" aria-hidden="true"><i class="fal fa-image"></i></span><div><h2>{{ __('Top of the page') }}</h2><p>{{ __('Set the headline, search introduction and background photo.') }}</p></div></div>
             <div class="ta-field"><label for="tw-ht">{{ __('Headline') }}</label><textarea class="form-control tw-short" id="tw-ht" name="hero_title" rows="2" maxlength="120" required>{{ old('hero_title', $home['hero_title']) }}</textarea><small class="tw-hint">{{ __('Press Enter to start a new line.') }}</small></div>
             <div class="ta-field"><label for="tw-hx">{{ __('Line under the headline') }}</label><input class="form-control" id="tw-hx" name="hero_text" maxlength="240" value="{{ old('hero_text', $home['hero_text']) }}"></div>
             <div class="ta-field">
               <span class="tw-l">{{ __('Background photos') }}</span>
-              <small class="tw-hint">{{ __('They fade from one to the next. Use wide photos, at least 1800 pixels across.') }}</small>
+              <small class="tw-hint">{{ __('Choose which photo appears on the homepage, then save. Use photos at least 1800 pixels wide.') }}</small>
               <div class="tw-photos" data-rows="photos">
                 @foreach ($home['hero_images'] as $i => $path)
                   <div class="tw-photo" data-row>
                     <img src="{{ $img($path) }}" alt="">
                     <input type="hidden" name="hero_images[]" value="{{ $path }}">
+                    <span class="tw-hero-current" tabindex="-1">{{ __('Selected background') }}</span>
+                    <button type="button" class="tw-hero-pick" data-hero-pick>{{ __('Use as background') }}</button>
                     <button type="button" class="tw-x" data-remove aria-label="{{ __('Remove this photo') }}"><i class="fal fa-times" aria-hidden="true"></i></button>
                   </div>
                 @endforeach
@@ -293,6 +295,13 @@
         }
         var rm = ev.target.closest('[data-remove]');
         if (rm) { var row = rm.closest('[data-row]'), l = row.parentNode; row.remove(); if (l.dataset && l.dataset.rows) sync(l); return; }
+        var heroPick = ev.target.closest('[data-hero-pick]');
+        if (heroPick) {
+          var photo = heroPick.closest('[data-row]');
+          photo.parentNode.prepend(photo);
+          photo.querySelector('.tw-hero-current').focus();
+          return;
+        }
         var up = ev.target.closest('[data-up]');
         if (up) { var r = up.closest('[data-row]'); if (r.previousElementSibling) r.parentNode.insertBefore(r, r.previousElementSibling); up.focus(); }
         var down = ev.target.closest('[data-down]');

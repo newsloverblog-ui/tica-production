@@ -29,7 +29,7 @@
 
 @endverbatim
   @php $tsAboutPartners = \App\Support\TicaSite::get('home')['partners'] ?? []; @endphp
-  <div class="partners"><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-marquee', ['partners' => $tsAboutPartners])</div></div>
+  <div class="partners"><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-list', ['partners' => $tsAboutPartners])</div></div>
 @verbatim
 </section>
 

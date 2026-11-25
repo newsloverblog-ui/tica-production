@@ -6,6 +6,7 @@
   $tsOrder = array_flip($tsHome['section_order']);
   $tsOff = fn ($key) => ' data-home-section="' . $key . '" style="order:' . ($tsOrder[$key] ?? 99) . ';' . (($tsHome['sections'][$key] ?? true) ? '' : 'display:none;') . '"' . (($tsHome['sections'][$key] ?? true) ? '' : ' data-off');
   $tsImg = fn ($path) => \App\Support\TicaSite::imageUrl($path);
+  $tsHeroPhoto = !empty($tsHome['hero_images'][0]) ? $tsImg($tsHome['hero_images'][0]) : null;
   $tsOrganizerTitle = trim((string) ($tsHome['organisers_title'] ?? ''));
   $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEticketTitle = trim((string) ($tsHome['eticket_title'] ?? ''));
@@ -17,17 +18,13 @@
   <div class="h-hero">
     <div class="h-frame">
       @endverbatim
-      <div class="h-slides" aria-hidden="true">
-        @foreach ($tsHome['hero_images'] as $tsPath)
-          <div class="h-slide {{ $loop->even ? 'm-blue' : 'm-ember' }}{{ $loop->first ? ' on' : '' }}">
-            @if ($loop->first && $initialPage === 'home')
-              <img src="{{ $tsImg($tsPath) }}" alt="" decoding="async" fetchpriority="high">
-            @else
-              <img {{ $loop->first ? 'data-src' : 'data-hero-src' }}="{{ $tsImg($tsPath) }}" alt="" decoding="async">
-            @endif
-          </div>
-        @endforeach
-      </div>
+      @if ($tsHeroPhoto)
+        @if ($initialPage === 'home')
+          <img class="h-photo" src="{{ $tsHeroPhoto }}" alt="" decoding="async" fetchpriority="high">
+        @else
+          <img class="h-photo" data-src="{{ $tsHeroPhoto }}" alt="" decoding="async">
+        @endif
+      @endif
 @verbatim
 
       <div class="h-shade"></div><div class="h-light" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -80,7 +77,7 @@
   <div class="wrap h-sec"{!! $tsOff('categories') !!}>
 @verbatim
 
-    <h2 class="display">What are you in the mood for?</h2>
+    <h2 class="display">Browse by category</h2>
     <div class="moods" id="home-cats"></div>
   </div>
 
@@ -108,7 +105,7 @@
   <div class="wrap h-sec"{!! $tsOff('cities') !!}>
 @verbatim
 
-    <div class="head city-head"><h2 class="display">Going out near you</h2></div>
+    <div class="head city-head"><h2 class="display">Events by city</h2></div>
     <div class="cities" id="home-cities"></div>
   </div>
 
@@ -155,7 +152,7 @@
     </div>
   </div>
 
-  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-marquee', ['partners' => $tsHome['partners']])</div></div>
+  <div class="partners"{!! $tsOff('partners') !!}><div class="wrap"><p>Our partners</p>@include('tica-ui.components.partner-list', ['partners' => $tsHome['partners']])</div></div>
   </div>
 </section>
 @verbatim

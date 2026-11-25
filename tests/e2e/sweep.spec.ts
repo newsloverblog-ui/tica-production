@@ -15,7 +15,7 @@ const ORGANISER = [
   '/organizer/withdraw/exports', '/organizer/event-booking/exports', '/organizer/check-in-ledger/exports', '/organizer/pwa',
 ];
 const ADMIN = [
-  '/admin/dashboard', '/admin/event-builder',
+  '/admin/dashboard', '/admin/event-builder', '/admin/website?tab=home',
   '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email',
   '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage',
   '/admin/coupons',
@@ -47,13 +47,27 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
         const problems = watch(page);
         const res = await page.goto(path, { waitUntil: 'networkidle' });
         expect(res?.status() ?? 0, `${role} ${path}`).toBeLessThan(500);
+        if (role === 'guest' && path === '/') {
+          await expect(page.locator('.h-photo')).toHaveCount(1);
+          await page.keyboard.press('Tab');
+          await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
+          await page.keyboard.press('Enter');
+          await expect(page.locator('main')).toBeFocused();
+        }
         if (role === 'admin' && path === '/admin/event-builder') {
           await expect(page.locator('.tica-admin-event-builder')).toBeVisible();
           await expect(page.locator('#ce-admin')).toBeVisible();
-          await expect(page.locator('.home-progress')).toHaveCount(0);
+          await expect(page.locator('#home-search')).toBeHidden();
           await page.locator('#c-name').fill('QA admin event');
           await page.locator('#ce-next').click();
           await expect(page.locator('#ce-progress')).toContainText('Step 2 of 5');
+        }
+        if (role === 'admin' && path === '/admin/website?tab=home') {
+          const photos = page.locator('[data-rows="photos"] [data-row]');
+          const nextPhoto = await photos.nth(1).locator('input[type="hidden"]').inputValue();
+          await photos.nth(1).getByRole('button', { name: 'Use as background' }).click();
+          await expect(photos.first().locator('input[type="hidden"]')).toHaveValue(nextPhoto);
+          await expect(photos.first().getByText('Selected background')).toBeFocused();
         }
         await page.waitForTimeout(400);
         expect(problems, problems.join('\n')).toEqual([]);
