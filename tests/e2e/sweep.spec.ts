@@ -50,7 +50,16 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
         const res = await page.goto(path, { waitUntil: 'networkidle' });
         expect(res?.status() ?? 0, `${role} ${path}`).toBeLessThan(500);
         if (role === 'guest' && path === '/') {
-          await expect(page.locator('.h-photo')).toHaveCount(1);
+          await expect(page.locator('.h-photo.on[fetchpriority="high"]')).toHaveCount(1);
+          await expect(page.locator('.h-photo[data-hero-src]')).not.toHaveCount(0);
+          if (test.info().project.name === 'desktop') {
+            const lines = await page.locator('.org-title--split > span').evaluateAll(spans => spans.map(span => {
+              const range = document.createRange();
+              range.selectNodeContents(span);
+              return range.getClientRects().length;
+            }));
+            expect(lines).toEqual([1, 1]);
+          }
           await expect(page.getByRole('button', { name: 'Search events', exact: true })).toBeVisible();
           await page.keyboard.press('Tab');
           await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
@@ -174,3 +183,19 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
     }
   });
 }
+
+test('homepage cities rotate and keep the focused destination stable', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  const city = page.locator('#home-cities .city').first();
+  await city.scrollIntoViewIfNeeded();
+  const initialDestination = await city.getAttribute('href');
+  await expect(city).not.toHaveAttribute('href', initialDestination!, { timeout: 9000 });
+
+  const destination = await city.getAttribute('href');
+  const name = await city.locator('b').textContent();
+  expect(new URL(destination!, page.url()).searchParams.get('city')).toBe(name);
+  await city.focus();
+  await page.clock.runFor(4200);
+  await expect(city).toHaveAttribute('href', destination!);
+});

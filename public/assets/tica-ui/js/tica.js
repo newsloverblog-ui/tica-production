@@ -110,6 +110,74 @@ $('home-cats').innerHTML=Object.keys(CATS).map(function(k){return [k,EV.filter(f
   var n=EV.filter(function(e){return e.cat===k}).length;
   return '<a class="catc" href="'+esc(discoverUrl({category:k}))+'"><i><svg viewBox="0 0 24 24" aria-hidden="true">'+(CATSVG[k]||CICON[iconKey(k)])+'</svg></i><b>'+esc(CATS[k])+'</b><small>'+n+(n===1?' event':' events')+'</small></a>';
 }).join('');
+/* Homepage rotation runs only while the relevant content is visible and idle. */
+var homePage=document.querySelector('.page[data-page="home"]');
+var homeMotionToggle=$('home-motion');
+var reducedHomeMotion=matchMedia('(prefers-reduced-motion: reduce)');
+var homeMotionPaused=false,homeRotationUpdates=[];
+try{homeMotionPaused=sessionStorage.getItem('tica_home_motion_paused')==='1'}catch(e){}
+function updateHomeMotion(){
+  homePage.toggleAttribute('data-motion-paused',homeMotionPaused||reducedHomeMotion.matches);
+  homeMotionToggle.hidden=reducedHomeMotion.matches;
+  homeMotionToggle.setAttribute('aria-pressed',String(homeMotionPaused));
+  homeRotationUpdates.forEach(function(update){update()});
+}
+function rotateOnHome(region,delay,advance){
+  var visible=!('IntersectionObserver' in window),hovered=false,timer;
+  function canRotate(){
+    return visible&&!hovered&&!region.contains(document.activeElement)&&!document.hidden
+      &&!homePage.hidden&&!homeMotionPaused&&!reducedHomeMotion.matches;
+  }
+  function schedule(){
+    clearTimeout(timer);
+    if(canRotate())timer=setTimeout(function(){
+      if(canRotate())advance(canRotate);
+      schedule();
+    },delay);
+  }
+  if('IntersectionObserver' in window)new IntersectionObserver(function(entries){
+    visible=entries[0].isIntersecting;
+    schedule();
+  },{threshold:.2}).observe(region);
+  region.addEventListener('pointerenter',function(event){if(event.pointerType!=='touch'){hovered=true;schedule()}});
+  region.addEventListener('pointerleave',function(){hovered=false;schedule()});
+  region.addEventListener('focusin',schedule);
+  region.addEventListener('focusout',function(){requestAnimationFrame(schedule)});
+  homeRotationUpdates.push(schedule);
+  schedule();
+}
+homeMotionToggle.addEventListener('click',function(){
+  homeMotionPaused=!homeMotionPaused;
+  try{sessionStorage.setItem('tica_home_motion_paused',homeMotionPaused?'1':'0')}catch(e){}
+  updateHomeMotion();
+});
+reducedHomeMotion.addEventListener('change',updateHomeMotion);
+document.addEventListener('visibilitychange',updateHomeMotion);
+window.addEventListener('tica:navigate',updateHomeMotion);
+updateHomeMotion();
+
+var heroPhotos=Array.from(homePage.querySelectorAll('.h-photo'));
+if(heroPhotos.length>1){
+  var heroIndex=0,loadingHero=false;
+  rotateOnHome(homePage.querySelector('.h-frame'),6500,async function(canRotate){
+    if(loadingHero)return;
+    heroIndex=(heroIndex+1)%heroPhotos.length;
+    var photo=heroPhotos[heroIndex];
+    if(photo.classList.contains('on'))return;
+    loadingHero=true;
+    try{
+      if(!photo.getAttribute('src'))photo.src=photo.dataset.heroSrc;
+      await photo.decode();
+      if(canRotate()&&!photo.dataset.fb){
+        homePage.querySelector('.h-photo.on').classList.remove('on');
+        photo.classList.add('on');
+      }
+    }catch(e){
+      // Keep the visible photo if the next one cannot load.
+    }finally{loadingHero=false}
+  });
+}
+
 /* spotlight */
 var spotList=EV.filter(function(e){return e.featured&&!e.sold}).concat(EV.filter(function(e){return !e.featured&&!e.sold})).slice(0,3),spotI=0;
 if(!spotList.length)spotList=EV.slice(0,3);
@@ -124,16 +192,17 @@ function spot(){
   $('spot-cd').innerHTML=cdFull(e);$('spot-stock').dataset.stock=e.slug;$('spot-stock').innerHTML=stockHtml(e);cdTick();
   $('spot-count').textContent=(spotI+1)+' of '+spotList.length;
 }
-function moveSpot(direction){
+function moveSpot(direction,announce){
   if(spotList.length<2)return;
   spotI=(spotI+direction+spotList.length)%spotList.length;
   spot();
-  $('spot-status').textContent='Event '+(spotI+1)+' of '+spotList.length+'. '+spotList[spotI].name;
+  if(announce)$('spot-status').textContent='Event '+(spotI+1)+' of '+spotList.length+'. '+spotList[spotI].name;
 }
-$('spot-prev').addEventListener('click',function(){moveSpot(-1)});
-$('spot-next').addEventListener('click',function(){moveSpot(1)});
+$('spot-prev').addEventListener('click',function(){moveSpot(-1,true)});
+$('spot-next').addEventListener('click',function(){moveSpot(1,true)});
 if(spotList.length)spot();else document.querySelector('.spot-wrap').hidden=true;
 if(spotList.length<2)document.querySelector('.spot-nav').hidden=true;
+else rotateOnHome(homePage.querySelector('.spot'),6000,function(){moveSpot(1,false)});
 
 var homeTabs=[].slice.call(document.querySelectorAll('[data-home-section="popular"] .tab[data-tab]'));
 var today=new Date(),months=[today,new Date(today.getFullYear(),today.getMonth()+1,1)];
@@ -159,10 +228,31 @@ function addHomeCity(name,country,count){
 }
 EV.forEach(function(e){if(e.mode!=='online'&&e.city)addHomeCity(e.city,e.country||'Nigeria',1)});
 ['Owerri','Port Harcourt','Abuja','Lagos','Enugu','Uyo','Aba','Calabar','Benin City'].forEach(function(name){addHomeCity(name,'Nigeria',0)});
-$('home-cities').innerHTML=Array.from(cities.values()).sort(function(a,b){return b.count-a.count}).slice(0,3).map(function(city){
-  var label=city.count?city.count+(city.count===1?' event':' events'):'Browse events';
-  return '<a class="city" href="'+esc(discoverUrl({country:city.country,city:city.name}))+'"><b>'+esc(city.name)+'</b><span>'+label+'</span></a>';
+var cityTiles=$('home-cities'),cityIndex=0;
+var homeCityPool=Array.from(cities.values()).sort(function(a,b){return b.count-a.count});
+cityTiles.innerHTML=homeCityPool.slice(0,3).map(function(){
+  return '<a class="city"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="20"/></svg><b></b><span></span></a>';
 }).join('');
+var cityCards=Array.from(cityTiles.children);
+function showHomeCities(){
+  cityCards.forEach(function(tile,index){
+    var city=homeCityPool[(cityIndex+index)%homeCityPool.length];
+    tile.href=discoverUrl({country:city.country,city:city.name});
+    tile.querySelector('b').textContent=city.name;
+    tile.querySelector('span').textContent=city.count?city.count+(city.count===1?' event':' events'):'Browse events';
+  });
+}
+showHomeCities();
+if(homeCityPool.length>cityCards.length)rotateOnHome(cityTiles,3800,function(canRotate){
+  cityCards.forEach(function(tile){tile.classList.add('out')});
+  setTimeout(function(){
+    if(canRotate()){
+      cityIndex=(cityIndex+1)%homeCityPool.length;
+      showHomeCities();
+    }
+    cityCards.forEach(function(tile){tile.classList.remove('out')});
+  },280);
+});
 /* featured coverflow */
 (function(){
   var list=EV.filter(function(e){return !e.sold}),i=Math.floor(list.length/2),n=list.length,stage=$('cf-stage');
@@ -1057,7 +1147,7 @@ function route(){
   document.title=(e&&['event','checkout','ticket'].indexOf(p)!==-1?e.name:p==='content'?TICA_DATA.content.title:TITLES[p])+' | TICA';
   window.scrollTo({top:0,behavior:'instant'});
   var pg=document.querySelector('.page[data-page="'+p+'"]');pg.classList.remove('enter');void pg.offsetWidth;pg.classList.add('enter');
-  if(p!=='home')reveal(pg);cdTick();refreshStock();
+  reveal(pg);cdTick();refreshStock();
   var main=$('main');if(parts[0]!==undefined&&route.ran)main.focus({preventScroll:true});route.ran=true;
   if(p==='discover')filter();
   hydrateImages(pg);

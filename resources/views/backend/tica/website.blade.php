@@ -101,7 +101,7 @@
             <div class="ta-field"><label for="tw-hx">{{ __('Line under the headline') }}</label><input class="form-control" id="tw-hx" name="hero_text" maxlength="240" value="{{ old('hero_text', $home['hero_text']) }}"></div>
             <div class="ta-field">
               <span class="tw-l">{{ __('Background photos') }}</span>
-              <small class="tw-hint">{{ __('Choose which photo appears on the homepage, then save. Use photos at least 1800 pixels wide.') }}</small>
+              <small class="tw-hint">{{ __('Choose the first photo in the homepage slideshow, then save. Use photos at least 1800 pixels wide.') }}</small>
               <div class="tw-photos" data-rows="photos">
                 @foreach ($home['hero_images'] as $i => $path)
                   <div class="tw-photo" data-row>

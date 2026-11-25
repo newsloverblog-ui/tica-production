@@ -6,9 +6,9 @@
   $tsOrder = array_flip($tsHome['section_order']);
   $tsOff = fn ($key) => ' data-home-section="' . $key . '" style="order:' . ($tsOrder[$key] ?? 99) . ';' . (($tsHome['sections'][$key] ?? true) ? '' : 'display:none;') . '"' . (($tsHome['sections'][$key] ?? true) ? '' : ' data-off');
   $tsImg = fn ($path) => \App\Support\TicaSite::imageUrl($path);
-  $tsHeroPhoto = !empty($tsHome['hero_images'][0]) ? $tsImg($tsHome['hero_images'][0]) : null;
+  $tsHeroPhotos = array_values(array_filter($tsHome['hero_images'], fn ($path) => filled($path)));
   $tsOrganizerTitle = trim((string) ($tsHome['organisers_title'] ?? ''));
-  $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
+  $tsOrganizerTitleLines = preg_split('/\R+|(?<=\.)\h*(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEticketTitle = trim((string) ($tsHome['eticket_title'] ?? ''));
   $tsEticketTitleLines = preg_split('/\s+(?=on your phone\b)/iu', $tsEticketTitle, 2) ?: [$tsEticketTitle];
   $tsOrganizerImages = array_values($tsHome['organisers_images']);
@@ -18,12 +18,17 @@
   <div class="h-hero">
     <div class="h-frame">
       @endverbatim
-      @if ($tsHeroPhoto)
-        @if ($initialPage === 'home')
-          <img class="h-photo" src="{{ $tsHeroPhoto }}" alt="" decoding="async" fetchpriority="high">
-        @else
-          <img class="h-photo" data-src="{{ $tsHeroPhoto }}" alt="" decoding="async">
-        @endif
+      @if ($tsHeroPhotos)
+        <div class="h-slides" aria-hidden="true">
+          @foreach ($tsHeroPhotos as $tsHeroPhoto)
+            <img class="h-photo{{ $loop->first ? ' on' : '' }}"
+              @if ($loop->first && $initialPage === 'home') src="{{ $tsImg($tsHeroPhoto) }}" fetchpriority="high"
+              @elseif ($loop->first) data-src="{{ $tsImg($tsHeroPhoto) }}"
+              @else data-hero-src="{{ $tsImg($tsHeroPhoto) }}"
+              @endif
+              alt="" decoding="async">
+          @endforeach
+        </div>
       @endif
 @verbatim
 
@@ -40,7 +45,10 @@
           <div class="ms-f ms-s ms-date"><label for="h-date" class="sr">Date</label><input id="h-date" name="date" type="date" aria-label="Choose event date"></div>
           <button class="ms-go" type="submit" aria-label="Search events"><span class="sb-t">Search</span></button>
         </form>
-        <p class="h-org">Hosting an event? <a href="/create">Start selling tickets</a></p>
+        <div class="h-actions">
+          <p class="h-org">Hosting an event? <a href="/create">Start selling tickets</a></p>
+          <button class="h-motion" id="home-motion" type="button" aria-pressed="false" hidden>Pause animations</button>
+        </div>
       </div>
     </div>
   </div>
@@ -113,7 +121,11 @@
 @endverbatim
   <div class="org"{!! $tsOff('organisers') !!}><div class="wrap org-in">
     <div class="org-copy">
-      <h2 class="display">@foreach ($tsOrganizerTitleLines as $tsOrganizerTitleLine)<span>{{ $tsOrganizerTitleLine }}</span>@endforeach</h2>
+      <h2 class="display{{ count($tsOrganizerTitleLines) === 2 ? ' org-title--split' : '' }}">
+        @foreach ($tsOrganizerTitleLines as $tsOrganizerTitleLine)
+          <span>{{ trim($tsOrganizerTitleLine) }}</span>
+        @endforeach
+      </h2>
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
     </div>
