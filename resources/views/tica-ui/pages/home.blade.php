@@ -39,16 +39,17 @@
         @if ($tsHome['hero_text'])<p>{{ $tsHome['hero_text'] }}</p>@endif
 @verbatim
 
-        <form class="search ms" id="home-search" action="/discover" role="search" aria-label="Find events">
-          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" name="q" type="search" placeholder="Events or artists" aria-label="Search events or artists" autocomplete="off"></div>
-          <div class="ms-f ms-s"><label for="h-country" class="sr">Country</label><select id="h-country" name="country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div class="ms-f ms-s"><label for="h-where" class="sr">City</label><select id="h-where" name="city" data-city><option value="all">All cities</option></select></div>
-          <div class="ms-f ms-s ms-date"><label for="h-date" class="sr">Date</label><input id="h-date" name="date" type="date" aria-label="Choose event date"></div>
-          <button class="ms-go" type="submit" aria-label="Search events"><span class="sb-t">Search</span></button>
+        <form id="home-search" class="hero-search" action="/discover" role="search" aria-label="Find events">
+          <div class="hero-search__field hero-search__query">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+            <input id="h-q" name="q" type="search" placeholder="Events or artists" aria-label="Search events or artists" autocomplete="off" enterkeyhint="search">
+          </div>
+          <div class="hero-search__field hero-search__filter"><label for="h-country" class="sr">Country</label><select id="h-country" name="country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div>
+          <div class="hero-search__field hero-search__filter"><label for="h-where" class="sr">City</label><select id="h-where" name="city" data-city><option value="all">All cities</option></select></div>
+          <div class="hero-search__field hero-search__filter"><label for="h-date" class="sr">Date</label><input id="h-date" name="date" type="date" aria-label="Choose event date"></div>
+          <button class="btn btn-hot hero-search__submit" type="submit" aria-label="Search events">Search</button>
         </form>
-        <div class="h-actions">
-          <p class="h-org">Hosting an event? <a href="/create">Start selling tickets</a></p>
-          <button class="h-motion" id="home-motion" type="button" aria-pressed="false" hidden>Pause animations</button>
-        </div>
+        <p class="h-org">Hosting an event? <a href="/create">Start selling tickets</a></p>
       </div>
     </div>
   </div>

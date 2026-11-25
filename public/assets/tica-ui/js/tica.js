@@ -112,21 +112,16 @@ $('home-cats').innerHTML=Object.keys(CATS).map(function(k){return [k,EV.filter(f
 }).join('');
 /* Homepage rotation runs only while the relevant content is visible and idle. */
 var homePage=document.querySelector('.page[data-page="home"]');
-var homeMotionToggle=$('home-motion');
 var reducedHomeMotion=matchMedia('(prefers-reduced-motion: reduce)');
-var homeMotionPaused=false,homeRotationUpdates=[];
-try{homeMotionPaused=sessionStorage.getItem('tica_home_motion_paused')==='1'}catch(e){}
+var homeRotationUpdates=[];
 function updateHomeMotion(){
-  homePage.toggleAttribute('data-motion-paused',homeMotionPaused||reducedHomeMotion.matches);
-  homeMotionToggle.hidden=reducedHomeMotion.matches;
-  homeMotionToggle.setAttribute('aria-pressed',String(homeMotionPaused));
   homeRotationUpdates.forEach(function(update){update()});
 }
 function rotateOnHome(region,delay,advance){
   var visible=!('IntersectionObserver' in window),hovered=false,timer;
   function canRotate(){
     return visible&&!hovered&&!region.contains(document.activeElement)&&!document.hidden
-      &&!homePage.hidden&&!homeMotionPaused&&!reducedHomeMotion.matches;
+      &&!homePage.hidden&&!reducedHomeMotion.matches;
   }
   function schedule(){
     clearTimeout(timer);
@@ -146,15 +141,9 @@ function rotateOnHome(region,delay,advance){
   homeRotationUpdates.push(schedule);
   schedule();
 }
-homeMotionToggle.addEventListener('click',function(){
-  homeMotionPaused=!homeMotionPaused;
-  try{sessionStorage.setItem('tica_home_motion_paused',homeMotionPaused?'1':'0')}catch(e){}
-  updateHomeMotion();
-});
 reducedHomeMotion.addEventListener('change',updateHomeMotion);
 document.addEventListener('visibilitychange',updateHomeMotion);
 window.addEventListener('tica:navigate',updateHomeMotion);
-updateHomeMotion();
 
 function rotateHomePhotos(region,selector,activeClass,delay){
   var photos=Array.from(region.querySelectorAll(selector));
@@ -2988,7 +2977,7 @@ upd();stage(0);
   document.getElementById('d-q').value = params.get('q') || '';
   document.getElementById('d-date').value = params.get('date') || '';
   if (location.pathname === '/discover') document.dispatchEvent(new Event('tica:discover-ready'));
-  document.querySelectorAll('.search.ms select:not([hidden]), .filters select').forEach(enhanceSelect);
+  document.querySelectorAll('#home-search select, .filters select').forEach(enhanceSelect);
   document.querySelectorAll('#h-date, #d-date').forEach(enhanceDatePicker);
   document.getElementById('f-sheet').addEventListener('close', () => {
     closeSmartSelects();

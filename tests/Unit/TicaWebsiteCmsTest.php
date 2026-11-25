@@ -75,13 +75,13 @@ class TicaWebsiteCmsTest extends TestCase
 
         $this->assertStringNotContainsString('h-format', $home . $script);
         $this->assertStringNotContainsString('All events', $home);
-        $searchStart = strpos($home, '<form class="search ms"');
+        $searchStart = strpos($home, '<form id="home-search"');
         $searchEnd = strpos($home, '</form>', $searchStart);
         $searchMarkup = substr($home, $searchStart, $searchEnd - $searchStart);
         $this->assertSame(1, substr_count($searchMarkup, '<svg '), 'Only the primary search icon should be visible.');
-        $this->assertStringContainsString('.search.ms .ms-f label.sr', $styles);
-        $this->assertStringContainsString('height: 52px !important', $styles);
-        $this->assertStringContainsString('height: 50px !important', $styles);
+        $this->assertStringContainsString('for="h-date" class="sr"', $searchMarkup);
+        $this->assertStringContainsString('enterkeyhint="search"', $searchMarkup);
+        $this->assertStringNotContainsString('Pause animations', $home);
         $this->assertStringNotContainsString('d-format', $discover . $script);
         $this->assertStringContainsString('--featured-square: clamp(280px, 30vw, 340px)', $styles);
         $this->assertStringContainsString('aspect-ratio: 1 / 1 !important', $styles);

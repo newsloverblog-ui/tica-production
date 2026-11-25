@@ -76,9 +76,10 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
             expect(lines).toEqual([1, 1]);
           }
           await expect(page.getByRole('button', { name: 'Search events', exact: true })).toBeVisible();
-          const motion = await page.locator('#home-motion').boundingBox();
+          await expect(page.getByRole('button', { name: 'Pause animations' })).toHaveCount(0);
+          const organiser = await page.locator('.h-org').boundingBox();
           const featured = await page.locator('.spot').boundingBox();
-          if (motion && featured) expect(motion.y + motion.height).toBeLessThanOrEqual(featured.y);
+          if (organiser && featured) expect(organiser.y + organiser.height).toBeLessThanOrEqual(featured.y);
           await page.keyboard.press('Tab');
           await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
           await page.keyboard.press('Enter');
@@ -264,6 +265,48 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
   });
 }
 
+test('homepage search carries its query and available filters to Discover', async ({ page }) => {
+  const mobile = test.info().project.name === 'mobile';
+  if (!mobile) await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto('/');
+
+  const search = page.getByRole('search', { name: 'Find events' });
+  const query = search.getByRole('searchbox');
+  const submit = search.getByRole('button', { name: 'Search events' });
+  await query.fill('Jazz & dance');
+
+  if (mobile) {
+    await query.press('Enter');
+    await expect(page.getByRole('button', { name: /^Filters/ })).toBeVisible();
+  } else {
+    const country = search.getByRole('button', { name: /^Country:/ });
+    const city = search.getByRole('button', { name: /^City:/ });
+    const date = search.getByRole('button', { name: 'Pick a date' });
+    for (const control of [country, city, date, submit]) {
+      await page.keyboard.press('Tab');
+      await expect(control).toBeFocused();
+    }
+    expect((await date.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await country.click();
+    await page.getByRole('option', { name: 'Ghana', exact: true }).click();
+    await city.click();
+    await page.getByRole('option', { name: 'Accra', exact: true }).click();
+    await date.click();
+    await page.getByRole('dialog', { name: 'Choose a date' }).locator('.calendar-days button:enabled').first().click();
+    const selectedDate = await page.locator('#h-date').inputValue();
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await noSidewaysScroll(page);
+    expect((await submit.boundingBox())!.x).toBeGreaterThan((await city.boundingBox())!.x);
+    await submit.click();
+    expect(new URL(page.url()).searchParams.get('date')).toBe(selectedDate);
+    await expect(page.locator('#d-country')).toHaveValue('Ghana');
+    await expect(page.locator('#d-where')).toHaveValue('Accra');
+  }
+
+  await expect(page.locator('#d-q')).toHaveValue('Jazz & dance');
+  expect(new URL(page.url()).pathname).toBe('/discover');
+});
+
 test('homepage cities rotate and keep the focused destination stable', async ({ page }) => {
   await page.clock.install();
   await page.goto('/');
@@ -296,18 +339,8 @@ test('homepage organiser gallery cycles through six photos and honours motion pr
     await expect(active).toHaveJSProperty('naturalWidth', 1200);
   }
 
-  const pause = page.getByRole('button', { name: 'Pause animations' });
-  await pause.click();
-  await expect(pause).toHaveAttribute('aria-pressed', 'true');
-  await gallery.scrollIntoViewIfNeeded();
-  await page.clock.fastForward(10000);
-  await expect(active).toHaveAttribute('src', /culture\.webp$/);
-
-  await pause.click();
-  await expect(pause).toHaveAttribute('aria-pressed', 'false');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await expect(pause).toBeHidden();
   await gallery.scrollIntoViewIfNeeded();
   await page.clock.fastForward(10000);
   await expect(active).toHaveAttribute('src', /culture\.webp$/);

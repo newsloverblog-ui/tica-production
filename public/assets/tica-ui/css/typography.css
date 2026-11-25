@@ -259,6 +259,7 @@ html body.tica-admin .sidebar[data-background-color] .nav > .nav-item:is(.active
 }
 
 body :is(.btn, .t-btn, .cd-btn, [role="button"], .coupon-btn, .buy > a, .spot-all, .page-link, .seeall),
+body #home-search .hero-search__submit,
 body button:where(:not(.close, [class*="icon"])) {
   font: var(--tica-text-button) !important;
   letter-spacing: var(--tica-tracking-ui);
@@ -273,7 +274,8 @@ body :is(.form-group > label, .form-label, .t-label, .control-label, fieldset > 
 }
 
 /* Keep editable controls at 16px to avoid zoom on focus in iOS Safari. */
-body :is(.form-control, .custom-select, .t-input, .t-select, .t-textarea, .select2-selection, .h-in .smart-trigger,
+body :is(.form-control, .custom-select, .t-input, .t-select, .t-textarea, .select2-selection,
+  .hero-search :is(.smart-trigger, .calendar-trigger),
   .f-grid .smart-trigger, .f-grid .calendar-trigger, select, textarea,
   input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="reset"], [type="submit"])) {
   font: var(--tica-text-input) !important;
