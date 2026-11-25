@@ -40,7 +40,7 @@
 
 ### Typography
 
-Use Montserrat for both brand and interface text. The shared [typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads the self-hosted variable font and provides the `--tica-text-*` roles. Display and heading sizes scale between mobile and desktop. Body and control sizes use rem so they follow browser text settings.
+Use **Montserrat** for display text, page and section headings, and event titles. Use **Inter** for body text, navigation, buttons, forms, tables, captions, notifications, and figures. The shared [typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads both self-hosted variable fonts and provides the `--tica-text-*` roles. Display and heading sizes scale between mobile and desktop. Body and control sizes use rem so they follow browser text settings.
 
 | Role | Token | Desktop size | Weight | Line height |
 |------|-------|-------------:|-------:|------------:|
@@ -51,6 +51,8 @@ Use Montserrat for both brand and interface text. The shared [typography stylesh
 | H4 | `--tica-text-h4` | 18px | 600 | 1.4 |
 | H5 | `--tica-text-h5` | 16px | 600 | 1.4 |
 | H6 | `--tica-text-h6` | 14px | 600 | 1.4 |
+| Event detail title | `--tica-text-event-title` | 28px | 600 | 1.25 |
+| Event card title | `--tica-text-event` | 18px | 600 | 1.35 |
 | Body large | `--tica-text-body-lg` | 18px | 400 | 1.6 |
 | Body | `--tica-text-body` | 16px | 400 | 1.6 |
 | Body small and secondary | `--tica-text-body-sm`, `--tica-text-secondary` | 14px | 400 | 1.5 |

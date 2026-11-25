@@ -56,6 +56,9 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(hero).toHaveCSS('font-family', /Montserrat/);
           await expect(hero).toHaveCSS('font-weight', '800');
           await expect(hero).toHaveCSS('font-size', test.info().project.name === 'desktop' ? '48px' : '32px');
+          await expect(page.locator('.h-in > p').first()).toHaveCSS('font-family', /Inter/);
+          await expect(page.locator('.spot-body h2')).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('#h-q')).toHaveCSS('font-family', /Inter/);
           await expect(page.locator('#h-q')).toHaveCSS('font-size', '16px');
           await expect(page.locator('#h-q')).toHaveCSS('font-weight', '400');
           if (test.info().project.name === 'desktop') {
@@ -86,19 +89,23 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(notice).toBeHidden();
         }
         if (role === 'admin' && path === '/admin/dashboard') {
+          await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-family', /Inter/);
           await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
           await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-weight', '700');
         }
         if (role === 'admin' && path === '/admin/transcation') {
           const filter = page.locator('.transaction-filters input').first();
-          await expect(filter).toHaveCSS('font-family', /Montserrat/);
+          await expect(filter).toHaveCSS('font-family', /Inter/);
           await expect(filter).toHaveCSS('font-size', '16px');
         }
         if (role === 'owner' && path === '/dashboard') {
+          await expect(page.locator('#db-hi')).toHaveCSS('font-family', /Montserrat/);
+          await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-family', /Inter/);
           await expect(page.locator('#db-hi')).toHaveCSS('font-weight', '700');
           await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
         }
         if (role === 'owner' && path === '/organizer/finance') {
+          await expect(page.locator('#fin-balance-h')).toHaveCSS('font-family', /Inter/);
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-variant-numeric', 'tabular-nums');
           await expect(page.locator('#fin-balance-h')).toHaveCSS('font-weight', '700');
         }

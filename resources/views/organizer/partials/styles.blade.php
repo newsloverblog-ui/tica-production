@@ -42,5 +42,5 @@
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/ds.css') }}?v={{ tica_asset_version('assets/tica-ui/css/ds.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/human-ui.css') }}?v={{ tica_asset_version('assets/tica-ui/css/human-ui.css') }}">
 {{-- The organiser sidebar and top bar: always last, so nothing above can restyle them. --}}
-<link rel="preload" href="{{ asset('assets/tica-ui/fonts/montserrat-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('assets/tica-ui/fonts/inter-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/shell.css') }}?v={{ tica_asset_version('assets/tica-ui/css/shell.css') }}">
