@@ -54,6 +54,7 @@ body.tica-admin-event-builder .page[data-page=create] .wrap.pagehead.creategrid{
 <x-shell.organizer :active="$initialPage === 'checkin' ? 'checkin' : ($initialPage === 'create' ? 'events' : (request()->segment(2) ?: 'overview'))" :spa="true" :title="request()->routeIs('tica.edit') ? 'Edit event' : ($initialPage === 'create' ? 'Create an event' : null)" />
 @endif
 <main id="main" tabindex="-1">
+@include('tica-ui.partials.cookie-notice')
 @endif
 
 @foreach (['home', 'discover', 'event', 'checkout', 'ticket', 'how', 'pricing', 'about', 'contact', 'join', 'create', 'policies', 'tickets', 'dashboard', 'account', 'checkin', 'login', 'signup', 'forgot', 'missing'] as $designPage)

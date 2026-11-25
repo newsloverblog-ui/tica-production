@@ -53,6 +53,16 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
           await page.keyboard.press('Enter');
           await expect(page.locator('main')).toBeFocused();
+          const notice = page.getByRole('region', { name: 'Cookie choices' });
+          await expect(notice).toBeVisible();
+          const noticeBox = await notice.boundingBox();
+          const heroBox = await page.locator('.h-hero').boundingBox();
+          expect(noticeBox!.y + noticeBox!.height).toBeLessThanOrEqual(heroBox!.y + 1);
+          expect(noticeBox!.height).toBeLessThan(150);
+          await notice.getByRole('button', { name: 'Essential only' }).click();
+          await expect(notice).toBeHidden();
+          await page.reload();
+          await expect(notice).toBeHidden();
         }
         if (role === 'admin' && path === '/admin/event-builder') {
           await expect(page.locator('.tica-admin-event-builder')).toBeVisible();

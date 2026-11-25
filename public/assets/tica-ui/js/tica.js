@@ -1315,19 +1315,38 @@ addEventListener('tica:navigate',function(){setTimeout(scan,350)});document.addE
 (function(){
 if(window.TICA_ADMIN)return;
 var $=function(i){return document.getElementById(i)},KEY='tica_consent_v1',ban=$('ck-banner'),dlg=$('ck-dlg');
-function load(){var c;try{c=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){c=window.__ck||null}if(c&&c.at&&Date.now()-Date.parse(c.at)>365*864e5)return null;return c}
-function save(c){c.v=1;c.at=new Date().toISOString();window.__ck=c;try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}ban.hidden=true;if(dlg.open)dlg.close();startNB();document.dispatchEvent(new CustomEvent('tica:consent',{detail:c}))}
-function openDlg(){var c=load()||{p:false,a:false,m:false};$('ck-p').checked=!!c.p;$('ck-a').checked=!!c.a;$('ck-m').checked=!!c.m;dlg.showModal()}
+var load=window.TICA_consent, openedFromNotice=false;
+function save(c){
+  var focusMain=ban.contains(document.activeElement)||(dlg.open&&openedFromNotice);
+  c.v=1;
+  c.at=new Date().toISOString();
+  window.__ck=c;
+  try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}
+  ban.hidden=true;
+  if(dlg.open)dlg.close();
+  if(focusMain)$('main').focus({preventScroll:true});
+  startNB();
+  document.dispatchEvent(new CustomEvent('tica:consent',{detail:c}));
+}
+function openDlg(opener){
+  var c=load()||{p:false,a:false,m:false};
+  $('ck-p').checked=!!c.p;
+  $('ck-a').checked=!!c.a;
+  $('ck-m').checked=!!c.m;
+  openedFromNotice=ban.contains(opener);
+  dlg.showModal();
+}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-ck]');
   if(b){var k=b.dataset.ck;
     if(k==='accept')save({p:true,a:true,m:true});
     if(k==='reject')save({p:false,a:false,m:false});
-    if(k==='manage')openDlg();
+    if(k==='manage')openDlg(b);
     if(k==='save')save({p:$('ck-p').checked,a:$('ck-a').checked,m:$('ck-m').checked});
     if(k==='close')dlg.close();
     return}
-  if(e.target.closest('[data-cookie-open]')){e.preventDefault();openDlg()}
+  var settings=e.target.closest('[data-cookie-open]');
+  if(settings){e.preventDefault();openDlg(settings)}
 });
 dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
 
@@ -1370,8 +1389,7 @@ $('nb-x').addEventListener('click',function(){stopped=true;try{sessionStorage.se
 $('nb-link').addEventListener('click',function(){nb.classList.remove('on');nb.hidden=true;schedule(30000)});
 addEventListener('tica:navigate',function(){if(OK.indexOf(page())<0){nb.classList.remove('on');nb.hidden=true}});
 
-if(load())startNB();else setTimeout(function(){ban.hidden=false},900);
-window.TICA_consent=load;
+if(load())startNB();
 })();
 /* design script 18 */
 /* v38: legal hub navigation */
