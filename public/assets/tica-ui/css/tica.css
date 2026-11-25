@@ -5236,6 +5236,7 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 .page[data-page=home] .event-reel-stage{
+    --event-reel-fade: .8s;
     position:absolute;
     inset:0;
     overflow:hidden;
@@ -5251,11 +5252,14 @@ body.isuser.appmode .workspace-badge { display: none !important; }
     height:100%;
     object-fit:cover;
     opacity:0;
-    transition:opacity .65s ease;
+    /* Keep the outgoing photo opaque underneath the incoming one. */
+    transition:opacity 0s linear var(--event-reel-fade);
 }
 
 .page[data-page=home] .event-reel-slide.is-active{
+    z-index:1;
     opacity:1;
+    transition:opacity var(--event-reel-fade) ease;
 }
 
 @media (max-width:600px){
@@ -5701,7 +5705,8 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 }
 
 @media (prefers-reduced-motion:reduce){
-    .page[data-page=home] .event-reel-slide{transition:none}
+    .page[data-page=home] .event-reel-slide,
+    .page[data-page=home] .event-reel-slide.is-active{transition:none}
 }
 
 /* Homepage: keep the organiser promise intentional and the featured card compact on phones. */

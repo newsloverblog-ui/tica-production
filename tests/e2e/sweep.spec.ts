@@ -330,11 +330,13 @@ test('homepage organiser gallery cycles through six photos and honours motion pr
   const active = gallery.locator('.event-reel-slide.is-active');
   await expect(gallery.locator('img[src]')).toHaveCount(1);
   await gallery.scrollIntoViewIfNeeded();
+  if (test.info().project.name === 'desktop') await gallery.hover();
   await expect(active).toHaveJSProperty('naturalWidth', 1200);
+  await expect(active).toHaveCSS('transition-duration', '0.8s');
   const photos = ['culture', 'dance', 'seminar', 'games', 'party', 'rave', 'culture'];
 
   for (const [index, photo] of photos.entries()) {
-    if (index > 0) await page.clock.fastForward(5100);
+    if (index > 0) await page.clock.fastForward(4100);
     await expect(active).toHaveAttribute('src', `/assets/tica-ui/img/organiser-gallery/${photo}.webp`);
     await expect(active).toHaveJSProperty('naturalWidth', 1200);
   }
@@ -342,6 +344,7 @@ test('homepage organiser gallery cycles through six photos and honours motion pr
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
   await gallery.scrollIntoViewIfNeeded();
+  await expect(active).toHaveCSS('transition-property', 'none');
   await page.clock.fastForward(10000);
   await expect(active).toHaveAttribute('src', /culture\.webp$/);
 });

@@ -117,7 +117,7 @@ var homeRotationUpdates=[];
 function updateHomeMotion(){
   homeRotationUpdates.forEach(function(update){update()});
 }
-function rotateOnHome(region,delay,advance){
+function rotateOnHome(region,delay,advance,{pauseOnHover=true}={}){
   var visible=!('IntersectionObserver' in window),hovered=false,timer;
   function canRotate(){
     return visible&&!hovered&&!region.contains(document.activeElement)&&!document.hidden
@@ -134,8 +134,10 @@ function rotateOnHome(region,delay,advance){
     visible=entries[0].isIntersecting;
     schedule();
   },{threshold:.2}).observe(region);
-  region.addEventListener('pointerenter',function(event){if(event.pointerType!=='touch'){hovered=true;schedule()}});
-  region.addEventListener('pointerleave',function(){hovered=false;schedule()});
+  if(pauseOnHover){
+    region.addEventListener('pointerenter',function(event){if(event.pointerType!=='touch'){hovered=true;schedule()}});
+    region.addEventListener('pointerleave',function(){hovered=false;schedule()});
+  }
   region.addEventListener('focusin',schedule);
   region.addEventListener('focusout',function(){requestAnimationFrame(schedule)});
   homeRotationUpdates.push(schedule);
@@ -145,7 +147,7 @@ reducedHomeMotion.addEventListener('change',updateHomeMotion);
 document.addEventListener('visibilitychange',updateHomeMotion);
 window.addEventListener('tica:navigate',updateHomeMotion);
 
-function rotateHomePhotos(region,selector,activeClass,delay){
+function rotateHomePhotos(region,selector,activeClass,delay,options){
   var photos=Array.from(region.querySelectorAll(selector));
   if(photos.length<2)return;
   var index=0,activePhoto=photos[0],loading=false;
@@ -166,10 +168,10 @@ function rotateHomePhotos(region,selector,activeClass,delay){
     }catch(e){
       // Keep the visible photo if the next one cannot load.
     }finally{loading=false}
-  });
+  },options);
 }
 rotateHomePhotos(homePage.querySelector('.h-frame'),'.h-photo','on',6500);
-rotateHomePhotos(homePage.querySelector('.event-reel'),'.event-reel-slide','is-active',5000);
+rotateHomePhotos(homePage.querySelector('.event-reel'),'.event-reel-slide','is-active',4000,{pauseOnHover:false});
 
 /* spotlight */
 var spotList=EV.filter(function(e){return e.featured&&!e.sold}).concat(EV.filter(function(e){return !e.featured&&!e.sold})).slice(0,3),spotI=0;
