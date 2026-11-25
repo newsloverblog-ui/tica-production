@@ -34,6 +34,18 @@ function persistSaved(slug,on){
   if(TICA_DATA.user){var e=evAny?evAny(slug):bySlug(slug);if(e)api('/tica-api/wishlist',{event_id:e.id,saved:on}).catch(function(er){flash(er.message)});return}
   try{localStorage.setItem('tica_saved',JSON.stringify(Object.keys(saved).filter(function(k){return saved[k]})))}catch(e){}
 }
+function discoverUrl(filters,query){
+  var params=new URLSearchParams(query);
+  Object.keys(filters).forEach(function(key){
+    var value=filters[key];
+    if(value&&(key==='q'||value!=='all'))params.set(key,value);else params.delete(key);
+  });
+  return '/discover'+(params.size?'?'+params:'');
+}
+function eventDate(e){
+  var month=e.m==='nov'?'11':e.m==='dec'?'12':e.m.slice(1);
+  return e.y+'-'+month+'-'+String(e.day).padStart(2,'0');
+}
 function dstr(e){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(e.y||2026,M[e.mon],+e.day).getDay()]+', '+e.day+' '+e.mon}
 var TD={'Regular':'General admission','VIP':'Fast-track entry and the VIP area','VVIP':'Premium access and the best available section','Early Bird':'Limited early-release admission','Student':'Discounted admission with valid student ID','Complimentary':'Free invited admission','Table for six':'A reserved table for six guests','Day pass':'Entry for the whole day','Maker table':'Stall space for one maker','Runner':'Race entry, bib and finisher medal','Free entry':'Free, but you still need a ticket'};
 function stockLeft(e){return e.tiers.reduce(function(s,t){return s+t[2]},0)}
@@ -93,7 +105,7 @@ function row(e){
 var CICON={shows:'<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',campus:'<path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',faith:'<path d="M12 21c-4-3-6-6-6-9 0-3 3-6 6-9 3 3 6 6 6 9 0 3-2 6-6 9z"/>',conf:'<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M12 16v5M8 21h8"/>',party:'<path d="M5 3h14l-7 9-7-9z"/><path d="M12 12v8M8 21h8"/>',arts:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="14" cy="8" r="1"/><circle cx="16" cy="13" r="1"/>',sport:'<circle cx="14" cy="5" r="2"/><path d="M5 20l4-6 3 2 2-5-4-2-3 3M14 11l3 3h3"/>'};
 $('home-cats').innerHTML=Object.keys(CATS).map(function(k){return [k,EV.filter(function(e){return e.cat===k}).length]}).sort(function(a,b){return b[1]-a[1]}).slice(0,7).map(function(x){return x[0]}).map(function(k){
   var n=EV.filter(function(e){return e.cat===k}).length;
-  return '<a class="catc" href="/discover" data-gocat="'+k+'"><i><svg viewBox="0 0 24 24" aria-hidden="true">'+(CATSVG[k]||CICON[iconKey(k)])+'</svg></i><b>'+esc(CATS[k])+'</b><small>'+n+(n===1?' event':' events')+'</small></a>';
+  return '<a class="catc" href="'+esc(discoverUrl({category:k}))+'"><i><svg viewBox="0 0 24 24" aria-hidden="true">'+(CATSVG[k]||CICON[iconKey(k)])+'</svg></i><b>'+esc(CATS[k])+'</b><small>'+n+(n===1?' event':' events')+'</small></a>';
 }).join('');
 /* spotlight */
 var spotList=EV.filter(function(e){return e.featured&&!e.sold}).concat(EV.filter(function(e){return !e.featured&&!e.sold})).slice(0,3),spotI=0;
@@ -104,68 +116,50 @@ function spot(){
   $('spot-flyer').innerHTML=e.art;$('spot-name').textContent=e.name;
   $('spot-meta').textContent=dstr(e)+', '+e.time+', '+e.venue+(sameCity(e)?'':', '+e.city);
   $('spot-price').textContent=(e.tiers.length>1?'From ':'')+e.price;
-  $('spot-link').setAttribute('href','/event/'+e.slug);
+  $('spot-link').href='/event/'+e.slug;
+  $('spot-link').textContent=e.sold?'View event':'Get tickets';
   $('spot-cd').innerHTML=cdFull(e);$('spot-stock').dataset.stock=e.slug;$('spot-stock').innerHTML=stockHtml(e);cdTick();
   $('spot-count').textContent=(spotI+1)+' of '+spotList.length;
 }
-$('spot-prev').addEventListener('click',function(){spotI=(spotI+spotList.length-1)%spotList.length;spot()});
-$('spot-next').addEventListener('click',function(){spotI=(spotI+1)%spotList.length;spot()});
-if(spotList.length)spot();else document.querySelector('.spot-wrap').hidden=true;
-if(spotList.length<2)[].forEach.call(document.querySelectorAll('.spot-nav'),function(n){n.style.display='none'});
-/* popular tabs */
-(function(){var now=new Date(),MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  function key(d){var m=d.getMonth()+1;return m===11?'nov':m===12?'dec':'m'+String(m).padStart(2,'0')}
-  var tabs=document.querySelectorAll('.tab[data-tab="nov"],.tab[data-tab="dec"]');
-  [now,new Date(now.getFullYear(),now.getMonth()+1,1)].forEach(function(d,k){var b=tabs[k];if(!b)return;b.dataset.tab=key(d);b.textContent=MN[d.getMonth()]});
-  var chip=document.querySelector('.h-chips [data-hk="h-month"]');if(chip)chip.dataset.hv=key(now);
-  var counts={};EV.forEach(function(e){if(e.mode!=='online')counts[e.city]=(counts[e.city]||0)+1});
-  var top=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]})[0],cc=document.querySelector('.h-chips [data-hk="h-where"]');
-  if(cc){if(top){cc.dataset.hv=top;cc.textContent='In '+top}else cc.hidden=true}
-})();
-function tabRender(t){
-  var list=EV.filter(function(e){return t==='all'||(t==='free'?e.n===0:e.m===t)}).slice(0,8);
-  $('home-wall').innerHTML=list.length?list.map(card).join(''):'<p class="h-empty">No events here yet.</p>';
-  [].forEach.call(document.querySelectorAll('.tab'),function(b){b.setAttribute('aria-pressed',b.dataset.tab===t?'true':'false')});
+function moveSpot(direction){
+  if(spotList.length<2)return;
+  spotI=(spotI+direction+spotList.length)%spotList.length;
+  spot();
+  $('spot-status').textContent='Event '+(spotI+1)+' of '+spotList.length+'. '+spotList[spotI].name;
 }
-[].forEach.call(document.querySelectorAll('.tab'),function(b){b.addEventListener('click',function(){tabRender(b.dataset.tab)})});
-tabRender('all');
-/* cities shuffle */
-(function(){
-  var seenCity={},rest=[];EV.forEach(function(e){if(e.mode!=='online'&&e.city&&!seenCity[e.city]){seenCity[e.city]=1;rest.push(e.city)}});
-  ['Owerri','Port Harcourt','Abuja','Lagos','Enugu','Uyo','Aba','Calabar','Benin City'].forEach(function(c){if(!seenCity[c]){seenCity[c]=1;rest.push(c)}});
-  var busy=function(c){return EV.filter(function(e){return e.city===c}).length};
-  var head=rest.filter(busy).sort(function(a,b){return busy(b)-busy(a)}),tail=rest.filter(function(c){return !busy(c)});
-  for(var a=tail.length-1;a>0;a--){var b=Math.floor(Math.random()*(a+1)),t=tail[a];tail[a]=tail[b];tail[b]=t}
-  var pool=head.concat(tail),at=0,wrap=$('home-cities');
-  var label=function(c){var n=EV.filter(function(e){return e.city===c}).length;return n?n+(n===1?' event':' events'):'Events coming soon'};
-  wrap.innerHTML=[0,1,2].map(function(){return '<a class="city" href="/discover"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48"/><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="20"/></svg><b></b><span></span></a>'}).join('');
-  var tiles=[].slice.call(wrap.children);
-  function fill(t,c){t.dataset.gocity=c;t.querySelector('b').textContent=c;t.querySelector('span').textContent=label(c);t.setAttribute('aria-label',c+', '+label(c))}
-  tiles.forEach(function(t,i){fill(t,pool[i])});
-  var reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var paused=reduced,hover=false,seen=true;
-  function shuffle(){
-    at=(at+1)%pool.length;
-    tiles.forEach(function(t,i){
-      setTimeout(function(){
-        t.classList.add('out');
-        setTimeout(function(){fill(t,pool[(at+i)%pool.length]);t.classList.remove('out')},300);
-      },i*130);
-    });
-  }
-  setInterval(function(){if(!paused&&!hover&&seen&&!document.hidden&&wrap.offsetParent)shuffle()},3800);
-  wrap.addEventListener('mouseenter',function(){hover=true});
-  wrap.addEventListener('mouseleave',function(){hover=false});
-  wrap.addEventListener('focusin',function(){hover=true});
-  wrap.addEventListener('focusout',function(){hover=false});
-  if('IntersectionObserver' in window)new IntersectionObserver(function(es){seen=es[0].isIntersecting},{threshold:.2}).observe(wrap);
-  
-  
-})();
-document.addEventListener('click',function(ev){
-  var c=ev.target.closest('[data-gocity]');
-  if(c){$('d-q').value='';['d-cat','d-price','d-month'].forEach(function(i){$(i).value='all'});$('d-where').value=c.dataset.gocity;filter()}
+$('spot-prev').addEventListener('click',function(){moveSpot(-1)});
+$('spot-next').addEventListener('click',function(){moveSpot(1)});
+if(spotList.length)spot();else document.querySelector('.spot-wrap').hidden=true;
+if(spotList.length<2)document.querySelector('.spot-nav').hidden=true;
+
+var homeTabs=[].slice.call(document.querySelectorAll('[data-home-section="popular"] .tab[data-tab]'));
+var today=new Date(),months=[today,new Date(today.getFullYear(),today.getMonth()+1,1)];
+homeTabs.filter(function(button){return /-month$/.test(button.dataset.tab)}).forEach(function(button,index){
+  var date=months[index];
+  button.dataset.tab=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');
+  button.textContent=new Intl.DateTimeFormat('en',{month:'long'}).format(date);
 });
+function tabRender(t,announce){
+  var list=EV.filter(function(e){return t==='all'||(t==='free'?e.n===0:eventDate(e).startsWith(t))}).slice(0,8);
+  $('home-wall').innerHTML=list.length?list.map(card).join(''):'<p class="h-empty">No upcoming events match this filter.</p>';
+  homeTabs.forEach(function(b){b.setAttribute('aria-pressed',b.dataset.tab===t?'true':'false')});
+  if(announce)$('home-wall-status').textContent=list.length===1?'1 event':list.length+' events';
+}
+homeTabs.forEach(function(b){b.addEventListener('click',function(){tabRender(b.dataset.tab,true)})});
+tabRender('all',false);
+
+var cities=new Map();
+function addHomeCity(name,country,count){
+  var key=country.toLowerCase()+'/'+name.toLowerCase(),existing=cities.get(key);
+  if(existing){existing.count+=count;return}
+  cities.set(key,{name:name,country:country,count:count});
+}
+EV.forEach(function(e){if(e.mode!=='online'&&e.city)addHomeCity(e.city,e.country||'Nigeria',1)});
+['Owerri','Port Harcourt','Abuja','Lagos','Enugu','Uyo','Aba','Calabar','Benin City'].forEach(function(name){addHomeCity(name,'Nigeria',0)});
+$('home-cities').innerHTML=Array.from(cities.values()).sort(function(a,b){return b.count-a.count}).slice(0,3).map(function(city){
+  var label=city.count?city.count+(city.count===1?' event':' events'):'Browse events';
+  return '<a class="city" href="'+esc(discoverUrl({country:city.country,city:city.name}))+'"><b>'+esc(city.name)+'</b><span>'+label+'</span></a>';
+}).join('');
 /* featured coverflow */
 (function(){
   var list=EV.filter(function(e){return !e.sold}),i=Math.floor(list.length/2),n=list.length,stage=$('cf-stage');
@@ -202,10 +196,10 @@ $('rows').innerHTML=EV.map(row).join('');
 
 /* discover filter */
 function filter(){
-  var q=$('d-q').value.trim().toLowerCase(),country=$('d-country').value,w=$('d-where').value,c=$('d-cat').value,p=$('d-price').value,m=$('d-month').value,day=$('d-day').value,n=0;
+  var q=$('d-q').value.trim().toLowerCase(),country=$('d-country').value,w=$('d-where').value,c=$('d-cat').value,p=$('d-price').value,date=$('d-date').value,n=0;
   EV.forEach(function(e){
     var countryOk=e.mode==='online'||!e.country||e.country.toLowerCase()===country.toLowerCase();
-    var ok=(!q||(e.name+' '+e.label+' '+e.by+' '+e.city).toLowerCase().indexOf(q)!==-1)&&countryOk&&(w==='all'||e.city===w)&&(c==='all'||e.cat===c||!CATS[c]&&iconKey(e.cat)===c)&&(m==='all'||e.m===m)&&(day==='all'||String(e.day)===day)&&(p==='all'||(p==='free'&&e.n===0)||(p==='low'&&e.n>0&&e.n<5000)||(p==='high'&&e.n>=5000));
+    var ok=(!q||(e.name+' '+e.label+' '+e.by+' '+e.city).toLowerCase().indexOf(q)!==-1)&&countryOk&&(w==='all'||e.city===w)&&(c==='all'||e.cat===c||!CATS[c]&&iconKey(e.cat)===c)&&(!date||eventDate(e)===date)&&(p==='all'||(p==='free'&&e.n===0)||(p==='low'&&e.n>0&&e.n<5000)||(p==='high'&&e.n>=5000));
     document.querySelector('.row[data-slug="'+e.slug+'"]').hidden=!ok;if(ok)n++;
   });
   var srt=$('d-sort').value,box=$('rows');
@@ -213,18 +207,24 @@ function filter(){
   $('count').textContent=n===1?'1 event':n+' events';
   $('empty').hidden=n!==0;
 }
-['d-q','d-country','d-where','d-cat','d-price','d-date','d-sort'].forEach(function(i){$(i).addEventListener('input',filter)});$('d-submit').addEventListener('click',filter);
-$('reset').addEventListener('click',function(){$('d-q').value='';$('d-country').value='Nigeria';$('d-date').value='';['d-where','d-cat','d-price','d-month','d-day'].forEach(function(i){$(i).value='all'});if(window.TICA_SYNC_DATE)window.TICA_SYNC_DATE('d','');['d-country','d-where','d-cat','d-price'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});filter()});
-$('home-search').addEventListener('submit',function(e){
-  e.preventDefault();
-  $('d-country').value=$('h-country').value;$('d-date').value=$('h-date').value;if(window.TICA_SYNC_SEARCH)window.TICA_SYNC_SEARCH('d',$('h-country').value,$('h-date').value);$('d-where').value=$('h-where').value;$('d-cat').value=$('h-cat').value;$('d-q').value=$('h-q').value;['d-country','d-where','d-cat'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});
-  $('d-price').value='all';filter();go('discover');
+function applyDiscoverFilters(){
+  filter();
+  if(location.pathname!=='/discover')return;
+  var url=discoverUrl({q:$('d-q').value.trim(),country:$('d-country').value,city:$('d-where').value,category:$('d-cat').value,price:$('d-price').value,date:$('d-date').value,sort:$('d-sort').value==='soon'?'':$('d-sort').value},location.search);
+  if(location.pathname+location.search!==url)history.replaceState(null,'',url);
+}
+document.addEventListener('tica:discover-ready',filter);
+['d-q','d-where','d-cat','d-price','d-date','d-sort'].forEach(function(i){$(i).addEventListener('input',applyDiscoverFilters)});
+$('d-submit').addEventListener('click',applyDiscoverFilters);
+$('reset').addEventListener('click',function(){
+  $('d-q').value='';$('d-country').value='Nigeria';$('d-date').value='';$('d-sort').value='soon';
+  ['d-where','d-cat','d-price'].forEach(function(i){$(i).value='all'});
+  ['d-country','d-where','d-cat','d-price','d-date','d-sort'].forEach(function(i){$(i).dispatchEvent(new Event('change',{bubbles:true}))});
+  applyDiscoverFilters();
 });
 document.addEventListener('click',function(ev){
   var s=ev.target.closest('[data-save]');
   if(s){saved[s.dataset.save]=!saved[s.dataset.save];s.setAttribute('aria-pressed',saved[s.dataset.save]?'true':'false');persistSaved(s.dataset.save,!!saved[s.dataset.save]);return}
-  var g=ev.target.closest('[data-gocat]');
-  if(g){$('d-q').value='';['d-where','d-price','d-month'].forEach(function(i){$(i).value='all'});$('d-cat').value=g.dataset.gocat;filter()}
   var m=ev.target.closest('.menu nav a');
   if(m)m.closest('details').removeAttribute('open');
 });
@@ -970,7 +970,7 @@ setInterval(function(){if(document.querySelector('.page[data-page=checkin]:not([
 var TITLES={home:'Home',discover:'Discover events',how:'How TICA works',pricing:'Pricing',about:'About us',contact:'Contact',create:'Create an event',policies:'Terms and policies',login:'Log in',account:'Your tickets',checkin:'Gate check-in',tickets:'My tickets',dashboard:'Dashboard',signup:'Create your account',forgot:'Reset your password',join:'Join',missing:'Page not found'};
 /* Tica: the design's pages live at real paths. Same-origin links to a design
    page are routed here; anything else is a normal page load. */
-var SPA=['','discover','how','pricing','about','contact','join','policies','tickets','account','login','signup','forgot','create','dashboard','checkin','event','checkout','ticket'];
+var SPA=['','how','pricing','about','contact','join','policies','tickets','account','login','signup','forgot','create','dashboard','checkin','event','checkout','ticket'];
 function pathOf(u){return u.pathname.replace(/^\/+|\/+$/g,'')}
 function isSpa(path){var p=path.split('/')[0];
   /* Editing an event (/create/12) needs the saved event from the server, and the
@@ -1247,11 +1247,6 @@ var m=document.querySelector('.menu');
 if(!m)return;
 m.addEventListener('toggle',function(){document.documentElement.classList.toggle('menu-open',m.open&&innerWidth<=1040)});
 addEventListener('tica:navigate',function(){m.removeAttribute('open');document.documentElement.classList.remove('menu-open')});
-[].forEach.call(document.querySelectorAll('.h-chips button'),function(b){b.addEventListener('click',function(){
-  ['h-where','h-cat','h-month'].forEach(function(i){document.getElementById(i).value='all'});document.getElementById('h-q').value='';
-  document.getElementById(b.dataset.hk).value=b.dataset.hv;
-  var f=document.getElementById('home-search');if(f.requestSubmit)f.requestSubmit();else f.dispatchEvent(new Event('submit',{cancelable:true}));
-})});
 var s=document.querySelector('.spot'),x=null,y=null;
 s.addEventListener('touchstart',function(e){x=e.touches[0].clientX;y=e.touches[0].clientY},{passive:true});
 s.addEventListener('touchend',function(e){if(x===null)return;var dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;x=null;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))document.getElementById(dx<0?'spot-next':'spot-prev').click()});
@@ -1260,23 +1255,29 @@ s.addEventListener('touchend',function(e){if(x===null)return;var dx=e.changedTou
 (function(){
 if(window.TICA_ADMIN)return;
 var $=function(i){return document.getElementById(i)},more=$('f-more'),bd=$('f-bd'),btn=$('f-btn'),last=null;
-var SEL=[['d-where','City'],['d-cat','Category'],['d-price','Price'],['d-month','Date']];
+var SEL=['d-where','d-cat','d-price','d-date'];
 function ui(){
   var n=0,chips='';
-  SEL.forEach(function(s){var el=$(s[0]);if(el.value!=='all'){n++;chips+='<button type="button" data-clr="'+s[0]+'" aria-label="Remove filter: '+el.options[el.selectedIndex].text+'">'+el.options[el.selectedIndex].text+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'}});
+  SEL.forEach(function(id){
+    var el=$(id);
+    if(!el.value||el.value==='all')return;
+    var label=el.selectedOptions?el.selectedOptions[0].text:new Intl.DateTimeFormat('en-GB',{dateStyle:'medium'}).format(new Date(el.value+'T00:00:00'));
+    n++;chips+='<button type="button" data-clr="'+id+'" aria-label="Remove filter: '+escapeLabel(label)+'">'+escapeLabel(label)+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+  });
   $('f-n').textContent=n;$('f-n').hidden=!n;btn.setAttribute('aria-label','Filters'+(n?', '+n+' active':''));
   $('f-active').innerHTML=chips;
   var c=($('count').textContent||'').trim();$('f-apply').textContent=c&&c!=='0 events'?'Show '+c:'No matching events';
 }
+function escapeLabel(label){var node=document.createElement('span');node.textContent=label;return node.innerHTML.replace(/"/g,'&quot;')}
 var home=btn.parentNode,bdHome=bd.parentNode,bdNext=bd.nextSibling;
 function open(){last=document.activeElement;document.body.appendChild(bd);document.body.appendChild(more);void more.offsetWidth;bd.hidden=false;requestAnimationFrame(function(){bd.classList.add('on');more.classList.add('open')});document.documentElement.classList.add('menu-open');setTimeout(function(){$('f-x').focus()},320)}
 function close(){more.classList.remove('open');bd.classList.remove('on');document.documentElement.classList.remove('menu-open');setTimeout(function(){bd.hidden=true;if(!more.classList.contains('open')){home.insertBefore(more,btn.nextSibling);bdHome.insertBefore(bd,bdNext)}},320);if(last)last.focus()}
 btn.addEventListener('click',open);$('f-x').addEventListener('click',close);$('f-apply').addEventListener('click',close);bd.addEventListener('click',close);
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&more.classList.contains('open'))close()});
 $('f-clear').addEventListener('click',function(){$('reset').click();$('d-sort').value='soon';$('d-sort').dispatchEvent(new Event('input',{bubbles:true}))});
-$('f-active').addEventListener('click',function(e){var b=e.target.closest('[data-clr]');if(!b)return;var s=$(b.dataset.clr);s.value='all';s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}))});
+$('f-active').addEventListener('click',function(e){var b=e.target.closest('[data-clr]');if(!b)return;var s=$(b.dataset.clr);s.value=s.tagName==='SELECT'?'all':'';s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));$('d-q').focus()});
 new MutationObserver(ui).observe($('count'),{childList:true,characterData:true,subtree:true});
-SEL.forEach(function(s){$(s[0]).addEventListener('input',ui);$(s[0]).addEventListener('change',ui)});
+SEL.forEach(function(id){$(id).addEventListener('input',ui);$(id).addEventListener('change',ui)});
 addEventListener('tica:navigate',function(){if(more.classList.contains('open'))close()});
 document.addEventListener('click',function(e){if(e.target.closest('.nav-ic')){setTimeout(function(){var q=$('d-q');q.focus();q.scrollIntoView({block:'center'})},380)}});
 ui();
@@ -1287,9 +1288,16 @@ ui();
 (function(){
 if(window.TICA_ADMIN)return;
 var s=[].slice.call(document.querySelectorAll('.h-slide'));if(s.length<2)return;
-var i=0,red=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-s.forEach(function(x,k){if(k){var im=x.querySelector('img');im.loading='eager'}});
-setInterval(function(){if(red||document.hidden)return;var hero=document.querySelector('[data-page=home]');if(!hero||hero.hidden)return;s[i].classList.remove('on');i=(i+1)%s.length;s[i].classList.add('on')},6500);
+var i=0,loading=false,motion=matchMedia('(prefers-reduced-motion: reduce)');
+setInterval(function(){
+  if(loading||motion.matches||document.hidden||document.querySelector('[data-page=home]').hidden)return;
+  var next=(i+1)%s.length,img=s[next].querySelector('img');
+  function show(){s[i].classList.remove('on');i=next;s[i].classList.add('on');loading=false}
+  if(img.src){show();return}
+  loading=true;
+  img.src=img.dataset.heroSrc;
+  img.decode().then(show,function(){loading=false});
+},6500);
 })();
 /* design script 14 */
 (function(){
@@ -1314,25 +1322,6 @@ function run(el){var t=el.textContent.trim(),m=t.match(/^(₦?)([\d,.]+)([A-Za-z
 var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){run(x.target);io.unobserve(x.target)}})},{threshold:.6});
 function scan(){[].forEach.call(document.querySelectorAll('.page:not([hidden]) .bn-num b,.page:not([hidden]) .db-kpis b,.page:not([hidden]) .db-big,.page:not([hidden]) .ck-stat b>span:first-child'),function(el){if(!el.dataset.cu)io.observe(el)})}
 addEventListener('tica:navigate',function(){setTimeout(scan,350)});document.addEventListener('click',function(){setTimeout(scan,400)});scan();
-})();
-/* design script 16 */
-(function(){
-if(window.TICA_ADMIN)return;
-var s=document.querySelector('.spot');if(!s)return;
-var bar=document.createElement('i');bar.className='spot-prog';bar.setAttribute('aria-hidden','true');s.appendChild(bar);
-var red=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;if(red)return;
-var hold=false,seen=true,left=6000,last=Date.now();
-function restart(){left=6000;last=Date.now();bar.classList.remove('run');void bar.offsetWidth;bar.classList.add('run')}
-s.addEventListener('mouseenter',function(){hold=true});s.addEventListener('mouseleave',function(){hold=false;last=Date.now()});
-s.addEventListener('focusin',function(){hold=true});s.addEventListener('focusout',function(){hold=false;last=Date.now()});
-s.addEventListener('touchstart',function(){hold=true},{passive:true});s.addEventListener('touchend',function(){setTimeout(function(){hold=false;last=Date.now()},1500)});
-if('IntersectionObserver' in window)new IntersectionObserver(function(e){seen=e[0].isIntersecting},{threshold:.4}).observe(s);
-['spot-prev','spot-next'].forEach(function(id){document.getElementById(id).addEventListener('click',function(e){if(e.isTrusted)restart()})});
-setInterval(function(){var now=Date.now(),home=document.querySelector('[data-page=home]');
- if(hold||!seen||document.hidden||!home||home.hidden){last=now;return}
- left-=now-last;last=now;
- if(left<=0){document.getElementById('spot-next').click();restart()}},200);
-restart();
 })();
 /* design script 17 */
 (function(){
@@ -2581,20 +2570,6 @@ upd();stage(0);
     setOptions(document.getElementById(`${prefix}-where`), options);
   };
 
-  const syncDate = (prefix, dateValue) => {
-    const month = document.getElementById(`${prefix}-month`);
-    const day = document.getElementById(`${prefix}-day`);
-    if (!month || !day) return;
-    if (!dateValue) {
-      month.value = 'all';
-      day.value = 'all';
-      return;
-    }
-    const [, monthNumber, dayNumber] = dateValue.split('-');
-    month.value = monthNumber === '11' ? 'nov' : monthNumber === '12' ? 'dec' : `m${monthNumber}`;
-    day.value = String(Number(dayNumber));
-  };
-
   const closeSmartSelects = (except) => {
     smartSelects.forEach((control) => {
       if (control !== except) control.close();
@@ -2616,7 +2591,9 @@ upd();stage(0);
     chevron.setAttribute('aria-hidden', 'true');
     const menu = document.createElement('div');
     menu.className = 'smart-menu';
+    menu.id = select.id + '-options';
     menu.setAttribute('role', 'listbox');
+    trigger.setAttribute('aria-controls', menu.id);
     menu.hidden = true;
     trigger.append(value, chevron);
     select.before(shell);
@@ -2626,7 +2603,7 @@ upd();stage(0);
     select.tabIndex = -1;
     select.setAttribute('aria-hidden', 'true');
     const label = document.querySelector(`label[for="${select.id}"]`)?.textContent?.trim();
-    if (label) trigger.setAttribute('aria-label', label);
+    if (label) menu.setAttribute('aria-label', label);
 
     const close = () => {
       menu.hidden = true;
@@ -2635,11 +2612,13 @@ upd();stage(0);
     };
     const refresh = () => {
       value.textContent = select.selectedOptions[0]?.textContent || 'Select';
+      if (label) trigger.setAttribute('aria-label', label + ': ' + value.textContent);
       trigger.disabled = select.disabled;
       menu.replaceChildren(...[...select.options].map((option) => {
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'smart-option';
+        item.tabIndex = -1;
         item.textContent = option.textContent;
         item.setAttribute('role', 'option');
         item.setAttribute('aria-selected', String(option.selected));
@@ -2672,7 +2651,7 @@ upd();stage(0);
         menu.style.top = roomBelow >= menuHeight
           ? `${rect.bottom + 8}px`
           : `${Math.max(12, rect.top - menuHeight - 8)}px`;
-        menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+        (menu.querySelector('[aria-selected="true"]') || menu.firstElementChild)?.focus();
       }
     });
     trigger.addEventListener('keydown', (event) => {
@@ -2680,6 +2659,20 @@ upd();stage(0);
       if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && menu.hidden) {
         event.preventDefault();
         trigger.click();
+      }
+    });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' || event.key === 'Tab') {
+        close();
+        trigger.focus({ preventScroll: true });
+        if (event.key === 'Escape') event.stopPropagation();
+      } else if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        const active = document.activeElement;
+        const option = event.key === 'Home' ? menu.firstElementChild
+          : event.key === 'End' ? menu.lastElementChild
+          : event.key === 'ArrowUp' ? active.previousElementSibling : active.nextElementSibling;
+        option?.focus();
       }
     });
     select.addEventListener('change', refresh);
@@ -2699,6 +2692,8 @@ upd();stage(0);
     input.before(trigger);
     const panel = document.createElement('div');
     panel.className = 'calendar-panel';
+    panel.id = input.id + '-options';
+    trigger.setAttribute('aria-controls', panel.id);
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'Choose a date');
     panel.hidden = true;
@@ -2734,6 +2729,7 @@ upd();stage(0);
         button.textContent = String(day);
         button.setAttribute('aria-label', new Intl.DateTimeFormat('en', { dateStyle: 'full' }).format(date));
         const value = formatValue(date);
+        button.setAttribute('aria-pressed', String(value === input.value));
         if (value === input.value) button.classList.add('is-selected');
         if (value === formatValue(today)) button.classList.add('is-today');
         if (date < today) {
@@ -2777,6 +2773,7 @@ upd();stage(0);
         panel.style.top = window.innerHeight - rect.bottom - 12 >= height
           ? `${rect.bottom + 8}px`
           : `${Math.max(12, rect.top - height - 8)}px`;
+        (days.querySelector('.is-selected:not(:disabled)') || days.querySelector('button:not(:disabled)') || panel.querySelector('.calendar-next')).focus({ preventScroll: true });
       }
     });
     panel.querySelector('.calendar-prev').addEventListener('click', () => {
@@ -2789,18 +2786,35 @@ upd();stage(0);
       if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
       render();
     });
+    panel.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      close();
+      trigger.focus({ preventScroll: true });
+    });
     input.addEventListener('change', refreshTrigger);
     refreshTrigger();
   };
 
+  const params = new URLSearchParams(location.pathname === '/discover' ? location.search : '');
+  const selected = (select, value) => {
+    if ([...select.options].some((option) => option.value === value)) select.value = value;
+  };
   ['h', 'd'].forEach((prefix) => {
     const country = document.getElementById(`${prefix}-country`);
-    const date = document.getElementById(`${prefix}-date`);
-    populateCities(prefix, country?.value || 'Nigeria');
-    syncDate(prefix, date?.value || '');
-    country?.addEventListener('change', () => populateCities(prefix, country.value));
-    date?.addEventListener('input', () => syncDate(prefix, date.value));
+    if (prefix === 'd') selected(country, params.get('country'));
+    populateCities(prefix, country.value);
+    country.addEventListener('change', () => {
+      populateCities(prefix, country.value);
+      if (prefix === 'd') document.getElementById('d-where').dispatchEvent(new Event('input'));
+    });
   });
+  ['city', 'category', 'price', 'sort'].forEach((key, index) => {
+    selected(document.getElementById(['d-where', 'd-cat', 'd-price', 'd-sort'][index]), params.get(key));
+  });
+  document.getElementById('d-q').value = params.get('q') || '';
+  document.getElementById('d-date').value = params.get('date') || '';
+  if (location.pathname === '/discover') document.dispatchEvent(new Event('tica:discover-ready'));
   document.querySelectorAll('.search.ms select:not([hidden]), .filters select').forEach(enhanceSelect);
   document.querySelectorAll('#h-date, #d-date').forEach(enhanceDatePicker);
   document.addEventListener('pointerdown', (event) => {
@@ -2809,55 +2823,7 @@ upd();stage(0);
   });
   window.addEventListener('scroll', () => { closeSmartSelects(); datePickers.forEach((picker) => picker.close()); }, { passive: true });
   window.addEventListener('resize', () => { closeSmartSelects(); datePickers.forEach((picker) => picker.close()); }, { passive: true });
-  window.TICA_SYNC_DATE = syncDate;
-  window.TICA_SYNC_SEARCH = (prefix, country, date) => {
-    populateCities(prefix, country);
-    syncDate(prefix, date);
-  };
-
   update();
-})();
-
-(() => {
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  document.querySelectorAll('[data-event-reel]').forEach((reel) => {
-    const slides = [...reel.querySelectorAll('[data-event-slide]')];
-    if (slides.length < 2) return;
-
-    let active = 0;
-    let timer = null;
-
-    const select = (index) => {
-      active = (index + slides.length) % slides.length;
-      slides.forEach((slide, slideIndex) => {
-        const selected = slideIndex === active;
-        slide.classList.toggle('is-active', selected);
-        slide.setAttribute('aria-hidden', String(!selected));
-      });
-    };
-
-    const stop = () => {
-      if (timer) window.clearInterval(timer);
-      timer = null;
-    };
-
-    const start = () => {
-      stop();
-      if (!reduceMotion.matches && !document.hidden) {
-        timer = window.setInterval(() => select(active + 1), 4400);
-      }
-    };
-
-    reel.addEventListener('pointerenter', stop);
-    reel.addEventListener('pointerleave', start);
-    reel.addEventListener('focusin', stop);
-    reel.addEventListener('focusout', start);
-    document.addEventListener('visibilitychange', start);
-    reduceMotion.addEventListener?.('change', start);
-    select(0);
-    start();
-  });
 })();
 
 (() => {

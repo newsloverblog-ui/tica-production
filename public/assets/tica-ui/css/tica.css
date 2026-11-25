@@ -2930,14 +2930,14 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
   .page[data-page=home] .card .p strong{font-weight:620!important}
 }
 
-/* Taller hero composition from the approved reference; featured card stays compact. */
+/* Keep the finder and first discovery section within reach on shorter screens. */
 @media (min-width:901px){
   .page[data-page=home] .h-frame,
   .page[data-page=home] .h-in{
-    height:clamp(520px,72vh,680px)!important;
-    min-height:520px!important
+    height:auto!important;
+    min-height:clamp(480px,58vh,560px)!important
   }
-  .page[data-page=home] .h-in{padding-top:54px!important;padding-bottom:92px!important}
+  .page[data-page=home] .h-in{padding-top:48px!important;padding-bottom:74px!important}
 }
 
 @media (min-width:701px) and (max-width:900px){
@@ -2951,7 +2951,7 @@ body{font-family:var(--ui);font-weight:400;-webkit-font-smoothing:antialiased;-m
 
 @media (max-width:700px){
   .page[data-page=home] .h-frame,
-  .page[data-page=home] .h-in{min-height:420px!important}
+  .page[data-page=home] .h-in{min-height:350px!important}
 }
 
 /* Polished hero event finder. */
@@ -7334,3 +7334,35 @@ body.isuser.appmode .workspace-badge { display: none !important; }
 .pv-keep{display:block;margin:2px 0 14px;padding:0;border:0;background:none;color:#2E4FD8;font:600 14px/1.4 var(--body,Inter,system-ui,sans-serif);text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .pv-keep:hover{color:#2541B8}
 .ce-group .ce-option-fields small{display:block;margin-top:4px;font-size:13px;color:var(--soft,#526079)}
+
+/* Homepage search sits on the same content grid as the event sections. */
+.page[data-page=home] .h-in{
+  align-items:flex-start!important;
+  text-align:left!important;
+  width:min(100%,1280px);
+  margin-inline:auto;
+}
+.page[data-page=home] .h-in h1{margin-inline:0!important;max-width:24ch;text-align:left}
+.page[data-page=home] .h-in>p:not(.h-org){margin-inline:0!important;color:#fff;text-align:left}
+.page[data-page=home] .h-in .search.ms{margin-inline:0!important}
+.page[data-page=home] .h-shade{
+  background:linear-gradient(90deg,rgba(7,20,39,.88),rgba(7,20,39,.66) 63%,rgba(7,20,39,.34))!important
+}
+.page[data-page=home] .spot-nav[hidden]{display:none!important}
+.page[data-page=home] .catc:focus-visible,
+.page[data-page=home] .city:focus-visible{outline:2px solid var(--tica-brand-primary);outline-offset:2px}
+
+@media (max-width:700px){
+  .page[data-page=home] .h-in{height:auto!important;padding:26px 16px 38px!important}
+  .page[data-page=home] .h-in h1{max-width:19ch}
+  .page[data-page=home] .h-sec:has(.moods){padding-block:30px 38px}
+  .page[data-page=home] .moods{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    margin-inline:0!important;padding-inline:0!important;overflow:visible;mask-image:none
+  }
+  .page[data-page=home] .moods .catc{
+    display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center!important;
+    min-height:56px;margin-inline:0!important
+  }
+  .page[data-page=home] .moods .catc b{font-size:12px!important}
+}

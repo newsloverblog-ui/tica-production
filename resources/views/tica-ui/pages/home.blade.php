@@ -10,21 +10,24 @@
   $tsOrganizerTitleLines = preg_split('/(?<=\.)\s+(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEticketTitle = trim((string) ($tsHome['eticket_title'] ?? ''));
   $tsEticketTitleLines = preg_split('/\s+(?=on your phone\b)/iu', $tsEticketTitle, 2) ?: [$tsEticketTitle];
-  $tsEventScenes = [
-      ['label' => 'Concerts & shows', 'main' => 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=560&h=700&q=82'],
-      ['label' => 'Weddings', 'main' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=560&h=700&q=82'],
-      ['label' => 'Conferences & seminars', 'main' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=560&h=700&q=82'],
-      ['label' => 'Sports & fitness', 'main' => 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=560&h=700&q=82'],
-      ['label' => 'Parties & nightlife', 'main' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=560&h=700&q=82'],
-      ['label' => 'Arts & culture', 'main' => 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1200&h=900&q=82', 'sub' => 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=560&h=700&q=82'],
-  ];
+  $tsOrganizerImages = array_values($tsHome['organisers_images']);
 @endphp
 @verbatim
 <section class="page" data-page="home">
   <div class="h-hero">
     <div class="h-frame">
       @endverbatim
-      <div class="h-slides" aria-hidden="true">@foreach ($tsHome['hero_images'] as $tsI => $tsPath)<div class="h-slide {{ $tsI % 2 ? 'm-blue' : 'm-ember' }}{{ $tsI === 0 ? ' on' : '' }}"><img data-src="{{ $tsImg($tsPath) }}" alt="" decoding="async" loading="lazy"></div>@endforeach</div>
+      <div class="h-slides" aria-hidden="true">
+        @foreach ($tsHome['hero_images'] as $tsPath)
+          <div class="h-slide {{ $loop->even ? 'm-blue' : 'm-ember' }}{{ $loop->first ? ' on' : '' }}">
+            @if ($loop->first && $initialPage === 'home')
+              <img src="{{ $tsImg($tsPath) }}" alt="" decoding="async" fetchpriority="high">
+            @else
+              <img {{ $loop->first ? 'data-src' : 'data-hero-src' }}="{{ $tsImg($tsPath) }}" alt="" decoding="async">
+            @endif
+          </div>
+        @endforeach
+      </div>
 @verbatim
 
       <div class="h-shade"></div><div class="h-light" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -34,14 +37,12 @@
         @if ($tsHome['hero_text'])<p>{{ $tsHome['hero_text'] }}</p>@endif
 @verbatim
 
-        <form class="search ms" id="home-search" role="search" aria-label="Find events">
-          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" type="search" placeholder="Search events or artists" aria-label="Search events" autocomplete="off"></div>
-          <div class="ms-f ms-s"><label for="h-country" class="sr">Country</label><select id="h-country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div class="ms-f ms-s"><label for="h-where" class="sr">City</label><select id="h-where" data-city><option value="all">All cities</option></select></div>
-          <div class="ms-f ms-s ms-date"><label for="h-date" class="sr">Date</label><input id="h-date" type="date" aria-label="Choose event date"><input id="h-month" type="hidden" value="all"><input id="h-day" type="hidden" value="all"></div>
-          <select id="h-cat" class="catselect" hidden aria-hidden="true" tabindex="-1"></select>
+        <form class="search ms" id="home-search" action="/discover" role="search" aria-label="Find events">
+          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" name="q" type="search" placeholder="Search events or artists" aria-label="Search events" autocomplete="off"></div>
+          <div class="ms-f ms-s"><label for="h-country" class="sr">Country</label><select id="h-country" name="country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div class="ms-f ms-s"><label for="h-where" class="sr">City</label><select id="h-where" name="city" data-city><option value="all">All cities</option></select></div>
+          <div class="ms-f ms-s ms-date"><label for="h-date" class="sr">Date</label><input id="h-date" name="date" type="date" aria-label="Choose event date"></div>
           <button class="ms-go" type="submit" aria-label="Find events"><span class="sb-t">Search</span></button>
         </form>
-        <div class="h-chips" role="group" aria-label="Popular searches"><button type="button" data-hk="h-month" data-hv="nov">This month</button><button type="button" data-hk="h-where" data-hv="Owerri">In Owerri</button><button type="button" data-hk="h-cat" data-hv="shows">Concerts</button><button type="button" data-hk="h-cat" data-hv="party">Nightlife</button><button type="button" data-hk="h-cat" data-hv="campus">Campus</button></div>
         <p class="h-org">Hosting an event? <a href="/create">Start selling tickets</a></p>
       </div>
     </div>
@@ -54,9 +55,9 @@
   <div class="wrap spot-wrap"{!! $tsOff('spotlight') !!}>
 @verbatim
 
-    <div class="spot" aria-roledescription="carousel" aria-label="Featured events">
+    <div class="spot" role="group" aria-roledescription="carousel" aria-label="Featured events">
       <div class="spot-flyer" id="spot-flyer" aria-hidden="true"></div>
-      <div class="spot-body" aria-live="polite">
+      <div class="spot-body">
         <div class="spot-copy"><span class="spot-kicker">Featured event</span>
         <h2 id="spot-name"></h2>
         <p id="spot-meta"></p></div><div class="spot-live"><div id="spot-cd"></div><div class="stk" id="spot-stock"></div></div>
@@ -67,9 +68,10 @@
       </div>
       <div class="spot-nav">
         <button type="button" id="spot-prev" aria-label="Previous featured event"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-        <span id="spot-count"></span>
+        <span id="spot-count" aria-hidden="true"></span>
         <button type="button" id="spot-next" aria-label="Next featured event"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
+      <p class="sr" id="spot-status" role="status"></p>
     </div>
   </div>
 
@@ -89,16 +91,16 @@
 <div class="wrap h-sec">
     <div class="head">
       <h2 class="display">Popular events</h2>
-      <a class="seeall" href="/discover">See all events</a>
+      <a class="seeall" href="/discover">Browse events</a>
     </div>
     <div class="tabs" role="group" aria-label="Filter popular events">
       <button type="button" class="tab" data-tab="all" aria-pressed="true">All</button>
-      <button type="button" class="tab" data-tab="nov" aria-pressed="false">November</button>
-      <button type="button" class="tab" data-tab="dec" aria-pressed="false">December</button>
+      <button type="button" class="tab" data-tab="this-month" aria-pressed="false">This month</button>
+      <button type="button" class="tab" data-tab="next-month" aria-pressed="false">Next month</button>
       <button type="button" class="tab" data-tab="free" aria-pressed="false">Free</button>
     </div>
     <div class="grid4" id="home-wall"></div>
-    <a class="btn btn-line wall-more" href="/discover">See all events</a>
+    <p class="sr" id="home-wall-status" role="status"></p>
   </div></div>
 
   <!-- Cities -->
@@ -118,18 +120,18 @@
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
     </div>
-    <div class="org-art duo-art event-reel" data-event-reel aria-roledescription="carousel" aria-label="Events powered by TICA">
+    @if ($tsOrganizerImages)
+    <div class="org-art duo-art event-reel" aria-hidden="true">
       <div class="event-reel-stage">
-        @foreach ($tsEventScenes as $tsSceneIndex => $tsScene)
-          <figure class="event-reel-slide{{ $tsSceneIndex === 0 ? ' is-active' : '' }}" data-event-slide aria-hidden="{{ $tsSceneIndex === 0 ? 'false' : 'true' }}">
-            <div class="da-main da-concert"><img src="{{ $tsImg($tsScene['main']) }}" width="1200" height="900" decoding="async" alt="{{ $tsScene['label'] }} event organised with TICA"></div>
-            <div class="da-sub da-crowd"><img src="{{ $tsImg($tsScene['sub']) }}" width="560" height="700" decoding="async" alt=""></div>
-            <figcaption>{{ $tsScene['label'] }}</figcaption>
-          </figure>
-        @endforeach
+        <figure class="event-reel-slide is-active">
+          <div class="da-main da-concert"><img data-src="{{ $tsImg($tsOrganizerImages[0]) }}" width="1200" height="900" loading="lazy" decoding="async" alt=""></div>
+          @if (isset($tsOrganizerImages[1]))
+            <div class="da-sub da-crowd"><img data-src="{{ $tsImg($tsOrganizerImages[1]) }}" width="560" height="700" loading="lazy" decoding="async" alt=""></div>
+          @endif
+        </figure>
       </div>
-      <span class="da-badge"><svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>2 VIP tickets just sold</span>
     </div>
+    @endif
     @if ($tsHome['organisers_points'])<ol class="org-list org-benefits">@foreach ($tsHome['organisers_points'] as $tsP)
       <li><b>{{ $tsP['title'] }}</b>@if ($tsP['text'])<span>{{ $tsP['text'] }}</span>@endif</li>@endforeach
     </ol>@endif

@@ -19,7 +19,7 @@
       <div class="pick"><label for="d-cat">Category</label><select id="d-cat" class="catselect"></select></div>
       <div class="pick"><label for="d-price">Price</label><select id="d-price"><option value="all">Any price</option><option value="free">Free</option><option value="low">Under ₦5,000</option><option value="high">₦5,000 and above</option></select></div>
       <div class="pick"><label for="d-sort">Sort by</label><select id="d-sort"><option value="soon">Soonest first</option><option value="low">Price, low to high</option><option value="high">Price, high to low</option></select></div>
-      <div class="pick pick-date"><label for="d-date">Date</label><input id="d-date" type="date" aria-label="Choose event date"><input id="d-month" type="hidden" value="all"><input id="d-day" type="hidden" value="all"></div><button class="d-search" id="d-submit" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span>Search</span></button>
+      <div class="pick pick-date"><label for="d-date">Date</label><input id="d-date" type="date" aria-label="Choose event date"></div><button class="d-search" id="d-submit" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span>Search</span></button>
       </div><div class="f-foot"><button class="btn btn-line" type="button" id="f-clear">Clear all</button><button class="btn btn-hot" type="button" id="f-apply">Show results</button></div></div>
     </div>
     <div class="f-active" id="f-active"></div><div class="f-bd" id="f-bd" hidden></div>
