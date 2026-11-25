@@ -45,7 +45,9 @@ class ApplicationTypographyTest extends TestCase
         $css = file_get_contents(public_path('assets/tica-ui/css/typography.css'));
 
         $tokens = [
-            '--tica-text-display:',
+            '--tica-text-display-xl:',
+            '--tica-text-display-l:',
+            '--tica-text-hero:',
             '--tica-text-h1:',
             '--tica-text-h2:',
             '--tica-text-h3:',
@@ -65,6 +67,10 @@ class ApplicationTypographyTest extends TestCase
             '--tica-text-caption:',
             '--tica-text-metric:',
             '--tica-text-financial:',
+            '--tica-text-dashboard-title:',
+            '--tica-text-interface-heading:',
+            '--tica-text-eyebrow:',
+            '--tica-text-order-total:',
         ];
 
         foreach ($tokens as $token) {
@@ -78,7 +84,7 @@ class ApplicationTypographyTest extends TestCase
         $this->assertStringContainsString('font-weight: 400 700', $css);
         $this->assertStringContainsString('--tica-font-brand: "Montserrat"', $css);
         $this->assertStringContainsString('--tica-font-ui: "Inter"', $css);
-        $this->assertStringContainsString('--tica-type-display: clamp(', $css);
+        $this->assertStringContainsString('--tica-type-display-xl: clamp(', $css);
         $this->assertStringContainsString('--tica-type-body: 1rem', $css);
         $this->assertStringContainsString('--tica-type-input: 1rem', $css);
         $this->assertStringNotContainsString('@import', $css);

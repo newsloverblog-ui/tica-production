@@ -2,7 +2,7 @@
 @source "../js/**/*.tsx";
 
 @theme {
-  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--tica-font-ui);
   --color-page: #ffffff;
   --color-surface: #ffffff;
   --color-background: #f6f8fc;

@@ -40,32 +40,30 @@
 
 ### Typography
 
-Use **Montserrat** for display text, page and section headings, and event titles. Use **Inter** for body text, navigation, buttons, forms, tables, captions, notifications, and figures. The shared [typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads both self-hosted variable fonts and provides the `--tica-text-*` roles. Display and heading sizes scale between mobile and desktop. Body and control sizes use rem so they follow browser text settings.
+Use **Montserrat** for brand statements, marketing headings, major page titles, and event names. Use **Inter** for paragraphs, controls, operational headings, captions, tables, and figures. The [shared typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads both self-hosted variable fonts and defines the reusable text roles.
 
-| Role | Token | Desktop size | Weight | Line height |
-|------|-------|-------------:|-------:|------------:|
-| Display | `--tica-text-display` | 48px | 800 | 1.1 |
-| H1 | `--tica-text-h1` | 36px | 700 | 1.2 |
-| H2 | `--tica-text-h2` | 28px | 700 | 1.25 |
-| H3 | `--tica-text-h3` | 22px | 600 | 1.35 |
-| H4 | `--tica-text-h4` | 18px | 600 | 1.4 |
-| H5 | `--tica-text-h5` | 16px | 600 | 1.4 |
-| H6 | `--tica-text-h6` | 14px | 600 | 1.4 |
-| Event detail title | `--tica-text-event-title` | 28px | 600 | 1.25 |
-| Event card title | `--tica-text-event` | 18px | 600 | 1.35 |
-| Body large | `--tica-text-body-lg` | 18px | 400 | 1.6 |
-| Body | `--tica-text-body` | 16px | 400 | 1.6 |
-| Body small and secondary | `--tica-text-body-sm`, `--tica-text-secondary` | 14px | 400 | 1.5 |
-| Navigation and form labels | `--tica-text-nav`, `--tica-text-label` | 14px | 500 | 1.4 |
-| Buttons | `--tica-text-button` | 14px | 600 | 1.4 |
-| Inputs | `--tica-text-input` | 16px | 400 | 1.5 |
-| Table cells | `--tica-text-table` | 14px | 400 | 1.5 |
-| Table headers | `--tica-text-table-head` | 14px | 500 | 1.4 |
-| Captions | `--tica-text-caption` | 12px | 500 | 1.5 |
-| Dashboard metrics | `--tica-text-metric` | 28px | 700 | 1.2 |
-| Financial figures | `--tica-text-financial` | 16px | 600 | 1.4 |
+| Role | Token | Desktop / mobile | Weight | Line height |
+|------|-------|-----------------:|-------:|------------:|
+| Display XL | `--tica-text-display-xl` | 64 / 40px | 800 | 1.10 |
+| Display L | `--tica-text-display-l` | 56 / 36px | 700 | 1.12 |
+| Hero | `--tica-text-hero` | 48 / 32px | 700 | 1.12 |
+| Page title | `--tica-text-h1` | 36 / 28px | 700 | 1.20 |
+| Section heading | `--tica-text-h2` | 32 / 24px | 700 | 1.25 |
+| Subheading | `--tica-text-h3` | 24 / 20px | 600 | 1.30 |
+| Event preview title | `--tica-text-event` | 18 / 16px | 600 | 1.35 |
+| Dashboard title | `--tica-text-dashboard-title` | 28 / 24px | 600 | 1.25 |
+| Operational heading | `--tica-text-interface-heading` | 20 / 18px | 600 | 1.40 |
+| Body large | `--tica-text-body-lg` | 18 / 16px | 400 | 1.65 |
+| Body | `--tica-text-body` | 16px | 400 | 1.60 |
+| Supporting text | `--tica-text-body-sm`, `--tica-text-secondary` | 14px | 400 | 1.50 |
+| Navigation and labels | `--tica-text-nav`, `--tica-text-label` | 14px | 500 | 1.40 |
+| Buttons | `--tica-text-button` | 14px | 600 | 1.40 |
+| Inputs | `--tica-text-input` | 16px | 400 | 1.50 |
+| Table cells | `--tica-text-table` | 14px | 400 | 1.50 |
+| Captions | `--tica-text-caption` | 12px | 400 | 1.50 |
+| Financial metrics | `--tica-text-metric` | 32 / 24px | 600 | 1.20 |
 
-Use `font-variant-numeric: tabular-nums` for prices, balances, transaction columns, and changing counts. Use the tracking tokens for headings and preserve normal tracking for reading and interface text.
+Reserve the 800 weight for the largest display role. Keep descriptions within the shared reading measure and use the heading-to-copy and copy-to-action spacing tokens. Apply normal tracking and tabular numerals to prices, balances, and numeric columns.
 
 ### Spacing Variables
 

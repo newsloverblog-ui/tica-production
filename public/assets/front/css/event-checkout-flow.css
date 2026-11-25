@@ -109,8 +109,8 @@
   .checkout-hero { padding: 100px 0 32px; }
   .checkout-flow { padding: 28px 0 72px; }
   .checkout-stepper { grid-template-columns: repeat(3,1fr); gap: 6px; padding: 14px 10px; }
-  .checkout-step { justify-content: center; }
-  .checkout-step > span:last-child, .checkout-step-line { display: none; }
+  .checkout-step { flex-direction: column; justify-content: start; gap: 5px; text-align: center; overflow-wrap: anywhere; }
+  .checkout-step small, .checkout-step-line { display: none; }
   .checkout-step-number { width: 36px; height: 36px; flex-basis: 36px; }
   .checkout-panel { padding: 22px 18px; border-radius: 18px; }
   .checkout-panel-heading { display: block; }
@@ -119,7 +119,7 @@
   .checkout-event-image { min-height: 210px; max-height: 280px; }
   .checkout-event-copy { padding: 22px; }
   .checkout-form-grid { grid-template-columns: 1fr; gap: 18px; }
-  .checkout-panel-actions { align-items: stretch; }
+  .checkout-panel-actions { flex-wrap: wrap; align-items: stretch; }
   .checkout-panel-actions > * { flex: 1; }
   .checkout-review-actions .checkout-secondary-button { flex: 0 1 auto; }
 }

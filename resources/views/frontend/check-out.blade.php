@@ -6,7 +6,7 @@
 
 @section('custom-style')
   <link rel="stylesheet" href="{{ asset('assets/admin/css/summernote-content.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/front/css/event-checkout-flow.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/front/css/event-checkout-flow.css') }}?v={{ tica_asset_version('assets/front/css/event-checkout-flow.css') }}">
 @endsection
 
 <meta name="csrf-token" content="{{ csrf_token() }}">

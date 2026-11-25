@@ -48,25 +48,35 @@
   --tica-weight-bold: 700;
   --tica-weight-extrabold: 800;
   --tica-leading-display: 1.1;
+  --tica-leading-hero: 1.12;
   --tica-leading-h1: 1.2;
   --tica-leading-h2: 1.25;
-  --tica-leading-h3: 1.35;
+  --tica-leading-h3: 1.3;
+  --tica-leading-card: 1.35;
   --tica-leading-label: 1.4;
   --tica-leading-ui: 1.5;
   --tica-leading-body: 1.6;
-  --tica-tracking-display: -.025em;
+  --tica-leading-description: 1.65;
+  --tica-tracking-display: -.035em;
+  --tica-tracking-hero: -.028em;
   --tica-tracking-heading: -.015em;
+  --tica-tracking-eyebrow: .1em;
   --tica-tracking-ui: 0;
+  --tica-space-heading-copy: var(--t-4, 1rem);
+  --tica-space-copy-action: var(--t-5, 1.5rem);
+  --tica-measure: 65ch;
 
-  /* Fluid headings reach their full size on desktop. Text and controls use rem. */
-  --tica-type-display: clamp(2rem, 1.45rem + 2.2vw, 3rem);
-  --tica-type-h1: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
-  --tica-type-h2: clamp(1.375rem, 1.175rem + .8vw, 1.75rem);
-  --tica-type-h3: clamp(1.125rem, 1rem + .5vw, 1.375rem);
+  /* Display roles grow fluidly. Interface copy keeps a stable reading size. */
+  --tica-type-display-xl: clamp(2.5rem, 1.25rem + 4.17vw, 4rem);
+  --tica-type-display-l: clamp(2.25rem, .875rem + 3.9vw, 3.5rem);
+  --tica-type-hero: clamp(2rem, 1.45rem + 2.2vw, 3rem);
+  --tica-type-h1: 1.75rem;
+  --tica-type-h2: 1.5rem;
+  --tica-type-h3: 1.25rem;
   --tica-type-h4: clamp(1rem, .925rem + .3vw, 1.125rem);
   --tica-type-h5: 1rem;
   --tica-type-h6: .875rem;
-  --tica-type-body-lg: 1.125rem;
+  --tica-type-body-lg: 1rem;
   --tica-type-body: 1rem;
   --tica-type-body-sm: .875rem;
   --tica-type-caption: .75rem;
@@ -76,31 +86,43 @@
   --tica-type-input: 1rem;
   --tica-type-table-body: .875rem;
   --tica-type-table-head: .875rem;
-  --tica-type-metric: var(--tica-type-h2);
+  --tica-type-event: 1rem;
+  --tica-type-event-title: clamp(1.75rem, 1.375rem + 1vw, 2.25rem);
+  --tica-type-dashboard-title: clamp(1.5rem, 1.375rem + .45vw, 1.75rem);
+  --tica-type-interface-heading: clamp(1.125rem, 1.0625rem + .22vw, 1.25rem);
+  --tica-type-metric: clamp(1.5rem, 1.25rem + 1vw, 2rem);
   --tica-type-financial: var(--tica-type-body);
+  --tica-type-order-total: clamp(1.25rem, 1.1rem + .35vw, 1.5rem);
   --tica-type-secondary: var(--tica-type-body-sm);
 
-  --tica-text-display: var(--tica-weight-extrabold) var(--tica-type-display)/var(--tica-leading-display) var(--tica-font-brand);
+  --tica-text-display-xl: var(--tica-weight-extrabold) var(--tica-type-display-xl)/var(--tica-leading-display) var(--tica-font-brand);
+  --tica-text-display-l: var(--tica-weight-bold) var(--tica-type-display-l)/var(--tica-leading-hero) var(--tica-font-brand);
+  --tica-text-hero: var(--tica-weight-bold) var(--tica-type-hero)/var(--tica-leading-hero) var(--tica-font-brand);
   --tica-text-h1: var(--tica-weight-bold) var(--tica-type-h1)/var(--tica-leading-h1) var(--tica-font-brand);
   --tica-text-h2: var(--tica-weight-bold) var(--tica-type-h2)/var(--tica-leading-h2) var(--tica-font-brand);
   --tica-text-h3: var(--tica-weight-semibold) var(--tica-type-h3)/var(--tica-leading-h3) var(--tica-font-brand);
   --tica-text-h4: var(--tica-weight-semibold) var(--tica-type-h4)/var(--tica-leading-label) var(--tica-font-brand);
   --tica-text-h5: var(--tica-weight-semibold) var(--tica-type-h5)/var(--tica-leading-label) var(--tica-font-brand);
   --tica-text-h6: var(--tica-weight-semibold) var(--tica-type-h6)/var(--tica-leading-label) var(--tica-font-brand);
-  --tica-text-event-title: var(--tica-weight-semibold) var(--tica-type-h2)/var(--tica-leading-h2) var(--tica-font-brand);
-  --tica-text-event: var(--tica-weight-semibold) var(--tica-type-h4)/var(--tica-leading-h3) var(--tica-font-brand);
-  --tica-text-body-lg: var(--tica-weight-regular) var(--tica-type-body-lg)/var(--tica-leading-body) var(--tica-font-ui);
+  --tica-text-event-title: var(--tica-weight-semibold) var(--tica-type-event-title)/var(--tica-leading-h2) var(--tica-font-brand);
+  --tica-text-event: var(--tica-weight-semibold) var(--tica-type-event)/var(--tica-leading-card) var(--tica-font-brand);
+  --tica-text-body-lg: var(--tica-weight-regular) var(--tica-type-body-lg)/var(--tica-leading-description) var(--tica-font-ui);
   --tica-text-body: var(--tica-weight-regular) var(--tica-type-body)/var(--tica-leading-body) var(--tica-font-ui);
   --tica-text-body-sm: var(--tica-weight-regular) var(--tica-type-body-sm)/var(--tica-leading-ui) var(--tica-font-ui);
-  --tica-text-caption: var(--tica-weight-medium) var(--tica-type-caption)/var(--tica-leading-ui) var(--tica-font-ui);
+  --tica-text-caption: var(--tica-weight-regular) var(--tica-type-caption)/var(--tica-leading-ui) var(--tica-font-ui);
+  --tica-text-status: var(--tica-weight-medium) var(--tica-type-caption)/var(--tica-leading-ui) var(--tica-font-ui);
+  --tica-text-eyebrow: var(--tica-weight-semibold) var(--tica-type-caption)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-nav: var(--tica-weight-medium) var(--tica-type-nav)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-button: var(--tica-weight-semibold) var(--tica-type-button)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-label: var(--tica-weight-medium) var(--tica-type-label)/var(--tica-leading-label) var(--tica-font-ui);
   --tica-text-input: var(--tica-weight-regular) var(--tica-type-input)/var(--tica-leading-ui) var(--tica-font-ui);
   --tica-text-table: var(--tica-weight-regular) var(--tica-type-table-body)/var(--tica-leading-ui) var(--tica-font-ui);
   --tica-text-table-head: var(--tica-weight-medium) var(--tica-type-table-head)/var(--tica-leading-label) var(--tica-font-ui);
-  --tica-text-metric: var(--tica-weight-bold) var(--tica-type-metric)/var(--tica-leading-h1) var(--tica-font-ui);
+  --tica-text-dashboard-title: var(--tica-weight-semibold) var(--tica-type-dashboard-title)/var(--tica-leading-h2) var(--tica-font-brand);
+  --tica-text-interface-heading: var(--tica-weight-semibold) var(--tica-type-interface-heading)/var(--tica-leading-label) var(--tica-font-ui);
+  --tica-text-metric: var(--tica-weight-semibold) var(--tica-type-metric)/var(--tica-leading-h1) var(--tica-font-ui);
   --tica-text-financial: var(--tica-weight-semibold) var(--tica-type-financial)/var(--tica-leading-label) var(--tica-font-ui);
+  --tica-text-order-total: var(--tica-weight-semibold) var(--tica-type-order-total)/var(--tica-leading-h1) var(--tica-font-ui);
   --tica-text-secondary: var(--tica-weight-regular) var(--tica-type-secondary)/var(--tica-leading-ui) var(--tica-font-ui);
 
   --t-font: var(--tica-font-ui);
@@ -111,8 +133,27 @@
   --t-leading: var(--tica-leading-body);
 }
 
+@media (min-width: 38rem) {
+  :root {
+    --tica-type-h1: 2rem;
+    --tica-type-h2: 1.75rem;
+    --tica-type-h3: 1.375rem;
+    --tica-type-body-lg: 1.125rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  :root {
+    --tica-type-h1: 2.25rem;
+    --tica-type-h2: 2rem;
+    --tica-type-h3: 1.5rem;
+    --tica-type-event: 1.125rem;
+  }
+}
+
 body {
   font: var(--tica-text-body);
+  font-synthesis-weight: none;
   letter-spacing: var(--tica-tracking-ui);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -126,6 +167,7 @@ body {
 body :is(h1, h2, h3, h4, h5, h6, .page-title, .card-title) {
   font-family: var(--tica-font-brand);
   letter-spacing: var(--tica-tracking-heading) !important;
+  overflow-wrap: anywhere;
 }
 
 body :is(h1, .page-title) { font: var(--tica-text-h1) !important; }
@@ -135,9 +177,17 @@ body h4 { font: var(--tica-text-h4) !important; }
 body h5 { font: var(--tica-text-h5) !important; }
 body h6 { font: var(--tica-text-h6) !important; }
 
+body :is(.ft-line, .a-state p) {
+  font: var(--tica-text-h2) !important;
+  letter-spacing: var(--tica-tracking-heading);
+  overflow-wrap: anywhere;
+}
+
 :is(body.tica-admin, body.tica-organizer) .page-inner :is(h1, .page-title),
-body.tica-admin .page-header .page-title {
-  font: var(--tica-text-h1) !important;
+body.tica-admin .page-header .page-title,
+.page:is([data-page=dashboard], [data-page=account], [data-page=checkin]) h1,
+body :is(.dashboard-page h1, .scanner-intro h1) {
+  font: var(--tica-text-dashboard-title) !important;
   letter-spacing: var(--tica-tracking-heading) !important;
 }
 
@@ -147,38 +197,65 @@ body.tica-admin .page-header .page-title {
   text-wrap: initial;
 }
 
-body :is(.card-title, .t-card__title, .directory-card-title, .ov-card__title, .directory-section-title) {
-  font: var(--tica-text-h4) !important;
-  letter-spacing: var(--tica-tracking-heading);
+body :is(.card-title, .t-card__title, .directory-card-title, .ov-card__title, .directory-section-title,
+  .acd-ch h2, .db-ch h2, .db-card h3, .ov-start h2, .ov-setup h2, .pv-section__head h2,
+  .checkout-panel-heading h2, .checkout-order-card h3, .checkout-review-card h3, .evright h2, .calc h2,
+  :where(#checkout-view) :is(.panel h2, .summary h2, .pform h3)),
+:is(body.tica-admin, body.tica-organizer) .page-inner :is(h2, h3) {
+  font: var(--tica-text-interface-heading) !important;
+  letter-spacing: var(--tica-tracking-ui) !important;
 }
 
 body :is(.hero, .h-in) h1,
-.page[data-page=home] .h-in h1,
-.page[data-page=about] .a-h1,
-.page[data-page=how] .x-h1 {
-  font: var(--tica-text-display) !important;
+.page[data-page=home] .h-in h1 {
+  font: var(--tica-text-hero) !important;
+  letter-spacing: var(--tica-tracking-hero) !important;
+  text-wrap: balance;
+}
+
+.page[data-page=about] .a-h1 {
+  font: var(--tica-text-display-xl) !important;
   letter-spacing: var(--tica-tracking-display) !important;
   text-wrap: balance;
 }
 
-body :is(.cardbody h3, .row-title, .row h3, .spot-body h2, .evtitle h1, .evhead h1, .event-title) {
+.page[data-page=how] .x-h1 {
+  font: var(--tica-text-display-l) !important;
+  letter-spacing: var(--tica-tracking-display) !important;
+  text-wrap: balance;
+}
+
+body :is(.cardbody h3, .row-title, .row h3, .event-title, .checkout-event-copy h3, .sumevent-title) {
   font: var(--tica-text-event) !important;
   letter-spacing: var(--tica-tracking-heading);
 }
 
-body :is(.spot-body h2, .evtitle h1, .evhead h1) {
+body .spot-body h2 {
+  font: var(--tica-text-event) !important;
+}
+
+body :is(.evtitle h1, .evhead h1, .eticket h1) {
   font: var(--tica-text-event-title) !important;
 }
 
-body :is(.h-in > p:not(.h-org), .lead, .hero-copy p) {
+body :is(.h-in > p:not(.h-org), .lead, .x-lead, .hero-copy p, .checkout-hero p:last-child) {
   font: var(--tica-text-body-lg) !important;
   letter-spacing: var(--tica-tracking-ui);
-  max-inline-size: 65ch;
+  max-inline-size: var(--tica-measure);
 }
 
 body :is(.org-copy p, .tk-copy p, .tc-body p, .policy p, .ev-about p) {
   font: var(--tica-text-body) !important;
   letter-spacing: var(--tica-tracking-ui);
+}
+
+body :is(.tc-body p, .policy p, .tica-prose p, .evc > p) {
+  line-height: var(--tica-leading-description) !important;
+}
+
+body :is(.tc-body, .policy, .tica-prose, .evc > p) {
+  max-inline-size: var(--tica-measure);
+  overflow-wrap: anywhere;
 }
 
 body :is(.pagebar a, .nav-links a, .mobile-menu a:not(.btn), .menu nav a, .sidebar-link, .nav-link, .user-sidebar a, .account-nav a),
@@ -201,13 +278,14 @@ body.tica-app-ui .h-motion {
 body :is(.form-group > label, .form-label, .t-label, .control-label, fieldset > legend, .field-label, .filter-label,
   .booking-filters > label > span, .transaction-filters > label > span, .at-form label > span, .taa-field label,
   .tica-coupons-page .modal label, .pick > span, .search-label, .inp > label, .au-f label, .acd-form label,
-  .tp-code label, .wl label, .ck-manual label, .ck-ev label, .field label) {
+  .tp-code label, .wl label, .ck-manual label, .ck-ev label, .field label, .checkout-field label, .c-f label) {
   font: var(--tica-text-label) !important;
   letter-spacing: var(--tica-tracking-ui);
 }
 
 /* Keep editable controls at 16px to avoid zoom on focus in iOS Safari. */
-body :is(.form-control, .custom-select, .t-input, .t-select, .t-textarea, .select2-selection, .h-in .smart-trigger, select, textarea,
+body :is(.form-control, .custom-select, .t-input, .t-select, .t-textarea, .select2-selection, .h-in .smart-trigger,
+  .filters .smart-trigger, .filters .calendar-trigger, select, textarea,
   input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="reset"], [type="submit"])) {
   font: var(--tica-text-input) !important;
   letter-spacing: var(--tica-tracking-ui);
@@ -227,28 +305,44 @@ body :is(table th, table thead td, .directory-table-head > *, .at-table-head > *
   text-transform: none !important;
 }
 
-body :is(small, .text-xs, .badge, .t-badge, .status-pill, .payment-state, .provider-chip, .pm-pill,
-  .pm-chip, .coupon-status, .directory-status, .cdate, .spot-kicker, .row-date,
-  .directory-eyebrow, .coupon-mobile-label, figcaption),
+body :is(small, .text-xs, .cdate, .row-date, .coupon-mobile-label, figcaption),
 body :is(.tica-report-table td, td[data-label])::before,
 #tica-shell :is(.tsh-group-label, .tsh-kicker) {
   font: var(--tica-text-caption) !important;
 }
 
+body :is(.badge, .t-badge, .status-pill, .payment-state, .provider-chip, .pm-pill,
+  .pm-chip, .coupon-status, .directory-status, .spot-kicker) {
+  font: var(--tica-text-status) !important;
+}
+
+body :is(.checkout-eyebrow, .directory-eyebrow, .fin-eyebrow, .ov-eyebrow) {
+  font: var(--tica-text-eyebrow) !important;
+  letter-spacing: var(--tica-tracking-eyebrow);
+}
+
+body :is(.au-card h1, .taa-card h1, .checkout-hero h1, :where(#checkout-view) h1) {
+  text-wrap: balance;
+}
+
 body :is(.text-sm, .text-muted, .t-help, .help-block, .form-text, .helper-text, .meta, .line,
   .ov-sub, .ov-card__sub, .tk-steps span, .order-info p, .billing-add-area p,
   .t-page-head p, .page-header p, .db-head p, .acd-head p, .cd-top p, .fin-head p, .directory-page-header p,
-  .booking-toolbar__head p, .transaction-toolbar__head p, .taa-lead, .tsh-bell__item span) {
+  .booking-toolbar__head p, .transaction-toolbar__head p, .taa-lead, .tsh-bell__item span,
+  .checkout-security-copy, .checkout-event-meta, .paylegal, .checkout-status, .acct.in span:not(.acct-av)) {
   font: var(--tica-text-secondary) !important;
   letter-spacing: var(--tica-tracking-ui);
 }
 
-body :is(.invalid-feedback, .error-message, .form-error, .taa-err, .taa-msg, .tooltip-inner, [role="tooltip"]) {
+body :is(.invalid-feedback, .error-message, .form-error, .taa-err, .taa-msg, .ferr, .payerr,
+  .checkout-alert, .checkout-field-error, .tooltip-inner, [role="tooltip"]) {
   font: var(--tica-text-body-sm) !important;
   letter-spacing: var(--tica-tracking-ui);
+  overflow-wrap: anywhere;
 }
 
-body :is(.cd-kpi-l, .ov-kpi__label, .ov-summary__label, .org-metric small) {
+body :is(.cd-kpi-l, .ov-kpi__label, .ov-summary__label, .org-metric small, .checkout-step strong,
+  .checkout-ticket-row strong:first-child, :where(#checkout-view) :is(.steps li, .tkt b)) {
   font: var(--tica-text-label) !important;
   letter-spacing: var(--tica-tracking-ui);
 }
@@ -256,27 +350,61 @@ body :is(.cd-kpi-l, .ov-kpi__label, .ov-summary__label, .org-metric small) {
 body :is(.cd-kpi-value, .ov-kpi__value, .ov-summary__value, .org-metric strong, .acd-stat strong, .card-stats .card-title,
   .directory-stat strong, .at-stat strong, .promotion-stat strong, .coupon-stats strong, .scanner-metric > span) {
   font: var(--tica-text-metric) !important;
-  letter-spacing: var(--tica-tracking-heading);
+  letter-spacing: var(--tica-tracking-ui) !important;
 }
 
 body :is(.price, .spot-buy b, .payment-amount, .tx-amount, .tx-balance, .rprice,
-  .buybar b, .sumline > :last-child, .pv-sum__total,
-  .fin-flow__step strong, .fin-two .lg-dl dd, .financial-figure) {
+  .buybar b, .sumline > :last-child, .pv-sum__total, .checkout-order-line strong, .checkout-ticket-row > span,
+  .fin-flow__step strong, .fin-two .lg-dl dd, .financial-figure, .calc dd, .c-f output) {
   font: var(--tica-text-financial) !important;
   letter-spacing: var(--tica-tracking-ui);
 }
 
-body :is(.fin-balance__primary > strong, .ov-money__value) {
+body :is(.fin-balance__primary > strong, .ov-money__value, .x-fee b, .plan > .pr, .calc .big dd) {
   font: var(--tica-text-metric) !important;
-  letter-spacing: var(--tica-tracking-heading);
+  letter-spacing: var(--tica-tracking-ui) !important;
+}
+
+body :is(.sumline.sumtotal > :last-child, .checkout-order-total > strong) {
+  font: var(--tica-text-order-total) !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: var(--tica-tracking-ui) !important;
+}
+
+body :is(.sumline.sumtotal, .checkout-order-total) {
+  flex-wrap: wrap;
+  gap: .25rem .75rem;
+}
+
+body :is(.sumline.sumtotal, .checkout-order-total) > :last-child {
+  max-inline-size: 100%;
+  margin-inline-start: auto;
+  text-align: end;
+}
+
+body :is(.sumline, .checkout-order-line, .checkout-order-total, .checkout-ticket-row, .ov-summary__item, .fin-balance__primary) > * {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Target numeric values and columns without changing the digits used in prose. */
 body :is(.t-num, .price, .spot-buy b, .payment-amount, .tx-amount, .tx-balance, .financial-figure, .rprice,
   .buybar b, .sumline > :last-child, .pv-sum__total, .card-stats .card-title,
+  .checkout-order-line strong, .checkout-ticket-row > span, input[autocomplete="one-time-code"],
+  .x-fee b, .plan > .pr, .calc dd, .c-f output,
   .ov-kpi__value, .ov-summary__value, .ov-money__value, .cd-kpi-value, .org-metric strong, .acd-stat strong,
   .directory-stat strong, .at-stat strong, .promotion-stat strong, .coupon-stats strong,
   .fin-balance__primary > strong, .fin-flow__step strong, .fin-two .lg-dl dd, .scanner-metric > span,
   .cdm, .cd-full, time[data-cd]) {
   font-variant-numeric: tabular-nums !important;
+}
+
+body :is(.ft-nav h2, footer .footer-title :is(h2, h3, h4)) {
+  font: var(--tica-text-button) !important;
+  letter-spacing: var(--tica-tracking-ui) !important;
+}
+
+body :is(.ft-nav :is(a, span), .ft-base, .ft-newsletter p, footer .footer-list) {
+  font: var(--tica-text-body-sm) !important;
+  overflow-wrap: anywhere;
 }
