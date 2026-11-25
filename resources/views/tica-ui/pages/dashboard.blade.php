@@ -10,15 +10,22 @@
           <div class="ov-head__copy">
             <p class="ov-eyebrow" id="od-today"></p>
             <h1 id="db-hi">Welcome back</h1>
-            <p class="ov-sub">Here's how your events are doing. <span class="ov-refreshed" id="od-refreshed"></span></p>
+            <p class="ov-sub" id="od-refreshed"></p>
           </div>
           <div class="ov-head__actions">
-            <div class="ov-seg" role="radiogroup" aria-label="Performance period" id="od-range-seg"></div>
-            <select class="t-select ov-range-select" id="od-range" aria-label="Performance period"></select>
+            <div class="ov-seg" role="radiogroup" aria-label="Performance period" id="od-range-seg">
+              <button type="button" role="radio" aria-checked="false" tabindex="-1" data-range="14">14 days</button>
+              <button type="button" role="radio" aria-checked="true" tabindex="0" data-range="30">30 days</button>
+              <button type="button" role="radio" aria-checked="false" tabindex="-1" data-range="all">All time</button>
+            </div>
+            <select class="t-select ov-range-select" id="od-range" aria-label="Performance period">
+              <option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="all">All time</option>
+            </select>
             <a class="t-btn t-btn--primary" id="od-overview-create" href="/create"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create an event</a>
           </div>
         </header>
 
+        <section class="ov-start" id="od-start" aria-labelledby="od-start-h" hidden></section>
         <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
 
         <!-- One concise performance summary for the chosen period. -->
@@ -26,25 +33,25 @@
           <span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span><span class="t-skel"></span>
         </div>
 
-        <div class="ov-row ov-row--primary">
+        <div class="ov-row ov-row--primary" id="od-performance">
           <!-- Sales over time -->
           <section class="ov-card ov-sales" aria-labelledby="ov-chart-h">
             <div class="ov-card__head">
               <div><h2 class="ov-card__title" id="ov-chart-h">Sales performance</h2><p class="ov-card__sub" id="od-chart-sub"></p></div>
-              <div class="ov-toggle" role="radiogroup" aria-label="Show">
-                <button type="button" role="radio" aria-checked="true" data-metric="revenue">Revenue</button>
-                <button type="button" role="radio" aria-checked="false" data-metric="tickets">Tickets</button>
+              <div class="ov-toggle" role="radiogroup" aria-label="Chart metric" id="od-metric">
+                <button type="button" role="radio" aria-checked="true" tabindex="0" data-metric="revenue">Revenue</button>
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-metric="tickets">Tickets</button>
               </div>
             </div>
             <div class="ov-chart" id="db-chart"></div>
-            <details class="ov-table-view"><summary>Show as a table</summary><div id="od-chart-table"></div></details>
+            <details class="ov-table-view" id="od-table-view"><summary>Show as a table</summary><div id="od-chart-table" role="region" aria-label="Sales performance table" tabindex="0"></div></details>
           </section>
           <!-- Next event -->
           <section class="ov-card ov-next" id="od-next" aria-label="Next event"></section>
         </div>
-        <div class="ov-row ov-row--secondary">
+        <div class="ov-row ov-row--secondary" id="od-event-and-payouts">
           <!-- Events -->
-          <section class="ov-card ov-events" aria-labelledby="od-top-h">
+          <section class="ov-card ov-events" id="od-events-card" aria-labelledby="od-top-h">
             <div class="ov-card__head"><div><h2 class="ov-card__title" id="od-top-h">Events</h2><p class="ov-card__sub">Published events and their current ticket pace.</p></div><button class="ov-link" type="button" data-panel="events">All events</button></div>
             <div id="od-top"></div>
           </section>
@@ -52,7 +59,7 @@
           <section class="ov-card ov-money" id="od-money" aria-labelledby="od-money-h"></section>
         </div>
         <!-- Recent orders -->
-          <section class="ov-card ov-orders" aria-labelledby="ov-ord-h">
+        <section class="ov-card ov-orders" id="od-orders-card" aria-labelledby="ov-ord-h">
             <div class="ov-card__head"><div><h2 class="ov-card__title" id="ov-ord-h">Recent orders</h2><p class="ov-card__sub" id="od-order-count"></p></div><button class="ov-link" type="button" data-panel="orders">All orders</button></div>
             <div id="db-ord"></div>
           </section>

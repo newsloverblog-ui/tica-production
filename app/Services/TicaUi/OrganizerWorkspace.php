@@ -92,6 +92,7 @@ class OrganizerWorkspace
         'amount' => EventFinancialBreakdown::fromBooking($b)['organizer_revenue'],
         'cur' => $this->cur($b->currencyText),
         'ago' => Carbon::parse($b->created_at)->diffForHumans(),
+        'url' => route('organizer.event_booking.details', ['id' => $b->id]),
       ])->values()->all(),
       'audience' => $this->audience((int) $organizer->id),
       'ticketing' => $this->ticketing((int) $organizer->id),

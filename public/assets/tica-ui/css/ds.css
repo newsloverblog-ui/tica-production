@@ -1180,17 +1180,24 @@ body.orgshell .pr{display:grid;gap:20px;max-width:1440px;margin:0 auto;container
 body.orgshell .ov{gap:16px}
 .ov-card{border-radius:12px;box-shadow:0 1px 2px rgba(16,33,61,.025)}
 
-/* Setup is a quiet readiness strip. */
-.ov-setup{grid-template-columns:auto minmax(220px,1fr) auto auto;gap:14px;min-height:74px;padding:12px 14px;border-radius:12px;background:#fff}
-.ov-setup__count{display:grid;place-items:center;align-content:center;width:54px;height:48px;border-radius:10px;background:var(--t-blue-50);color:var(--t-blue);font-variant-numeric:tabular-nums}
-.ov-setup__count b{font-size:15px;line-height:18px}
-.ov-setup__count span{font-size:10px;line-height:12px;text-transform:uppercase;letter-spacing:.06em}
+.ov-start{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;
+  padding:clamp(18px,3vw,30px);border:1px solid #cbd9f8;border-radius:12px;
+  background:linear-gradient(115deg,#eaf0ff,#f7faff 70%);color:var(--t-ink)
+}
+.ov-start__icon{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff;color:var(--t-blue)}
+.ov-start__icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ov-start h2{margin:0;font-size:clamp(19px,2.2vw,26px);line-height:1.25;overflow-wrap:anywhere}
+.ov-start p{margin:6px 0 0;max-width:57ch;color:var(--ov-text);font-size:14px;line-height:1.55}
+.ov-start .t-btn{min-height:44px}
+
+.ov-setup{grid-template-columns:minmax(0,1fr) auto auto;gap:14px;min-height:74px;padding:12px 14px;border-radius:12px;background:#fff}
 .ov-setup h2{font-size:14px;line-height:20px}
 .ov-setup p{margin:1px 0 0;font-size:13px;line-height:18px}
-.ov-setup .ov-steps{grid-column:auto;display:flex;gap:6px}
-.ov-setup .ov-steps li{gap:0}
+.ov-setup .ov-steps{grid-column:auto;display:flex;flex-wrap:wrap;gap:8px 12px}
+.ov-setup .ov-steps li{gap:5px;color:var(--ov-text);font-size:12px}
 .ov-setup .ov-tick{width:18px;height:18px;background:#fff}
-.ov-setup>.t-btn{grid-column:auto;grid-row:auto;min-height:38px}
+.ov-setup>.t-btn{grid-column:auto;grid-row:auto;min-height:44px}
 
 /* Four calm, scannable measures with no trend noise. */
 .ov-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;overflow:visible;border:0;border-radius:0;background:transparent}
@@ -1211,10 +1218,13 @@ button.ov-summary__item:focus-visible{z-index:1;outline:2px solid var(--t-blue);
 .ov-row--primary,.ov-row--secondary{grid-template-columns:minmax(0,1.75fr) minmax(300px,.85fr);gap:16px}
 .ov-row--primary{align-items:start}
 .ov-row--secondary{align-items:stretch}
+.ov-row--secondary:has(> .ov-money[hidden]){grid-template-columns:minmax(0,1fr)}
+.ov-row--secondary:has(> .ov-events[hidden]){grid-template-columns:minmax(0,460px)}
+.ov-orders__link{color:var(--t-ink);text-decoration:underline;text-underline-offset:3px}
 
 /* An empty chart should still read as a useful, bounded module. */
 .ov-sales .ov-chart{min-height:260px}
-.ov-sales .ov-chart.is-empty{min-height:220px}
+.ov-sales .ov-chart.is-empty{min-height:0;margin-block:12px}
 .ov-empty--chart{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;justify-items:start;gap:12px;width:100%;max-width:620px;margin:auto;padding:18px;border:1px solid var(--t-line);border-radius:11px;background:var(--t-surface);text-align:left}
 .ov-empty--chart .ov-empty__icon{margin:0}
 .ov-empty--chart h3,.ov-empty--chart p{margin:0}
@@ -1248,18 +1258,23 @@ button.ov-summary__item:focus-visible{z-index:1;outline:2px solid var(--t-blue);
 @container ov (max-width:899px){
   .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ov-row--primary,.ov-row--secondary{grid-template-columns:1fr}
-  .ov-setup{grid-template-columns:auto minmax(0,1fr) auto}
-  .ov-setup .ov-steps{display:none}
+  .ov-setup{grid-template-columns:minmax(0,1fr) auto}
+  .ov-setup .ov-steps{grid-column:1;grid-row:2}
+  .ov-setup>.t-btn{grid-column:2;grid-row:1/3}
 }
 @container ov (max-width:599px){
   .ov-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ov-summary__item{min-height:100px;padding:13px 14px}
   .ov-summary__value{font-size:22px;line-height:28px}
-  .ov-setup{grid-template-columns:auto minmax(0,1fr)}
-  .ov-setup>.t-btn{grid-column:1/-1;width:100%;justify-content:center}
+  .ov-start{grid-template-columns:1fr;gap:12px}
+  .ov-start .t-btn{width:100%;justify-content:center}
+  .ov-start__icon{width:38px;height:38px}
+  .ov-start__icon svg{width:20px;height:20px}
+  .ov-setup{grid-template-columns:minmax(0,1fr)}
+  .ov-setup>.t-btn{grid-column:1;grid-row:auto;width:100%;justify-content:center}
   .ov-empty--chart,.ov-empty--compact{grid-template-columns:auto minmax(0,1fr)}
   .ov-empty--chart .ov-link,.ov-empty--compact .ov-link{grid-column:2}
-  .ov-sales .ov-chart,.ov-sales .ov-chart.is-empty{min-height:190px}
+  .ov-sales .ov-chart{min-height:190px}
 }
 @container ov (max-width:399px){
   .ov-next__brief{grid-template-columns:88px minmax(0,1fr)}

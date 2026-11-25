@@ -76,7 +76,7 @@
 #tica-shell .tsh-impersonation form{margin:0}
 #tica-shell .tsh-impersonation button{min-height:29px;padding:0 10px;border:1px solid #e6bd96;border-radius:7px;background:#fff;color:#7a4a1f;font-size:11px;font-weight:700;cursor:pointer}
 #tica-shell .tsh-impersonation button:hover{border-color:#cd8b4e;background:#fef3e8}
-#tica-shell .tsh-title{flex:1;min-width:0;font-size:16px;line-height:24px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tica-shell .tsh-title{flex:1;min-width:0;margin:0;font-size:16px;line-height:24px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tica-shell .tsh-iconbtn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:8px;color:#3F4A5A;transition:background-color 150ms ease}
 #tica-shell .tsh-iconbtn:hover{background:#F1F3F6}
 #tica-shell .tsh-iconbtn svg{width:22px;height:22px}

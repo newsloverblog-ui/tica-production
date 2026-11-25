@@ -985,6 +985,7 @@ function go(path){path=String(path).replace(/^\/+/,'');if(!isSpa(path.split('?')
 document.addEventListener('click',function(ev){
   if(ev.defaultPrevented||ev.button!==0||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey)return;
   var a=ev.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;
+  if(a.matches('#os-side [data-panel]'))return;
   var u;try{u=new URL(a.getAttribute('href'),location.href)}catch(err){return}
   if(u.origin!==location.origin||u.search||(u.hash&&pathOf(u)===pathOf(location)))return;
   var path=pathOf(u);if(!isSpa(path))return;
@@ -1449,30 +1450,42 @@ if(!CAN.withdraw&&$('od-wd-btn'))$('od-wd-btn').hidden=true;
 
 /* One organiser menu: rendered once by the server (components/shell/organizer). */
 function osActive(key,title){[].forEach.call(document.querySelectorAll('#os-side .os-link[href]'),function(l){var on=l.dataset.panel===key||(!l.dataset.panel&&key==='checkin'&&l.getAttribute('href')==='/checkin');l.classList.toggle('is-active',on);if(on)l.setAttribute('aria-current','page');else l.removeAttribute('aria-current')});var t=document.getElementById('os-title');if(t&&title)t.textContent=title}
-document.addEventListener('click',function(ev){var l=ev.target.closest('#os-side [data-panel]');if(!l||ev.metaKey||ev.ctrlKey||ev.shiftKey)return;ev.preventDefault();var p=l.dataset.panel;
+document.addEventListener('click',function(ev){var l=ev.target.closest('#os-side [data-panel]');if(!l||ev.defaultPrevented||ev.button!==0||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey)return;ev.preventDefault();var p=l.dataset.panel;
   if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))show(p,true);else window.TICA_go(p==='overview'?'dashboard':'dashboard/'+p)});
 window.addEventListener('tica:navigate',function(){var pg=document.querySelector('.page:not([hidden])'),k=pg&&pg.dataset.page;if(k==='create')osActive('events',document.querySelector('[data-page=create] h1')?document.querySelector('[data-page=create] h1').textContent:'Create an event');else if(k==='checkin')osActive('checkin','Gate check-in')});
 
 /* panels */
 var PANELS=['overview','events','tickets','orders','payouts','promote','team','settings'];
+var activePanel=null;
 function allowed(p){return !((p==='events'&&!PERM('events.view'))||(p==='tickets'&&!CAN.orders)||(p==='promote'&&!CAN.promote)||(p==='orders'&&!CAN.orders)||(p==='payouts'&&!CAN.payouts)||(p==='team'&&!CAN.team)||(p==='settings'&&!CAN.settings))}
 function show(p,push){
   if(PANELS.indexOf(p)<0||!allowed(p))p='overview';
+  activePanel=p;
   [].forEach.call(document.querySelectorAll('.od-p'),function(x){x.hidden=x.dataset.p!==p});
   osActive(p,{overview:'Overview',events:'Events',tickets:'Ticket management',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]);
-  if(push){try{history.replaceState(null,'','/dashboard'+(p==='overview'?'':'/'+p))}catch(e){}window.scrollTo({top:0,behavior:'instant'})}
+  if(push){
+    var path='/dashboard'+(p==='overview'?'':'/'+p);
+    if(location.pathname!==path)history.pushState(null,'',path);
+    var heading=document.querySelector('.od-p:not([hidden]) h1');
+    if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true})}
+    window.scrollTo({top:0,behavior:'instant'});
+  }
   var DRAW={events:drawEvents,tickets:drawTicketing,orders:drawAtt,payouts:drawPay,promote:drawPromote,team:drawTeam,overview:drawOverview,settings:drawSettings};
   DRAW[p]&&DRAW[p]();
   var wt=document.getElementById('workspace-title');if(wt)wt.textContent={overview:'Overview',events:'Events',tickets:'Ticket management',orders:'Orders and attendees',payouts:'Payouts',promote:'Promote',team:'Team',settings:'Settings'}[p]||'Organiser dashboard';
 }
-function fromHash(){var m=location.pathname.match(/^\/dashboard(?:\/([a-z]+))?/);if(m)show(m[1]||'overview',false)}
-window.addEventListener('tica:navigate',function(){setTimeout(fromHash,0)});
-window.OD_after=function(){setTimeout(fromHash,0)};
+function fromDashboardPath(force){
+  var match=location.pathname.match(/^\/dashboard(?:\/([a-z]+))?\/?$/);
+  if(!match)return;
+  var panel=match[1]||'overview';
+  if(force||panel!==activePanel)show(panel,false);
+}
+window.addEventListener('popstate',function(){fromDashboardPath(false)});
+window.OD_after=function(){setTimeout(function(){fromDashboardPath(true)},0)};
 
 /* overview: headline numbers, sales chart, money, events, orders, attention, ticket types, audience, channels */
 var OV={range:'30',metric:'revenue'};
 var ovResize;window.addEventListener('resize',function(){clearTimeout(ovResize);ovResize=setTimeout(function(){var c=$('db-chart');if(c&&c.offsetParent)drawChart()},150)});
-var RANGES=[['14','14 days'],['30','30 days'],['all','All time']];
 function nf(n){return Number(n||0).toLocaleString('en-NG')}
 function compact(n){n=Number(n||0);var a=Math.abs(n);return a>=1e9?(n/1e9).toFixed(1).replace(/\.0$/,'')+'B':a>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':a>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'k':String(Math.round(n))}
 function money(n){return N(n)}
@@ -1483,23 +1496,24 @@ function drawOverviewKpis(range){
   if(range)OV.range=range;
   var k=D.kpisByRange&&D.kpisByRange[OV.range]||D.kpis||{};
   var cards=[
-    ['Revenue',money(k.gross),CAN.orders?'orders':'','money'],
-    ['Tickets',nf(k.sold),'tickets','tickets'],
+    ['Ticket revenue',money(k.gross),'','money'],
+    ['Tickets issued',nf(k.sold),CAN.orders?'tickets':'','tickets'],
     ['Orders',nf(k.orders),CAN.orders?'orders':'','orders'],
-    ['Audience',nf(k.views),CAN.promote?'promote':'','audience']
+    ['Audience views',nf(k.views),CAN.promote?'promote':'','audience']
   ];
-  $('db-kpis').innerHTML=cards.map(function(c){var tag=c[2]?'button type="button" data-panel="'+c[2]+'" aria-label="Open '+c[0]+'"':'div';
+  $('db-kpis').innerHTML=cards.map(function(c){var tag=c[2]?'button type="button" data-panel="'+c[2]+'"':'div';
     return '<'+tag+' class="ov-summary__item ov-summary__item--'+c[3]+'"><span class="ov-summary__label">'+c[0]+'</span><span class="ov-summary__value">'+esc(c[1])+'</span></'+(c[2]?'button':'div')+'>'}).join('');
 }
 function drawChart(range){
   if(range)OV.range=range;
   var rows=chartRows(),rev=OV.metric==='revenue',vals=rows.map(function(r){return rev?(r[2]||0):r[1]}),total=vals.reduce(function(a,b){return a+b},0),el=$('db-chart');
-  $('od-chart-sub').textContent=(OV.range==='all'?'Monthly ':'Daily ')+(rev?'revenue':'tickets sold')+', '+perLabel()+'. Hover for each '+(OV.range==='all'?'month':'day')+'.';
-  [].forEach.call(document.querySelectorAll('.ov-toggle [data-metric]'),function(b){b.setAttribute('aria-checked',String(b.dataset.metric===OV.metric))});
+  $('od-chart-sub').textContent=(OV.range==='all'?'Monthly ':'Daily ')+(rev?'ticket revenue':'tickets issued')+' for '+perLabel()+'.';
+  syncRadios('od-metric','metric',OV.metric);
+  $('od-table-view').hidden=!rows.length;
   $('od-chart-table').innerHTML='<table class="t-table"><thead><tr><th scope="col">'+(OV.range==='all'?'Month':'Day')+'</th><th scope="col" class="t-num">Tickets</th><th scope="col" class="t-num">Revenue</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="t-num">'+nf(r[1])+'</td><td class="t-num">'+money(r[2]||0)+'</td></tr>'}).join('')+'</tbody></table>';
   el.classList.toggle('is-empty',!total);
-  if(!total){el.innerHTML='<div class="ov-empty ov-empty--chart"><span class="ov-empty__icon" aria-hidden="true">'+ICO.warn+'</span><div><h3>No '+(rev?'revenue':'ticket sales')+' in '+perLabel()+'</h3><p>Your chart will build as tickets are issued.</p></div>'+(CAN.promote?'<button class="ov-link" type="button" data-panel="promote">Share an event</button>':'')+'</div>';return}
-  el.innerHTML='';var W=Math.max(300,Math.round(el.clientWidth||720)),room=Math.round(el.clientHeight||0),H=W<520?220:Math.min(420,Math.max(260,room-8)),pl=W<520?40:48,pr=12,pt=12,pb=28,iw=W-pl-pr,ih=H-pt-pb,max=Math.max.apply(null,vals);
+  if(!total){el.innerHTML='<div class="ov-empty ov-empty--chart"><span class="ov-empty__icon" aria-hidden="true">'+ICO.warn+'</span><div><h3>No '+(rev?'ticket revenue':'tickets issued')+' in '+perLabel()+'</h3><p>'+(rev?'Completed paid orders will appear here.':'Issued tickets will appear here.')+'</p></div></div>';return}
+  el.innerHTML='';var W=Math.max(300,Math.round(el.clientWidth||720)),H=W<520?210:260,pl=W<520?40:48,pr=12,pt=12,pb=28,iw=W-pl-pr,ih=H-pt-pb,max=Math.max.apply(null,vals);
   var raw=(max||1)/4,mag=Math.pow(10,Math.floor(Math.log10(raw))),nice=[1,2,2.5,5,10].map(function(m){return m*mag}).filter(function(v){return v>=raw})[0]||raw,top=nice*4;
   var x=function(i){return pl+(rows.length>1?i*iw/(rows.length-1):iw/2)},y=function(v){return pt+ih-(v/top)*ih};
   var grid='',ticks='';for(var g=0;g<=4;g++){var gv=nice*g,gy=y(gv);grid+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+gy+'" y2="'+gy+'"/>';ticks+='<text x="'+(pl-8)+'" y="'+(gy+4)+'" text-anchor="end">'+(rev?moneyShort(gv):compact(gv))+'</text>'}
@@ -1508,27 +1522,47 @@ function drawChart(range){
   el.innerHTML='<div class="ov-plot"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc((rev?'Revenue':'Tickets sold')+' over '+perLabel()+': '+(rev?money(total):nf(total))+' in total')+'"><defs><linearGradient id="ovfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2E4FD8" stop-opacity=".18"/><stop offset="1" stop-color="#2E4FD8" stop-opacity="0"/></linearGradient></defs><g class="ov-plot__grid">'+grid+'</g><g class="ov-plot__y">'+ticks+'</g><g class="ov-plot__x">'+xl+'</g><path class="ov-plot__area" d="'+area+'"/><path class="ov-plot__line" d="'+line+'"/><line class="ov-plot__cross" y1="'+pt+'" y2="'+(pt+ih)+'" x1="0" x2="0" hidden/><circle class="ov-plot__dot" r="5" hidden/></svg><div class="ov-tip" hidden></div></div>';
   var svg=el.querySelector('svg'),tip=el.querySelector('.ov-tip'),cross=svg.querySelector('.ov-plot__cross'),dot=svg.querySelector('.ov-plot__dot');
   function at(clientX){var r=svg.getBoundingClientRect(),px=(clientX-r.left)/r.width*W,i=Math.round((px-pl)/(rows.length>1?iw/(rows.length-1):1));return Math.max(0,Math.min(rows.length-1,i))}
-  function hover(i){var cx=x(i),cy=y(vals[i]);cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.hidden=false;dot.setAttribute('cx',cx);dot.setAttribute('cy',cy);dot.hidden=false;
+  function hover(i){var cx=x(i),cy=y(vals[i]);cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.removeAttribute('hidden');dot.setAttribute('cx',cx);dot.setAttribute('cy',cy);dot.removeAttribute('hidden');
     tip.innerHTML='<b>'+esc(rows[i][0])+'</b><span>'+money(rows[i][2]||0)+'</span><span>'+nf(rows[i][1])+' '+(rows[i][1]===1?'ticket':'tickets')+'</span>';tip.hidden=false;
     var pr2=svg.getBoundingClientRect(),left=cx/W*pr2.width;tip.style.left=Math.min(Math.max(left,70),pr2.width-70)+'px';tip.style.top=(cy/H*pr2.height)+'px'}
   svg.addEventListener('pointermove',function(e){hover(at(e.clientX))});
-  svg.addEventListener('pointerleave',function(){cross.hidden=true;dot.hidden=true;tip.hidden=true});
+  svg.addEventListener('pointerdown',function(e){hover(at(e.clientX))});
+  svg.addEventListener('pointerleave',function(){cross.setAttribute('hidden','');dot.setAttribute('hidden','');tip.hidden=true});
 }
 function drawRangeControls(){
-  $('od-range').innerHTML=RANGES.map(function(r){return '<option value="'+r[0]+'">'+(r[0]==='all'?'All time':'Last '+r[1])+'</option>'}).join('');$('od-range').value=OV.range;
-  $('od-range-seg').innerHTML=RANGES.map(function(r){return '<button type="button" role="radio" aria-checked="'+(r[0]===OV.range)+'" data-range="'+r[0]+'">'+r[1]+'</button>'}).join('');
+  $('od-range').value=OV.range;
+  syncRadios('od-range-seg','range',OV.range);
+}
+function syncRadios(id,key,value){
+  [].forEach.call($(id).querySelectorAll('[role="radio"]'),function(button){
+    var checked=button.dataset[key]===value;
+    button.setAttribute('aria-checked',String(checked));
+    button.tabIndex=checked?0:-1;
+  });
 }
 function setRange(v){OV.range=v;drawRangeControls();drawOverviewKpis(v);drawChart(v)}
 $('od-range').addEventListener('change',function(){setRange(this.value)});
 document.addEventListener('click',function(e){var b=e.target.closest('#od-range-seg [data-range]');if(b){setRange(b.dataset.range);return}var m=e.target.closest('.ov-toggle [data-metric]');if(m){OV.metric=m.dataset.metric;drawChart()}});
+['od-range-seg','od-metric'].forEach(function(id){
+  $(id).addEventListener('keydown',function(event){
+    var offset={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1}[event.key];
+    if(!offset&&event.key!=='Home'&&event.key!=='End')return;
+    var buttons=[].slice.call(this.querySelectorAll('[role="radio"]'));
+    var index=buttons.indexOf(document.activeElement);
+    var next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+offset+buttons.length)%buttons.length;
+    event.preventDefault();
+    buttons[next].click();
+    buttons[next].focus();
+  });
+});
 function drawOverviewMoney(){
   var p=D.payouts||{},acc=p.account,box=$('od-money');if(!CAN.payouts){box.hidden=true;return}
   var status=!acc?null:acc.held?['warn','Payouts paused','Your new bank account is in its 24-hour safety hold.']:!acc.verified?['warn','Account not verified','Finish verifying your bank account to get paid.']:['ok',esc(acc.bank)+' ••'+esc(acc.last4),p.schedule==='auto'?'Paid out automatically when sales are released.':'Withdraw whenever you like.'];
-  box.innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title" id="od-money-h">Payouts</h2><p class="ov-card__sub">Your available and processed balance.</p></div><button class="ov-link" type="button" data-panel="payouts">Open</button></div>'+
+  box.innerHTML='<div class="ov-card__head"><h2 class="ov-card__title" id="od-money-h">Payouts</h2></div>'+
     '<div class="ov-money__lead"><p class="ov-money__label">Available now</p><p class="ov-money__value">'+money(p.available||0)+'</p></div>'+
     '<dl class="ov-money__list"><div><dt>Processing</dt><dd>'+money(p.pending||0)+'</dd></div><div><dt>Paid out</dt><dd>'+money(p.paid||0)+'</dd></div>'+((p.currencies||[]).filter(function(c){return c.code!==((window.TICA_DATA.currency||{}).code)}).map(function(c){return '<div><dt>'+esc(c.code)+' balance</dt><dd>'+Nc(c.amount,c.cur)+'</dd></div>'}).join(''))+'</dl>'+
     (status?'<p class="ov-status ov-status--'+status[0]+'"><span class="ov-status__icon" aria-hidden="true">'+(status[0]==='ok'?ICO.ok:ICO.warn)+'</span><span><b>'+status[1]+'</b>'+status[2]+'</span></p>':'')+
-    '<button class="t-btn t-btn--secondary t-btn--block" type="button" data-panel="payouts">'+(acc&&acc.verified?'Withdraw':'Set up payouts')+'</button>';
+    '<button class="t-btn t-btn--secondary t-btn--block" type="button" data-panel="payouts">View payouts</button>';
 }
 function drawOverviewEvents(){
   var ev=(D.events||[]).filter(function(e){return e.state!=='draft'}),up=ev.filter(function(e){return e.state==='up'}).sort(function(a,b){return a.ts-b.ts}),past=ev.filter(function(e){return e.state==='past'}).sort(function(a,b){return b.ts-a.ts});
@@ -1547,18 +1581,21 @@ function drawOverviewEvents(){
 }
 function drawOverviewNext(){
   var e=D.next,box=$('od-next');
-  if(!e){box.innerHTML='<div class="ov-card__head"><h2 class="ov-card__title">Next event</h2></div><div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.cal+'</span><h3>Nothing scheduled</h3><p>Your next event shows here with a countdown and its sales.</p>'+(CAN.events?'<a class="t-btn t-btn--secondary" href="/create">Create an event</a>':'')+'</div>';return}
+  if(!e){box.innerHTML='<div class="ov-card__head"><h2 class="ov-card__title">Next event</h2></div><div class="ov-empty"><p>No upcoming events scheduled.</p>'+(CAN.events?'<a class="ov-link" href="/create">Create an event</a>':'')+'</div>';return}
   var ms=e.ts-Date.now(),days=Math.max(0,Math.floor(ms/864e5)),hrs=Math.max(0,Math.floor(ms%864e5/36e5)),pct=e.cap?Math.min(100,Math.round(e.sold/e.cap*100)):null;
-  box.innerHTML='<div class="ov-card__head"><div><h2 class="ov-card__title">Next event</h2><p class="ov-card__sub">Your nearest live operation.</p></div><span class="ov-pill ov-pill--blue">'+(days===0?(hrs?'In '+hrs+' h':'Today'):days===1?'Tomorrow':'In '+days+' days')+'</span></div>'+
+  box.innerHTML='<div class="ov-card__head"><h2 class="ov-card__title">Next event</h2><span class="ov-pill ov-pill--blue">'+(days===0?(hrs?'In '+hrs+' h':'Today'):days===1?'Tomorrow':'In '+days+' days')+'</span></div>'+
     '<div class="ov-next__brief"><div class="ov-next__flyer flyer" aria-hidden="true">'+e.art+'</div><div class="ov-next__copy"><h3 class="ov-next__name">'+esc(e.name)+'</h3><p class="ov-next__meta">'+ds(e)+' · '+esc(e.time)+(e.venue?' · '+esc(e.venue):'')+'</p><p class="ov-next__pace"><b>'+nf(e.sold)+'</b> '+(e.cap?'of '+nf(e.cap):'')+' tickets sold</p></div></div>'+
     (pct!=null?'<div class="ov-bar ov-bar--lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="'+pct+'% of tickets sold"><i style="width:'+pct+'%"></i></div><p class="ov-next__pct">'+pct+'% of capacity</p>':'')+
     '<div class="ov-next__act">'+(CAN.events?'<button class="t-btn t-btn--secondary" type="button" data-manage="'+e.id+'">Manage</button>':'')+(CAN.checkin?'<a class="t-btn t-btn--ghost" href="/checkin">Check in guests</a>':'')+'</div>';
 }
 function drawOverviewOrders(){
-  var ord=(D.orders||[]).slice(0,6);
-  $('od-order-count').textContent=ord.length?'The latest '+ord.length+' completed '+(ord.length===1?'order':'orders')+'.':'Completed orders appear here.';
-  $('db-ord').innerHTML=ord.length?'<ul class="ov-orders__list">'+ord.map(function(o){return '<li><span class="ov-av" aria-hidden="true">'+esc((o.name||'?').trim().charAt(0).toUpperCase()||'?')+'</span><span class="ov-orders__who"><b>'+esc(o.name||'Guest')+'</b><span>'+esc(o.tickets)+'</span></span><span class="ov-orders__amt"><b>'+(o.amount?Nc(o.amount,o.cur):'Free')+'</b><span>'+esc(o.ago)+'</span></span></li>'}).join('')+'</ul>'+(ord.length<4&&CAN.promote?'<div class="ov-card__foot"><p class="ov-foot-note"><span>Share your event link on WhatsApp and Instagram, or make a tracking link to see which channel sells. <button class="ov-link" type="button" data-panel="promote">Promote</button></span></p></div>':'')
-    :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No orders yet</h3><p>Orders appear here as soon as someone gets a ticket.</p>'+(CAN.promote?'<button class="t-btn t-btn--secondary" type="button" data-panel="promote">Share your event</button>':'')+'</div>';
+  var orders=(D.orders||[]).slice(0,5);
+  $('od-order-count').textContent=orders.length?'Completed orders':'';
+  $('db-ord').innerHTML=orders.length?'<ul class="ov-orders__list">'+orders.map(function(order){
+    var name=esc(order.name||'Guest');
+    var buyer=order.url?'<a class="ov-orders__link" href="'+esc(order.url)+'" aria-label="View order for '+name+'">'+name+'</a>':name;
+    return '<li><span class="ov-av" aria-hidden="true">'+esc((order.name||'?').trim().charAt(0).toUpperCase()||'?')+'</span><span class="ov-orders__who"><b>'+buyer+'</b><span>'+esc(order.tickets)+'</span></span><span class="ov-orders__amt"><b>'+(order.amount?Nc(order.amount,order.cur):'Free')+'</b><span>'+esc(order.ago)+'</span></span></li>';
+  }).join('')+'</ul>':'<div class="ov-empty"><p>No completed orders yet.</p></div>';
 }
 function drawOverviewChannels(){
   var links=(D.links||[]).slice().sort(function(a,b){return (b.sales||0)-(a.sales||0)||(b.clicks||0)-(a.clicks||0)}),ps=D.promotionStats||{},box=$('od-channels');
@@ -1570,17 +1607,44 @@ function drawOverviewChannels(){
       :'<div class="ov-empty"><span class="ov-empty__icon" aria-hidden="true">'+ICO.qr+'</span><h3>No tracking links yet</h3><p>Make a link for each channel or promoter to see which one sells.</p><button class="t-btn t-btn--secondary" type="button" data-panel="promote">Create a tracking link</button></div>')+promo;
 }
 function drawOverviewSetup(){
-  var s=D.setup,doneN=[s.identity,s.published,s.payout].filter(Boolean).length,setup=$('od-setup');
-  setup.hidden=doneN===3||!CAN.payouts;
+  var s=D.setup,setup=$('od-setup');
+  setup.hidden=!PERM('bank.manage')||(s.identity&&s.payout);
   if(setup.hidden)return;
-  var next=!s.identity?['Verify your identity so you can be paid.','Verify identity',D.setup.kycUrl]:!s.payout?['Add the bank account your sales should go to.','Add bank account',null]:['Publish your first event.','Create an event','/create'];
-  var step=function(done,label){return '<li class="'+(done?'is-done':'')+'"><span class="ov-tick" aria-hidden="true">'+(done?ICO.ok:'')+'</span><span class="t-sr">'+label+(done?' complete':' pending')+'</span></li>'};
-  setup.innerHTML='<div class="ov-setup__count"><b>'+doneN+'/3</b><span>ready</span></div><div class="ov-setup__text"><h2 id="od-setup-h">Complete your payout setup</h2><p>'+next[0]+'</p></div><ol class="ov-steps" aria-label="Setup progress">'+step(s.identity,'Identity')+step(s.published,'First event')+step(s.payout,'Payout account')+'</ol>'+
-    (next[2]?'<a class="t-btn t-btn--primary" href="'+esc(next[2])+'">'+next[1]+'</a>':'<button class="t-btn t-btn--primary" type="button" data-panel="payouts">'+next[1]+'</button>');
+  var step=function(done,label){return '<li class="'+(done?'is-done':'')+'"><span class="ov-tick" aria-hidden="true">'+(done?ICO.ok:'')+'</span><span>'+label+'<span class="t-sr">'+(done?' complete':' pending')+'</span></span></li>'};
+  setup.innerHTML='<div class="ov-setup__text"><h2 id="od-setup-h">Payout setup</h2><p>Verify your identity and bank account to receive your sales.</p></div><ol class="ov-steps" aria-label="Payout setup progress">'+step(s.identity,'Identity')+step(s.payout,'Bank account')+'</ol>'+
+    (!s.identity?'<a class="t-btn t-btn--secondary" href="'+esc(s.kycUrl)+'">Verify identity</a>':'<button class="t-btn t-btn--secondary" type="button" data-panel="payouts">Set up bank account</button>');
+}
+function drawOverviewStart(firstEvent){
+  var box=$('od-start');
+  box.hidden=!firstEvent;
+  if(box.hidden)return;
+  var draft=CAN.events&&(D.events||[]).find(function(event){return event.state==='draft'&&event.editUrl});
+  var title=draft?'Finish your draft':CAN.events?'Create your first event':'No published events yet';
+  var text=draft?esc(draft.name)+' is saved as a draft. Open it to finish setting up tickets and publish when you’re ready.'
+    :CAN.events?'Add a date and venue, set your ticket types, then publish and share your event link.'
+      :'Sales and event activity will appear here when your team publishes an event.';
+  var action=draft?'<a class="t-btn t-btn--primary" href="'+esc(draft.editUrl)+'">Continue editing</a>'
+    :CAN.events?'<a class="t-btn t-btn--primary" href="/create">Create an event</a>'
+      :'<button class="t-btn t-btn--secondary" type="button" data-panel="events">View events</button>';
+  box.innerHTML='<span class="ov-start__icon" aria-hidden="true">'+ICO.cal+'</span><div><h2 id="od-start-h">'+title+'</h2><p>'+text+'</p></div>'+action;
 }
 function drawOverview(){
-  if($('od-overview-create'))$('od-overview-create').hidden=!CAN.events;
-  drawOverviewSetup();drawOverviewMoney();drawOverviewEvents();drawOverviewNext();drawOverviewOrders();drawOverviewChannels();
+  var k=D.kpisByRange&&D.kpisByRange.all||{};
+  var firstEvent=!D.setup.published&&!D.next&&!(D.events||[]).some(function(e){return e.state!=='draft'})&&!(D.orders||[]).length&&!k.orders&&!k.sold&&!k.gross;
+  ['od-range-seg','od-range','db-kpis','od-performance','od-events-card'].forEach(function(id){$(id).hidden=firstEvent});
+  $('od-overview-create').hidden=!CAN.events||firstEvent;
+  $('od-event-and-payouts').hidden=firstEvent&&!CAN.payouts;
+  $('od-orders-card').hidden=firstEvent||!CAN.orders;
+  $('od-channels').hidden=firstEvent||!CAN.promote;
+  drawOverviewStart(firstEvent);
+  drawOverviewSetup();
+  drawOverviewMoney();
+  if(!firstEvent){
+    drawRangeControls();drawOverviewKpis(OV.range);drawChart(OV.range);
+    drawOverviewEvents();drawOverviewNext();
+    if(CAN.orders)drawOverviewOrders();
+    if(CAN.promote)drawOverviewChannels();
+  }
   if($('od-paydot'))$('od-paydot').hidden=D.setup.payout||!CAN.payouts;
 }
 function renderDash(){
@@ -1589,10 +1653,7 @@ function renderDash(){
   if($('od-today'))$('od-today').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   if($('od-refreshed')&&D.generatedAt){var mins=Math.max(0,Math.floor((Date.now()-new Date(D.generatedAt).getTime())/60000));$('od-refreshed').textContent=mins<1?'Updated just now.':mins===1?'Updated a minute ago.':'Updated '+mins+' minutes ago.'}
   var nw=window.TICA_NEW;$('db-flag').hidden=!nw;if(nw)$('db-flag').textContent=nw.name+(nw.status==='draft'?' is saved as a draft.':' is now live.');
-  drawRangeControls();drawOverviewKpis(OV.range);drawChart(OV.range);
-  drawOverview();fromHash();
-  /* The chart fills its card, so draw it again once the cards beside it are in place. */
-  requestAnimationFrame(function(){var c=$('db-chart');if(c&&c.offsetParent)drawChart()});
+  fromDashboardPath(true);
 }
 window.TICA_renderDash=renderDash;
 
@@ -1829,9 +1890,12 @@ function drawPay(){
   /* balances in other currencies are kept apart and paid out by TICA */
   var bal=$('od-bal');[].forEach.call(bal.querySelectorAll('.od-b.cur'),function(n){n.remove()});
   (P.currencies||[]).forEach(function(c){bal.insertAdjacentHTML('beforeend','<div class="t-card t-stat od-b cur"><span class="t-stat__label">'+esc(c.code)+' balance</span><b class="t-stat__value">'+esc(Nc(c.amount,c.cur))+'</b><span class="t-stat__note">Paid out by TICA support. Email hello@tica.ng to withdraw.</span></div>')});
-  [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.checked=r.value===P.schedule});
+  var canManageBank=PERM('bank.manage');
+  [].forEach.call(document.querySelectorAll('[name=od-sched]'),function(r){r.checked=r.value===P.schedule;r.disabled=!canManageBank});
   var v=$('od-bank-view'),a=P.account;
-  if(P.kyc!=='verified'){
+  if(!canManageBank){
+    v.textContent=a&&a.verified?a.bank+' ending in '+a.last4:'The organiser can set up the payout account.';
+  }else if(P.kyc!=='verified'){
     var st=P.staged;
     v.innerHTML=st?'<div class="od-acct"><i aria-hidden="true">'+esc(st.bank.replace(/[^A-Z]/g,'').slice(0,3)||st.bank.slice(0,2))+'</i><div><b>'+esc(st.name)+'</b><span>'+esc(st.bank)+', •••• '+esc(st.last4)+'</span></div>'+(st.status==='name_mismatch'?'<em class="od-badb">Name mismatch</em>':'<em class="od-waitb">Waiting</em>')+'</div><p class="od-fine">'+(st.status==='name_mismatch'?'This account\'s name doesn\'t match your approved name. Add an account in your name.':P.kyc==='pending'?'We\'re checking your identity. This account switches on as soon as you\'re approved.':'Finish your identity check and this account switches on when you\'re approved.')+'</p><a class="btn btn-line" href="'+esc(D.setup.kycUrl)+'">Open identity and bank</a>'
       :'<p class="od-fine">'+(P.kyc==='pending'?'We\'re checking your identity. Add your bank account now and it switches on when you\'re approved.':'Verify your identity and add your bank account in one step. Payouts only go to an account in your name.')+'</p><a class="btn btn-hot" href="'+esc(D.setup.kycUrl)+'">'+(P.kyc==='pending'?'Add bank account':'Verify identity and add bank')+'</a>';
@@ -1851,7 +1915,6 @@ function drawPay(){
     $('bk-f').addEventListener('submit',saveBank);
   }
   $('od-hist').innerHTML=P.history.length?'<div class="t-table-wrap"><table class="t-table t-table--cards"><thead><tr><th scope="col">Date</th><th scope="col">Reference</th><th scope="col" class="t-num">Amount</th><th scope="col">To</th><th scope="col">Status</th></tr></thead><tbody>'+P.history.map(function(h){var c=h.status==='Paid'?'green':/fail|reject|revers/i.test(h.status)?'red':'orange';return '<tr><td data-label="Date">'+esc(h.date)+'</td><td data-label="Reference">'+esc(String(h.ref).slice(0,13))+'</td><td data-label="Amount" class="t-num">'+N(h.amount)+'</td><td data-label="To">'+esc(h.to)+'</td><td data-label="Status"><span class="t-badge t-badge--'+c+'">'+esc(h.status)+'</span></td></tr>'}).join('')+'</tbody></table></div>':'<div class="t-empty"><span class="t-empty__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5"/></svg></span><h3>No payouts yet</h3><p>'+(P.available>0?N(P.available)+' is ready to withdraw'+(P.account&&P.account.verified?'.':' once your bank account is added.'):'Money from ticket sales appears here once it is sent to your bank.')+'</p></div>';
-  drawOverview();
 }
 var resT=null,resolved=null;
 function resolve(){
@@ -2119,7 +2182,7 @@ window.addEventListener('tica:navigate',function(){var n=$('c-name');if(location
   if(!P.organizer_pays){drop(me);if(bu)bu.checked=true}
   ['c-mode','c-entry'].forEach(function(n){if(!f.querySelector('[name='+n+']:checked')){var first=f.querySelector('[name='+n+']');if(first)first.checked=true}});
 })();
-if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))renderDash();else fromHash();
+if(document.querySelector('.page[data-page=dashboard]:not([hidden])'))renderDash();
 })();
 /* design script 20 */
 /* v39: create event form (Tica: saves real events with every ticket and event option) */

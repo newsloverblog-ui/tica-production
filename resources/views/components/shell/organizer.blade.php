@@ -148,7 +148,11 @@
 
 <header class="tsh-top" aria-label="Page">
   <button class="tsh-iconbtn tsh-burger" id="os-burger" type="button" aria-label="Open menu" aria-controls="os-side" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  <h1 class="tsh-title" id="os-title" @if ($title) data-fixed="1" @endif>{{ $title ?? ($titles[$active] ?? 'Dashboard') }}</h1>
+  @if ($spa)
+    <p class="tsh-title" id="os-title" @if ($title) data-fixed="1" @endif>{{ $title ?? ($titles[$active] ?? 'Dashboard') }}</p>
+  @else
+    <h1 class="tsh-title" id="os-title" @if ($title) data-fixed="1" @endif>{{ $title ?? ($titles[$active] ?? 'Dashboard') }}</h1>
+  @endif
   @if (session('secret_login') && session('impersonator_admin_id'))
     <div class="tsh-impersonation" role="status">
       <span><i aria-hidden="true"></i>{{ __('Viewing as :name', ['name' => $name]) }}</span>

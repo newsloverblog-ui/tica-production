@@ -5,15 +5,7 @@ namespace App\Http\Controllers\BackEnd;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\UploadFile;
 use App\Models\Admin;
-use App\Models\BasicSettings\Basic;
-use App\Models\Customer;
-use App\Models\Earning;
-use App\Models\Event;
-use App\Models\Event\Booking;
-use App\Models\Event\EventCategory;
-use App\Models\Journal\Blog;
 use App\Models\Language;
-use App\Models\Organizer;
 use App\Models\OperationalIncident;
 use App\Models\PaymentIntent;
 use App\Models\PaymentRefund;
@@ -162,39 +154,9 @@ class AdminController extends Controller
   public function redirectToDashboard()
   {
     $language = Language::query()->where('is_default', 1)->first();
-    $year = (int) date('Y');
-    $monthExpression = DB::getDriverName() === 'pgsql'
-      ? 'EXTRACT(MONTH FROM created_at)::int'
-      : 'MONTH(created_at)';
-
-    // This year's completed bookings in the base currency, month by month.
-    $rows = Booking::query()
-      ->where('paymentStatus', 'completed')
-      ->whereYear('created_at', $year)
-      ->where(fn ($q) => $q->whereNull('currencyText')->orWhere('currencyText', '')->orWhere('currencyText', \App\Support\TicaCurrency::base()))
-      ->selectRaw("{$monthExpression} as month, SUM(price) as income, COUNT(*) as bookings")
-      ->groupByRaw($monthExpression)->get()->keyBy('month');
-    $months = $incomes = $bookings = [];
-    for ($i = 1; $i <= 12; $i++) {
-      $months[] = DateTime::createFromFormat('!m', (string) $i)->format('M');
-      $incomes[] = round((float) ($rows[$i]->income ?? 0), 2);
-      $bookings[] = (int) ($rows[$i]->bookings ?? 0);
-    }
 
     return view('backend.admin.dashboard', [
       'overview' => (new \App\Services\TicaUi\AdminOverview((int) $language->id))->build(),
-      'settings' => Basic::query()->select('base_currency_symbol', 'base_currency_symbol_position')->first(),
-      'total_earning' => Earning::query()->first(),
-      'totalEvents' => Event::query()->count(),
-      'totalEventCategories' => EventCategory::query()->where('language_id', $language->id)->count(),
-      'totalEventBookings' => Booking::query()->count(),
-      'totalOrganizers' => Organizer::query()->count(),
-      'totalBlog' => Blog::query()->count(),
-      'totalRegisteredUsers' => Customer::query()->count(),
-      'transcation_count' => Transaction::query()->count(),
-      'eventMonths' => $months,
-      'eventIncomes' => $incomes,
-      'totalBookings' => $bookings,
     ]);
   }
 
