@@ -441,7 +441,7 @@ body.tica-admin .tw-save{flex-direction:row-reverse}
 body.tica-admin .tw-reset{margin-right:auto;border:0;background:none;color:#DCE6F5;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:8px 6px}
 body.tica-admin .tw-reset:hover{color:#fff}
 body.tica-admin .tw-side{position:sticky;top:90px;display:grid;gap:10px;padding:18px;border-radius:16px;background:#fff;border:1px solid var(--line)}
-body.tica-admin .tw-side-h{margin:0 0 2px;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8592A8}
+body.tica-admin .tw-side-h{margin:0 0 2px;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-mute)}
 body.tica-admin .tw-doc{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid var(--line);text-decoration:none!important;transition:border-color .15s,transform .15s}
 body.tica-admin .tw-doc:hover{border-color:var(--indigo-2);transform:translateY(-1px)}
 body.tica-admin .tw-doc .ta-ic{width:40px;height:40px;font-size:16px}
@@ -471,7 +471,7 @@ body.tica-admin .tw-two>.ta-field{margin-top:4px}
    Calm theme: one soft blue, quiet greys, thin borders, lighter type.
    Loaded last, so it settles every page of the admin.
    ===================================================================== */
-body.tica-admin{--c-bg:#F5F7FA;--c-card:#fff;--c-line:#E6EAF0;--c-line-2:#EEF1F5;--c-ink:#111827;--c-text:#374151;--c-mute:#6B7280;--c-faint:#9AA3B2;--c-blue:#1F5FCC;--c-blue-2:#174DA8;--c-blue-soft:#EEF3FD;--c-blue-line:#D5E0F7;--c-orange:#E39A55;--c-orange-soft:#FEF7EE;--c-green:#12805C;--c-green-soft:#EAF7F1;--c-red:#C2410C;--c-red-soft:#FDF0EC;--c-amber:#B4682E;--c-amber-soft:#FCEBD7;
+body.tica-admin{--c-bg:#F5F7FA;--c-card:#fff;--c-line:#E6EAF0;--c-line-2:#EEF1F5;--c-ink:#111827;--c-text:#374151;--c-mute:#6B7280;--c-faint:#9AA3B2;--c-blue:#1F5FCC;--c-blue-2:#174DA8;--c-blue-soft:#EEF3FD;--c-blue-line:#D5E0F7;--c-orange:#E39A55;--c-orange-soft:#FEF7EE;--c-green:#12805C;--c-green-soft:#EAF7F1;--c-red:#C2410C;--c-red-soft:#FDF0EC;--c-amber:#8A4B1E;--c-amber-soft:#FCEBD7;
   --tint:var(--c-bg);--line:var(--c-line);--ink:var(--c-ink);--soft:var(--c-mute);--indigo:#0B2447;--indigo-2:var(--c-blue);
   background:var(--c-bg)!important;color:var(--c-text)!important}
 body.tica-admin .main-panel,body.tica-admin .main-panel>.content{background:var(--c-bg)!important}
@@ -922,15 +922,15 @@ body.tica-admin .tica-admin-account-menu a:hover i,body.tica-admin .tica-admin-a
 body.tica-admin .tica-admin-account-menu button:hover i,body.tica-admin .tica-admin-account-menu button:focus-visible i{color:var(--c-blue)}
 body.tica-admin .tica-admin-sidebar-search{position:relative;margin:0 2px 8px}
 body.tica-admin .tica-admin-sidebar-search>i{
-  position:absolute;z-index:1;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--c-faint);pointer-events:none
+  position:absolute;z-index:1;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--c-mute);pointer-events:none
 }
 body.tica-admin .tica-admin-sidebar-search .sidebar-search{
   width:100%;height:40px;min-height:40px;padding:0 34px 0 38px!important;border:1px solid var(--c-line)!important;
   border-radius:10px!important;background:#f8faff!important;color:var(--c-ink)!important;font-size:13.5px!important;box-shadow:none!important
 }
-body.tica-admin .tica-admin-sidebar-search .sidebar-search::placeholder{color:var(--c-faint)}
+body.tica-admin .tica-admin-sidebar-search .sidebar-search::placeholder{color:var(--c-mute)}
 body.tica-admin .tica-admin-sidebar-search .sidebar-search:focus{
-  border-color:var(--c-blue-line)!important;background:#fff!important;box-shadow:0 0 0 3px rgba(47,91,211,.09)!important
+  border-color:var(--c-blue)!important;background:#fff!important;box-shadow:0 0 0 3px rgba(47,91,211,.12)!important
 }
 body.tica-admin .sidebar .nav>.nav-section{margin-top:4px!important}
 body.tica-admin .sidebar .nav>.nav-item>a{min-height:42px!important;padding:0 12px!important;gap:11px!important}
@@ -949,6 +949,9 @@ body.tica-admin .avatar-sm>.avatar-img,body.tica-admin .avatar-lg>.avatar-img{po
 @media(max-width:991px){
   body.tica-admin .sidebar{width:min(292px,calc(100vw - 44px))!important}
   body.tica-admin .sidebar .sidebar-content{padding-top:14px!important}
+}
+@media(max-width:767px){
+  body.tica-admin .tica-admin-sidebar-search .sidebar-search{font-size:16px!important}
 }
 @media(prefers-reduced-motion:reduce){
   body.tica-admin .tica-admin-account,body.tica-admin .tica-admin-account>summary,body.tica-admin .tica-admin-account-chevron,
@@ -977,7 +980,7 @@ body.tica-admin .tica-admin-sidebar-search-result.is-active{
 }
 body.tica-admin .tica-admin-sidebar-search-empty{margin:0;padding:14px 10px;color:var(--c-mute);font-size:13px;text-align:center}
 body.tica-admin .sidebar .nav-section .text-section{
-  font-size:11.5px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;color:var(--c-faint)!important
+  font-size:11.5px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;color:var(--c-mute)!important
 }
 body.tica-admin .sidebar .nav>.nav-item>a{border-radius:9px!important}
 body.tica-admin .sidebar .nav>.nav-item>a:focus-visible,

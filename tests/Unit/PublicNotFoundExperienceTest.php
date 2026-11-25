@@ -6,6 +6,14 @@ use Tests\TestCase;
 
 class PublicNotFoundExperienceTest extends TestCase
 {
+    public function test_old_account_profile_link_redirects_to_the_profile_panel(): void
+    {
+        $this->withoutMiddleware()
+            ->get('/account/profile')
+            ->assertStatus(301)
+            ->assertRedirect(route('tica.account') . '#profile');
+    }
+
     public function test_not_found_page_uses_the_public_site_shell(): void
     {
         $view = file_get_contents(resource_path('views/errors/404.blade.php'));

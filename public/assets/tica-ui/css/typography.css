@@ -332,4 +332,10 @@ body.tica-front-ui :where(.buy > a, .spot-all) {
     :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
     font-size: 16px !important;
   }
+
+  :is(body.tica-admin, body.tica-organizer, body.orgshell)
+    :is(#tica-main-content, #main)
+    :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="reset"], [type="submit"]), select, textarea) {
+    font-size: 16px !important;
+  }
 }

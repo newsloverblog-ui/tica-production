@@ -1,6 +1,6 @@
 {{-- Blog, blog posts and pages made in the admin, in the TICA design. --}}
 @php
-  $tcImg = fn ($image) => $image ? asset('assets/admin/img/blogs/' . $image) : null;
+  $tcImg = fn ($image) => \App\Support\PublicImage::url('assets/admin/img/blogs', $image);
   $tcExcerpt = fn ($html) => \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $html)))), 140);
   $tcDate = fn ($date) => \Carbon\Carbon::parse($date)->format('j M Y');
 @endphp

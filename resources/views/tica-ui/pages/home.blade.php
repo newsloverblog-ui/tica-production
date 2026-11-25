@@ -38,7 +38,7 @@
 @verbatim
 
         <form class="search ms" id="home-search" action="/discover" role="search" aria-label="Find events">
-          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" name="q" type="search" placeholder="Search events or artists" aria-label="Search events" autocomplete="off"></div>
+          <div class="ms-f ms-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg><input id="h-q" name="q" type="search" placeholder="Events or artists" aria-label="Search events or artists" autocomplete="off"></div>
           <div class="ms-f ms-s"><label for="h-country" class="sr">Country</label><select id="h-country" name="country" data-country><option value="Nigeria">Nigeria</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="South Africa">South Africa</option><option value="United Kingdom">United Kingdom</option><option value="United States">United States</option></select></div><div class="ms-f ms-s"><label for="h-where" class="sr">City</label><select id="h-where" name="city" data-city><option value="all">All cities</option></select></div>
           <div class="ms-f ms-s ms-date"><label for="h-date" class="sr">Date</label><input id="h-date" name="date" type="date" aria-label="Choose event date"></div>
           <button class="ms-go" type="submit" aria-label="Find events"><span class="sb-t">Search</span></button>

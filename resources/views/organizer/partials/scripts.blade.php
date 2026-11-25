@@ -57,7 +57,7 @@
 <script type="text/javascript" src="{{ asset('assets/admin/js/highlight.pack.js') }}"></script>
 
 {{-- atlantis js --}}
-<script type="text/javascript" src="{{ asset('assets/admin/js/atlantis.js') }}"></script>
+<script type="text/javascript" src="{{ asset('assets/admin/js/atlantis.js') }}?v={{ tica_asset_version('assets/admin/js/atlantis.js') }}"></script>
 
 {{-- fonts and icons script --}}
 <script type="text/javascript" src="{{ asset('assets/admin/js/webfont.min.js') }}"></script>

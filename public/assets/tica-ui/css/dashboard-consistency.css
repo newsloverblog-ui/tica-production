@@ -5,7 +5,7 @@
 :is(body.tica-admin, body.tica-organizer) {
   --dash-ink: #0b2447;
   --dash-text: #34445f;
-  --dash-muted: #66738b;
+  --dash-muted: #5d6b81;
   --dash-line: #dde4ee;
   --dash-line-strong: #cbd5e3;
   --dash-surface: #ffffff;
@@ -172,7 +172,7 @@
 
 :is(body.tica-admin, body.tica-organizer)
   :where(.form-control, .t-input, .t-textarea)::placeholder {
-  color: #8c98aa !important;
+  color: var(--dash-muted) !important;
   opacity: 1;
 }
 

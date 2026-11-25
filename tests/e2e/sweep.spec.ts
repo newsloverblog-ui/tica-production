@@ -47,6 +47,14 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
         const problems = watch(page);
         const res = await page.goto(path, { waitUntil: 'networkidle' });
         expect(res?.status() ?? 0, `${role} ${path}`).toBeLessThan(500);
+        if (role === 'admin' && path === '/admin/event-builder') {
+          await expect(page.locator('.tica-admin-event-builder')).toBeVisible();
+          await expect(page.locator('#ce-admin')).toBeVisible();
+          await expect(page.locator('.home-progress')).toHaveCount(0);
+          await page.locator('#c-name').fill('QA admin event');
+          await page.locator('#ce-next').click();
+          await expect(page.locator('#ce-progress')).toContainText('Step 2 of 5');
+        }
         await page.waitForTimeout(400);
         expect(problems, problems.join('\n')).toEqual([]);
         if (test.info().project.name === 'mobile') await noSidewaysScroll(page);

@@ -4,7 +4,7 @@
   --dir-blue-soft: var(--c-blue-soft, #eef2ff);
   --dir-orange: var(--c-orange, #e39a55);
   --dir-line: var(--c-line, #e3e8f1);
-  --dir-muted: var(--c-mute, #667085);
+  --dir-muted: var(--dash-muted, #5c687c);
   max-width: 1480px;
   margin: 0 auto;
   color: var(--dir-ink);
@@ -61,8 +61,8 @@
 .directory-btn:hover { text-decoration: none; transform: translateY(-1px); }
 .directory-btn--quiet { background: #fff; color: #344054; }
 .directory-btn--quiet:hover { border-color: #b7c4dc; color: var(--dir-blue); }
-.directory-btn--primary { border-color: var(--dir-blue); background: var(--dir-blue); color: #fff; }
-.directory-btn--primary:hover { background: #244ab7; color: #fff; }
+body.tica-admin .directory-btn--primary { border-color: var(--dir-blue); background: var(--dir-blue); color: #fff; }
+body.tica-admin .directory-btn--primary:hover { background: #244ab7; color: #fff; }
 
 .directory-table-wrap { overflow-x: auto; }
 .directory-table { width: 100%; border-collapse: collapse; }
@@ -209,7 +209,6 @@
 /* Organizer directory: restrained, flat management workspace. */
 .tica-directory-page--organizers {
   --dir-ink: #152238;
-  --dir-muted: #78849a;
   --dir-line: #e1e7ef;
   max-width: 1500px;
 }
@@ -502,7 +501,6 @@
 /* Customer directory: restrained account operations. */
 .tica-directory-page--customers {
   --dir-ink: #14213a;
-  --dir-muted: #718096;
   --dir-line: #e0e6ef;
   --dir-blue: #2f5bd3;
   max-width: 1380px;

@@ -761,14 +761,17 @@ function acAvatar(el,name,photo){
   image.src=photo;
 }
 function evAny(s){return bySlug(s)||(ACC.events||[]).filter(function(e){return e.slug===s})[0]}
-var acPanel='overview';
 function acOrders(){return (ACC.orders||[]).map(function(o){return Object.assign({},o,{e:evAny(o.slug)})}).filter(function(o){return o.e})}
 function acMoney(o){var v=Math.round(o.total*100)/100;return (o.symbol||'')+v.toLocaleString('en-NG',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})}
 function acIcon(d){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+d+'</svg>'}
-function acShow(p,focus){acPanel=['overview','tickets','orders','saved','profile','help'].indexOf(p)>-1?p:'overview';
+function acShow(p,focus,pushHistory){var acPanel=['overview','tickets','orders','saved','profile','help'].indexOf(p)>-1?p:'overview';
   [].forEach.call(document.querySelectorAll('.acd-p'),function(x){x.hidden=x.dataset.p!==acPanel});
   [].forEach.call(document.querySelectorAll('.acd-nav button'),function(b){var on=b.dataset.acp===acPanel;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
-  try{history.replaceState(null,'',location.pathname+(acPanel==='overview'?'':'#'+acPanel))}catch(e){}
+  var hash=acPanel==='overview'?'':'#'+acPanel;
+  if(location.hash!==hash){
+    var url=location.pathname+location.search+hash;
+    try{if(pushHistory)history.pushState(null,'',url);else history.replaceState(null,'',url)}catch(e){}
+  }
   if(focus){var h=document.querySelector('.acd-p[data-p="'+acPanel+'"] h1');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}window.scrollTo({top:0,behavior:'instant'})}
 }
 function acTicketRow(o,past){var e=o.e;
@@ -824,11 +827,10 @@ function renderAccount(){
     organizerEmail.href='mailto:'+organizerContact.email+'?subject='+encodeURIComponent(organizerContact.subject||'Event question');
     organizerEmail.querySelector('small').textContent='Ask about '+(organizerContact.event||'your event');
   }else if(organizerEmail){organizerEmail.hidden=true;organizerEmail.removeAttribute('href')}
-  acShow(acPanel);
+  acShow(location.hash.slice(1));
   cdTick();
 }
-(function(){var hash=(location.hash||'').slice(1);if(hash)acPanel=hash})();
-window.addEventListener('hashchange',function(){if(document.querySelector('.page[data-page=account]:not([hidden])'))acShow((location.hash||'#overview').slice(1),true)});
+window.addEventListener('hashchange',function(){if(document.querySelector('.page[data-page=account]:not([hidden])'))acShow(location.hash.slice(1),true)});
 function acSubmit(form,url,msgId,okText){
   var m=$(msgId);m.className='acd-msg';m.textContent='Saving…';
   var fd=new FormData(form);
@@ -851,7 +853,7 @@ document.addEventListener('submit',function(ev){
 document.addEventListener('input',function(ev){if(ev.target.id==='pf-email'){var pf=ACC.profile||{};$('pf-cur-wrap').hidden=ev.target.value.trim().toLowerCase()===(pf.email||'').toLowerCase()}});
 document.addEventListener('click',function(ev){
   var t=ev.target.closest('.ac-tabs button');if(t){acTab=t.dataset.tab;renderAccount();return}
-  var p=ev.target.closest('[data-acp]');if(p&&p.closest('.page[data-page=account]')){acShow(p.dataset.acp,true);return}
+  var p=ev.target.closest('[data-acp]');if(p&&p.closest('.page[data-page=account]')){acShow(p.dataset.acp,true,true);return}
   var c=ev.target.closest('[data-addcal]');if(c)addToCalendar(evAny(c.dataset.addcal));
   var r=ev.target.closest('[data-resend]');if(r){r.disabled=true;r.textContent='Sending…';
     fetch(r.dataset.resend,{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'}}).then(function(res){r.textContent=res.ok?'Sent':'Try again';r.disabled=!res.ok?false:true;flash(res.ok?'Your tickets are on their way to '+((ACC.profile||{}).email||'your email')+'.':'We couldn\'t send them just now. Please try again.')},function(){r.disabled=false;r.textContent='Try again';flash('No connection. Please try again.')})}
@@ -987,7 +989,7 @@ document.addEventListener('click',function(ev){
   var a=ev.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;
   if(a.matches('#os-side [data-panel]'))return;
   var u;try{u=new URL(a.getAttribute('href'),location.href)}catch(err){return}
-  if(u.origin!==location.origin||u.search||(u.hash&&pathOf(u)===pathOf(location)))return;
+  if(u.origin!==location.origin||u.search||u.hash)return;
   var path=pathOf(u);if(!isSpa(path))return;
   ev.preventDefault();go(path);
 });
@@ -1028,7 +1030,7 @@ function route(){
   if(workspaceRole)workspaceRole.hidden=p==='account';
   if(workspaceTitle)workspaceTitle.textContent=p==='dashboard'?'Organiser dashboard':p==='account'?'Your account':p==='checkin'?'Gate check-in':p==='create'?'Create an event':'TICA workspace';
   if(workspaceRole)workspaceRole.textContent=p==='create'&&window.TICA_ADMIN?'Admin event workspace':(p==='dashboard'||p==='checkin'||p==='create')?'Organiser workspace':'TICA workspace';
-  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=window.TICA_ADMIN?(TICA_DATA.adminBuilder.adminName||'TICA admin'):customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null,workspaceAvatar=customerWorkspace&&window.TICA_USER?window.TICA_USER.photo:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.avatar:null;acAvatar(workspaceAccount,workspaceName,workspaceAvatar);workspaceAccount.href=window.TICA_ADMIN?(TICA_DATA.adminBuilder.backUrl||'/admin/dashboard'):customerWorkspace?'/account/profile':'/dashboard/settings'}
+  if(workspaceAccount){var customerWorkspace=p==='account',workspaceName=window.TICA_ADMIN?(TICA_DATA.adminBuilder.adminName||'TICA admin'):customerWorkspace&&window.TICA_USER?window.TICA_USER.name:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.name:null,workspaceAvatar=customerWorkspace&&window.TICA_USER?window.TICA_USER.photo:window.TICA_ORG&&window.TICA_DATA.dashboard?window.TICA_DATA.dashboard.org.avatar:null;acAvatar(workspaceAccount,workspaceName,workspaceAvatar);workspaceAccount.href=window.TICA_ADMIN?(TICA_DATA.adminBuilder.backUrl||'/admin/dashboard'):customerWorkspace?'/account#profile':'/dashboard/settings'}
   if(p==='dashboard'&&!route.ran){var workspaceMore=document.getElementById('od-more');if(workspaceMore)workspaceMore.removeAttribute('open')}
   document.body.classList.toggle('authmode',p==='login'||p==='signup'||p==='forgot');
   [].forEach.call(document.querySelectorAll('.pagebar a'),function(a){var h=a.getAttribute('href').slice(1).split('/')[0]||'home';if(h===p)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
@@ -1043,7 +1045,7 @@ function route(){
   var first=$('tica-first-page');if(first)first.remove();
   try{window.dispatchEvent(new Event('tica:navigate'))}catch(err){}
 }
-function fromUrl(){cur=pathOf(location);route()}
+function fromUrl(){var path=pathOf(location);if(cur===path)return;cur=path;route()}
 window.addEventListener('scroll',function(){var topbar=document.querySelector('.topbar');if(topbar)topbar.classList.toggle('scrolled',window.scrollY>8)},{passive:true});
 document.addEventListener('click',function(ev){var m=document.querySelector('.menu[open]');if(m&&!m.contains(ev.target))m.removeAttribute('open')});
 document.addEventListener('click',function(ev){var b=ev.target.closest('#workspace-menu');if(b){var mobile=window.matchMedia('(max-width:860px)').matches,open;if(mobile){open=!document.body.classList.contains('dashnav-open');document.body.classList.toggle('dashnav-open',open)}else{document.body.classList.remove('dashnav-open');document.body.classList.toggle('dashnav-collapsed');open=!document.body.classList.contains('dashnav-collapsed')}b.setAttribute('aria-expanded',open?'true':'false');b.setAttribute('aria-label',open?'Close dashboard menu':'Open dashboard menu');return}if(document.body.classList.contains('dashnav-open')&&(!ev.target.closest('.db-side,.acd-side')||ev.target.closest('.db-side button,.db-side a,.acd-side button,.acd-side a'))){document.body.classList.remove('dashnav-open');var mb=document.getElementById('workspace-menu');if(mb)mb.setAttribute('aria-expanded','false')}});
@@ -1284,7 +1286,7 @@ document.addEventListener('click',function(e){if(e.target.closest('.nav-ic')){se
 ui();
 })();
 /* design script 11 */
-(function(){if(window.TICA_ADMIN)return;function p(){var s=innerWidth<=480;var e=document.getElementById('h-q');if(e)e.placeholder=s?'Search events':'Search events or artists';var d=document.getElementById('d-q');if(d)d.placeholder=s?'Search events':'Artist, event or organiser'}p();addEventListener('resize',p)})();
+(function(){if(window.TICA_ADMIN)return;function p(){var s=innerWidth<=480;var d=document.getElementById('d-q');if(d)d.placeholder=s?'Search events':'Artist, event or organiser'}p();addEventListener('resize',p)})();
 /* design script 12 */
 (function(){
 if(window.TICA_ADMIN)return;

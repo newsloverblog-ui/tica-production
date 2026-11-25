@@ -20,9 +20,9 @@ class PublicImageTest extends TestCase
   public function test_images_shipped_with_the_code_stay_static(): void
   {
     $this->storageOn();
-    $shipped = json_decode(file_get_contents(resource_path('static-images.json')), true)[0];
-
-    $this->assertSame(asset($shipped), PublicImage::url(dirname($shipped), basename($shipped)));
+    foreach (json_decode(file_get_contents(resource_path('static-images.json')), true) as $shipped) {
+      $this->assertSame(asset($shipped), PublicImage::url(dirname($shipped), basename($shipped)));
+    }
   }
 
   public function test_without_storage_it_falls_back_to_local_assets(): void
@@ -74,7 +74,7 @@ class PublicImageTest extends TestCase
   {
     $listed = json_decode(file_get_contents(resource_path('static-images.json')), true);
     $actual = [];
-    foreach (['assets/admin/img/event/thumbnail', 'assets/admin/img/organizer-photo'] as $dir) {
+    foreach (['assets/admin/img/blogs', 'assets/admin/img/event/thumbnail', 'assets/admin/img/organizer-photo'] as $dir) {
       foreach (glob(public_path($dir) . '/*') ?: [] as $file) {
         if (is_file($file)) {
           $actual[] = $dir . '/' . basename($file);
@@ -91,6 +91,7 @@ class PublicImageTest extends TestCase
     // Images listed as static must not be excluded from Vercel deployments,
     // or their links fall through to storage where they may not exist.
     $ignore = file_get_contents(base_path('.vercelignore'));
+    $this->assertStringContainsString('!public/assets/admin/img/blogs', $ignore);
     $this->assertStringContainsString('!public/assets/admin/img/event/thumbnail', $ignore);
     $this->assertStringContainsString('!public/assets/admin/img/organizer-photo', $ignore);
     $this->assertDoesNotMatchRegularExpression('/^public\/assets\/admin\/img\/?$/m', $ignore, 'The whole admin img folder must not be excluded.');

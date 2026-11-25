@@ -115,18 +115,12 @@ $(document).ready(function(){
 
 
 	if(!toggle_sidebar) {
-		var toggle = $('.sidenav-toggler');
-
-		toggle.on('click', function(){
-			if (nav_open == 1){
-				$('html').removeClass('nav_open');
-				toggle.removeClass('toggled');
-				nav_open = 0;
-			}  else {
-				$('html').addClass('nav_open');
-				toggle.addClass('toggled');
-				nav_open = 1;
-			}
+		var sidenavToggle = $('.sidenav-toggler');
+		sidenavToggle.on('click', function(){
+			nav_open = nav_open === 1 ? 0 : 1;
+			var isOpen = nav_open === 1;
+			$('html').toggleClass('nav_open', isOpen);
+			sidenavToggle.toggleClass('toggled', isOpen).attr('aria-expanded', isOpen ? 'true' : 'false');
 		});
 		toggle_sidebar = true;
 	}

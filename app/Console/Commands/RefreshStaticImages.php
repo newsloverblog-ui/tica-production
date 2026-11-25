@@ -9,12 +9,12 @@ class RefreshStaticImages extends Command
 {
   protected $signature = 'tica:static-images';
 
-  protected $description = 'List the event and organiser images that ship with the code';
+  protected $description = 'List the event, organiser and blog images that ship with the code';
 
   public function handle(): int
   {
     $files = [];
-    foreach (['assets/admin/img/event/thumbnail', 'assets/admin/img/organizer-photo'] as $dir) {
+    foreach (['assets/admin/img/blogs', 'assets/admin/img/event/thumbnail', 'assets/admin/img/organizer-photo'] as $dir) {
       foreach (glob(public_path($dir) . '/*') ?: [] as $file) {
         if (is_file($file)) {
           $files[] = $dir . '/' . basename($file);

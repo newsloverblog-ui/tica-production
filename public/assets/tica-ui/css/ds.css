@@ -26,12 +26,12 @@
   --t-line-strong:#CDD4DE;
   --t-ink:#111827;         /* headings, numbers */
   --t-text-c:#3F4A5A;      /* body */
-  --t-muted:#667085;       /* labels, helper */
+  --t-muted:#5c687c;       /* labels, helper */
   --t-blue:#2E4FD8;        /* 10: primary, active */
   --t-blue-hover:#2440B8;
   --t-blue-50:#EEF2FD;
   --t-blue-100:#DCE4FB;
-  --t-orange:#B4580F;      /* attention only */
+  --t-orange:#A84E0E;      /* attention only */
   --t-orange-50:#FEF4EA;
   --t-green:#0F7A3D;
   --t-green-50:#E9F7EF;
@@ -407,7 +407,7 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
 .ov-table .t-num{text-align:right;font-variant-numeric:tabular-nums;color:var(--t-ink);font-weight:600;white-space:nowrap}
 .ov-table__act{text-align:right}
 .ov-ev{display:flex;align-items:center;gap:12px;min-width:0}
-.ov-ev__date{flex:none;display:grid;place-items:center;width:44px;height:46px;border-radius:10px;background:var(--t-subtle);color:var(--t-muted);font-size:11px;line-height:14px;text-transform:uppercase;font-weight:600}
+.ov-ev__date{flex:none;display:grid;place-items:center;width:44px;height:46px;border-radius:10px;background:var(--t-subtle);color:var(--ov-text);font-size:11px;line-height:14px;text-transform:uppercase;font-weight:600}
 .ov-ev__date b{color:var(--t-ink);font-size:17px;line-height:20px}
 .ov-ev__name{display:block;color:var(--t-ink);font-weight:600;overflow-wrap:anywhere}
 .ov-ev__meta{display:block;color:var(--t-muted);font-size:12px}
@@ -612,6 +612,8 @@ body.orgshell .ck-wrap{max-width:none;padding:var(--t-pad)}
 body.orgshell .ck-ev label,body.orgshell .ck-manual label,body.orgshell .ck-sim p{color:var(--t-text-c);font-size:var(--t-text-sm);font-weight:500}
 body.orgshell .ck-ev select,body.orgshell .ck-manual input{background:var(--t-surface);color:var(--t-ink);border:1px solid var(--t-line-strong);border-radius:var(--t-radius-sm,8px);min-height:44px;font:400 var(--t-text)/1.2 var(--t-font);letter-spacing:0}
 body.orgshell .ck-manual input::placeholder{color:var(--t-muted)}
+body.orgshell .ck-manual .btn-ghost2{border-color:var(--t-line-strong);background:var(--t-surface);color:var(--t-ink)}
+body.orgshell .ck-manual .btn-ghost2:hover{background:var(--t-subtle)}
 body.orgshell .ck-sync{color:var(--t-muted);font-size:var(--t-text-sm)}
 body.orgshell .ck-cam{border-radius:12px;background:#111827;max-height:56vh}
 body.orgshell .ck-res{background:var(--t-surface);border:1px solid var(--t-line);border-radius:12px;color:var(--t-ink)}
@@ -619,7 +621,7 @@ body.orgshell .ck-idle{color:var(--t-muted)}
 body.orgshell .ck-res.ok{background:var(--t-green);border-color:var(--t-green);color:#fff}
 body.orgshell .ck-res.used{background:var(--t-orange);border-color:var(--t-orange);color:#fff}
 body.orgshell .ck-res.bad{background:var(--t-red);border-color:var(--t-red);color:#fff}
-body.orgshell .ck-res h2{font-size:var(--t-text-lg);font-weight:600;letter-spacing:0}
+body.orgshell .ck-res h2{color:inherit;font-size:var(--t-text-lg);font-weight:600;letter-spacing:0}
 body.orgshell .ck-sim{margin-top:var(--t-4)}
 body.orgshell .ck-sim .btn{min-height:48px;font-size:var(--t-text)}
 body.orgshell .ck-stat,body.orgshell .ck-log,body.orgshell .ck-setup{background:var(--t-surface);border:1px solid var(--t-line);border-radius:12px;color:var(--t-ink);padding:var(--t-pad)}
@@ -1212,7 +1214,7 @@ button.ov-summary__item{cursor:pointer}
 button.ov-summary__item:hover{border-color:#b8c8e1;box-shadow:0 8px 20px rgba(11,36,71,.08);transform:translateY(-1px)}
 button.ov-summary__item:focus-visible{z-index:1;outline:2px solid var(--t-blue);outline-offset:2px}
 .ov-summary__label{color:var(--t-muted);font-size:13px;font-weight:600;line-height:18px;letter-spacing:.01em}
-.ov-summary__value{overflow:hidden;color:var(--ov-ink);font-size:30px;font-weight:700;line-height:34px;letter-spacing:-.035em;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ov-summary__value{color:var(--ov-ink);font-size:30px;font-weight:700;line-height:34px;letter-spacing:-.035em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 
 /* The primary and secondary rows use the same calm rhythm. */
 .ov-row--primary,.ov-row--secondary{grid-template-columns:minmax(0,1.75fr) minmax(300px,.85fr);gap:16px}

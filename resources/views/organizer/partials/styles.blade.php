@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-main.css') }}">
 
 {{-- Tica control center design system --}}
-<link rel="stylesheet" href="{{ asset('assets/admin/css/tica-control-center.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/admin/css/tica-control-center.css') }}?v={{ tica_asset_version('assets/admin/css/tica-control-center.css') }}">
 
 {{-- TICA design: blends these pages with the organiser workspace --}}
 <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ tica_asset_version('assets/tica-ui/css/organizer-blend.css') }}">

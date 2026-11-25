@@ -534,6 +534,7 @@ Route::middleware('change.lang')->group(function () {
     ->where('section', '[a-z]+')->name('tica.policies');
   Route::get('/tickets', 'FrontEnd\TicaUiController@page')->defaults('page', 'tickets')->name('tica.tickets');
   Route::get('/account', 'FrontEnd\TicaUiController@page')->defaults('page', 'account')->name('tica.account');
+  Route::get('/account/profile', fn () => redirect(route('tica.account') . '#profile', 301));
   Route::get('/signup', 'FrontEnd\TicaUiController@page')->defaults('page', 'signup')->name('tica.signup');
   Route::get('/forgot', 'FrontEnd\TicaUiController@page')->defaults('page', 'forgot')->name('tica.forgot');
   Route::get('/create', 'FrontEnd\TicaUiController@page')->defaults('page', 'create')->middleware('tica.team')->name('tica.create');

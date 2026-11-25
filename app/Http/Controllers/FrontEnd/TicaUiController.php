@@ -203,7 +203,7 @@ class TicaUiController extends Controller
       'title' => $post->title,
       'post' => $post,
       'related' => $related,
-    ], $post->meta_description ?: Str::limit(trim(strip_tags($post->content)), 158), asset('assets/admin/img/blogs/' . $post->image));
+    ], $post->meta_description ?: Str::limit(trim(strip_tags($post->content)), 158), PublicImage::url('assets/admin/img/blogs', $post->image));
   }
 
   /** A page made under Website > Pages, at /its-slug. */

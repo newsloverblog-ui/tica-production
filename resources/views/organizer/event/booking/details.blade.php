@@ -179,8 +179,7 @@
 
             <div class="row mb-2">
               <div class="col-lg-4">
-                <strong>{{ __('Early Bird Discount') }} <span class="text-success">(-)</span>
-                  :</strong></strong>
+                <strong>{{ __('Early Bird Discount') }} (−) :</strong>
               </div>
               <div class="col-lg-8">
                 @if (!is_null($booking->early_bird_discount))
@@ -192,7 +191,7 @@
             </div>
             <div class="row mb-2">
               <div class="col-lg-4">
-                <strong>{{ __('Coupon Discount') }} <span class="text-success">(-)</span> :</strong>
+                <strong>{{ __('Coupon Discount') }} (−) :</strong>
               </div>
               <div class="col-lg-8">
                 @if (!is_null($booking->discount))
