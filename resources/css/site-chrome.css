@@ -14,7 +14,7 @@ button,
 input,
 select,
 textarea {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--tica-font-ui);
 }
 
 h1,
@@ -23,7 +23,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--tica-font-brand);
 }
 
 ::selection {

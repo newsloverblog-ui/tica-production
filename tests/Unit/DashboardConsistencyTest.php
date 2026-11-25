@@ -26,11 +26,11 @@ class DashboardConsistencyTest extends TestCase
         );
     }
 
-    public function test_shared_dashboard_type_scale_covers_modern_and_legacy_pages(): void
+    public function test_shared_dashboard_layout_covers_modern_and_legacy_page_headers(): void
     {
         $css = file_get_contents(public_path('assets/tica-ui/css/dashboard-consistency.css'));
 
-        $this->assertStringContainsString('font-family: "Montserrat"', $css);
+        $this->assertStringNotContainsString('@font-face', $css);
         $this->assertStringContainsString('.page-header .page-title', $css);
         $this->assertStringContainsString('.t-page-head h1', $css);
         $this->assertStringContainsString('.promotion-page-header h1', $css);
@@ -38,9 +38,8 @@ class DashboardConsistencyTest extends TestCase
         $this->assertStringContainsString('.at-head h1', $css);
         $this->assertStringContainsString('.tica-report-heading h1', $css);
         $this->assertStringContainsString('.page-inner .table h2.d-inline-block', $css);
-        $this->assertStringContainsString('font-size: var(--tica-type-page, 30px) !important', $css);
-        $this->assertStringContainsString('font-weight: 600 !important', $css);
-        $this->assertStringContainsString('font-size: var(--tica-type-page-mobile, 26px) !important', $css);
+        $this->assertStringContainsString('align-items: flex-end !important', $css);
+        $this->assertStringContainsString('align-items: flex-start !important', $css);
     }
 
     public function test_booking_and_transaction_filters_use_responsive_shared_toolbars(): void

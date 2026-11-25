@@ -11,7 +11,7 @@
   $tsOrganizerTitleLines = preg_split('/\R+|(?<=\.)\h*(?=TICA\b)/u', $tsOrganizerTitle, 2) ?: [$tsOrganizerTitle];
   $tsEticketTitle = trim((string) ($tsHome['eticket_title'] ?? ''));
   $tsEticketTitleLines = preg_split('/\s+(?=on your phone\b)/iu', $tsEticketTitle, 2) ?: [$tsEticketTitle];
-  $tsOrganizerImages = array_values($tsHome['organisers_images']);
+  $tsOrganizerPhotos = \App\Support\TicaSite::ORGANISER_PHOTOS;
 @endphp
 @verbatim
 <section class="page" data-page="home">
@@ -24,7 +24,7 @@
             <img class="h-photo{{ $loop->first ? ' on' : '' }}"
               @if ($loop->first && $initialPage === 'home') src="{{ $tsImg($tsHeroPhoto) }}" fetchpriority="high"
               @elseif ($loop->first) data-src="{{ $tsImg($tsHeroPhoto) }}"
-              @else data-hero-src="{{ $tsImg($tsHeroPhoto) }}"
+              @else data-slide-src="{{ $tsImg($tsHeroPhoto) }}"
               @endif
               alt="" decoding="async">
           @endforeach
@@ -129,18 +129,19 @@
       @if ($tsHome['organisers_text'])<p>{{ $tsHome['organisers_text'] }}</p>@endif
       <div class="btns"><a class="btn btn-hot" href="/create">Create an event</a><a class="btn btn-ghost" href="/pricing">See pricing</a></div>
     </div>
-    @if ($tsOrganizerImages)
-    <div class="org-art duo-art event-reel" aria-hidden="true">
+    <div class="org-art event-reel" aria-hidden="true">
       <div class="event-reel-stage">
-        <figure class="event-reel-slide is-active">
-          <div class="da-main da-concert"><img data-src="{{ $tsImg($tsOrganizerImages[0]) }}" width="1200" height="900" loading="lazy" decoding="async" alt=""></div>
-          @if (isset($tsOrganizerImages[1]))
-            <div class="da-sub da-crowd"><img data-src="{{ $tsImg($tsOrganizerImages[1]) }}" width="560" height="700" loading="lazy" decoding="async" alt=""></div>
-          @endif
-        </figure>
+        @foreach ($tsOrganizerPhotos as $tsPhoto)
+          @php($tsPhotoUrl = "/assets/tica-ui/img/organiser-gallery/{$tsPhoto}.webp")
+          <img class="event-reel-slide{{ $loop->first ? ' is-active' : '' }}"
+            @if ($loop->first && $initialPage === 'home') src="{{ $tsPhotoUrl }}" loading="lazy"
+            @elseif ($loop->first) data-src="{{ $tsPhotoUrl }}" loading="lazy"
+            @else data-slide-src="{{ $tsPhotoUrl }}"
+            @endif
+            width="1200" height="900" decoding="async" alt="">
+        @endforeach
       </div>
     </div>
-    @endif
     @if ($tsHome['organisers_points'])<ol class="org-list org-benefits">@foreach ($tsHome['organisers_points'] as $tsP)
       <li><b>{{ $tsP['title'] }}</b>@if ($tsP['text'])<span>{{ $tsP['text'] }}</span>@endif</li>@endforeach
     </ol>@endif

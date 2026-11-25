@@ -156,27 +156,31 @@ document.addEventListener('visibilitychange',updateHomeMotion);
 window.addEventListener('tica:navigate',updateHomeMotion);
 updateHomeMotion();
 
-var heroPhotos=Array.from(homePage.querySelectorAll('.h-photo'));
-if(heroPhotos.length>1){
-  var heroIndex=0,loadingHero=false;
-  rotateOnHome(homePage.querySelector('.h-frame'),6500,async function(canRotate){
-    if(loadingHero)return;
-    heroIndex=(heroIndex+1)%heroPhotos.length;
-    var photo=heroPhotos[heroIndex];
-    if(photo.classList.contains('on'))return;
-    loadingHero=true;
+function rotateHomePhotos(region,selector,activeClass,delay){
+  var photos=Array.from(region.querySelectorAll(selector));
+  if(photos.length<2)return;
+  var index=0,activePhoto=photos[0],loading=false;
+  rotateOnHome(region,delay,async function(canRotate){
+    if(loading)return;
+    index=(index+1)%photos.length;
+    var photo=photos[index];
+    if(photo===activePhoto)return;
+    loading=true;
     try{
-      if(!photo.getAttribute('src'))photo.src=photo.dataset.heroSrc;
+      if(!photo.getAttribute('src'))photo.src=photo.dataset.slideSrc;
       await photo.decode();
       if(canRotate()&&!photo.dataset.fb){
-        homePage.querySelector('.h-photo.on').classList.remove('on');
-        photo.classList.add('on');
+        photo.classList.add(activeClass);
+        activePhoto.classList.remove(activeClass);
+        activePhoto=photo;
       }
     }catch(e){
       // Keep the visible photo if the next one cannot load.
-    }finally{loadingHero=false}
+    }finally{loading=false}
   });
 }
+rotateHomePhotos(homePage.querySelector('.h-frame'),'.h-photo','on',6500);
+rotateHomePhotos(homePage.querySelector('.event-reel'),'.event-reel-slide','is-active',5000);
 
 /* spotlight */
 var spotList=EV.filter(function(e){return e.featured&&!e.sold}).concat(EV.filter(function(e){return !e.featured&&!e.sold})).slice(0,3),spotI=0;

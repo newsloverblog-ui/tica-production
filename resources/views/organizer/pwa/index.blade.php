@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="{{ asset('assets/front/css/toastr.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/pwa_scanner/style.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/organizer-blend.css') }}?v={{ tica_asset_version('assets/tica-ui/css/organizer-blend.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 </head>
 
 <body class="tica-organizer tica-scanner-page">

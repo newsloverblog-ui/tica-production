@@ -15,7 +15,7 @@ const ORGANISER = [
   '/organizer/withdraw/exports', '/organizer/event-booking/exports', '/organizer/check-in-ledger/exports', '/organizer/pwa',
 ];
 const ADMIN = [
-  '/admin/dashboard', '/admin/event-builder', '/admin/website?tab=home',
+  '/admin/dashboard', '/admin/event-builder', '/admin/transcation', '/admin/website?tab=home',
   '/admin/integrations', '/admin/integrations/paystack', '/admin/integrations/email',
   '/admin/integrations/sms', '/admin/integrations/google_login', '/admin/integrations/storage',
   '/admin/coupons',
@@ -51,7 +51,13 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
         expect(res?.status() ?? 0, `${role} ${path}`).toBeLessThan(500);
         if (role === 'guest' && path === '/') {
           await expect(page.locator('.h-photo.on[fetchpriority="high"]')).toHaveCount(1);
-          await expect(page.locator('.h-photo[data-hero-src]')).not.toHaveCount(0);
+          await expect(page.locator('.h-photo[data-slide-src]')).not.toHaveCount(0);
+          const hero = page.locator('.h-in h1');
+          await expect(hero).toHaveCSS('font-family', /Montserrat/);
+          await expect(hero).toHaveCSS('font-weight', '800');
+          await expect(hero).toHaveCSS('font-size', test.info().project.name === 'desktop' ? '48px' : '32px');
+          await expect(page.locator('#h-q')).toHaveCSS('font-size', '16px');
+          await expect(page.locator('#h-q')).toHaveCSS('font-weight', '400');
           if (test.info().project.name === 'desktop') {
             const lines = await page.locator('.org-title--split > span').evaluateAll(spans => spans.map(span => {
               const range = document.createRange();
@@ -61,6 +67,9 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
             expect(lines).toEqual([1, 1]);
           }
           await expect(page.getByRole('button', { name: 'Search events', exact: true })).toBeVisible();
+          const motion = await page.locator('#home-motion').boundingBox();
+          const featured = await page.locator('.spot').boundingBox();
+          if (motion && featured) expect(motion.y + motion.height).toBeLessThanOrEqual(featured.y);
           await page.keyboard.press('Tab');
           await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
           await page.keyboard.press('Enter');
@@ -75,6 +84,23 @@ for (const [role, paths] of Object.entries(plan) as [Role, string[]][]) {
           await expect(notice).toBeHidden();
           await page.reload();
           await expect(notice).toBeHidden();
+        }
+        if (role === 'admin' && path === '/admin/dashboard') {
+          await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
+          await expect(page.locator('.cd-kpi-value').first()).toHaveCSS('font-weight', '700');
+        }
+        if (role === 'admin' && path === '/admin/transcation') {
+          const filter = page.locator('.transaction-filters input').first();
+          await expect(filter).toHaveCSS('font-family', /Montserrat/);
+          await expect(filter).toHaveCSS('font-size', '16px');
+        }
+        if (role === 'owner' && path === '/dashboard') {
+          await expect(page.locator('#db-hi')).toHaveCSS('font-weight', '700');
+          await expect(page.locator('.ov-summary__value').first()).toHaveCSS('font-variant-numeric', 'tabular-nums');
+        }
+        if (role === 'owner' && path === '/organizer/finance') {
+          await expect(page.locator('#fin-balance-h')).toHaveCSS('font-variant-numeric', 'tabular-nums');
+          await expect(page.locator('#fin-balance-h')).toHaveCSS('font-weight', '700');
         }
         if (role === 'guest' && path === '/discover' && test.info().project.name === 'mobile') {
           const filters = page.getByRole('button', { name: /^Filters/ });
@@ -198,4 +224,37 @@ test('homepage cities rotate and keep the focused destination stable', async ({ 
   await city.focus();
   await page.clock.runFor(4200);
   await expect(city).toHaveAttribute('href', destination!);
+});
+
+test('homepage organiser gallery cycles through six photos and honours motion preferences', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  const gallery = page.locator('.event-reel');
+  const active = gallery.locator('.event-reel-slide.is-active');
+  await expect(gallery.locator('img[src]')).toHaveCount(1);
+  await gallery.scrollIntoViewIfNeeded();
+  await expect(active).toHaveJSProperty('naturalWidth', 1200);
+  const photos = ['culture', 'dance', 'seminar', 'games', 'party', 'rave', 'culture'];
+
+  for (const [index, photo] of photos.entries()) {
+    if (index > 0) await page.clock.fastForward(5100);
+    await expect(active).toHaveAttribute('src', `/assets/tica-ui/img/organiser-gallery/${photo}.webp`);
+    await expect(active).toHaveJSProperty('naturalWidth', 1200);
+  }
+
+  const pause = page.getByRole('button', { name: 'Pause animations' });
+  await pause.click();
+  await expect(pause).toHaveAttribute('aria-pressed', 'true');
+  await gallery.scrollIntoViewIfNeeded();
+  await page.clock.fastForward(10000);
+  await expect(active).toHaveAttribute('src', /culture\.webp$/);
+
+  await pause.click();
+  await expect(pause).toHaveAttribute('aria-pressed', 'false');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await expect(pause).toBeHidden();
+  await gallery.scrollIntoViewIfNeeded();
+  await page.clock.fastForward(10000);
+  await expect(active).toHaveAttribute('src', /culture\.webp$/);
 });

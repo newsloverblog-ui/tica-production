@@ -1017,7 +1017,7 @@
 }
 
 /* ---------- Promotion management: review queue, placements, calendar ---------- */
-.tica-promotion-center{--pm-navy:#0B2447;--pm-blue:#2E4FD8;--pm-blue-h:#2541B8;--pm-orange:#F2A06B;--pm-text:#526079;--pm-line:#E3E8F0;font-family:var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pm-navy)}
+.tica-promotion-center{--pm-navy:#0B2447;--pm-blue:#2E4FD8;--pm-blue-h:#2541B8;--pm-orange:#F2A06B;--pm-text:#526079;--pm-line:#E3E8F0;font-family:var(--tica-font-ui);color:var(--pm-navy)}
 .pm-head h1{margin:0;font-size:clamp(28px,3vw,38px);font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--pm-navy)}
 .pm-head p{margin:8px 0 0;max-width:640px;font-size:15px;line-height:1.55;color:var(--pm-text)}
 .pm-head{margin-bottom:20px;animation:pmUp .45s cubic-bezier(.2,.7,.2,1) both}
@@ -1025,11 +1025,11 @@
 @keyframes pmUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .pm-tabs{display:flex;justify-content:space-between;align-items:center;gap:12px 20px;flex-wrap:wrap;margin:0 0 22px}
 .pm-tabs__main{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:#EEF1F6;flex-wrap:wrap}
-.pm-tabs__main button{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 18px;border:0;border-radius:10px;background:transparent;font:600 15px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pm-text);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.pm-tabs__main button{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 18px;border:0;border-radius:10px;background:transparent;font:600 15px/1 var(--tica-font-ui);color:var(--pm-text);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
 .pm-tabs__main button.is-active{background:#fff;color:var(--pm-navy);box-shadow:0 1px 3px rgba(11,36,71,.12)}
 .pm-tabs__main b{min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--pm-blue);color:#fff;font-size:12px;display:inline-grid;place-items:center}
 .pm-tabs__more{display:flex;gap:2px;flex-wrap:wrap}
-.pm-tabs__more button{min-height:40px;padding:0 12px;border:0;border-radius:9px;background:transparent;font:500 14px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pm-text);cursor:pointer;transition:background .2s,color .2s}
+.pm-tabs__more button{min-height:40px;padding:0 12px;border:0;border-radius:9px;background:transparent;font:500 14px/1 var(--tica-font-ui);color:var(--pm-text);cursor:pointer;transition:background .2s,color .2s}
 .pm-tabs__more button:hover{background:#F1F4F9;color:var(--pm-navy)}
 .pm-tabs__more button.is-active{color:var(--pm-blue);background:#EEF3FF}
 .pm-tabs button:focus-visible,.pm-qcard:focus-visible,.pm-btn:focus-visible,.pm-reasons button:focus-visible,.pm-cal__nav a:focus-visible,.pm-bar:focus-visible{outline:3px solid rgba(46,79,216,.35);outline-offset:2px}
@@ -1072,18 +1072,18 @@
 .pm-checks .is-ok span{background:#E7F6EE;color:#0F6B3E}.pm-checks .is-warn span{background:#FFF1DC;color:#8A4B00}
 .pm-decide{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--pm-line);padding-top:16px}
 .pm-field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--pm-navy);margin:0}
-.pm-field input,.pm-field select,.pm-field textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid #CBD5E4;border-radius:10px;background:#fff;font:500 15px/1.4 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pm-navy)}
+.pm-field input,.pm-field select,.pm-field textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid #CBD5E4;border-radius:10px;background:#fff;font:500 15px/1.4 var(--tica-font-ui);color:var(--pm-navy)}
 .pm-field textarea{resize:vertical}
 .pm-field textarea[aria-invalid=true]{border-color:#A4262C}
 .pm-changes{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:14px;background:#FFF8F1;border:1px solid #F6D3B5}
 .pm-changes.is-in{animation:pmUp .3s ease both}
 .pm-reasons{display:flex;gap:8px;flex-wrap:wrap}
-.pm-reasons button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #E3C3A6;background:#fff;font:600 13px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pm-navy);cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s}
+.pm-reasons button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #E3C3A6;background:#fff;font:600 13px/1 var(--tica-font-ui);color:var(--pm-navy);cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s}
 .pm-reasons button[aria-pressed=true]{background:var(--pm-navy);border-color:var(--pm-navy);color:#fff}
 .pm-wait{margin:0;font-size:14px;color:#8A4B00;display:flex;gap:8px;align-items:center}
 .pm-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .pm-actions[hidden]{display:none}
-.pm-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid transparent;font:600 15px/1 var(--t-font,"Montserrat",system-ui,sans-serif);cursor:pointer;transition:background .2s,border-color .2s,transform .15s,box-shadow .2s}
+.pm-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid transparent;font:600 15px/1 var(--tica-font-ui);cursor:pointer;transition:background .2s,border-color .2s,transform .15s,box-shadow .2s}
 .pm-btn:active{transform:scale(.98)}
 .pm-btn--blue{background:var(--pm-blue);color:#fff}.pm-btn--blue:hover{background:var(--pm-blue-h)}
 .pm-btn--blue:disabled{background:#AFC0DD;cursor:not-allowed}
@@ -1243,11 +1243,11 @@
   .pm-reasons button{border-radius:10px;text-align:left}
 }
 
-/* Shared admin typography scale: Montserrat with regular body copy, medium
+/* Shared admin typography scale with regular body copy, medium
    labels and semibold hierarchy. Keep promotion tools consistent with the
    rest of the control centre instead of introducing page-only weights. */
 body.tica-admin .tica-promotion-center{
-  font-family:var(--t-font,"Montserrat",system-ui,sans-serif);
+  font-family:var(--tica-font-ui);
   font-size:14px;
   line-height:1.5;
   font-weight:400;

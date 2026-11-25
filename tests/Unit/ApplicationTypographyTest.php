@@ -15,6 +15,11 @@ class ApplicationTypographyTest extends TestCase
             resource_path('views/frontend/embed-layout.blade.php'),
             resource_path('views/tica-ui/app.blade.php'),
             resource_path('views/backend/auth-layout.blade.php'),
+            resource_path('views/organizer/pwa/index.blade.php'),
+            resource_path('views/auth/account-security.blade.php'),
+            resource_path('views/auth/mfa-challenge.blade.php'),
+            resource_path('views/auth/become-organizer.blade.php'),
+            resource_path('views/organizer/kyc/lock-payout-account.blade.php'),
         ];
 
         foreach ($layouts as $path) {
@@ -40,20 +45,26 @@ class ApplicationTypographyTest extends TestCase
         $css = file_get_contents(public_path('assets/tica-ui/css/typography.css'));
 
         $tokens = [
-            '--tica-font-sans:',
-            '--tica-type-page:',
-            '--tica-type-section:',
-            '--tica-type-card:',
-            '--tica-type-body:',
-            '--tica-type-secondary:',
-            '--tica-type-nav:',
-            '--tica-type-label:',
-            '--tica-type-input:',
-            '--tica-type-button:',
-            '--tica-type-table-head:',
-            '--tica-type-table-body:',
-            '--tica-type-badge:',
-            '--tica-type-helper:',
+            '--tica-text-display:',
+            '--tica-text-h1:',
+            '--tica-text-h2:',
+            '--tica-text-h3:',
+            '--tica-text-h4:',
+            '--tica-text-h5:',
+            '--tica-text-h6:',
+            '--tica-text-body-lg:',
+            '--tica-text-body:',
+            '--tica-text-body-sm:',
+            '--tica-text-secondary:',
+            '--tica-text-nav:',
+            '--tica-text-label:',
+            '--tica-text-input:',
+            '--tica-text-button:',
+            '--tica-text-table-head:',
+            '--tica-text-table:',
+            '--tica-text-caption:',
+            '--tica-text-metric:',
+            '--tica-text-financial:',
         ];
 
         foreach ($tokens as $token) {
@@ -62,10 +73,12 @@ class ApplicationTypographyTest extends TestCase
 
         $this->assertStringContainsString('@font-face', $css);
         $this->assertStringContainsString('font-family: "Montserrat"', $css);
-        $this->assertStringContainsString('--tica-type-body: clamp(15px', $css);
-        $this->assertStringContainsString('--tica-type-table-body: 15px', $css);
-        $this->assertStringContainsString('--tica-type-helper: 13px', $css);
-        $this->assertStringNotContainsString('--tica-type-body: 12px', $css);
+        $this->assertStringContainsString('font-weight: 400 800', $css);
+        $this->assertStringContainsString('--tica-font-ui: var(--tica-font-brand)', $css);
+        $this->assertStringContainsString('--tica-type-display: clamp(', $css);
+        $this->assertStringContainsString('--tica-type-body: 1rem', $css);
+        $this->assertStringContainsString('--tica-type-input: 1rem', $css);
+        $this->assertStringNotContainsString('@import', $css);
     }
 
     public function test_typography_layer_normalizes_core_components_and_compact_pages(): void
@@ -74,8 +87,8 @@ class ApplicationTypographyTest extends TestCase
 
         foreach ([
             '.page-header .page-title',
-            '.page-inner h2',
-            '.sidebar .nav > .nav-item > a p',
+            'body h2',
+            '.nav > .nav-item > a p',
             '.form-group > label',
             '.form-control',
             '.directory-table',
@@ -90,8 +103,8 @@ class ApplicationTypographyTest extends TestCase
             $this->assertStringContainsString($selector, $css);
         }
 
-        $this->assertStringContainsString('font-size: var(--tica-type-table-head) !important', $css);
-        $this->assertStringContainsString('font-size: var(--tica-type-table-body) !important', $css);
-        $this->assertStringContainsString('font-size: 16px !important', $css);
+        $this->assertStringContainsString('font: var(--tica-text-table-head) !important', $css);
+        $this->assertStringContainsString('font: var(--tica-text-table) !important', $css);
+        $this->assertStringContainsString('font-variant-numeric: tabular-nums', $css);
     }
 }

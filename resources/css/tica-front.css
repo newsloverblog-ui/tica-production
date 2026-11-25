@@ -1,7 +1,7 @@
 :root{
   --page:#fff;--ink:#0b2447;--indigo:#0b2447;--indigo-2:#0f4c9e;--camwood:#f97316;
   --peach:#fff1e6;--tint:#f3f6fb;--soft:#526079;--line:#e2e8f1;
-  --display:'Montserrat',system-ui,sans-serif;--body:'Montserrat',system-ui,sans-serif;
+  --display:var(--tica-font-brand);--body:var(--tica-font-ui);
   --gutter:clamp(16px,4vw,64px);--sec:clamp(64px,8vw,112px);--shadow:0 10px 30px rgba(11,36,71,.09)
 }
 *,*::before,*::after{box-sizing:border-box}

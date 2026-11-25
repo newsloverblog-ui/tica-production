@@ -6,18 +6,7 @@
    TICA blue for actions and active states. Orange is for attention only.
    ===================================================================== */
 
-@font-face{font-family:'Montserrat';src:url('../fonts/montserrat-latin.woff2') format('woff2');font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2122}
-@font-face{font-family:'Montserrat';src:url('../fonts/montserrat-currency.woff2') format('woff2');font-weight:100 900;font-display:swap;unicode-range:U+20A0-20C0}
-
 :root{
-  /* type */
-  --t-font:'Montserrat',system-ui,sans-serif;
-  --t-text-sm:13px;   /* labels, helper text */
-  --t-text:15px;      /* body */
-  --t-text-lg:20px;   /* page titles, key numbers */
-  --t-text-xl:28px;   /* stat values */
-  --t-leading:1.55;
-
   /* colour: 60 / 30 / 10 */
   --t-bg:#F7F8FA;          /* 60: page */
   --t-surface:#FFFFFF;     /* 60: cards */
@@ -267,10 +256,10 @@ body.orgshell-legacy .main-panel>.content{margin-top:0!important;padding:0}
 body.orgshell-legacy .page-inner{max-width:1200px;margin:0 auto;padding:var(--t-5)!important}
 body.orgshell-legacy .card{border:1px solid var(--t-line)!important;border-radius:var(--t-radius)!important;box-shadow:none!important;background:var(--t-surface)!important}
 body.orgshell-legacy .card-header{background:transparent!important;border-bottom:1px solid var(--t-line)!important}
-body.orgshell-legacy .card-title{font-size:16px!important;font-weight:600!important;color:var(--t-ink)!important}
+body.orgshell-legacy .card-title{color:var(--t-ink)!important}
 body.orgshell-legacy .btn-primary,body.orgshell-legacy .btn-secondary,body.orgshell-legacy .btn-success,body.orgshell-legacy .btn-info{background-image:none!important;box-shadow:none!important}
 body.orgshell-legacy .btn-primary{background:var(--t-blue)!important;border-color:var(--t-blue)!important}
-body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-header h4{font-size:var(--t-text-lg)!important;font-weight:700!important;color:var(--t-ink)!important}
+body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-header h4{color:var(--t-ink)!important}
 body.orgshell-legacy .form-control{border:1px solid var(--t-line-strong)!important;border-radius:var(--t-radius-sm)!important;box-shadow:none!important;min-height:40px}
 body.orgshell-legacy .form-control:focus{border-color:var(--t-blue)!important;box-shadow:var(--t-focus)!important}
 body.orgshell-legacy .table thead th{background:var(--t-subtle)!important;color:var(--t-muted)!important;font-weight:500!important;font-size:13px!important;text-transform:none!important;letter-spacing:0!important;border-bottom:1px solid var(--t-line)!important}
@@ -496,8 +485,6 @@ button.ov-kpi:focus-visible{outline:2px solid var(--t-blue);outline-offset:2px}
 .ov-empty p{margin:0 0 8px;max-width:320px;color:var(--t-muted);font-size:13px}
 
 /* responsive */
-@media (max-width:1279px){
-}
 @media (max-width:767px){
   body.orgshell .ov{gap:16px}
   body.orgshell .ov-head h1{font-size:22px;line-height:30px}
@@ -675,7 +662,7 @@ body.orgshell .ce-progress{font-size:var(--t-text-sm);color:var(--t-muted);margi
 /* =====================================================================
    Legacy tool pages rebuilt on the design system (lg-*)
    ===================================================================== */
-body.orgshell-legacy .t-page-head h1{font:600 var(--t-text-xl)/1.2 var(--t-font)!important;color:var(--t-ink)!important;margin:0}
+body.orgshell-legacy .t-page-head h1{color:var(--t-ink)!important;margin:0}
 body.orgshell-legacy .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-size:var(--t-text)}
 body.orgshell-legacy .t-table{margin:0}
 body.orgshell-legacy .t-card__title{font:600 16px/1.3 var(--t-font);color:var(--t-ink);margin:0}
@@ -732,7 +719,10 @@ body.tica-organizer .tx-filters>.tx-apply{flex:1 1 140px;min-width:140px;justify
 .fin-balance__primary,.fin-balance__actions{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start}
 .fin-balance__primary{gap:6px}.fin-balance__primary strong{font-size:clamp(36px,5vw,58px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}.fin-balance__primary>span:last-child{color:#dce7ff}
 .fin-eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bcd0fb}
-.fin-balance__actions{gap:8px;align-items:flex-end}.fin-balance__actions .t-btn{background:#fff;color:#173b75;border-color:#fff}.fin-balance__actions .t-help{color:#dce7ff}
+.fin-balance__actions{gap:8px;align-items:flex-end}
+.fin-balance__actions .t-btn{background:#fff;color:#173b75!important;border-color:#fff}
+.fin-balance__actions .t-btn:hover:not([disabled]){background:#eef4ff}
+.fin-balance__actions .t-help{color:#dce7ff!important}
 .fin-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 var(--t-5);border:1px solid var(--t-line);border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(15,36,71,.05)}
 .fin-flow__step{position:relative;display:grid;grid-template-columns:14px 1fr;gap:12px;min-width:0;padding:22px}.fin-flow__step:not(:last-child):after{content:"";position:absolute;right:0;top:20px;bottom:20px;width:1px;background:var(--t-line)}
 .fin-flow__dot{width:12px;height:12px;margin-top:4px;border:3px solid #b7c9ee;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #f2f6ff}.fin-flow__step--check .fin-flow__dot{border-color:#315fd6}.fin-flow__step--shield .fin-flow__dot{border-color:#d78a3d}.fin-flow__step--bank .fin-flow__dot{border-color:#16825d}
@@ -809,7 +799,7 @@ body.tica-admin.ad-titled .page-inner>.page-header{display:none}
 /* =====================================================================
    Admin > Integrations (in-*)
    ===================================================================== */
-body.tica-admin .t-page-head h1{font:600 var(--t-text-xl)/1.2 var(--t-font)!important;color:var(--t-ink)!important;margin:0}
+body.tica-admin .t-page-head h1{color:var(--t-ink)!important;margin:0}
 body.tica-admin .t-page-head p{margin:var(--t-1) 0 0;color:var(--t-muted);font-size:var(--t-text)}
 .in-crumb{margin:0 0 var(--t-1)!important;font-size:var(--t-text-sm)!important}
 .in-crumb a{color:var(--t-blue)}
@@ -1317,15 +1307,13 @@ body.orgshell-legacy .page-header,body.orgshell-legacy .tica-workspace-hero,body
 body.orgshell-legacy .tica-workspace-hero::before,body.orgshell-legacy .tica-workspace-hero::after{display:none!important}
 body.orgshell .t-page-head h1,body.orgshell .db-head h1,body.orgshell .pr-head h1,body.orgshell .ov-head h1,.gl-head h1,
 body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-inner>h1,body.orgshell-legacy .tica-workspace-hero h1,body.orgshell-legacy .tica-workspace-hero h2,body.orgshell-legacy .tsc-head h1{
-  margin:0!important;color:#0B2447!important;font-size:28px!important;line-height:36px!important;font-weight:600!important;letter-spacing:-.015em!important;text-align:left!important}
+  margin:0!important;color:#0B2447!important;text-align:left!important}
 body.orgshell .t-page-head p,body.orgshell .db-head p,body.orgshell .pr-head p,.gl-head p,
 body.orgshell-legacy .tica-workspace-hero p,body.orgshell-legacy .tica-workspace-hero .tica-lede,body.orgshell-legacy .tsc-head p{
   margin:4px 0 0!important;max-width:640px;color:#526079!important;font-size:14px!important;line-height:20px!important}
 /* Small labels above titles and breadcrumb trails are noise once the menu shows where you are. */
 body.orgshell-legacy .page-header .breadcrumbs,body.orgshell-legacy .tica-eyebrow,body.orgshell-legacy .tica-page-kicker,body.orgshell-legacy .tsc-kicker{display:none!important}
 @media (max-width:767px){
-  body.orgshell .t-page-head h1,body.orgshell .db-head h1,body.orgshell .pr-head h1,body.orgshell .ov-head h1,.gl-head h1,
-  body.orgshell-legacy .page-header .page-title,body.orgshell-legacy .page-inner>h1,body.orgshell-legacy .tica-workspace-hero h1,body.orgshell-legacy .tica-workspace-hero h2,body.orgshell-legacy .tsc-head h1{font-size:22px!important;line-height:30px!important}
   body.orgshell .t-page-head,body.orgshell .db-head,body.orgshell .pr-head,.gl-head,body.orgshell-legacy .page-header,body.orgshell-legacy .tica-workspace-hero,body.orgshell-legacy .tsc-head{margin-bottom:16px!important}
 }
 /* Check-in and Create event use the same frame as the rest. */
@@ -1358,7 +1346,7 @@ body.tica-organizer .tsc-setup .scanner-panel{height:100%;margin:0!important;bor
 body.tica-organizer .tsc-setup .scanner-panel>.card-body{height:100%;padding:22px!important}
 body.tica-organizer .tsc-setup .scanner-panel-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;margin-bottom:18px}
 body.tica-organizer .tsc-setup .scanner-panel-copy{min-width:0}
-body.tica-organizer .tsc-setup .scanner-panel-copy h1,body.tica-organizer .tsc-setup .scanner-panel-copy h2{margin:1px 0 2px!important;color:var(--t-ink)!important;font:600 17px/24px var(--t-font)!important;letter-spacing:-.01em!important}
+body.tica-organizer .tsc-setup .scanner-panel-copy h1,body.tica-organizer .tsc-setup .scanner-panel-copy h2{margin:1px 0 2px!important;color:var(--t-ink)!important}
 body.tica-organizer .tsc-setup .scanner-panel-copy p{margin:0!important;max-width:62ch;color:var(--t-muted)!important;font:400 13px/19px var(--t-font)!important}
 body.tica-organizer .tsc-setup .scanner-panel-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;background:var(--t-blue-50);color:var(--t-blue)}
 body.tica-organizer .tsc-setup .scanner-panel-icon--orange{background:var(--t-orange-50);color:var(--t-orange)}
@@ -1414,7 +1402,7 @@ body.tica-organizer .kv-card{border-color:var(--t-line);box-shadow:0 1px 2px rgb
 }
 
 /* ---------- Promote (organiser): tool cards, one campaigns list, side panels ---------- */
-.pv{--pv-navy:#0B2447;--pv-blue:#2E4FD8;--pv-blue-h:#2541B8;--pv-orange:#F2A06B;--pv-text:#526079;--pv-line:#E3E8F0;--pv-tint-code:#EEF3FF;--pv-tint-link:#F1F4F9;--pv-tint-feat:#FFF3EA;display:flex;flex-direction:column;gap:28px;max-width:1120px;font-family:var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pv-navy)}
+.pv{--pv-navy:#0B2447;--pv-blue:#2E4FD8;--pv-blue-h:#2541B8;--pv-orange:#F2A06B;--pv-text:#526079;--pv-line:#E3E8F0;--pv-tint-code:#EEF3FF;--pv-tint-link:#F1F4F9;--pv-tint-feat:#FFF3EA;display:flex;flex-direction:column;gap:28px;max-width:1120px;font-family:var(--tica-font-ui);color:var(--pv-navy)}
 .pv>*{animation:pvUp .5s cubic-bezier(.2,.7,.2,1) both}
 .pv>*:nth-child(2){animation-delay:.04s}.pv>*:nth-child(3){animation-delay:.08s}.pv>*:nth-child(4){animation-delay:.12s}.pv>*:nth-child(5){animation-delay:.16s}.pv>*:nth-child(6){animation-delay:.2s}
 @keyframes pvUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -1449,7 +1437,7 @@ body.tica-organizer .kv-card{border-color:var(--t-line);box-shadow:0 1px 2px rgb
 .pv-section__head h2,.pv-share h2{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
 .pv-note{font-size:14px;color:var(--pv-text)}
 .pv-filter{display:inline-flex;padding:4px;border-radius:12px;background:#EEF1F6;gap:2px}
-.pv-filter button{min-height:40px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:600 14px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pv-text);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.pv-filter button{min-height:40px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:600 14px/1 var(--tica-font-ui);color:var(--pv-text);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
 .pv-filter button[aria-selected=true]{background:#fff;color:var(--pv-navy);box-shadow:0 1px 3px rgba(11,36,71,.12)}
 .pv-camps{background:#fff;border:1px solid var(--pv-line);border-radius:16px}
 .pv-row{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.1fr) minmax(0,1.5fr) 150px minmax(56px,auto);gap:12px;align-items:center;padding:14px 20px;border-bottom:1px solid #EEF1F6;font-size:15px;transition:background .2s;animation:pvUp .4s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 30ms)}
@@ -1473,7 +1461,7 @@ body.tica-organizer .kv-card{border-color:var(--t-line);box-shadow:0 1px 2px rgb
 .pv-dots:hover,.pv-dots[aria-expanded=true]{background:#F1F4F9}
 .pv-menu{position:absolute;right:0;top:46px;z-index:20;min-width:200px;padding:6px;background:#fff;border:1px solid var(--pv-line);border-radius:12px;box-shadow:0 14px 34px rgba(11,36,71,.16);display:flex;flex-direction:column;animation:pvPop .18s ease both}
 @keyframes pvPop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
-.pv-menu button{min-height:42px;padding:0 12px;border:0;border-radius:8px;background:none;text-align:left;font:500 14px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:var(--pv-navy);cursor:pointer}
+.pv-menu button{min-height:42px;padding:0 12px;border:0;border-radius:8px;background:none;text-align:left;font:500 14px/1 var(--tica-font-ui);color:var(--pv-navy);cursor:pointer}
 .pv-menu button:hover,.pv-menu button:focus-visible{background:#F5F7FB;outline:none}
 .pv-menu .is-danger{color:#A4262C}
 .pv-pay{background:var(--pv-orange)!important;color:var(--pv-navy)!important;border:0!important;font-weight:700}
@@ -1489,7 +1477,7 @@ body.tica-organizer .kv-card{border-color:var(--t-line);box-shadow:0 1px 2px rgb
 .pv-share h2{font-size:18px}.pv-share p{margin:4px 0 0;font-size:14px;color:var(--pv-text)}
 .pv-share .pr-social{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
 /* side panels */
-dialog.pr-drawer{margin:0 0 0 auto;width:min(480px,100%);max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;padding:0;display:none;flex-direction:column;font-family:var(--t-font,"Montserrat",system-ui,sans-serif)}
+dialog.pr-drawer{margin:0 0 0 auto;width:min(480px,100%);max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;padding:0;display:none;flex-direction:column;font-family:var(--tica-font-ui)}
 dialog.pr-drawer[open]{display:flex;animation:pvSlide .38s cubic-bezier(.2,.7,.2,1) both}
 dialog.pr-drawer::backdrop{background:rgba(11,36,71,.32);animation:pvFade .25s ease both}
 @keyframes pvSlide{from{transform:translateX(100%)}to{transform:none}}
@@ -1501,7 +1489,7 @@ dialog.pr-drawer .pr-form__actions{position:sticky;bottom:0;margin:auto -24px 0;
 .pv-kicker{display:block;font-size:13px;font-weight:600;color:#526079;margin-bottom:4px}
 .pv-preview{margin:0;padding:14px 16px;border-radius:14px;background:#EEF3FF;font-size:15px;line-height:1.5;color:#0B2447}
 .pv-chips{display:flex;gap:8px;flex-wrap:wrap}
-.pv-chips button{min-height:42px;padding:0 16px;border-radius:999px;border:1px solid #CBD5E4;background:#fff;font:600 14px/1 var(--t-font,"Montserrat",system-ui,sans-serif);color:#0B2447;cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s}
+.pv-chips button{min-height:42px;padding:0 16px;border-radius:999px;border:1px solid #CBD5E4;background:#fff;font:600 14px/1 var(--tica-font-ui);color:#0B2447;cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s}
 .pv-chips button[aria-pressed=true]{background:#0B2447;border-color:#0B2447;color:#fff}
 .pv-opt{display:flex;gap:14px;align-items:center;width:100%;padding:16px;border-radius:14px;background:#fff;border:1px solid #E3E8F0;text-align:left;font:inherit;color:#0B2447;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}
 .pv-opt:hover{border-color:#AFC0DD;box-shadow:0 8px 20px rgba(11,36,71,.06)}
@@ -1669,14 +1657,14 @@ dialog.pr-drawer .t-btn{min-height:46px}
   .pv-plan__price{max-width:110px}
 }
 
-/* Promote workspace: quieter Montserrat hierarchy and cleaner density. */
+/* Promote workspace typography and density. */
 body.orgshell .pr.pv,
 .od-p.pv{
   width:100%;
   max-width:1440px!important;
   gap:24px;
   margin:0 auto;
-  font-family:var(--t-font,"Montserrat",system-ui,sans-serif);
+  font-family:var(--tica-font-ui);
   font-size:14px;
   line-height:1.5;
   font-weight:400;

@@ -1,11 +1,3 @@
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("../fonts/montserrat-latin.woff2") format("woff2");
-}
-
 /* TICA interface foundation
    Flat, readable, brand-led. Decorative effects stay out of product chrome. */
 :root {
@@ -35,7 +27,7 @@ body.orgshell,
 body.orgshell-legacy {
   color: var(--tica-ink);
   background: var(--tica-page);
-  font-family: "Montserrat", system-ui, sans-serif;
+  font-family: var(--tica-font-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -373,7 +365,7 @@ body.tica-admin,
 body.tica-admin :where(button, input, select, textarea),
 body.tica-front-ui,
 body.tica-front-ui :where(button, input, select, textarea) {
-  font-family: "Montserrat", system-ui, sans-serif !important;
+  font-family: var(--tica-font-ui) !important;
 }
 
 :is(body.tica-control-center, body.tica-front-ui, body.t-app, body.orgshell, body.orgshell-legacy)

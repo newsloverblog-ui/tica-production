@@ -27,6 +27,15 @@ final class TicaSite
 
   public const NETWORKS = ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok', 'x' => 'X (Twitter)', 'youtube' => 'YouTube', 'linkedin' => 'LinkedIn', 'whatsapp' => 'WhatsApp'];
 
+  public const ORGANISER_PHOTOS = [
+    'culture', // https://www.pexels.com/photo/30991843/
+    'dance',   // https://www.pexels.com/photo/32434252/
+    'seminar', // https://www.pexels.com/photo/8761330/
+    'games',   // https://www.pexels.com/photo/8111303/
+    'party',   // https://www.pexels.com/photo/35370605/
+    'rave',    // https://www.pexels.com/photo/5156606/
+  ];
+
   private static ?array $cache = null;
 
   public static function defaults(): array
@@ -62,7 +71,6 @@ final class TicaSite
           ['title' => 'Sell anywhere', 'text' => 'Share your event link and get listed on Discover.'],
           ['title' => 'Get paid fast', 'text' => 'Follow your sales and receive fast payouts.'],
         ],
-        'organisers_images' => [$img('1689864727821-e47577e88226', 1100), $img('1751749909426-ac23333e8b33', 700)],
         'eticket_title' => 'Your ticket lands on your phone in seconds.',
         'eticket_steps' => [
           ['title' => 'Choose your event', 'text' => 'Pick your ticket type and how many you need.'],

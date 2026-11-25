@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lock payouts · Tica</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#071124;color:#f8fafc;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}.card{width:min(100%,520px);padding:36px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1930;box-shadow:0 28px 70px rgba(0,0,0,.35)}.eyebrow{color:#fe9b59;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(28px,6vw,42px);line-height:1.05;margin:14px 0}p{color:#aeb9ca;line-height:1.65}.account{margin:24px 0;padding:16px;border-radius:14px;background:#111f39}.account strong{display:block;color:#fff;margin-bottom:4px}button{width:100%;min-height:52px;border:0;border-radius:14px;background:#fe9b59;color:#071124;font:800 16px inherit;cursor:pointer}button:hover{background:#ffad76}.note{font-size:13px;margin-top:16px}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#071124;color:#f8fafc;font-family:var(--tica-font-ui)}.card{width:min(100%,520px);padding:36px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:#0d1930;box-shadow:0 28px 70px rgba(0,0,0,.35)}.eyebrow{color:#fe9b59;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(28px,6vw,42px);line-height:1.05;margin:14px 0}p{color:#aeb9ca;line-height:1.65}.account{margin:24px 0;padding:16px;border-radius:14px;background:#111f39}.account strong{display:block;color:#fff;margin-bottom:4px}button{width:100%;min-height:52px;border:0;border-radius:14px;background:#fe9b59;color:#071124;font:800 16px inherit;cursor:pointer}button:hover{background:#ffad76}.note{font-size:13px;margin-top:16px}
   </style>
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 </head>
 <body>
   <main class="card">

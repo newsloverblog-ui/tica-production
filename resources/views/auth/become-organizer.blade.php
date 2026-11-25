@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>{{ __('Become an organizer') }} · TICA</title>
   <style>
-    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0B2447;--navy:#0B2447;--blue:#2E4FD8;--blue-h:#2541B8;--soft:#EEF2FE;--line:#E3E8F0;--muted:#526079;--orange:#F2A06B;--bad:#A3352B;--bad-soft:#FDF0EE;--ok:#12613A;--ok-soft:#E9F7EF}
+    :root{font-family:var(--tica-font-ui);color:#0B2447;--navy:#0B2447;--blue:#2E4FD8;--blue-h:#2541B8;--soft:#EEF2FE;--line:#E3E8F0;--muted:#526079;--orange:#F2A06B;--bad:#A3352B;--bad-soft:#FDF0EE;--ok:#12613A;--ok-soft:#E9F7EF}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#F4F6FA}
     .shell{width:min(1040px,calc(100% - 32px));margin:auto}
     .top{height:72px;display:flex;align-items:center;border-bottom:1px solid var(--line);background:#fff}
@@ -55,6 +55,7 @@
     @media(max-width:820px){.layout{grid-template-columns:1fr;padding:24px 0 40px}.main{padding:24px}}
     @media(prefers-reduced-motion:no-preference){.card{animation:enter .25s ease-out both}@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
   </style>
+  <link rel="stylesheet" href="{{ asset('assets/tica-ui/css/typography.css') }}?v={{ tica_asset_version('assets/tica-ui/css/typography.css') }}">
 </head>
 <body>
   <header class="top"><div class="shell"><a href="/" aria-label="TICA home"><img src="/assets/tica-ui/img/tica-logo.png" alt="TICA"></a><a class="back" href="/account">{{ __('Back to your account') }}</a></div></header>

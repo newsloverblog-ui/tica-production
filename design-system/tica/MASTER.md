@@ -40,15 +40,30 @@
 
 ### Typography
 
-- **Heading Font:** Montserrat
-- **Body Font:** Montserrat
-- **Mood:** trustworthy, energetic, clear, modern Nigerian event platform
-- **Google Fonts:** [Montserrat](https://fonts.google.com/specimen/Montserrat)
+Use Montserrat for both brand and interface text. The shared [typography stylesheet](../../public/assets/tica-ui/css/typography.css) loads the self-hosted variable font and provides the `--tica-text-*` roles. Display and heading sizes scale between mobile and desktop. Body and control sizes use rem so they follow browser text settings.
 
-**CSS Import:**
-```css
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-```
+| Role | Token | Desktop size | Weight | Line height |
+|------|-------|-------------:|-------:|------------:|
+| Display | `--tica-text-display` | 48px | 800 | 1.1 |
+| H1 | `--tica-text-h1` | 36px | 700 | 1.2 |
+| H2 | `--tica-text-h2` | 28px | 700 | 1.25 |
+| H3 | `--tica-text-h3` | 22px | 600 | 1.35 |
+| H4 | `--tica-text-h4` | 18px | 600 | 1.4 |
+| H5 | `--tica-text-h5` | 16px | 600 | 1.4 |
+| H6 | `--tica-text-h6` | 14px | 600 | 1.4 |
+| Body large | `--tica-text-body-lg` | 18px | 400 | 1.6 |
+| Body | `--tica-text-body` | 16px | 400 | 1.6 |
+| Body small and secondary | `--tica-text-body-sm`, `--tica-text-secondary` | 14px | 400 | 1.5 |
+| Navigation and form labels | `--tica-text-nav`, `--tica-text-label` | 14px | 500 | 1.4 |
+| Buttons | `--tica-text-button` | 14px | 600 | 1.4 |
+| Inputs | `--tica-text-input` | 16px | 400 | 1.5 |
+| Table cells | `--tica-text-table` | 14px | 400 | 1.5 |
+| Table headers | `--tica-text-table-head` | 14px | 500 | 1.4 |
+| Captions | `--tica-text-caption` | 12px | 500 | 1.5 |
+| Dashboard metrics | `--tica-text-metric` | 28px | 700 | 1.2 |
+| Financial figures | `--tica-text-financial` | 16px | 600 | 1.4 |
+
+Use `font-variant-numeric: tabular-nums` for prices, balances, transaction columns, and changing counts. Use the tracking tokens for headings and preserve normal tracking for reading and interface text.
 
 ### Spacing Variables
 

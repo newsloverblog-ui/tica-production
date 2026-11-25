@@ -1,6 +1,6 @@
 /* TICA dashboard consistency layer
    Loaded after every page stylesheet so admin and organiser screens share
-   one calm Montserrat hierarchy, field rhythm, table density and interaction. */
+   one system for spacing, surfaces, forms, tables and interaction. */
 
 :is(body.tica-admin, body.tica-organizer) {
   --dash-ink: #0b2447;
@@ -13,15 +13,7 @@
   --dash-blue: #2f5bd3;
   --dash-radius: 14px;
   --dash-radius-sm: 10px;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   color: var(--dash-text);
-  font-size: var(--tica-type-body, 15px);
-  line-height: 1.5;
-}
-
-:is(body.tica-admin, body.tica-organizer)
-  :where(button, input, select, textarea, optgroup, table) {
-  font-family: inherit !important;
 }
 
 /* Page hierarchy */
@@ -44,10 +36,6 @@
   :where(.page-header .page-title, .t-page-head h1, .directory-page-header h1, .organizer-form-header h1, .organizer-create-header h1, .coupon-page-header h1, .promotion-page-header h1, .mail-templates-title h1, .db-head h1, .pr-head h1, .pv-head h1, .pm-head h1, .at-head h1, .ta-head h1, .as-head h1, .cd-top h1, .tad-hero h1, .tdb-hero h1, .tica-report-heading h1, .tica-workspace-hero h1, .tsc-head h1, .kv-top h1, .gl-head h1, .ov-head h1) {
   margin: 0 !important;
   color: var(--dash-ink) !important;
-  font-size: var(--tica-type-page, 30px) !important;
-  font-weight: 600 !important;
-  line-height: 1.3 !important;
-  letter-spacing: -0.015em !important;
   text-transform: none !important;
 }
 
@@ -56,9 +44,6 @@
   max-width: 680px;
   margin: 4px 0 0 !important;
   color: var(--dash-muted) !important;
-  font-size: var(--tica-type-secondary, 14px) !important;
-  font-weight: 400 !important;
-  line-height: 1.55 !important;
 }
 
 /* The sidebar and top bar already provide location context. */
@@ -67,36 +52,8 @@
 }
 
 :is(body.tica-admin, body.tica-organizer) .page-inner :where(h1, h2, h3, h4, h5, h6) {
-  font-family: inherit !important;
   color: var(--dash-ink) !important;
-  letter-spacing: -0.01em !important;
   text-transform: none;
-}
-
-:is(body.tica-admin, body.tica-organizer) .page-inner h1 {
-  font-size: var(--tica-type-page, 30px) !important;
-  font-weight: 600 !important;
-  line-height: 1.3 !important;
-}
-
-:is(body.tica-admin, body.tica-organizer) .page-inner h2 {
-  font-size: var(--tica-type-section, 21px) !important;
-  font-weight: 600 !important;
-  line-height: 1.4 !important;
-}
-
-:is(body.tica-admin, body.tica-organizer) .page-inner h3 {
-  font-size: var(--tica-type-card, 17px) !important;
-  font-weight: 600 !important;
-  line-height: 1.45 !important;
-}
-
-:is(body.tica-admin, body.tica-organizer) .page-inner h4,
-:is(body.tica-admin, body.tica-organizer) .page-inner h5,
-:is(body.tica-admin, body.tica-organizer) .page-inner h6 {
-  font-size: var(--tica-type-body, 15px) !important;
-  font-weight: 600 !important;
-  line-height: 1.45 !important;
 }
 
 /* Surfaces */
@@ -128,10 +85,6 @@
   :where(.card-title, .t-card__title, .directory-card-title) {
   margin: 0;
   color: var(--dash-ink) !important;
-  font-size: var(--tica-type-card, 17px) !important;
-  font-weight: 600 !important;
-  line-height: 1.4 !important;
-  letter-spacing: -0.01em !important;
 }
 
 /* Forms */
@@ -140,10 +93,6 @@
   display: inline-block;
   margin-bottom: 7px;
   color: var(--dash-text) !important;
-  font-size: var(--tica-type-label, 14px) !important;
-  font-weight: 500 !important;
-  line-height: 1.4 !important;
-  letter-spacing: 0 !important;
 }
 
 :is(body.tica-admin, body.tica-organizer)
@@ -153,9 +102,6 @@
   border-radius: var(--dash-radius-sm) !important;
   background: var(--dash-surface) !important;
   color: var(--dash-ink) !important;
-  font-size: var(--tica-type-input, 15px) !important;
-  font-weight: 400 !important;
-  line-height: 1.45 !important;
   box-shadow: none !important;
 }
 
@@ -181,10 +127,6 @@
   :where(.btn, .t-btn, button:not(.close):not([class*="icon"])) {
   min-height: 40px;
   border-radius: 9px !important;
-  font-size: var(--tica-type-button, 14px) !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0 !important;
   transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -197,9 +139,6 @@
 :is(body.tica-admin, body.tica-organizer) .page-inner :where(.table, .t-table) {
   margin-bottom: 0;
   color: var(--dash-text);
-  font-size: var(--tica-type-table-body, 15px) !important;
-  font-weight: 400 !important;
-  line-height: 1.45 !important;
 }
 
 :is(body.tica-admin, body.tica-organizer) .page-inner :where(.table, .t-table) th {
@@ -208,10 +147,6 @@
   border-bottom: 1px solid var(--dash-line) !important;
   background: var(--dash-subtle) !important;
   color: var(--dash-muted) !important;
-  font-size: var(--tica-type-table-head, 14px) !important;
-  font-weight: 600 !important;
-  line-height: 1.35 !important;
-  letter-spacing: 0 !important;
   text-transform: none !important;
   white-space: nowrap;
 }
@@ -246,22 +181,14 @@
 :is(body.tica-admin, body.tica-organizer) .page-inner .table h2.d-inline-block {
   margin: 0 !important;
   font: inherit !important;
-  line-height: 1 !important;
 }
 
 :is(body.tica-admin, body.tica-organizer) :where(.badge, .t-badge) {
-  font-size: var(--tica-type-badge, 13px) !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 
 :is(body.tica-admin, body.tica-organizer) :where(.text-muted, .t-help, small) {
   color: var(--dash-muted) !important;
-  font-size: var(--tica-type-helper, 13px);
-  font-weight: 400;
-  line-height: 1.5;
 }
 
 /* Legacy card toolbars should breathe and wrap rather than compress controls. */
@@ -298,8 +225,6 @@
 :is(body.tica-admin, body.tica-organizer) .booking-toolbar__head p {
   margin: 4px 0 0;
   color: var(--dash-muted);
-  font-size: var(--tica-type-secondary, 14px);
-  line-height: 1.5;
 }
 
 :is(body.tica-admin, body.tica-organizer) .booking-export .form-control {
@@ -324,9 +249,6 @@
 
 :is(body.tica-admin, body.tica-organizer) .booking-filters > label > span {
   color: var(--dash-text);
-  font-size: var(--tica-type-label, 14px);
-  font-weight: 500;
-  line-height: 1.4;
 }
 
 :is(body.tica-admin, body.tica-organizer) .booking-filters__actions {
@@ -357,7 +279,6 @@ body.tica-admin .transaction-toolbar__head {
 body.tica-admin .transaction-toolbar__head p {
   margin: 4px 0 0;
   color: var(--dash-muted);
-  font-size: var(--tica-type-secondary, 14px);
 }
 
 body.tica-admin .transaction-filters {
@@ -378,8 +299,6 @@ body.tica-admin .transaction-filters > label {
 
 body.tica-admin .transaction-filters > label > span {
   color: var(--dash-text);
-  font-size: var(--tica-type-label, 14px);
-  font-weight: 500;
 }
 
 body.tica-admin .transaction-toolbar__export {
@@ -406,18 +325,9 @@ body.tica-admin .transaction-export .form-control {
   min-width: 38px;
   min-height: 38px;
   border-radius: 8px !important;
-  font-size: var(--tica-type-button, 14px);
-  font-weight: 500;
 }
 
 @media (max-width: 767px) {
-  :is(body.tica-admin, body.tica-organizer)
-    :where(.page-header .page-title, .t-page-head h1, .directory-page-header h1, .organizer-form-header h1, .organizer-create-header h1, .coupon-page-header h1, .promotion-page-header h1, .mail-templates-title h1, .db-head h1, .pr-head h1, .pv-head h1, .pm-head h1, .at-head h1, .ta-head h1, .as-head h1, .cd-top h1, .tad-hero h1, .tdb-hero h1, .tica-report-heading h1, .tica-workspace-hero h1, .tsc-head h1, .kv-top h1, .gl-head h1, .ov-head h1),
-  :is(body.tica-admin, body.tica-organizer) .page-inner h1 {
-    font-size: var(--tica-type-page-mobile, 26px) !important;
-    line-height: 1.35 !important;
-  }
-
   :is(body.tica-admin, body.tica-organizer)
     :where(.page-header, .t-page-head, .directory-page-header, .organizer-form-header, .organizer-create-header, .coupon-page-header, .promotion-page-header, .mail-templates-title, .db-head, .pr-head, .pv-head, .pm-head, .at-head, .ta-head, .as-head, .cd-top, .tica-report-heading, .tica-workspace-hero, .tsc-head, .kv-top, .gl-head, .ov-head) {
     align-items: flex-start !important;
@@ -428,11 +338,6 @@ body.tica-admin .transaction-export .form-control {
   :is(body.tica-admin, body.tica-organizer) .page-inner .card-body,
   :is(body.tica-admin, body.tica-organizer) .page-inner .card-footer {
     padding: 16px !important;
-  }
-
-  :is(body.tica-admin, body.tica-organizer)
-    :where(.form-control, .t-input, .t-select, .t-textarea) {
-    font-size: 16px !important;
   }
 
   :is(body.tica-admin, body.tica-organizer) .booking-toolbar__head,

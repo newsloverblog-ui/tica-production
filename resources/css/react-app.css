@@ -24,8 +24,7 @@
   --shadow-float: none;
 }
 
-@font-face { font-family:"Montserrat"; src:local("Montserrat"); font-weight:100 900; font-display:swap; }
-:root { color:#12213a; background:#f6f8fc; font-family:"Montserrat",system-ui,sans-serif; }
+:root { color:#12213a; background:#f6f8fc; font-family:var(--tica-font-ui); }
 * { box-sizing:border-box; }
 html { scroll-behavior:auto; }
 body { margin:0; min-width:320px; background:#f6f8fc; }

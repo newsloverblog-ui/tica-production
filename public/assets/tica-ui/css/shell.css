@@ -7,15 +7,12 @@
    its own font, size, line height and colour instead of inheriting them:
    that is what keeps it identical from page to page.
    ===================================================================== */
-@font-face{font-family:"Montserrat";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/montserrat-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+2000-206F,U+2122}
-@font-face{font-family:"Montserrat";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/montserrat-currency.woff2") format("woff2");unicode-range:U+20A0-20C0}
-
 :root{--tsh-side:256px;--tsh-top:64px}
 
 /* ---- reset: nothing from the page gets in ---------------------------- */
 #tica-shell,#tica-shell *,#tica-shell *::before,#tica-shell *::after{box-sizing:border-box!important}
 #tica-shell :where(a,button,p,span,b,small,h1,nav,form,details,summary,aside,header,div,img,svg){margin:0;padding:0;border:0;font:inherit;letter-spacing:normal;text-transform:none;text-shadow:none;text-align:left;vertical-align:baseline;float:none;min-width:0}
-#tica-shell{font:400 14px/20px "Montserrat",system-ui,sans-serif!important;color:#3F4A5A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:normal}
+#tica-shell{font:var(--tica-text-body-sm)!important;color:#3F4A5A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:normal}
 #tica-shell a,#tica-shell a:hover,#tica-shell a:focus{text-decoration:none!important;box-shadow:none}
 #tica-shell button{appearance:none;-webkit-appearance:none;background:none;cursor:pointer;color:inherit}
 #tica-shell summary{list-style:none;cursor:pointer;display:flex}
@@ -76,7 +73,7 @@
 #tica-shell .tsh-impersonation form{margin:0}
 #tica-shell .tsh-impersonation button{min-height:29px;padding:0 10px;border:1px solid #e6bd96;border-radius:7px;background:#fff;color:#7a4a1f;font-size:11px;font-weight:700;cursor:pointer}
 #tica-shell .tsh-impersonation button:hover{border-color:#cd8b4e;background:#fef3e8}
-#tica-shell .tsh-title{flex:1;min-width:0;margin:0;font-size:16px;line-height:24px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tica-shell .tsh-title{flex:1;min-width:0;margin:0;font:var(--tica-text-nav)!important;letter-spacing:var(--tica-tracking-ui)!important;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tica-shell .tsh-iconbtn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:8px;color:#3F4A5A;transition:background-color 150ms ease}
 #tica-shell .tsh-iconbtn:hover{background:#F1F3F6}
 #tica-shell .tsh-iconbtn svg{width:22px;height:22px}
@@ -361,8 +358,6 @@ body.orgshell-legacy .page-header>.or-actions,
   .page[data-page="home"] .band #home-wall .cardbody h3{
     display:-webkit-box;
     overflow:hidden;
-    font-size:clamp(16px,4.4vw,19px)!important;
-    line-height:1.18!important;
     -webkit-box-orient:vertical;
     -webkit-line-clamp:2;
   }
