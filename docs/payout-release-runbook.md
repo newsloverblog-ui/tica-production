@@ -7,11 +7,12 @@ This runbook is the production gate for Paystack organizer transfers and the opt
 - Finance owns eligibility limits, settlement ownership, payout exceptions and the approval reference.
 - Platform owns Paystack credentials, signed webhook delivery, workers, scheduler, monitoring and rollback.
 - Support may observe payout status but must not release, reverse or mark a withdrawal paid.
+- Manual payout release requires two distinct, active admins. The approver needs both Withdraw Method and Transaction permissions. The releasing admin needs Withdraw Method. Approval applies to the displayed amount, currency and verified beneficiary for `PAYOUT_APPROVAL_MINUTES` (default 30). The worker rechecks the terms and permissions before sending.
 - The application marks a withdrawal paid only after a matching Paystack terminal success. A browser redirect, job dispatch or transfer submission is never payment evidence.
 
 ## Preconditions
 
-1. Deploy all migrations, including the payout release policy metadata migration.
+1. Deploy all migrations, including payout approval metadata. Any queued manual payout from before the migration requires Finance review and fresh approval before it can be requeued. Reconcile any already-submitted transfer against its original reference.
 2. Use production-like MySQL, shared cache, durable queues and the same network path as production.
 3. Register the signed Paystack webhook and confirm the `payments` and `default` workers plus scheduler are healthy.
 4. Configure a deliverable `PAYOUT_FINANCE_EMAIL` and an off-server incident destination.
@@ -23,7 +24,7 @@ This runbook is the production gate for Paystack organizer transfers and the opt
 Use a verified test organizer and bank destination created through the normal KYC/account-resolution flow. Use bounded test amounts.
 
 1. Temporarily enable Paystack transfers only. Leave automatic release disabled.
-2. Queue one withdrawal manually from the finance interface.
+2. In the finance interface, approve the terms, sign in as a different authorized admin and queue the approved withdrawal. Verify self-approval, expired approval, revoked access and a replaced beneficiary prevent submission.
 3. Confirm exactly one `payout_transfers` row and one provider transfer exist for the controlled reference.
 4. Confirm the organizer receives the queued notice and finance receives exception notices at the configured address.
 5. Deliver a valid signed success webhook. Confirm the reference, amount, currency and transfer code match before the withdrawal and transaction ledger become paid.
@@ -83,7 +84,7 @@ Do not deploy if any critical check remains. Once enabled, the scheduler evaluat
 ## Emergency stop and rollback
 
 1. Set `PAYOUT_AUTOMATIC_RELEASE_ENABLED=false` and reload configuration. This stops new automatic queueing but does not cancel submitted provider transfers.
-2. If provider behavior is unsafe, also set `PAYSTACK_TRANSFERS_ENABLED=false`. Webhook receipt and reconciliation evidence must still be retained for already submitted transfers.
+2. If provider behavior is unsafe, also set `PAYSTACK_TRANSFERS_ENABLED=false` and reload the payments workers. New queued transfers stay paused. Keep signed webhooks and reconciliation running for transfers already submitted. Reconcile interrupted submissions by their original reference.
 3. Do not delete queued or processing transfer rows. Reconcile each controlled reference to a terminal provider state.
 4. Place affected withdrawals on hold and follow the incident runbook. Do not restore organizer balances until finance has proven the provider did not pay.
 5. Record the incident/change reference and require a fresh production-like drill before re-enablement.

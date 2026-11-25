@@ -5,12 +5,13 @@
 @endsection
 
 @section('content')
+  @php($canManageStaff = \App\Support\TeamPermissions::isOwner())
   <div class="tsc tsc-setup">
     <div class="tsc-head">
       <div class="tsc-head__copy">
         <p class="tsc-kicker">{{ __('Gate') }}</p>
-        <h1>{{ __('Gate staff and devices') }}</h1>
-        <p>{{ __('Set up trusted devices and individual staff access before doors open. Ticket scanning stays in Gate check-in.') }}</p>
+        <h1>{{ $canManageStaff ? __('Gate staff and devices') : __('Gate devices') }}</h1>
+        <p>{{ $canManageStaff ? __('Set up trusted devices and individual staff access before doors open.') : __('Set up trusted devices before doors open.') }}</p>
       </div>
       <div class="tsc-actions">
         <a class="btn btn-secondary" href="{{ route('organizer.check_in_ledger_exports.index') }}">
@@ -26,8 +27,10 @@
 
     <nav class="tsc-tabs" aria-label="{{ __('Gate setup sections') }}">
       <a href="#scanner-device"><span>1</span>{{ __('Devices') }}</a>
-      <a href="#scanner-staff"><span>2</span>{{ __('Staff access') }}</a>
-      <a href="#scanner-offline"><span>3</span>{{ __('Offline readiness') }}</a>
+      @if($canManageStaff)
+        <a href="#scanner-staff"><span>2</span>{{ __('Staff access') }}</a>
+      @endif
+      <a href="#scanner-offline" id="scanner-offline-tab" class="d-none">{{ config('tickets.offline_enabled') ? __('Offline readiness') : __('Live attendance') }}</a>
       <a href="#scanner-conflicts-card">{{ __('Conflicts') }}</a>
     </nav>
 

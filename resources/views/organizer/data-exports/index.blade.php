@@ -12,6 +12,7 @@
     </ul>
   </div>
 
+  @if(\App\Support\TeamPermissions::isOwner())
   <div class="card mb-4">
     <div class="card-header"><div class="card-title">{{ __('Recurring booking exports') }}</div></div>
     <div class="card-body">
@@ -32,10 +33,17 @@
     </div>
   </div>
 
+  @endif
+
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
       <div><div class="card-title">{{ __('Private data exports') }}</div><small class="text-muted">{{ __('Files are generated in the background and permanently removed after expiry.') }}</small></div>
-      <div><a href="{{ route('organizer.event.booking') }}" class="btn btn-outline-primary btn-sm">{{ __('Booking export') }}</a> <a href="{{ route('organizer.event.registrations.index') }}" class="btn btn-primary btn-sm">{{ __('Registration export') }}</a></div>
+      <div>
+        <a href="{{ route('organizer.event.booking') }}" class="btn btn-outline-primary btn-sm">{{ __('Booking export') }}</a>
+        @if(\App\Support\TeamPermissions::can('events.manage'))
+          <a href="{{ route('organizer.event.registrations.index') }}" class="btn btn-primary btn-sm">{{ __('Registration export') }}</a>
+        @endif
+      </div>
     </div>
     <div class="card-body">
       <div class="alert alert-info">{{ __('Refresh this page while an export is queued or processing. Download links are signed, short-lived and restricted to your organizer account.') }}</div>

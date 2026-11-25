@@ -1,6 +1,7 @@
 @php
   $customer = Auth::guard('customer')->user();
   $organizer = Auth::guard('organizer')->user();
+  $canCreateEvent = !$organizer || \App\Support\TeamPermissions::can('events.manage');
   $createEventUrl = $organizer ? route('organizer.add.event.event') : route('organizer.signup');
   $organizerUrl = $organizer ? route('organizer.dashboard') : route('organizer.login');
   $ticketUrl = $customer ? url('/account#tickets') : route('customer.login');
@@ -19,7 +20,9 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 0 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
         {{ __('My tickets') }}
       </a>
-      <a class="nav-create focus-ring" href="{{ $createEventUrl }}">{{ __('Create event') }}</a>
+      @if($canCreateEvent)
+        <a class="nav-create focus-ring" href="{{ $createEventUrl }}">{{ __('Create event') }}</a>
+      @endif
       <button class="menu-toggle focus-ring" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="{{ __('Open navigation') }}">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>

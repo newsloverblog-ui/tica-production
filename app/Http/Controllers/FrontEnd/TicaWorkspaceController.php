@@ -465,7 +465,7 @@ class TicaWorkspaceController extends Controller
   public function withdraw(Request $request): JsonResponse
   {
     $this->allow('withdrawals.request');
-    $validated = $request->validate(['amount' => ['required', 'numeric', 'min:1']]);
+    $validated = $request->validate(['amount' => ['required', 'numeric', 'min:1'], 'request_key' => ['nullable', 'uuid']]);
     $method = WithdrawPaymentMethod::query()->where('status', 1)->orderByRaw("CASE WHEN LOWER(name) LIKE '%bank%' THEN 0 ELSE 1 END")->orderBy('id')->first();
     if (!$method) {
       throw ValidationException::withMessages(['amount' => 'Withdrawals aren\'t open right now. Contact TICA support.']);
@@ -473,7 +473,7 @@ class TicaWorkspaceController extends Controller
     $currency = $this->getCurrencyInfo();
     $withdrawal = (new WithdrawalService())->request(
       $this->organizerId(), (int) $method->id, round((float) $validated['amount'], 2), null,
-      (string) $currency->base_currency_symbol, (string) $currency->base_currency_text_position
+      (string) $currency->base_currency_symbol, (string) $currency->base_currency_text_position, $validated['request_key'] ?? null
     );
 
     return response()->json(['reference' => (string) ($withdrawal->withdraw_id)]);

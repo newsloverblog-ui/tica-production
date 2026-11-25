@@ -75,6 +75,7 @@ Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 
   Route::get('/scanner/devices', 'BackEnd\Organizer\ScannerDeviceController@index')->name('organizer.scanner.devices.index');
   Route::post('/scanner/devices', 'BackEnd\Organizer\ScannerDeviceController@store')->middleware('throttle:scanner')->name('organizer.scanner.devices.store');
   Route::post('/scanner/devices/{device}/revoke', 'BackEnd\Organizer\ScannerDeviceController@revoke')->name('organizer.scanner.devices.revoke');
+  Route::post('/scanner/devices/{device}/assignment', 'BackEnd\Organizer\ScannerDeviceController@assign')->middleware('throttle:scanner')->name('organizer.scanner.devices.assignment');
   Route::get('/scanner/staff', 'BackEnd\Organizer\ScannerStaffController@index')->name('organizer.scanner.staff.index');
   Route::post('/scanner/staff', 'BackEnd\Organizer\ScannerStaffController@store')->name('organizer.scanner.staff.store');
   Route::post('/scanner/staff/{staff}/update', 'BackEnd\Organizer\ScannerStaffController@update')->name('organizer.scanner.staff.update');

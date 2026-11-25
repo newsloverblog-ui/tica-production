@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Support\Money;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Ramsey\Uuid\Uuid;
 
 class WithdrawalService
 {
@@ -21,11 +22,24 @@ class WithdrawalService
         float $amount,
         ?string $additionalReference,
         string $currencySymbol,
-        string $currencyPosition
+        string $currencyPosition,
+        ?string $requestKey = null
     ): Withdraw {
         return DB::transaction(function () use (
-            $organizerId, $methodId, $amount, $additionalReference, $currencySymbol, $currencyPosition
+            $organizerId, $methodId, $amount, $additionalReference, $currencySymbol, $currencyPosition, $requestKey
         ) {
+            $organizer = Organizer::whereKey($organizerId)->lockForUpdate()->firstOrFail();
+            $reference = $requestKey
+                ? Uuid::uuid5(Uuid::NAMESPACE_URL, 'tica:withdrawal:' . $organizerId . ':' . strtolower($requestKey))->toString()
+                : (string) Str::uuid();
+            if ($requestKey && ($existing = Withdraw::where('organizer_id', $organizerId)->where('withdraw_id', $reference)->first())) {
+                if ((int) $existing->method_id !== $methodId || Money::toMinor($existing->amount) !== Money::toMinor($amount)
+                    || (string) $existing->additional_reference !== (string) $additionalReference) {
+                    throw ValidationException::withMessages(['request_key' => ['This withdrawal request was already used for different payment terms.']]);
+                }
+                return $existing;
+            }
+
             $method = WithdrawPaymentMethod::whereKey($methodId)
                 ->where('status', 1)->lockForUpdate()->first();
             if (!$method) {
@@ -35,11 +49,13 @@ class WithdrawalService
             }
             $this->validateAmount($method, $amount);
 
-            $organizer = Organizer::whereKey($organizerId)->lockForUpdate()->firstOrFail();
             if ($organizer->kyc_status !== 'verified') {
                 throw ValidationException::withMessages([
                     'withdraw_method' => ['Complete organizer verification before requesting a withdrawal.'],
                 ]);
+            }
+            if (\App\Models\PaystackDispute::holdsOrganizer($organizerId)) {
+                throw ValidationException::withMessages(['withdraw_amount' => ['An unresolved payment dispute requires finance review.']]);
             }
             $payoutAccount = OrganizerPayoutAccount::where('organizer_id', $organizer->id)
                 ->where('status', 'verified')->where('is_default', true)
@@ -76,7 +92,7 @@ class WithdrawalService
             $organizer->save();
 
             $withdraw = new Withdraw();
-            $withdraw->withdraw_id = (string) Str::uuid();
+            $withdraw->withdraw_id = $reference;
             $withdraw->organizer_id = $organizer->id;
             $withdraw->method_id = $method->id;
             $withdraw->payout_account_id = $payoutAccount->id;

@@ -15,7 +15,7 @@ class SeedQaAccounts extends Command
 {
   protected $signature = 'tica:qa-seed';
 
-  protected $description = 'Create QA accounts (owner, manager, finance, gate, admin, a long-name rich organiser) for browser tests. Never in production.';
+  protected $description = 'Create organizer, team, scanner, customer and admin accounts for browser tests. Never in production.';
 
   public function handle(): int
   {
@@ -49,6 +49,11 @@ class SeedQaAccounts extends Command
 
     $admin = ['first_name' => 'QA', 'last_name' => 'Admin', 'email' => 'qa-admin@tica.test', 'password' => $hash, 'status' => 1, 'role_id' => null, 'updated_at' => $now];
     DB::table('admins')->updateOrInsert(['username' => 'qa_admin'], $admin + ['created_at' => $now]);
+
+    DB::table('customers')->updateOrInsert(
+      ['email' => 'qa-dashboard-buyer@tica.test'],
+      ['fname' => 'QA', 'lname' => 'Buyer', 'username' => 'qa_dashboard_buyer', 'password' => $hash, 'status' => 1, 'email_verified_at' => $now, 'updated_at' => $now, 'created_at' => $now]
+    );
 
     $this->seedPromotions();
 

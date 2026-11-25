@@ -25,8 +25,8 @@
           </div>
         </header>
 
-        <section class="ov-start" id="od-start" aria-labelledby="od-start-h" hidden></section>
-        <section class="ov-setup" id="od-setup" aria-labelledby="od-setup-h" hidden></section>
+        <section class="ov-start" id="od-start" aria-label="Getting started" hidden></section>
+        <section class="ov-setup" id="od-setup" aria-label="Setup steps" hidden></section>
 
         <!-- One concise performance summary for the chosen period. -->
         <div class="ov-summary" id="db-kpis" aria-live="polite">
@@ -56,7 +56,7 @@
             <div id="od-top"></div>
           </section>
           <!-- Money -->
-          <section class="ov-card ov-money" id="od-money" aria-labelledby="od-money-h"></section>
+          <section class="ov-card ov-money" id="od-money" aria-label="Payouts"></section>
         </div>
         <!-- Recent orders -->
         <section class="ov-card ov-orders" id="od-orders-card" aria-labelledby="ov-ord-h">
@@ -64,7 +64,7 @@
             <div id="db-ord"></div>
           </section>
         <!-- Channels and promotion -->
-        <section class="ov-card ov-channels" id="od-channels" aria-labelledby="od-channels-h"></section>
+        <section class="ov-card ov-channels" id="od-channels" aria-label="Sales channels"></section>
       </div></div>
 
       <!-- EVENTS -->
@@ -95,7 +95,17 @@
       <!-- ORDERS -->
       <div class="od-p" data-p="orders" hidden>
         <header class="t-page-head"><div><h1>Orders and attendees</h1><p>Find anyone, resend tickets, refund orders and message your guests.</p></div>
-          <div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/event-booking/report">Report</a><a class="t-btn t-btn--secondary" href="/organizer/event-booking/exports">Export history</a><button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button></div></header>
+          <div class="or-actions">
+            @endverbatim
+            @if(\App\Support\TeamPermissions::can('reports.view'))
+              <a class="t-btn t-btn--secondary" href="/organizer/event-booking/report">Report</a>
+            @endif
+            @if(\App\Support\TeamPermissions::can('orders.export'))
+              <a class="t-btn t-btn--secondary" href="/organizer/event-booking/exports">Export history</a>
+            @endif
+            @verbatim
+            <button class="t-btn t-btn--secondary" type="button" id="od-export">Export CSV</button><button class="t-btn t-btn--secondary" type="button" data-dlg="od-comp">Add guest</button><button class="t-btn t-btn--primary" type="button" data-dlg="od-msg">Message attendees</button>
+          </div></header>
         <div class="t-toolbar">
           <label class="t-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="t-sr">Search attendees</span><input class="t-input" id="od-q" type="search" placeholder="Name, email, phone or order number"></label>
           <select class="t-select" id="od-fe" aria-label="Event"><option value="">All events</option></select>
@@ -270,10 +280,6 @@
   </div>
 </section>
 
-<dialog class="od-dlg" id="od-inv-dlg" aria-labelledby="od-inv-h">
-  <div class="sh-head"><div><h2 id="od-inv-h">Invite a team member</h2><p>They get an email with a link to join. You can change their role or remove them any time.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <form class="od-form" id="od-inv" novalidate><div class="inp"><label for="od-ie">Email</label><input id="od-ie" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="inp"><label for="od-ir">Role</label><select id="od-ir"></select><small id="od-ir-help"></small></div><button class="t-btn t-btn--primary t-btn--block" type="submit">Send invite</button><p class="hint" id="od-inv-m" role="alert"></p></form>
-</dialog>
 <dialog class="od-dlg pr-dlg pr-drawer" id="pr-code-dlg" aria-labelledby="pr-code-h">
   <div class="sh-head"><div><h2 id="pr-code-h">New discount code</h2><p id="pr-code-p">Buyers enter this at checkout.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="pr-form" id="od-code-f" novalidate>
@@ -371,8 +377,8 @@
     <div class="pr-form__actions"><button class="t-btn t-btn--ghost" type="button" data-close>Cancel</button><button class="t-btn t-btn--primary" type="submit">Confirm payment</button></div>
   </form>
 </dialog>
-<dialog class="od-dlg" id="od-ev-dlg" aria-labelledby="od-ev-h"><div id="od-ev-body"></div></dialog>
-<dialog class="od-dlg" id="od-wd" aria-labelledby="od-wd-h"><div id="od-wd-body"></div></dialog>
+<dialog class="od-dlg" id="od-ev-dlg" aria-label="Event settings"><div id="od-ev-body"></div></dialog>
+<dialog class="od-dlg" id="od-wd" aria-label="Payments"><div id="od-wd-body"></div></dialog>
 <dialog class="od-dlg" id="od-msg" aria-labelledby="od-msg-h">
   <div class="sh-head"><div><h2 id="od-msg-h">Message attendees</h2><p>Sent by email and SMS from TICA, with your organiser name.</p></div><button class="sh-x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <form class="od-form" id="od-msg-f" novalidate>

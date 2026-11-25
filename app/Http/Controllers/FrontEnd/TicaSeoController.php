@@ -14,7 +14,7 @@ class TicaSeoController extends Controller
     public function sitemap()
     {
         $language = Language::query()->where('is_default', 1)->firstOrFail();
-        $urls = collect(['/', '/discover', '/how', '/pricing', '/about', '/contact', '/blog', '/faq'])
+        $urls = collect(['/', '/discover', '/how', '/pricing', '/about', '/contact', '/blog'])
             ->map(fn (string $path) => ['loc' => url($path), 'lastmod' => null]);
 
         PageContent::query()->join('pages', 'pages.id', '=', 'page_contents.page_id')

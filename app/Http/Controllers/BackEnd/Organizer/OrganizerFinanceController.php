@@ -97,7 +97,8 @@ class OrganizerFinanceController extends Controller
         return Excel::download(
             new OrganizerFinanceExport($statement['transactions']),
             $basename . '.' . $validated['file_type'],
-            $writer
+            $writer,
+            $writer === \Maatwebsite\Excel\Excel::CSV ? ['Content-Type' => 'text/csv; charset=UTF-8'] : []
         );
     }
 

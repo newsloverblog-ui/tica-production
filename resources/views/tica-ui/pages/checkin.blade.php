@@ -1,11 +1,18 @@
-@verbatim
 <section class="page" data-page="checkin">
   <div class="ck">
     <div class="wrap ck-wrap">
-      <header class="t-page-head ck-head"><div><h1>Gate check-in</h1><p>Scan tickets at the door. Results stay live, and it keeps working offline.</p></div><div class="or-actions"><a class="t-btn t-btn--secondary" href="/organizer/check-in-ledger/exports">Check-in ledger</a><a class="t-btn t-btn--secondary" href="/organizer/pwa">Gate staff and devices</a></div></header>
+      <header class="t-page-head ck-head">
+        <div><h1>Gate check-in</h1><p>Scan tickets at the door and see check-ins as they happen.</p></div>
+        @if(auth('organizer')->check() && \App\Support\TeamPermissions::can('checkin.run'))
+          <div class="or-actions">
+            <a class="t-btn t-btn--secondary" href="/organizer/check-in-ledger/exports">Check-in ledger</a>
+            <a class="t-btn t-btn--secondary" href="/organizer/pwa">{{ \App\Support\TeamPermissions::isOwner() ? __('Gate staff and devices') : __('Gate devices') }}</a>
+          </div>
+        @endif
+      </header>
       <div class="ck-top">
         <div class="ck-ev"><label for="ck-event">Checking in for</label><select id="ck-event"></select></div>
-        <p class="ck-sync"><i aria-hidden="true"></i>Works offline. Synced just now.</p>
+        <p class="ck-sync"><i aria-hidden="true"></i>Checking connection…</p>
       </div>
       <div class="ck-grid">
         <div class="ck-scan-col">
@@ -17,7 +24,9 @@
         <div class="ck-side">
           <div class="ck-stat"><div><span>Checked in</span><b><span id="ck-in">0</span> <small>of <span id="ck-total">0</span></small></b></div><div class="ck-bar" aria-hidden="true"><i id="ck-bar"></i></div><p id="ck-left"></p></div>
           <div class="ck-log"><h2>Recent check-ins</h2><ul id="ck-log"></ul></div>
-          <a class="ck-back" href="/dashboard">Back to dashboard</a>
+          @if(auth('organizer')->check() && \App\Support\TeamPermissions::can('overview.view'))
+            <a class="ck-back" href="/dashboard">Back to dashboard</a>
+          @endif
         </div>
       </div>
     </div>
@@ -25,4 +34,3 @@
 </section>
 
 <!-- AUTH -->
-@endverbatim

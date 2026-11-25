@@ -68,6 +68,30 @@ class CustomerLoginCodeServiceTest extends TestCase
         $this->assertSame(1, ApplicationMailDelivery::query()->count());
     }
 
+    public function test_resend_invalidates_old_code_and_shares_attempt_limit(): void
+    {
+        $this->customer();
+        $service = app(CustomerLoginCodeService::class);
+        $service->request('ada@example.com');
+        $initial = CustomerLoginCode::query()->latest('id')->firstOrFail();
+        $initial->forceFill(['attempts' => 4])->save();
+        $service->request('ada@example.com');
+        $latest = CustomerLoginCode::query()->latest('id')->firstOrFail();
+        $this->assertNotNull($initial->fresh()->consumed_at);
+        $this->assertNotSame($initial->code_hash, $latest->code_hash);
+
+        foreach (range(1, 2) as $attempt) {
+            try {
+                $service->consume('ada@example.com', '000000');
+                $this->fail('Failed attempts must never authenticate.');
+            } catch (ValidationException) {
+                $this->assertSame(1, $latest->fresh()->attempts);
+            }
+        }
+        $service->request('ada@example.com');
+        $this->assertDatabaseCount('customer_login_codes', 2);
+    }
+
     private function customer(): Customer
     {
         return Customer::create([

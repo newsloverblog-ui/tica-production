@@ -1,5 +1,5 @@
-var CACHE_STATIC_NAME = 'tica-scanner-static-v27';
-var CACHE_SHELL_NAME = 'tica-scanner-shell-v27';
+var CACHE_STATIC_NAME = 'tica-scanner-static-v28';
+var CACHE_SHELL_NAME = 'tica-scanner-shell-v28';
 var SCANNER_ASSETS = [
     '/offline',
     '/assets/front/images/offline.png',
@@ -54,7 +54,7 @@ self.addEventListener('fetch', function(event) {
     if (scannerNavigation) {
       event.respondWith(
         fetch(event.request).then(function(response) {
-          if (response.ok) {
+          if (response.ok && response.headers.get('X-Tica-Scanner-Offline') === 'enabled') {
             var copy = response.clone();
             caches.open(CACHE_SHELL_NAME).then(function(cache) { cache.put('/scanner-offline-shell', copy); });
           }

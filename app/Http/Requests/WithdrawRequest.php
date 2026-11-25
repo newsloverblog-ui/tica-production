@@ -27,6 +27,7 @@ class WithdrawRequest extends FormRequest
             'withdraw_method' => 'required|integer|exists:withdraw_payment_methods,id',
             'withdraw_amount' => 'required|numeric|min:0.01',
             'additional_reference' => 'nullable|string|max:500',
+            'request_key' => 'nullable|uuid',
         ];
     }
 }

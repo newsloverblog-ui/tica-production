@@ -37,7 +37,13 @@
     <header class="nav workspace-nav" aria-label="Dashboard toolbar">
       <div class="workspace-brand-zone">
         <a class="logo" href="/" aria-label="TICA home">@endverbatim<img src="{{ \App\Support\TicaSite::imageUrl($tsBrand['logo']) }}" alt="{{ $tsBrand['site_name'] }}">@verbatim</a>
+        @endverbatim
+        @if(empty($payload['gate']))
+        @verbatim
         <button class="workspace-icon workspace-menu" id="workspace-menu" type="button" aria-label="Open dashboard menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        @endverbatim
+        @endif
+        @verbatim
       </div>
       <div class="workspace-context">
         <span class="workspace-badge">TICA</span>
@@ -46,7 +52,16 @@
         <a class="workspace-site" href="/">View website <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v6H5V6h6"/></svg></a>
       </div>
       <div class="workspace-actions">
+        @endverbatim
+        @if(!empty($payload['gate']))
+          <form method="POST" action="{{ route('scanner.logout') }}">
+            @csrf
+            <button type="submit" class="btn btn-line">{{ __('Log out') }}</button>
+          </form>
+        @else
         <a class="workspace-avatar" id="workspace-account" href="/account" aria-label="Open account">T</a>
+        @endif
+        @verbatim
       </div>
     </header>
   </div>

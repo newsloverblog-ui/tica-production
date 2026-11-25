@@ -5,7 +5,11 @@ namespace App\Http\Controllers\BackEnd;
 use App\Http\Controllers\Controller;
 use App\Models\GatewaySettlement;
 use App\Models\PaymentReconciliationRun;
+use App\Models\PaystackDispute;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PaymentReconciliationController extends Controller
 {
@@ -25,7 +29,36 @@ class PaymentReconciliationController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('backend.admin.payment-reconciliation.index', compact('runs'));
+        $disputes = PaystackDispute::available()
+            ? PaystackDispute::latest('updated_at')
+                ->paginate(15, ['id', 'provider_dispute_id', 'status', 'booking_id', 'currency', 'amount_minor', 'exception', 'reviewed_at'], 'disputes_page')
+                ->withQueryString()
+            : null;
+
+        return view('backend.admin.payment-reconciliation.index', compact('runs', 'disputes'));
+    }
+
+    public function acknowledgeDispute(Request $request, PaystackDispute $dispute)
+    {
+        $validated = $request->validate([
+            'review_reference' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z][a-zA-Z0-9._-]{2,99}$/'],
+        ]);
+        DB::transaction(function () use ($dispute, $validated): void {
+            $dispute = PaystackDispute::whereKey($dispute->id)->lockForUpdate()->firstOrFail();
+            abort_unless($dispute->status === 'charged_back', 409, 'The provider outcome must be confirmed before acknowledging a loss.');
+            if (!$dispute->reviewed_at) {
+                $dispute->update([
+                    'review_reference' => $validated['review_reference'],
+                    'reviewed_by_admin_id' => Auth::guard('admin')->id(),
+                    'reviewed_at' => now(),
+                ]);
+                AuditLogger::record('payment.paystack_dispute_reconciled', $dispute, [], [
+                    'review_reference' => $validated['review_reference'],
+                ]);
+            }
+        }, 3);
+
+        return back()->with('success', 'Finance review recorded.');
     }
 
     public function show(Request $request, PaymentReconciliationRun $run)

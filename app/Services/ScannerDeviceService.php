@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Event;
 use App\Models\Organizer;
 use App\Models\ScannerDevice;
+use App\Models\ScannerOfflineManifest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -98,5 +100,27 @@ class ScannerDeviceService
     private function newSecret(): string
     {
         return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+    }
+
+    public function assign(int $organizerId, int $deviceId, int $eventId, ?int $ticketId): ScannerDevice
+    {
+        return DB::transaction(function () use ($organizerId, $deviceId, $eventId, $ticketId): ScannerDevice {
+            $device = ScannerDevice::whereKey($deviceId)->where('organizer_id', $organizerId)
+                ->where('status', 'active')->lockForUpdate()->firstOrFail();
+            $event = Event::whereKey($eventId)->where('organizer_id', $organizerId)->where('status', 1)->firstOrFail();
+            if ($ticketId && !$event->tickets()->whereKey($ticketId)->exists()) {
+                throw ValidationException::withMessages(['ticket_id' => 'Select a ticket type for this event.']);
+            }
+            $fields = ['event_id' => $eventId, 'admission_ticket_id' => $ticketId];
+            $before = $device->only(array_keys($fields));
+            $device->forceFill($fields);
+            if ($device->isDirty()) {
+                $device->save();
+                ScannerOfflineManifest::where('scanner_device_id', $device->id)->whereNull('revoked_at')
+                    ->update(['revoked_at' => now(), 'status' => 'revoked']);
+                AuditLogger::record('scanner_device.assignment_changed', $device, $before, $fields);
+            }
+            return $device;
+        }, 3);
     }
 }

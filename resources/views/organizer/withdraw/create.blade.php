@@ -60,6 +60,7 @@
               <form id="ajaxForm" action="{{ route('organizer.withdraw.send-request') }}" method="POST"
                 enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="request_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
 
                 @if ($errors->any())
                   <div class="alert alert-danger">

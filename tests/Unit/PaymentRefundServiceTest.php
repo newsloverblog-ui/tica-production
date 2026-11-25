@@ -521,6 +521,36 @@ class PaymentRefundServiceTest extends TestCase
         $this->assertSame(25.0, (float) $late->fresh()->amount);
     }
 
+    public function test_paystack_chargeback_posts_once_and_keeps_ticket_and_organizer_on_hold(): void
+    {
+        (require database_path('migrations/2026_11_17_120000_create_financial_ledger.php'))->up();
+        (require database_path('migrations/2026_11_25_122000_create_paystack_disputes.php'))->up();
+        Schema::create('organizers', function (Blueprint $table): void {
+            $table->id();
+            $table->decimal('amount', 18, 2);
+        });
+        $organizerId = DB::table('organizers')->insertGetId(['amount' => 0]);
+        [$intent, $booking] = $this->payment(100, 'paystack', '123', $organizerId);
+        $service = app(\App\Services\PaystackDisputeService::class);
+        $open = [
+            'id' => 51, 'status' => 'pending',
+            'transaction' => ['id' => 123, 'reference' => $intent->reference, 'amount' => 10000, 'currency' => 'NGN'],
+        ];
+        $this->assertSame('open', $service->record($open)->status);
+        $this->assertTrue(\App\Models\PaystackDispute::blocksBooking($booking->id));
+        $this->assertTrue(\App\Models\PaystackDispute::holdsOrganizer($organizerId));
+        $this->assertDatabaseCount('financial_ledger_transactions', 0);
+
+        $resolved = array_replace($open, ['status' => 'resolved', 'resolution' => 'merchant-accepted', 'refund_amount' => 10000]);
+        $this->assertSame('charged_back', $service->record($resolved)->status);
+        $this->assertSame('charged_back', $service->record($open)->status);
+        $service->record($resolved);
+        $this->assertDatabaseCount('financial_ledger_transactions', 1);
+        $this->assertDatabaseCount('financial_ledger_entries', 2);
+        $this->assertTrue(\App\Models\PaystackDispute::blocksBooking($booking->id));
+        $this->assertTrue(\App\Models\PaystackDispute::holdsOrganizer($organizerId));
+    }
+
     private function payment(
         float $amount,
         string $gateway = 'paystack',

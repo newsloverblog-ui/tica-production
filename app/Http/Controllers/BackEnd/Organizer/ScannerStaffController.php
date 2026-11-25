@@ -50,7 +50,8 @@ class ScannerStaffController extends Controller
 
     public function workspace()
     {
-        return view('organizer.pwa.index');
+        return response()->view('organizer.pwa.index')
+            ->header('X-Tica-Scanner-Offline', config('tickets.offline_enabled') ? 'enabled' : 'disabled');
     }
 
     public function index()

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 export const PASSWORD = process.env.QA_PASSWORD || '';
 
-export type Role = 'guest' | 'owner' | 'manager' | 'finance' | 'gate' | 'admin' | 'rich';
+export type Role = 'guest' | 'owner' | 'manager' | 'finance' | 'gate' | 'admin' | 'rich' | 'customer';
 
 const EMAIL: Record<string, string> = {
   owner: 'qa-owner@tica.test',
@@ -11,6 +11,7 @@ const EMAIL: Record<string, string> = {
   finance: 'qa-finance@tica.test',
   gate: 'qa-gate@tica.test',
   rich: 'qa-rich@tica.test',
+  customer: 'qa-dashboard-buyer@tica.test',
 };
 
 async function csrf(page: Page): Promise<string> {
@@ -48,7 +49,7 @@ async function freshSignIn(page: Page, role: Role): Promise<void> {
   const token = await csrf(page);
   const res = await page.request.post('/tica-api/login', {
     headers: { 'X-CSRF-TOKEN': token, Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-    form: { role: 'org', email: EMAIL[role], password: PASSWORD },
+    form: { role: role === 'customer' ? 'att' : 'org', email: EMAIL[role], password: PASSWORD },
   });
   expect(res.status(), `${role} signed in`).toBeLessThan(400);
 }

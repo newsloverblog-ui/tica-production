@@ -32,6 +32,11 @@ runs the tasks that are due in that exact minute.
 The endpoint takes a lock, so overlapping calls are safe, and it allows 6
 calls a minute.
 
+The endpoint stops taking new jobs after its queue-drain budget expires.
+That budget is at most 20 seconds and can be shorter after scheduling.
+A job already running can outlast the budget. Run long exports and
+reconciliation from dedicated CLI workers and scheduler processes.
+
 Keep the daily Vercel cron as a backup; it does no harm.
 
 ## Fix on a normal server (VPS)

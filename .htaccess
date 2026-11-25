@@ -1,16 +1,17 @@
 <IfModule mod_rewrite.c>
   <IfModule mod_negotiation.c>
-    Options -MultiViews
+    Options -MultiViews -Indexes
   </IfModule>
   RewriteEngine On
-  RewriteCond %{REQUEST_FILENAME} -d [OR]
-  RewriteCond %{REQUEST_FILENAME} -f
-  RewriteRule ^ ^$1 [N]
-  RewriteCond %{REQUEST_URI} (\.\w+$) [NC]
-  RewriteRule ^(.*)$ public/$1
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^ server.php
+
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # cPanel fallback when the document root is the project directory.
+  RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+  RewriteRule ^(.+)$ public/$1 "[END,BNP,B= ?#%]"
+
+  RewriteRule ^ public/index.php [END]
 </IfModule>
 
 # php -- BEGIN cPanel-generated handler, do not edit

@@ -112,7 +112,8 @@ class OrganizerWithdrawController extends Controller
       $amount,
       $request->additional_reference,
       (string) $currencyInfo->base_currency_symbol,
-      (string) $currencyInfo->base_currency_text_position
+      (string) $currencyInfo->base_currency_text_position,
+      $request->validated('request_key')
     );
 
     Session::flash('success', 'Withdraw Request Send Successfully!');

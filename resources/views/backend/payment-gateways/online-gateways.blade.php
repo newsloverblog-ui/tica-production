@@ -236,7 +236,7 @@
                 <div class="form-group">
                   <label>{{ __('Flutterwave Public Key') }}</label>
                   <input type="text" class="form-control" name="flutterwave_public_key"
-                    value="{{ $flutterwaveInfo['public_key'] }}">
+                    value="{{ old('flutterwave_public_key', $flutterwaveInfo['public_key'] ?? '') }}">
                   @if ($errors->has('flutterwave_public_key'))
                     <p class="mt-1 mb-0 text-danger">{{ $errors->first('flutterwave_public_key') }}</p>
                   @endif

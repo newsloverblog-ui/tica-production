@@ -87,6 +87,10 @@ class ProductPaystackPaymentService
             $lockedIntent = ProductPaymentIntent::query()->whereKey($intent->id)->lockForUpdate()->firstOrFail();
             $order = ProductOrder::query()->whereKey($lockedIntent->product_order_id)->lockForUpdate()->firstOrFail();
 
+            if (\App\Models\PaystackDispute::blocksPayment($lockedIntent->reference)) {
+                return 'verification_required';
+            }
+
             if ($lockedIntent->status === 'completed') {
                 return 'already_completed';
             }
@@ -145,6 +149,9 @@ class ProductPaystackPaymentService
     private function afterCompletion(ProductPaymentIntent $intent, string $source): array
     {
         $order = $intent->order()->firstOrFail();
+        if (\App\Models\PaystackDispute::blocksPayment($intent->reference)) {
+            return ['status' => 'verification_required', 'order_id' => $order->id];
+        }
         app(ProductOrderAccountingService::class)->recordCompleted($order);
         app(PaidProductOrderFulfillmentService::class)->dispatch((int) $order->id);
         return ['status' => 'completed', 'source' => $source, 'order_id' => $order->id];

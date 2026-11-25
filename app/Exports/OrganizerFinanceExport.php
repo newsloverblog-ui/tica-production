@@ -16,7 +16,7 @@ class OrganizerFinanceExport implements FromCollection, WithHeadings, WithMappin
         $this->rows = $rows;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         return $this->rows;
     }

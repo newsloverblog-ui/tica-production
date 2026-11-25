@@ -27,7 +27,7 @@
         <li><b>Join the movement</b><span>Sign up as a KultureCreator. It's free to get started.</span></li>
         <li><b>Create kulture</b><span>Add your flyer, dates and venue, then set your ticket types.</span></li>
         <li><b>Connect and celebrate</b><span>Share your link, sell tickets and welcome everyone with QR check-in.</span></li>
-        <li><b>Get rewarded</b><span>Follow every sale as it happens and receive fast payouts.</span></li>
+        <li><b>Track sales and payouts</b><span>See ticket sales and payout status in your organiser dashboard.</span></li>
       </ol>
       <ol class="x-line" data-jp="att" hidden>
         <li><b>Find your event</b><span>Search by city, category or date, or browse what's popular.</span></li>
@@ -47,11 +47,11 @@
       </article>
       <article class="bn lite s5 nz">
         <div><h3>Know who's in</h3><p>Scan tickets at the gate and watch your check-ins climb.</p></div>
-        <div class="bn-num"><b>311</b><span>guests checked in today</span><div class="bar"><i style="width:59%"></i></div></div>
+        <div class="bn-num"><b>311</b><span>example check-ins</span><div class="bar"><i style="width:59%"></i></div></div>
       </article>
       <article class="bn warm s5 nz">
-        <div><h3>Get paid fast</h3><p>Follow every sale in one dashboard and receive fast payouts.</p></div>
-        <div class="bn-num"><b>₦1.84M</b><span>gross ticket revenue</span></div>
+        <div><h3>See what you’ve sold</h3><p>Track ticket revenue and payout status from the same dashboard.</p></div>
+        <div class="bn-num"><b>₦1.84M</b><span>example gross ticket revenue</span></div>
       </article>
       <article class="bn pic s7 nz">
         <img loading="lazy" data-src="https://images.unsplash.com/photo-1711743658461-38c875d37c8e?auto=format&fit=crop&w=1000&q=72" alt="">

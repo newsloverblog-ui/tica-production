@@ -466,18 +466,12 @@ class TicaApiController extends Controller
   public function checkinCode(Request $request): JsonResponse
   {
     $validated = $request->validate(['event_id' => ['required', 'integer'], 'code' => ['required', 'string', 'max:80']]);
-    $organizerId = Auth::guard('organizer')->id();
-    if (!$organizerId) {
-      $staff = Auth::guard('scanner')->user();
-      if ($staff && $staff->status === 'active' && (int) Session::get('scanner_auth_version', -1) === (int) $staff->auth_version) {
-        $organizerId = $staff->organizer_id;
-      }
-    }
-    abort_unless($organizerId, 401, 'Sign in with an organiser or gate staff account.');
+    $device = app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, (int) $validated['event_id']);
     $code = trim($validated['code']);
     $ticket = \App\Models\Event\BookingTicket::query()
       ->where('event_id', (int) $validated['event_id'])
-      ->where('organizer_id', (int) $organizerId)
+      ->where('organizer_id', $device->organizer_id)
+      ->when($device->admission_ticket_id, fn ($query, $ticketId) => $query->where('ticket_id', $ticketId))
       ->when(
         preg_match('/^TICA-0*(\d+)-(\d+)$/i', $code, $match) === 1,
         fn ($query) => $query->where('booking_id', (int) $match[1])->where('sequence', (int) $match[2]),
@@ -490,6 +484,7 @@ class TicaApiController extends Controller
     $tier = $ticket->variation_name ?: (\App\Models\Event\TicketContent::query()->where('ticket_id', $ticket->ticket_id)->orderBy('language_id')->value('title') ?: 'Ticket');
 
     return response()->json([
+      'ticket_unit_id' => $ticket->id,
       'payload' => signedTicketUnitPayload($ticket->public_id, $ticket->event_id),
       'name' => (string) ($ticket->holder_name ?: 'Guest'),
       'tier' => (string) $tier,

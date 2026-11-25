@@ -13,6 +13,44 @@
   </div>
 
   <div class="card">
+    <div class="card-header"><div class="card-title">{{ __('Paystack disputes') }}</div></div>
+    <div class="card-body">
+      @if ($disputes === null)
+        <p class="mb-0">{{ __('Dispute review will be available after the database update.') }}</p>
+      @else
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>{{ __('Dispute') }}</th><th>{{ __('Booking') }}</th><th>{{ __('Status') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Exception') }}</th><th>{{ __('Finance review') }}</th></tr></thead>
+          <tbody>
+            @forelse ($disputes as $dispute)
+              <tr><td>{{ $dispute->provider_dispute_id }}</td><td>{{ $dispute->booking_id ?? '—' }}</td>
+                <td>{{ ucfirst(str_replace('_', ' ', $dispute->status)) }}</td>
+                <td>{{ $dispute->amount_minor === null ? '—' : $dispute->currency . ' ' . number_format(\App\Support\Money::fromMinor((int) $dispute->amount_minor), 2) }}</td>
+                <td>{{ $dispute->exception ? ucfirst(str_replace('_', ' ', $dispute->exception)) : '—' }}</td>
+                <td>
+                  @if ($dispute->reviewed_at)
+                    {{ __('Recorded') }}
+                  @elseif ($dispute->status === 'charged_back')
+                    <form method="post" action="{{ route('admin.payment_reconciliation.dispute.acknowledge', $dispute) }}">
+                      @csrf
+                      <label for="dispute-review-{{ $dispute->id }}">{{ __('Reconciliation record reference') }}</label>
+                      <input class="form-control form-control-sm mb-1" id="dispute-review-{{ $dispute->id }}" name="review_reference" maxlength="100" required>
+                      <button class="btn btn-sm btn-outline-primary" type="submit">{{ __('Record reviewed loss') }}</button>
+                    </form>
+                  @endif
+                </td></tr>
+            @empty
+              <tr><td colspan="6">{{ __('No payment disputes recorded.') }}</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      {{ $disputes->links() }}
+      @endif
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-header">
       <div class="row align-items-center">
         <div class="col-lg-4">

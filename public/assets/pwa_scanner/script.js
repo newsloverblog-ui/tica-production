@@ -3,6 +3,8 @@
 var scannerDeviceId = localStorage.getItem('tica_scanner_device_id') || '';
 var scannerDeviceSecret = localStorage.getItem('tica_scanner_device_secret') || '';
 var scannerDeviceName = localStorage.getItem('tica_scanner_device_name') || '';
+var assignedEventId = null;
+var assignableEvents = [];
 var requestSent = false;
 var scannerStarted = false;
 var offlineDbPromise = null;
@@ -19,7 +21,7 @@ $(document).ready(function () {
   initializeDevice();
   if (canManageScannerDevices) loadScannerStaff();
   updateNetworkState();
-  window.addEventListener('online', function () { updateNetworkState(); synchronizeOfflineScans(true); });
+  window.addEventListener('online', function () { updateNetworkState(); if (scannerOfflineEnabled) synchronizeOfflineScans(true); });
   window.addEventListener('offline', updateNetworkState);
 });
 
@@ -67,6 +69,7 @@ function initializeDevice() {
 function showEnrollment(message) {
   stopScannerMetrics();
   $('#scanner-workspace').addClass('d-none');
+  $('#scanner-offline-tab').addClass('d-none');
   $('#scanner-enroll-form').toggleClass('d-none', !canManageScannerDevices);
   $('#scanner-manage-toggle').toggleClass('d-none', !canManageScannerDevices);
   $('#scanner-device-badge').removeClass('badge-success').addClass('badge-secondary').text('Not enrolled');
@@ -74,13 +77,17 @@ function showEnrollment(message) {
 }
 
 function showScanner(device) {
+  assignedEventId = device.event_id;
   $('#scanner-enroll-form').addClass('d-none');
   $('#scanner-manage-toggle').toggleClass('d-none', !canManageScannerDevices);
   $('#scanner-device-badge').removeClass('badge-secondary').addClass('badge-success').text('Active');
-  $('#scanner-device-status').text(device.name + ' is approved for ticket check-in.');
-  $('#scanner-workspace').removeClass('d-none');
+  $('#scanner-device-status').text(assignedEventId ? device.name + ' · Event #' + assignedEventId : 'Assign this gate to an event before check-in.');
+  $('#scanner-workspace').toggleClass('d-none', !assignedEventId);
+  $('#scanner-offline-tab').toggleClass('d-none', !assignedEventId);
+  if (!assignedEventId) return;
   startScanner();
-  initializeOfflineAccess();
+  startScannerMetrics(assignedEventId);
+  if (scannerOfflineEnabled) initializeOfflineAccess();
   if (canReviewScannerConflicts) loadConflicts();
   else $('#scanner-conflicts-card').addClass('d-none');
 }
@@ -102,12 +109,13 @@ function deviceError(xhr, fallback) {
 }
 
 function onScanSuccess(qrCodeMessage) {
+  if (!assignedEventId) return;
   if (requestSent && qrCodeMessage === sessionStorage.getItem('booking_id')) return;
   requestSent = true;
   sessionStorage.setItem('booking_id', qrCodeMessage);
   $.ajax({
     type: 'POST', url: url, headers: credentialHeaders(),
-    data: { booking_id: qrCodeMessage, source: 'scanner' },
+    data: { booking_id: qrCodeMessage, event_id: assignedEventId },
     success: function (data) {
       rememberOnlineAdmission(qrCodeMessage);
       loadScannerMetrics(scannerMetricsEventId);
@@ -116,7 +124,7 @@ function onScanSuccess(qrCodeMessage) {
     },
     error: function (xhr) {
       if (xhr.responseJSON && xhr.responseJSON.multi_gate_conflict) loadConflicts();
-      if (xhr.status === 0) {
+      if (xhr.status === 0 && scannerOfflineEnabled) {
         queueOfflineScan(qrCodeMessage).then(function (result) {
           swal({ title: result.message, text: result.detail || '', icon: result.accepted ? 'success' : 'error' })
             .then(function () { requestSent = false; });
@@ -162,6 +170,7 @@ function loadDevices() {
   if (!canManageScannerDevices) return;
   $('#scanner-device-list').html('<p class="text-muted">Loading scanners…</p>');
   $.get(scannerDevicesUrl).done(function (data) {
+    assignableEvents = data.events || [];
     var devices = data.devices || [];
     if (!devices.length) {
       $('#scanner-device-list').html('<p class="text-muted">No enrolled scanners yet.</p>');
@@ -174,7 +183,14 @@ function loadDevices() {
       var action = device.status === 'active'
         ? '<button type="button" class="btn btn-sm btn-outline-danger revoke-scanner" data-device-id="' + device.id + '" data-public-id="' + escapeHtml(device.public_id) + '">Revoke</button>'
         : '<span class="badge badge-secondary">Revoked</span>';
+      var assignment = scannerDeviceAssignmentUrlTemplate && device.status === 'active' ? '<div class="scanner-assignment" data-device-id="' + device.id + '"><label>Event<select class="form-control scanner-assigned-event">' +
+        '<option value="">Choose event</option>' + assignableEvents.map(function (item) {
+          return '<option value="' + item.id + '"' + (Number(device.event_id) === item.id ? ' selected' : '') + '>' + escapeHtml(item.title) + '</option>';
+        }).join('') + '</select></label> <label>Allowed ticket type<select class="form-control scanner-assigned-ticket">' +
+        assignmentTicketOptions(device.event_id, device.admission_ticket_id) +
+        '</select></label> <button class="btn btn-sm btn-outline-primary save-scanner-assignment" type="button">Save assignment</button></div>' : '';
       html += '<div class="scanner-device-row"><div><strong>' + escapeHtml(device.name) + '</strong>' + current +
+        assignment +
         '<br><small class="text-muted">Last used: ' + escapeHtml(lastSeen) + '</small></div><div>' + action + '</div></div>';
     });
     $('#scanner-device-list').html(html);
@@ -197,6 +213,36 @@ $(document).on('click', '.revoke-scanner', function () {
       loadDevices();
     })
     .fail(function () { button.prop('disabled', false).text('Revoke'); });
+});
+
+function assignmentTicketOptions(eventId, selected) {
+  var event = assignableEvents.find(function (item) { return item.id === Number(eventId); });
+  return '<option value="">All ticket types</option>' + (event ? event.tickets : []).map(function (ticket) {
+    return '<option value="' + ticket.id + '"' + (Number(selected) === ticket.id ? ' selected' : '') + '>' + escapeHtml(ticket.title) + '</option>';
+  }).join('');
+}
+
+$(document).on('change', '.scanner-assigned-event', function () {
+  $(this).closest('.scanner-assignment').find('.scanner-assigned-ticket').html(assignmentTicketOptions($(this).val()));
+});
+
+$(document).on('click', '.save-scanner-assignment', function () {
+  var button = $(this);
+  var row = button.closest('.scanner-assignment');
+  button.prop('disabled', true);
+  $.post(scannerDeviceAssignmentUrlTemplate.replace('__DEVICE__', row.data('device-id')), {
+    event_id: row.find('.scanner-assigned-event').val(), ticket_id: row.find('.scanner-assigned-ticket').val()
+  }).done(function (response) {
+    if (response.device.public_id === scannerDeviceId) {
+      activeOfflineManifest = null;
+      offlineAdmissionHashes.clear();
+      showScanner(response.device);
+    }
+    loadDevices();
+  }).fail(function (xhr) {
+    window.alert(deviceError(xhr, 'Unable to save the gate assignment.'));
+    button.prop('disabled', false);
+  });
 });
 
 function loadScannerStaff() {
@@ -305,9 +351,9 @@ function loadCheckInLedgers() {
 }
 
 $('#scanner-ledger-create').on('click', function () {
-  var eventId = $('#offline-event-select').val();
+  var eventId = assignedEventId;
   if (!eventId) {
-    $('#scanner-ledger-status').text('Choose an event under Offline event access first.');
+    $('#scanner-ledger-status').text('Assign this gate to an event first.');
     return;
   }
   var button = $(this).prop('disabled', true).text('Queueing…');
@@ -350,7 +396,7 @@ $('#ticket-lookup-form').on('submit', function (event) {
   $('#ticket-lookup-status').text('Searching…');
   $('#ticket-lookup-results').empty();
   $.ajax({
-    type: 'POST', url: lookupUrl, headers: credentialHeaders(), data: { query: query },
+    type: 'POST', url: lookupUrl, headers: credentialHeaders(), data: { query: query, event_id: assignedEventId },
     success: function (data) {
       var tickets = data.tickets || [];
       $('#ticket-lookup-status').text(tickets.length ? tickets.length + ' ticket(s) found.' : 'No matching tickets found.');
@@ -375,7 +421,7 @@ $(document).on('click', '.manual-check-in', function () {
   var button = $(this);
   button.prop('disabled', true).text('Checking in…');
   $.ajax({
-    type: 'POST', url: manualCheckInUrl, headers: credentialHeaders(), data: { ticket_unit_id: button.data('ticket-id') },
+    type: 'POST', url: manualCheckInUrl, headers: credentialHeaders(), data: { ticket_unit_id: button.data('ticket-id'), event_id: assignedEventId },
     success: function (data) {
       button.text('Checked in');
       loadScannerMetrics(scannerMetricsEventId);

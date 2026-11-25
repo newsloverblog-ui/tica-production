@@ -14,6 +14,9 @@ class PaystackPaymentRecoveryService
         ?PaystackGatewayClient $client = null
     ): array {
         $intent->refresh();
+        if (\App\Models\PaystackDispute::blocksPayment($intent->reference)) {
+            return ['status' => 'verification_required', 'message' => 'This payment is under review. Contact TICA support.'];
+        }
         if ($intent->status === 'completed') {
             return $this->completed($intent, 'already_completed');
         }
@@ -86,6 +89,9 @@ class PaystackPaymentRecoveryService
                 ];
             }
             $intent->refresh();
+            if (($result['status'] ?? null) === 'verification_required') {
+                return ['status' => 'verification_required', 'message' => 'This payment is under review. Contact TICA support.'];
+            }
             if ($intent->status === 'completed') {
                 return $this->completed($intent, (string) ($result['status'] ?? 'completed'));
             }

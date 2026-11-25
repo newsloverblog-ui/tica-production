@@ -34,7 +34,7 @@ use App\Services\AccountMfaService;
 use App\Services\TransactionExportQueryService;
 use App\Services\TicketIssuanceService;
 use App\Support\EventFinancialBreakdown;
-use DateTime;
+use App\Support\MonthlyReport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
@@ -79,61 +79,17 @@ class OrganizerController extends Controller
       ->whereIn('status', [Withdraw::STATUS_PENDING, Withdraw::STATUS_HELD])
       ->count();
 
-    //income of event bookings
-    $eventBookingTotalIncomes = DB::table('bookings')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') as total'))
-      ->where('paymentStatus', '=', 'completed')
-      ->groupBy('month')
-      ->whereYear('created_at', '=', date('Y'))
-      ->where('organizer_id', Auth::guard('organizer')->user()->id)
+    $organizerBookings = DB::table('bookings')
+      ->where('paymentStatus', 'completed')
+      ->where('organizer_id', Auth::guard('organizer')->id());
+    $rows = MonthlyReport::query($organizerBookings, now()->year)
+      ->selectRaw('SUM('.EventFinancialBreakdown::bookingOrganizerRevenueSql().') AS incomes, COUNT(id) AS bookings')
       ->get();
+    $series = MonthlyReport::series($rows, ['incomes', 'bookings']);
+    $information['eventMonths'] = $series['months'];
+    $information['eventIncomes'] = $series['incomes'];
+    $information['totalBookings'] = $series['bookings'];
 
-    $TotalEventBookings = DB::table('bookings')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('count(id) as total'))
-      ->where('paymentStatus', '=', 'completed')
-      ->groupBy('month')
-      ->whereYear('created_at', '=', date('Y'))
-      ->where('organizer_id', Auth::guard('organizer')->user()->id)
-      ->get();
-
-    $eventMonths   = [];
-    $eventIncomes  = [];
-    $totalBookings = [];
-
-    for ($i = 1; $i <= 12; $i++) {
-      $monthNum  = $i;
-      $dateObj   = DateTime::createFromFormat('!m', $monthNum);
-      $monthName = $dateObj->format('M');
-      array_push($eventMonths, $monthName);
-
-      $incomeFound = false;
-      foreach ($eventBookingTotalIncomes as $eventIncomeInfo) {
-        if ($eventIncomeInfo->month == $i) {
-          $incomeFound = true;
-          array_push($eventIncomes, $eventIncomeInfo->total);
-          break;
-        }
-      }
-      if ($incomeFound == false) {
-        array_push($eventIncomes, 0);
-      }
-
-      $bookingFound = false;
-      foreach ($TotalEventBookings as $eventInfo) {
-        if ($eventInfo->month == $i) {
-          $bookingFound = true;
-          array_push($totalBookings, $eventInfo->total);
-          break;
-        }
-      }
-      if ($bookingFound == false) {
-        array_push($totalBookings, 0);
-      }
-    }
-
-    $information['eventIncomes']  = $eventIncomes;
-    $information['eventMonths']   = $eventMonths;
-    $information['totalBookings'] = $totalBookings;
     $information['admin_setting'] = DB::table('basic_settings')->where('uniqid', 12345)->select('organizer_admin_approval', 'admin_approval_notice')->first();
 
     return view('organizer.index', $information);
@@ -589,26 +545,38 @@ class OrganizerController extends Controller
   public function pwa()
   {
     // Organisers manage scanners inside their dashboard; gate staff keep the standalone workspace.
-    return view('organizer.pwa.dashboard');
+    return response()->view('organizer.pwa.dashboard')
+      ->header('X-Tica-Scanner-Offline', config('tickets.offline_enabled') ? 'enabled' : 'disabled');
   }
 
   //check_qrcode
   public function check_qrcode(Request $request)
   {
-    $request->validate([
+    $validated = $request->validate([
       'booking_id' => ['required', 'string', 'max:512'],
-      'source' => ['sometimes', 'required', Rule::in(['scanner', 'manual', 'offline_sync'])],
+      'event_id' => ['required', 'integer', 'min:1'],
     ]);
-    $checkInSource = (string) $request->input('source', 'scanner');
-    $scannerDevice = $request->attributes->get('scanner_device');
+    $checkInSource = $request->attributes->get('scanner_check_in_source', 'scanner');
+    $policy = app(\App\Services\ScannerAdmissionPolicy::class);
+    $assigned = $policy->assignedDevice($request, (int) $validated['event_id']);
     $scannerStaff = $request->attributes->get('scanner_staff');
     $ticket = verifySignedTicketPayload($request->booking_id);
     if (!$ticket) {
       return response()->json(['alert_type' => 'error', 'message' => 'Invalid or unsigned ticket'], 422);
     }
+    if ((int) $ticket['event_id'] !== (int) $assigned->event_id) {
+      return response()->json(['alert_type' => 'error', 'message' => 'Ticket is not valid for the selected event'], 404);
+    }
 
-    return DB::transaction(function () use ($ticket, $request, $scannerDevice, $scannerStaff, $checkInSource) {
+    return DB::transaction(function () use ($ticket, $request, $assigned, $scannerStaff, $checkInSource, $policy) {
       $organizerId = (int) ($request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id());
+      $scannerDevice = ScannerDevice::whereKey($assigned->id)->where('organizer_id', $organizerId)
+        ->where('status', 'active')->where('event_id', $assigned->event_id)->lockForUpdate()->first();
+      abort_unless($scannerDevice, 403, 'This gate assignment is no longer active.');
+      if ($scannerStaff) {
+        abort_unless(\App\Models\ScannerStaff::whereKey($scannerStaff->id)
+          ->where('status', 'active')->where('auth_version', $scannerStaff->auth_version)->lockForUpdate()->first(), 403, 'This gate session has been revoked.');
+      }
       $unit = null;
 
       if (isset($ticket['ticket_unit_id'])) {
@@ -660,11 +628,18 @@ class OrganizerController extends Controller
         $unit = $units->first();
       }
 
+      if ($scannerDevice->admission_ticket_id && (int) $scannerDevice->admission_ticket_id !== (int) $unit?->ticket_id) {
+        return response()->json(['alert_type' => 'error', 'message' => 'This ticket must use another gate'], 403);
+      }
+
       if (!in_array((string) $booking->paymentStatus, ['completed', 'free', '1'], true)) {
         return response()->json(['alert_type' => 'error', 'message' => 'Payment is not complete', 'booking_id' => $booking->booking_id], 422);
       }
       if ($booking->refund_status === 'refunded') {
         return response()->json(['alert_type' => 'error', 'message' => 'Ticket has been fully refunded', 'booking_id' => $booking->booking_id], 422);
+      }
+      if (\App\Models\PaystackDispute::blocksBooking((int) $booking->id)) {
+        return response()->json(['alert_type' => 'error', 'message' => 'This payment is under dispute. Ask a supervisor for help.'], 422);
       }
 
       if ($unit) {
@@ -701,6 +676,12 @@ class OrganizerController extends Controller
             'message' => 'This ticket is ' . str_replace('_', ' ', $unit->status) . '.',
             'booking_id' => $booking->booking_id,
           ], 422);
+        }
+
+        $event = \App\Models\Event::whereKey($booking->event_id)->where('organizer_id', $organizerId)->first();
+        $admissionTime = $request->attributes->get('scanner_admission_time', now());
+        if (!$event || !$policy->allowsTime($event, $booking->event_date, $admissionTime)) {
+          return response()->json(['alert_type' => 'error', 'message' => 'Check-in is closed for this event or session'], 403);
         }
 
         $unit->update([
@@ -787,7 +768,7 @@ class OrganizerController extends Controller
   {
     $validated = $request->validate([
       'query' => ['required', 'string', 'min:3', 'max:100'],
-      'event_id' => ['nullable', 'integer', 'min:1'],
+      'event_id' => ['required', 'integer', 'min:1'],
     ]);
     $term = trim(str_replace(['%', '_'], '', $validated['query']));
     if (mb_strlen($term) < 3) {
@@ -795,11 +776,13 @@ class OrganizerController extends Controller
     }
     $like = '%' . $term . '%';
     $organizerId = (int) ($request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id());
+    $device = app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, (int) $validated['event_id']);
 
     $tickets = BookingTicket::query()
       ->with('booking')
       ->where('organizer_id', $organizerId)
-      ->when($validated['event_id'] ?? null, fn ($query, $eventId) => $query->where('event_id', $eventId))
+      ->where('event_id', $device->event_id)
+      ->when($device->admission_ticket_id, fn ($query, $ticketId) => $query->where('ticket_id', $ticketId))
       ->where(function ($query) use ($term, $like) {
         $query->where('public_id', $term)
           ->orWhere('ticket_number', $term)
@@ -843,9 +826,12 @@ class OrganizerController extends Controller
   {
     $validated = $request->validate([
       'ticket_unit_id' => ['required', 'integer', 'min:1'],
+      'event_id' => ['required', 'integer', 'min:1'],
     ]);
+    $device = app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, (int) $validated['event_id']);
     $unit = BookingTicket::query()
       ->whereKey($validated['ticket_unit_id'])
+      ->where('event_id', $device->event_id)
       ->where('organizer_id', $request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id())
       ->first();
 
@@ -855,8 +841,8 @@ class OrganizerController extends Controller
 
     $request->merge([
       'booking_id' => signedTicketUnitPayload($unit->public_id, $unit->event_id),
-      'source' => 'manual',
     ]);
+    $request->attributes->set('scanner_check_in_source', 'manual');
     return $this->check_qrcode($request);
   }
 
@@ -885,90 +871,17 @@ class OrganizerController extends Controller
     return view('organizer.transaction', compact('transcations'));
   }
 
-  //monthly income
   public function monthly_income(Request $request)
   {
-    $date = $request->filled('year') ? $request->input('year') : date('Y');
-
-    $monthWiseTotalIncomes = DB::table('transactions')->where('organizer_id', Auth::guard('organizer')->user()->id)
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(grand_total) as total'))
-      ->where(function ($query) {
-        return $query->where('transcation_type', 1)->orWhere('transcation_type', 4);
-      })
-      ->where('payment_status', 1)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
+    $year = MonthlyReport::year($request);
+    $transactions = DB::table('transactions')->where('organizer_id', Auth::guard('organizer')->id());
+    $rows = MonthlyReport::query($transactions, $year)
+      ->selectRaw('SUM(CASE WHEN transcation_type IN (1, 4) AND payment_status = ? THEN grand_total ELSE 0 END) AS incomes', ['1'])
+      ->selectRaw('SUM(CASE WHEN transcation_type = 3 AND payment_status = ? THEN grand_total ELSE 0 END) AS rejects', ['2'])
+      ->selectRaw('SUM(CASE WHEN transcation_type IN (1, 3) AND payment_status = ? THEN commission ELSE 0 END) AS commissions', ['1'])
+      ->selectRaw('SUM(CASE WHEN transcation_type IN (3, 5, 6) THEN grand_total ELSE 0 END) AS expenses')
       ->get();
 
-    $monthWiseTotalReject = DB::table('transactions')->where('organizer_id', Auth::guard('organizer')->user()->id)
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(grand_total) as total'))
-      ->where('transcation_type', 3)
-      ->where('payment_status', 2)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-
-    $monthWiseTotalCommission = DB::table('transactions')->where('organizer_id', Auth::guard('organizer')->user()->id)
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(commission) as total'))
-      ->where(function ($query) {
-        return $query->where('transcation_type', 1)->orWhere('transcation_type', 3);
-      })
-      ->where('payment_status', 1)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-
-    $monthWiseTotalExpenses = DB::table('transactions')->where('organizer_id', Auth::guard('organizer')->user()->id)
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(grand_total) as total'))
-      ->where(function ($query) {
-        return $query->whereIn('transcation_type', [3, 5, 6]);
-      })
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-
-    $months      = [];
-    $incomes     = [];
-    $rejects     = [];
-    $commissions = [];
-    $expenses    = [];
-
-    for ($i = 1; $i <= 12; $i++) {
-      $dateObj   = DateTime::createFromFormat('!m', $i);
-      $monthName = $dateObj->format('M');
-      array_push($months, $monthName);
-
-      $incomeFound = false;
-      foreach ($monthWiseTotalIncomes as $incomeInfo) {
-        if ($incomeInfo->month == $i) { $incomeFound = true; array_push($incomes, $incomeInfo->total); break; }
-      }
-      if (!$incomeFound) array_push($incomes, 0);
-
-      $rejectFound = false;
-      foreach ($monthWiseTotalReject as $Reject) {
-        if ($Reject->month == $i) { $rejectFound = true; array_push($rejects, $Reject->total); break; }
-      }
-      if (!$rejectFound) array_push($rejects, 0);
-
-      $commissionFound = false;
-      foreach ($monthWiseTotalCommission as $commissionInfo) {
-        if ($commissionInfo->month == $i) { $commissionFound = true; array_push($commissions, $commissionInfo->total); break; }
-      }
-      if (!$commissionFound) array_push($commissions, 0);
-
-      $expensesFound = false;
-      foreach ($monthWiseTotalExpenses as $expensesInfo) {
-        if ($expensesInfo->month == $i) { $expensesFound = true; array_push($expenses, $expensesInfo->total); break; }
-      }
-      if (!$expensesFound) array_push($expenses, 0);
-    }
-
-    $information['months']      = $months;
-    $information['incomes']     = $incomes;
-    $information['rejects']     = $rejects;
-    $information['commissions'] = $commissions;
-    $information['expenses']    = $expenses;
-
-    return view('organizer.income', $information);
+    return view('organizer.income', MonthlyReport::series($rows, ['incomes', 'rejects', 'commissions', 'expenses']));
   }
 }

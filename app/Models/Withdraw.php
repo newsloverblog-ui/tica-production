@@ -18,6 +18,7 @@ class Withdraw extends Model
   protected $casts = [
     'reviewed_at' => 'datetime',
     'paid_at' => 'datetime',
+    'release_approval' => 'array',
   ];
 
   public function method()

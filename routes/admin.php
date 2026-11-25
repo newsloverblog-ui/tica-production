@@ -62,6 +62,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('/refund-disputes/{dispute}/review', 'BackEnd\PaymentRefundDisputeController@review')->name('admin.refund_disputes.review');
     Route::post('/refund-disputes/{dispute}/approve', 'BackEnd\PaymentRefundDisputeController@approve')->name('admin.refund_disputes.approve');
     Route::get('/payment-reconciliation', 'BackEnd\PaymentReconciliationController@index')->name('admin.payment_reconciliation.index');
+    Route::post('/payment-reconciliation/disputes/{dispute}/acknowledge', 'BackEnd\PaymentReconciliationController@acknowledgeDispute')
+      ->middleware('throttle:20,1')->name('admin.payment_reconciliation.dispute.acknowledge');
     Route::get('/payment-reconciliation/{run}', 'BackEnd\PaymentReconciliationController@show')->name('admin.payment_reconciliation.show');
     Route::post('/payment-reconciliation/export', 'BackEnd\ReconciliationExportController@storeRuns')->name('admin.payment_reconciliation.export');
     Route::post('/payment-reconciliation/{run}/entries/export', 'BackEnd\ReconciliationExportController@storeRunEntries')->name('admin.payment_reconciliation.entries.export');
@@ -310,6 +312,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('withdraw/withdraw-request/decline/{id}', 'BackEnd\WithdrawController@decline')->name('admin.witdraw.decline_withdraw');
     Route::post('withdraw/withdraw-request/hold/{id}', 'BackEnd\WithdrawController@hold')->name('admin.witdraw.hold_withdraw');
     Route::post('withdraw/withdraw-request/paystack/{id}', 'BackEnd\WithdrawController@submitPaystack')->name('admin.withdraw.submit_paystack');
+    Route::post('withdraw/withdraw-request/release-approval/{id}', 'BackEnd\WithdrawController@approveRelease')
+      ->middleware('permission:Transaction')->name('admin.withdraw.approve_release');
     Route::post('withdraw/disputes/{dispute}/review', 'BackEnd\WithdrawController@reviewDispute')->name('admin.withdraw.disputes.review');
   });
 

@@ -114,10 +114,10 @@
         </section>
         <section class="ce-subsection" id="ce-fee" aria-labelledby="ce-fee-title">
         <h2 id="ce-fee-title">Fees &amp; payout</h2>
-        <p class="ce-q">Who pays the <span data-fee-pct>6%</span> + ₦100 booking fee?</p>
+        <p class="ce-q">Who pays the booking fee?</p>
         <div class="ce-payer" role="radiogroup" aria-label="Who pays the booking fee">
-          <label><input type="radio" name="c-payer" value="buyer" checked><span><b>Buyers pay it</b><small id="ce-ex-b">Buyer pays ₦5,300. You get ₦5,000.</small></span></label>
-          <label><input type="radio" name="c-payer" value="me"><span><b>I'll include it</b><small id="ce-ex-m">Buyer pays ₦5,000. You get ₦4,700.</small></span></label>
+          <label><input type="radio" name="c-payer" value="buyer" checked><span><b>Buyers pay it</b><small id="ce-ex-b">The booking fee is added at checkout.</small></span></label>
+          <label><input type="radio" name="c-payer" value="me"><span><b>I'll include it</b><small id="ce-ex-m">The booking fee is deducted from sales.</small></span></label>
         </div>
         <div class="ce-bank" id="ce-bank"><span><b>Payout account</b><small>Not added yet. Add it before your event so you're paid on time.</small></span><a class="btn btn-line" href="/dashboard/payouts">Add bank account</a></div>
         </section>

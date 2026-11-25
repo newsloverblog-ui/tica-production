@@ -195,7 +195,6 @@ class EventController extends Controller
       $information['tickets_count'] = $tickets_count;
       if ($tickets_count < 1) {
         $content = EventContent::join('events', 'events.id', 'event_contents.event_id')
-          ->join('event_images', 'event_images.event_id', '=', 'events.id')
           ->join('event_categories', 'event_categories.id', '=', 'event_contents.event_category_id')
           ->where('event_contents.language_id', $language->id)
           ->where('events.id', $id)
@@ -208,7 +207,6 @@ class EventController extends Controller
       } else {
         $content = EventContent::join('events', 'events.id', 'event_contents.event_id')
           ->join('tickets', 'tickets.event_id', '=', 'events.id')
-          ->join('event_images', 'event_images.event_id', '=', 'events.id')
           ->join('event_categories', 'event_categories.id', '=', 'event_contents.event_category_id')
           ->where('event_contents.language_id', $language->id)
           ->where('events.id', $id)

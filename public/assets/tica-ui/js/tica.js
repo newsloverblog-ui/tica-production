@@ -23,6 +23,9 @@ function naira(n){return n===0?'Free':window.TICA_MONEY(n)}
 /* Tica: the booking fee is the admin percentage plus a fixed amount per paid ticket. */
 window.TICA_FEE_PCT=(TICA_DATA.currency&&TICA_DATA.currency.feePct!=null)?+TICA_DATA.currency.feePct:6;
 window.TICA_FEE_FLAT=(TICA_DATA.currency&&TICA_DATA.currency.feeFlat!=null)?+TICA_DATA.currency.feeFlat:100;
+window.TICA_BOOKING_FEE=function(net,paidCount){
+  return paidCount&&net>0?Math.round(net*window.TICA_FEE_PCT)/100+window.TICA_FEE_FLAT*paidCount:0;
+};
 [].forEach.call(document.querySelectorAll('[data-fee-pct]'),function(n){n.textContent=String(window.TICA_FEE_PCT).replace(/\.0+$/,'')+'%'});
 window.TICA_MONEY=function(n){var c=window.TICA_CUR||TICA_DATA.currency||{},r=Math.round(n*100)/100,v=r.toLocaleString('en-NG',{minimumFractionDigits:r%1?2:0,maximumFractionDigits:2});return c.position==='right'?v+(c.symbol||''):(c.symbol||'₦')+v};
 function meta(e){return e.time[0].toUpperCase()+e.time.slice(1)+', '+e.venue}
@@ -188,7 +191,13 @@ $('home-cities').innerHTML=Array.from(cities.values()).sort(function(a,b){return
   var x=null;
   stage.addEventListener('touchstart',function(ev){x=ev.touches[0].clientX},{passive:true});
   stage.addEventListener('touchend',function(ev){if(x===null)return;var dx=ev.changedTouches[0].clientX-x;x=null;if(Math.abs(dx)>40)move(dx<0?1:-1)});
-  $('cf').addEventListener('keydown',function(ev){if(ev.key==='ArrowLeft'){move(-1)}if(ev.key==='ArrowRight'){move(1)}});
+  $('cf').addEventListener('keydown',function(ev){
+    if(ev.key!=='ArrowLeft'&&ev.key!=='ArrowRight')return;
+    ev.preventDefault();
+    var fromSlide=ev.target.closest('.cfs');
+    move(ev.key==='ArrowLeft'?-1:1);
+    if(fromSlide)slides[i].focus({preventScroll:true});
+  });
   draw();
 })();
 
@@ -324,7 +333,7 @@ function renderEvent(e){
   function sum(){return qty.reduce(function(s,q,i){return s+q*tierPrice(e,i)},0)}
   function cnt(){return qty.reduce(function(s,q){return s+q},0)}
   function upd(){
-    var t=sum(),n=cnt(),off=discountOf(disc,t),lines='',pc=qty.reduce(function(s,q,i){return s+(tierPrice(e,i)>0?q:0)},0),f=e.absorb?0:feeFor(t-off,pc);
+    var t=sum(),n=cnt(),off=discountOf(disc,t),lines='',pc=qty.reduce(function(s,q,i){return s+(tierPrice(e,i)>0?q:0)},0),f=e.absorb?0:window.TICA_BOOKING_FEE(t-off,pc);
     qty.forEach(function(q,i){var o=$('tq'+i);if(o)o.textContent=q;if(q)lines+='<div class="sumline"><span>'+esc(e.tiers[i][0])+' x '+q+'</span><span>'+naira(q*tierPrice(e,i))+'</span></div>'});
     if(off)lines+='<div class="sumline"><span>'+esc(discountLabel(disc))+'</span><span>-'+naira(off)+'</span></div>';
     if(f)lines+='<div class="sumline"><span>Booking fee</span><span>'+naira(f)+'</span></div>';
@@ -355,7 +364,6 @@ function renderEvent(e){
 
 /* checkout: choose, details, pay */
 var ORDER=null,PENDING=null;
-var FEE_PCT=window.TICA_FEE_PCT,FEE_FLAT=window.TICA_FEE_FLAT;
 function checkoutSubmissionId(slug,candidate){
   var valid=function(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''))},key='tica_checkout_'+slug;
   if(valid(candidate))return candidate;
@@ -367,7 +375,6 @@ function checkoutSubmissionId(slug,candidate){
   return id;
 }
 function clearCheckoutSubmission(slug){try{sessionStorage.removeItem('tica_checkout_'+slug)}catch(e){}}
-function feeFor(net,paidCount){return paidCount&&net>0?Math.round(net*FEE_PCT)/100+FEE_FLAT*paidCount:0}
 function stepsBar(n,withForm){
   return '<ol class="steps">'+(withForm?['Choose tickets','Your details','Registration form','Pay','Get your tickets']:['Choose tickets','Your details','Pay','Get your tickets']).map(function(t,i){
     return '<li class="'+(i===n?'on':(i<n?'done':''))+'"'+(i===n?' aria-current="step"':'')+'>'+(i+1)+'. '+t+'</li>'}).join('')+'</ol>';
@@ -400,7 +407,7 @@ function renderCheckout(e){
   function reservedTicketIds(){var ids={};S.qty.forEach(function(q,i){if(q>0&&tierInfo(i).seatingMode==='reserved')ids[String(tierInfo(i).ticketId)]=q});return ids}
   function net(){var t=total();return t-discountOf(S.disc,t)}
   function paid(){return S.qty.reduce(function(sum,q,i){if(tierInfo(i).seatingMode!=='reserved')return sum+(tierPrice(e,i)>0?q:0);var picked=selectedSeatsFor(i);return sum+(picked.length===q?picked.filter(function(s){return +s.price>0}).length:(tierPrice(e,i)>0?q:0))},0)}
-  function fee(){return e.absorb?0:feeFor(net(),paid())}
+  function fee(){return e.absorb?0:window.TICA_BOOKING_FEE(net(),paid())}
   function money(){var t=net()+fee();return naira(Math.round(t*100)/100)}
   function summary(){
     var lines=S.qty.map(function(q,i){return q?'<div class="sumline"><span>'+q+' x '+esc(e.tiers[i][0])+'</span><span>'+naira(lineTotal(i))+'</span></div>':''}).join('');
@@ -894,7 +901,7 @@ function ckMetrics(){
 }
 function ckCheck(payload,source,label){
   if(!CKE){ckShow('bad','Choose an event',['Pick the event you\'re checking in for first.']);return}
-  ckFetch('/scanner/check-qrcode',{method:'POST',body:JSON.stringify({booking_id:payload,source:source||'scanner'})}).then(function(r){ckResult(r,label)},function(){ckShow('bad','No connection',['Check the internet connection, then scan again.'])});
+  ckFetch('/scanner/check-qrcode',{method:'POST',body:JSON.stringify({booking_id:payload,event_id:CKE})}).then(function(r){ckResult(r,label)},function(){ckShow('bad','No connection',['Check the internet connection, then scan again.'])});
 }
 /* Shared by QR scans, typed codes and guests found by search. Returns 'ok', 'used' or 'bad'. */
 function ckResult(r,label){
@@ -914,7 +921,15 @@ function renderCheckin(){
   ckSync();ckDraw();
   /* Owners manage gate staff and devices from the same place they scan */
   var su=$('ck-setup');if(su)su.hidden=!(window.TICA_ORG&&!TICA_DATA.gate&&((TICA_DATA.dashboard||{}).role||'owner')==='owner');
-  ckDevice().then(ckMetrics,function(er){ckShow('bad','This device isn\'t set up',[er.message]);$('ck-cam-go').disabled=true});
+  ckDevice().then(function(){return ckFetch('/scanner/device/current')}).then(function(r){
+    var device=r.device;
+    if(!device||!device.event_id)throw new Error('Ask the event organizer to assign this gate to an event.');
+    CKE=Number(device.event_id);
+    var entry=evs.find(function(e){return Number(e.id)===CKE});
+    sel.innerHTML='<option value="'+CKE+'">'+esc(entry?entry.label:'Event #'+CKE)+'</option>';
+    $('ck-cam-go').disabled=false;
+    ckMetrics();
+  }).catch(function(er){CKE=null;sel.innerHTML='<option value="">Gate assignment required</option>';ckShow('bad','This device isn\'t set up',[er.message]);$('ck-cam-go').disabled=true});
 }
 function ckSync(){var s=document.querySelector('.ck-sync');if(s)s.innerHTML='<i aria-hidden="true"'+(navigator.onLine?'':' style="background:#F04438;box-shadow:0 0 0 4px rgba(240,68,56,.18)"')+'></i>'+(navigator.onLine?'Online. Results are live.':'Offline. Reconnect to keep checking tickets.')}
 addEventListener('online',ckSync);addEventListener('offline',ckSync);
@@ -958,14 +973,18 @@ window.addEventListener('tica:navigate',function(){if(CKCAM&&!document.querySele
   });
   out.addEventListener('click',function(ev){var b=ev.target.closest('[data-found]');if(!b)return;var t=FOUND[+b.dataset.found];if(!t)return;
     b.disabled=true;b.textContent='Checking in…';
-    ckFetch('/scanner/manual-check-in',{method:'POST',body:JSON.stringify({ticket_unit_id:t.id})}).then(function(r){
+    ckFetch('/scanner/manual-check-in',{method:'POST',body:JSON.stringify({ticket_unit_id:t.id,event_id:CKE})}).then(function(r){
       var k=ckResult(r,t.holder_name||'Guest');var em=document.createElement('em');em.className='ck-found-st'+(k==='bad'?' bad':' in');em.textContent=k==='ok'?'Checked in':k==='used'?'Already in':'Not valid';b.replaceWith(em);
     },function(){b.disabled=false;b.textContent='Try again';ckShow('bad','No connection',['Check the internet connection, then try again.'])});
   });
 })();
 $('ck-manual').addEventListener('submit',function(ev){ev.preventDefault();var v=$('ck-code').value.trim().toUpperCase();if(!v)return;$('ck-code').value='';
   if(!CKE){ckShow('bad','Choose an event',['Pick the event you\'re checking in for first.']);return}
-  api('/tica-api/checkin/code',{event_id:CKE,code:v}).then(function(r){ckCheck(r.payload,'manual',r.name+', '+r.tier)},function(er){ckShow('bad','Ticket not found',[er.message,'Check the code, or send the guest to the help desk.']);CK.log.unshift({k:'bad',name:'Unknown code',sub:v,t:ckTime()});ckDraw()})});
+  ckFetch('/tica-api/checkin/code',{method:'POST',body:JSON.stringify({event_id:CKE,code:v})}).then(function(r){
+    if(r.__status>=400){ckResult(r);return}
+    return ckFetch('/scanner/manual-check-in',{method:'POST',body:JSON.stringify({event_id:CKE,ticket_unit_id:r.ticket_unit_id})}).then(function(result){ckResult(result,r.name+', '+r.tier)});
+  }).catch(function(){ckShow('bad','No connection',['Check the internet connection, then try again.'])});
+});
 $('ck-event').addEventListener('change',function(){CKE=+this.value||null;CKS.set('tica_ck_event',String(CKE||''));CK={total:0,in:0,log:[]};$('ck-res').className='ck-res';$('ck-res').innerHTML='<p class="ck-idle">Scan a ticket to see the result here.</p>';ckDraw();ckMetrics()});
 setInterval(function(){if(document.querySelector('.page[data-page=checkin]:not([hidden])')&&!document.hidden)ckMetrics()},20000);
 
@@ -975,6 +994,7 @@ var TITLES={home:'Home',discover:'Discover events',how:'How TICA works',pricing:
 var SPA=['','how','pricing','about','contact','join','policies','tickets','account','login','signup','forgot','create','dashboard','checkin','event','checkout','ticket'];
 function pathOf(u){return u.pathname.replace(/^\/+|\/+$/g,'')}
 function isSpa(path){var p=path.split('/')[0];
+  if(path==='tickets'&&window.TICA_USER)return false;
   /* Editing an event (/create/12) needs the saved event from the server, and the
      blank builder must never inherit an event being edited: both load as pages. */
   if(p==='create'&&(path!=='create'||(window.TICA_DATA&&TICA_DATA.builderEdit)))return false;
@@ -1007,7 +1027,6 @@ function reveal(root){
 window.TICA_go=go;
 function route(){
   var c0=cur.split('/')[0];
-  if(c0==='tickets'&&window.TICA_USER)cur='account';
   if(c0==='account'&&!window.TICA_USER){cur='login';[].forEach.call(document.querySelectorAll('.au'),function(a){a.dataset.role='att'});[].forEach.call(document.querySelectorAll('.au-seg button'),function(b){b.setAttribute('aria-pressed',b.dataset.role==='att'?'true':'false')});try{history.replaceState(null,'','/login')}catch(err){}}
   if((c0==='create'||c0==='dashboard'||c0==='checkin')&&!window.TICA_ORG&&!(c0==='create'&&window.TICA_ADMIN)&&!(c0==='checkin'&&TICA_DATA.gate)){
     cur='signup';
@@ -1069,8 +1088,10 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('[data-lo
   })});
   var $=function(i){return document.getElementById(i)},N=function(n){return window.TICA_MONEY(n)};
   function calc(){
-    var p=+$('c1').value,q=+$('c2').value,fee=Math.round((p*window.TICA_FEE_PCT/100+window.TICA_FEE_FLAT)*100)/100;
+    var p=+$('c1').value,q=+$('c2').value,fee=window.TICA_BOOKING_FEE(p,1);
     $('c1o').textContent=N(p);$('c2o').textContent=q.toLocaleString('en-NG');
+    $('c1').setAttribute('aria-valuetext',$('c1o').textContent);
+    $('c2').setAttribute('aria-valuetext',$('c2o').textContent+' tickets');
     var s=p*q;$('c-fee').textContent=N(fee);$('c-buy').textContent=N(p+fee);$('c-get').textContent=N(s);
   }
   $('c1').addEventListener('input',calc);$('c2').addEventListener('input',calc);
@@ -1257,7 +1278,7 @@ s.addEventListener('touchend',function(e){if(x===null)return;var dx=e.changedTou
 /* design script 10 */
 (function(){
 if(window.TICA_ADMIN)return;
-var $=function(i){return document.getElementById(i)},more=$('f-more'),bd=$('f-bd'),btn=$('f-btn'),last=null;
+var $=function(i){return document.getElementById(i)},more=$('f-more'),sheet=$('f-sheet'),btn=$('f-btn');
 var SEL=['d-where','d-cat','d-price','d-date'];
 function ui(){
   var n=0,chips='';
@@ -1272,16 +1293,41 @@ function ui(){
   var c=($('count').textContent||'').trim();$('f-apply').textContent=c&&c!=='0 events'?'Show '+c:'No matching events';
 }
 function escapeLabel(label){var node=document.createElement('span');node.textContent=label;return node.innerHTML.replace(/"/g,'&quot;')}
-var home=btn.parentNode,bdHome=bd.parentNode,bdNext=bd.nextSibling;
-function open(){last=document.activeElement;document.body.appendChild(bd);document.body.appendChild(more);void more.offsetWidth;bd.hidden=false;requestAnimationFrame(function(){bd.classList.add('on');more.classList.add('open')});document.documentElement.classList.add('menu-open');setTimeout(function(){$('f-x').focus()},320)}
-function close(){more.classList.remove('open');bd.classList.remove('on');document.documentElement.classList.remove('menu-open');setTimeout(function(){bd.hidden=true;if(!more.classList.contains('open')){home.insertBefore(more,btn.nextSibling);bdHome.insertBefore(bd,bdNext)}},320);if(last)last.focus()}
-btn.addEventListener('click',open);$('f-x').addEventListener('click',close);$('f-apply').addEventListener('click',close);bd.addEventListener('click',close);
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&more.classList.contains('open'))close()});
+var mobile=matchMedia('(max-width:700px)');
+function open(){
+  if(!mobile.matches||sheet.open)return;
+  sheet.append(more);
+  sheet.showModal();
+  document.documentElement.classList.add('filters-open');
+  btn.setAttribute('aria-expanded','true');
+  $('f-x').focus();
+}
+function close(){if(sheet.open)sheet.close()}
+btn.addEventListener('click',open);
+$('f-x').addEventListener('click',close);
+$('f-apply').addEventListener('click',close);
+mobile.addEventListener('change',function(){if(!mobile.matches)close()});
+sheet.addEventListener('click',function(e){if(e.target===sheet)close()});
+sheet.addEventListener('close',function(){
+  btn.after(more);
+  document.documentElement.classList.remove('filters-open');
+  btn.setAttribute('aria-expanded','false');
+  if(btn.getClientRects().length)btn.focus({preventScroll:true});
+});
+sheet.addEventListener('keydown',function(e){
+  if(e.key!=='Tab'||e.defaultPrevented)return;
+  var stops=Array.from(sheet.querySelectorAll('button,select,input')).filter(function(control){
+    return !control.disabled&&control.tabIndex>=0&&control.getClientRects().length;
+  });
+  var first=stops[0],last=stops[stops.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+});
 $('f-clear').addEventListener('click',function(){$('reset').click();$('d-sort').value='soon';$('d-sort').dispatchEvent(new Event('input',{bubbles:true}))});
 $('f-active').addEventListener('click',function(e){var b=e.target.closest('[data-clr]');if(!b)return;var s=$(b.dataset.clr);s.value=s.tagName==='SELECT'?'all':'';s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));$('d-q').focus()});
 new MutationObserver(ui).observe($('count'),{childList:true,characterData:true,subtree:true});
 SEL.forEach(function(id){$(id).addEventListener('input',ui);$(id).addEventListener('change',ui)});
-addEventListener('tica:navigate',function(){if(more.classList.contains('open'))close()});
+addEventListener('tica:navigate',close);
 document.addEventListener('click',function(e){if(e.target.closest('.nav-ic')){setTimeout(function(){var q=$('d-q');q.focus();q.scrollIntoView({block:'center'})},380)}});
 ui();
 })();
@@ -1773,7 +1819,7 @@ function paintTickets(r){
 var curEv=null;
 function seg(name,val,opts){return '<div class="od-seg" role="radiogroup">'+opts.map(function(o){return '<label><input type="radio" name="'+name+'" value="'+o[0]+'"'+(val===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div>'}
 function sw(id,on,label,sub){return '<li><span><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span><input class="ck-sw" type="checkbox" id="'+id+'"'+(on?' checked':'')+' aria-label="'+esc(label)+'"></li>'}
-function feeEx(r,payer){var t=r.tiers.filter(function(x){return x.price>0})[0];if(!t)return 'Free tickets have no fee.';var p=t.price,f=Math.round(p*window.TICA_FEE_PCT)/100;return payer==='buyer'?'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p+f)+', you get '+N(p)+'.':'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p)+', you get '+N(p-f)+'.'}
+function feeEx(r,payer){var t=r.tiers.filter(function(x){return x.price>0})[0];if(!t)return 'Free tickets have no fee.';var p=t.price,f=window.TICA_BOOKING_FEE(p,1);return payer==='buyer'?'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p+f)+', you get '+N(p)+'.':'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p)+', you get '+N(p-f)+'.'}
 var VISN={public:'Shown on Discover and in search.',unlisted:'Hidden from Discover. Anyone with the link can buy.',private:'Only people you invite by email can come.'};
 function openEv(id){
   var r=evById(id),online=r.mode!=='In person';curEv=r.id;window.TICA_CUR=r.cur||null;
@@ -1782,7 +1828,7 @@ function openEv(id){
   '<section><h3>Ticket sales</h3><ul class="od-sw">'+sw('ev-on',r.status==='On sale','Selling tickets','Pause to stop new orders. Existing tickets stay valid.')+'</ul>'+
   '<div class="od-tt" role="table" aria-label="Ticket types"><div class="od-ttr th" role="row"><span role="columnheader">Ticket</span><span role="columnheader">Price</span><span role="columnheader">Sold</span><span role="columnheader">Available</span></div>'+r.tiers.map(function(t,i){return '<div class="od-ttr" role="row"><span role="cell"><b>'+esc(t.name)+'</b></span><span role="cell">'+(t.price?N(t.price):'Free')+'</span><span role="cell">'+t.sold+'</span><span role="cell">'+(t.total==null?'<input type="text" value="Unlimited" disabled aria-label="'+esc(t.name)+' has no limit">':'<input type="number" min="'+t.sold+'" value="'+t.total+'" aria-label="Total '+esc(t.name)+' tickets" data-tq="'+i+'">')+'</span></div>'}).join('')+'</div>'+
   (r.mode==='Online'&&r.tiers.length?'':'<div class="od-newt" id="ev-newt" hidden><div class="od-row3"><div class="inp"><label for="ev-nt-n">Ticket name</label><input id="ev-nt-n" type="text" placeholder="VIP"></div><div class="inp"><label for="ev-nt-p">Price</label><input id="ev-nt-p" type="number" min="0" step="500" value="0"></div><div class="inp"><label for="ev-nt-q">Quantity</label><input id="ev-nt-q" type="number" min="1" placeholder="Unlimited"></div></div></div><button class="od-add" type="button" id="ev-addt">+ Add a ticket type</button>')+'</section>'+
-  '<section><h3>Who pays the '+esc(String(window.TICA_FEE_PCT).replace(/\.0+$/,''))+'% booking fee?</h3>'+seg('ev-payer',r.payer,[['buyer','Buyers pay it'],['me','I\'ll include it']])+'<p class="od-ex" id="ev-feeex">'+feeEx(r,r.payer)+'</p><p class="od-fine">Applies to new orders. People who already bought aren\'t affected.</p></section>'+
+  '<section><h3>Who pays the booking fee?</h3>'+seg('ev-payer',r.payer,[['buyer','Buyers pay it'],['me','I\'ll include it']])+'<p class="od-ex" id="ev-feeex">'+feeEx(r,r.payer)+'</p><p class="od-fine">Applies to new orders. People who already bought aren\'t affected.</p></section>'+
   (online?'<section><h3>Online access</h3><div class="od-row2"><div class="inp"><label for="ev-pl">Platform</label><select id="ev-pl">'+['Zoom','Google Meet','YouTube Live','Instagram Live','Other link'].map(function(p){return '<option'+(p===r.platform?' selected':'')+'>'+p+'</option>'}).join('')+'</select></div><div class="inp"><label for="ev-rv">Show the link</label><select id="ev-rv"><option value="15">15 minutes before</option><option value="30">30 minutes before</option><option value="60">1 hour before</option><option value="0">Right after purchase</option></select></div></div><div class="inp"><label for="ev-ln">Join link</label><input id="ev-ln" type="url" value="" placeholder="Leave blank to keep the current link"></div><p class="od-fine">Only ticket holders see the link, on their ticket and by email. Each ticket opens it on one device at a time.</p></section>':'')+
   '<section><h3>Who can find it</h3>'+seg('ev-vis',r.visibility,[['public','Public'],['unlisted','Link only'],['private','Private']])+'<p class="od-fine" id="ev-visn">'+VISN[r.visibility]+'</p></section>'+
   '<section><h3>Event page</h3><ul class="od-sw">'+sw('ev-left',r.showRemaining,'Show tickets left','')+sw('ev-wait',r.waitlist,'Waitlist when sold out','')+sw('ev-tr',r.transfers,'Allow ticket transfers','Buyers can pass a ticket to a friend before the event.')+'</ul>'+
@@ -1791,6 +1837,7 @@ function openEv(id){
   '<section class="od-danger"><h3>Postpone or cancel</h3><p>Buyers are told by email. If you cancel, all '+r.sold+' buyers get a full refund, booking fee included, from your sales.</p><div id="ev-postf" hidden><div class="od-row2"><div class="inp"><label for="ev-nd">New date</label><input id="ev-nd" type="date"></div><div class="inp"><label for="ev-ntm">Start time</label><input id="ev-ntm" type="time"></div></div></div><div class="od-dlgb"><button class="btn btn-line" type="button" id="ev-post">Change the date</button><button class="btn od-red" type="button" id="ev-cancel">Cancel event</button></div><p class="hint" id="ev-dz" role="status"></p></section>'+
   '</form>';
   $('ev-rf').value=['standard','7','48'].indexOf(r.refund)>-1?r.refund:'standard';if($('ev-rv'))$('ev-rv').value=String(r.reveal);
+  $('od-ev-dlg').setAttribute('aria-labelledby','od-ev-h');
   $('od-ev-dlg').showModal();
 }
 $('od-ev-dlg').addEventListener('close',function(){window.TICA_CUR=null});
@@ -1848,6 +1895,7 @@ document.addEventListener('click',function(ev){
   var r=t.closest('[data-resend]');if(r){var a=ATT[+r.dataset.resend];r.disabled=true;api('/tica-api/organizer/orders/'+a.bookingId+'/resend').then(function(){r.disabled=false;toast('Tickets sent again to '+a.buyerEmail+'.')},function(er){r.disabled=false;toast(errText(er))});return}
   var f=t.closest('[data-refund]');if(f){var a2=ATT[+f.dataset.refund];refundI=+f.dataset.refund;
     $('od-wd-body').innerHTML='<div class="sh-head"><div><h2 id="od-wd-h">Refund '+esc(a2.name)+'?</h2><p>Order #'+esc(a2.ref)+', '+esc(a2.tier)+' for '+esc(a2.event)+'.</p></div>'+XBTN+'</div><div class="od-form">'+seg('rf-amt','full',[['full','Full, '+Nc(a2.orderTotal,a2.cur)],['ticket','Ticket price only, '+Nc(a2.orderTickets,a2.cur)]])+'<div class="inp"><label for="rf-why">Reason</label><input id="rf-why" type="text" maxlength="300" value="Requested by the organiser"></div><p class="od-fine">TICA reviews the request, then the money goes back to the buyer\'s card or account within 7 to 10 working days and comes out of this event\'s sales. The whole order is refunded and its tickets stop working.</p><div class="od-dlgb"><button class="btn od-red" type="button" id="rf-go">Refund order</button><button class="btn btn-line" type="button" data-close>Keep order</button></div><p class="hint" id="rf-m" role="status"></p></div>';
+    $('od-wd').setAttribute('aria-labelledby','od-wd-h');
     $('od-wd').showModal();return}
   if(t.id==='rf-go'){var a3=ATT[refundI];t.disabled=true;api('/tica-api/organizer/orders/'+a3.bookingId+'/refund',{amount:document.querySelector('[name=rf-amt]:checked').value,reason:$('rf-why').value}).then(function(){$('od-wd').close();loadAtt();toast('Refund requested. '+a3.name+' will get an email once it\'s sent.')},function(er){t.disabled=false;$('rf-m').textContent=errText(er)});return}
   var m=t.closest('[data-manage]');if(m){openEv(m.dataset.manage);return}
@@ -1952,14 +2000,18 @@ function openWd(){
   '<dl class="od-wdl"><div><dt>To</dt><dd>'+esc(a.name)+'<br>'+esc(a.bank)+', •••• '+esc(a.last4)+'</dd></div><div><dt>Transfer fee</dt><dd id="wd-fee">'+(m.fixed||m.percent?'':'Free')+'</dd></div><div><dt>Arrives</dt><dd>'+(a.held?'After your new account\'s 24-hour safety hold':'Next business day')+'</dd></div></dl>'+
   '<div class="od-dlgb"><button class="btn btn-hot" type="button" id="wd-go">Withdraw '+N(max)+'</button></div><p class="hint" id="wd-m" role="status"></p></div>');
   var inp=$('wd-a');if(inp){var fee=function(){var v=+inp.value||0,f=Math.round((m.fixed+v*m.percent/100)*100)/100;$('wd-fee').textContent=f?N(f):'Free';$('wd-go').textContent='Withdraw '+N(v)};inp.addEventListener('input',fee);fee()}
+  $('od-wd').setAttribute('aria-labelledby','od-wd-h');
   $('od-wd').showModal();
 }
 function sendWd(){
   var a=+$('wd-a').value||0,m=P.method,min=Math.max(m.min,1),max=m.max?Math.min(m.max,P.available):P.available;if(a<min||a>max){$('wd-m').textContent='Enter between '+N(min)+' and '+N(max)+'.';return}
+  var storageKey='tica_pending_withdrawal:'+a,requestKey=localStorage.getItem(storageKey)||crypto.randomUUID();
+  localStorage.setItem(storageKey,requestKey);
   $('wd-go').disabled=true;
-  api('/tica-api/organizer/withdraw',{amount:a}).then(function(r){
+  api('/tica-api/organizer/withdraw',{amount:a,request_key:requestKey}).then(function(r){
+    if(localStorage.getItem(storageKey)===requestKey)localStorage.removeItem(storageKey);
     var b=P.account;
-    $('od-wd-body').innerHTML='<div class="od-sent"><i>'+ICO.ok+'</i><h2 id="od-wd-h">'+N(a)+' is on its way</h2><p>It goes to '+esc(b.bank)+' •••• '+esc(b.last4)+' in the next payout run. We\'ll email you when it\'s sent.</p><p class="od-fine">Reference '+esc(r.reference)+'</p><button class="btn btn-line" type="button" data-close>Done</button></div>';
+    $('od-wd-body').innerHTML='<div class="od-sent"><i>'+ICO.ok+'</i><h2 id="od-wd-h">Withdrawal requested</h2><p>'+N(a)+' is awaiting review for '+esc(b.bank)+' •••• '+esc(b.last4)+'. We\'ll email you when it\'s sent.</p><p class="od-fine">Reference '+esc(r.reference)+'</p><button class="btn btn-line" type="button" data-close>Done</button></div>';
     $('od-wd').addEventListener('close',function(){reload()},{once:true});
   },function(er){$('wd-go').disabled=false;$('wd-m').textContent=errText(er)});
 }
@@ -2287,7 +2339,7 @@ $('ce-tiers').addEventListener('change',function(e){var sw=e.target.closest('.ce
 
 function upd(){
   setCur();
-  var useRegistration=$('c-use-registration'),m=mode(),p=Math.max(0,parseFloat($('c-price').value)||0),fee=Math.round(p*window.TICA_FEE_PCT)/100,reg=!!(useRegistration&&useRegistration.checked);
+  var useRegistration=$('c-use-registration'),m=mode(),p=Math.max(0,parseFloat($('c-price').value)||0),fee=window.TICA_BOOKING_FEE(p,1),reg=!!(useRegistration&&useRegistration.checked);
   if(useRegistration)useRegistration.setAttribute('aria-expanded',String(reg));
   f.querySelector('.ce-in').hidden=m==='Online';f.querySelector('.ce-on').hidden=m==='In person';
   f.querySelector('.ce-sell').hidden=false;f.querySelector('.ce-reg').hidden=!reg;
@@ -2653,6 +2705,7 @@ upd();stage(0);
     trigger.addEventListener('click', () => {
       const opening = menu.hidden;
       closeSmartSelects(control);
+      if (opening) (trigger.closest('dialog') || document.body).append(menu);
       menu.hidden = !opening;
       trigger.setAttribute('aria-expanded', String(opening));
       shell.classList.toggle('is-open', opening);
@@ -2680,7 +2733,10 @@ upd();stage(0);
       if (event.key === 'Escape' || event.key === 'Tab') {
         close();
         trigger.focus({ preventScroll: true });
-        if (event.key === 'Escape') event.stopPropagation();
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+        }
       } else if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
         event.preventDefault();
         const active = document.activeElement;
@@ -2775,6 +2831,7 @@ upd();stage(0);
       const opening = panel.hidden;
       closeSmartSelects();
       datePickers.forEach((picker) => { if (picker !== control) picker.close(); });
+      if (opening) (trigger.closest('dialog') || document.body).append(panel);
       panel.hidden = !opening;
       trigger.setAttribute('aria-expanded', String(opening));
       trigger.classList.toggle('is-open', opening);
@@ -2803,6 +2860,7 @@ upd();stage(0);
     });
     panel.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
+      event.preventDefault();
       event.stopPropagation();
       close();
       trigger.focus({ preventScroll: true });
@@ -2832,6 +2890,10 @@ upd();stage(0);
   if (location.pathname === '/discover') document.dispatchEvent(new Event('tica:discover-ready'));
   document.querySelectorAll('.search.ms select:not([hidden]), .filters select').forEach(enhanceSelect);
   document.querySelectorAll('#h-date, #d-date').forEach(enhanceDatePicker);
+  document.getElementById('f-sheet').addEventListener('close', () => {
+    closeSmartSelects();
+    datePickers.forEach((picker) => picker.close());
+  });
   document.addEventListener('pointerdown', (event) => {
     if (!event.target.closest('.smart-select') && !event.target.closest('.smart-menu')) closeSmartSelects();
     if (!event.target.closest('.calendar-trigger') && !event.target.closest('.calendar-panel')) datePickers.forEach((picker) => picker.close());

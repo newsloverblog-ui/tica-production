@@ -327,6 +327,9 @@ class PaymentRefundService
         if (!in_array($intent->gateway, self::SUPPORTED_GATEWAYS, true) || $intent->status !== 'completed') {
             throw new RuntimeException('Only completed payments from a refund-enabled gateway can be refunded here.');
         }
+        if ($intent->gateway === 'paystack' && \App\Models\PaystackDispute::blocksPayment($intent->reference)) {
+            throw new RuntimeException('Finance must reconcile the Paystack dispute before a separate refund can be initiated.');
+        }
 
         if (!$allowCheckedIn && (
             (int) $booking->scan_status === 1 ||
@@ -344,6 +347,9 @@ class PaymentRefundService
         $claimed = DB::transaction(function () use ($refund) {
             $locked = PaymentRefund::whereKey($refund->id)->lockForUpdate()->firstOrFail();
             if ($locked->status !== 'requested') {
+                return false;
+            }
+            if ($locked->gateway === 'paystack' && \App\Models\PaystackDispute::blocksPayment($locked->gateway_reference)) {
                 return false;
             }
             $locked->update(['status' => 'submitting', 'last_error' => null]);

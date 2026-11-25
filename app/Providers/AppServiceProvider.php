@@ -44,7 +44,9 @@ class AppServiceProvider extends ServiceProvider
       URL::forceScheme('https');
     }
 
-    if (!app()->runningInConsole()) {
+    // Health routes own their dependency checks. View settings would make
+    // liveness depend on the database and prevent readiness from returning 503.
+    if (!app()->runningInConsole() && !request()->is('health/live', 'health/ready')) {
       # code...
       Paginator::useBootstrap();
 

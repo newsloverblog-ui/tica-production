@@ -10,12 +10,20 @@
   {{-- title --}}
   <title>{{ 'Invoice | ' . config('app.name') }}</title>
 
-  {{-- fav icon --}}
-  <link rel="shortcut icon" type="image/png" href="{{ asset('assets/admin/img/' . $websiteInfo->favicon) }}">
-
+  @php
+    $invoiceAsset = static function (string $path, ?string $url = null): string {
+      $local = public_path($path);
+      return is_file($local) ? $local : ($url ?? asset($path));
+    };
+    $brandFile = basename((string) $websiteInfo->logo);
+    $brandUrl = \App\Support\PublicImage::url('assets/admin/img', $brandFile);
+    $invoiceLogo = $brandUrl
+      ? $invoiceAsset('assets/admin/img/' . $brandFile, $brandUrl)
+      : $invoiceAsset('assets/tica-ui/img/tica-logo.png');
+  @endphp
   {{-- styles --}}
-  <link rel="stylesheet" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/admin/css/invoice.css') }}">
+  <link rel="stylesheet" href="{{ $invoiceAsset('assets/admin/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ $invoiceAsset('assets/admin/css/invoice.css') }}">
   @php
     $_15px = '15px';
     $_10px = '10px';
@@ -68,7 +76,7 @@
     <div class="row">
       <div class="col-lg-12">
         <div class="logo text-center" style="margin-bottom: {{ $mb }};">
-          <img src="{{ asset('assets/admin/img/' . $websiteInfo->logo) }}" alt="Company Logo">
+          <img src="{{ $invoiceLogo }}" alt="Company Logo">
         </div>
 
 
@@ -201,7 +209,9 @@
                   $accent = preg_match('/\A#[0-9A-Fa-f]{6}\z/', (string) ($design['accent'] ?? '')) ? $design['accent'] : '#245fd3';
                   $category = $ticketUnit->variation_name ?: optional($ticketUnit->ticket)->title;
                   $venue = collect([optional($eventInfo)->address, optional($eventInfo)->city])->filter()->join(', ');
-                  $eventLogo = \App\Support\PublicImage::flyer(optional($eventInfo)->thumbnail);
+                  $eventLogoName = basename((string) optional($eventInfo)->thumbnail);
+                  $eventLogoUrl = \App\Support\PublicImage::flyer($eventLogoName);
+                  $eventLogo = $eventLogoUrl ? $invoiceAsset('assets/admin/img/event/thumbnail/' . $eventLogoName, $eventLogoUrl) : null;
                 @endphp
                 <div class="tica-ticket text-center" style="--ticket-accent: {{ $accent }};">
                   @if ($show('logo') && $eventLogo)

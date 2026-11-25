@@ -15,6 +15,7 @@ test.describe('edge cases (owner)', () => {
     const date = future.toISOString().slice(0, 10);
 
     await page.addInitScript(() => {
+      if (window.top !== window) return;
       localStorage.setItem('tica_consent_v1', JSON.stringify({ v: 1, at: new Date().toISOString(), p: false, a: false, m: false }));
     });
     await page.goto('/create', { waitUntil: 'networkidle' });
@@ -72,6 +73,11 @@ test.describe('edge cases (owner)', () => {
     await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Opening keynote' })).toBeVisible();
     await noSidewaysScroll(page);
+    const publicPath = new URL(body.url, page.url()).pathname;
+    const preview = await page.goto('/organizer' + publicPath + '/preview', { waitUntil: 'networkidle' });
+    expect(preview?.status()).toBe(200);
+    await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible();
+    await expect(page.getByText('Private preview', { exact: true })).toBeVisible();
     expect(problems).toEqual([]);
   });
 

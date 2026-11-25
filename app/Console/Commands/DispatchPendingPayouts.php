@@ -30,9 +30,10 @@ class DispatchPendingPayouts extends Command
 
         $transfers = PayoutTransfer::query()
             ->where('status', 'queued')
+            ->when(!config('payouts.automatic_release_enabled'), fn ($query) => $query->where('release_source', '!=', 'automatic'))
             ->orderBy('id')
             ->limit($limit)
-            ->get();
+            ->when(config('payouts.paystack_transfers_enabled'), fn ($query) => $query->get(), fn () => collect());
         foreach ($transfers as $transfer) {
             $attempted++;
             if (!$payouts->dispatchQueued($transfer->id)) {

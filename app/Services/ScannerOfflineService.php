@@ -17,12 +17,13 @@ use Illuminate\Validation\ValidationException;
 
 class ScannerOfflineService
 {
-    public function events(int $organizerId): array
+    public function events(int $organizerId, int $eventId): array
     {
         return Event::query()
             ->with('information')
             ->where('organizer_id', $organizerId)
             ->where('status', 1)
+            ->whereKey($eventId)
             ->orderByRaw('CASE WHEN start_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('start_date')
             ->orderBy('id')
@@ -51,7 +52,7 @@ class ScannerOfflineService
             ->where('status', 1)
             ->firstOrFail();
 
-        if ((int) $device->organizer_id !== $organizerId || $device->status !== 'active') {
+        if ((int) $device->organizer_id !== $organizerId || $device->status !== 'active' || (int) $device->event_id !== $eventId) {
             throw ValidationException::withMessages([
                 'device' => 'The enrolled scanner is not active for this organizer.',
             ]);
@@ -61,6 +62,7 @@ class ScannerOfflineService
         $tickets = BookingTicket::query()
             ->where('organizer_id', $organizerId)
             ->where('event_id', $eventId)
+            ->when($device->admission_ticket_id, fn ($query, $ticketId) => $query->where('ticket_id', $ticketId))
             ->where('status', 'issued')
             ->whereHas('booking', function ($query) {
                 $query->whereIn('paymentStatus', ['completed', 'free', '1'])
@@ -152,6 +154,7 @@ class ScannerOfflineService
             ->where('public_id', $manifestPublicId)
             ->where('organizer_id', $organizerId)
             ->where('scanner_device_id', $device->id)
+            ->where('event_id', $device->event_id)
             ->firstOrFail();
 
         if (!in_array($manifest->status, ['active', 'expired'], true) || $manifest->revoked_at) {
@@ -239,7 +242,7 @@ class ScannerOfflineService
                     return $this->reject($receipt, 'This ticket was not eligible in the downloaded event manifest.');
                 }
 
-                $response = $checkIn($scan['payload']);
+                $response = $checkIn($scan['payload'], $scannedAt, (int) $manifest->event_id);
                 $status = $response->getStatusCode();
                 $body = $response instanceof JsonResponse
                     ? $response->getData(true)

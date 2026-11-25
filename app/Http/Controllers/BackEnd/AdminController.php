@@ -23,7 +23,7 @@ use App\Services\ApplicationMailService;
 use App\Services\AccountMfaService;
 use App\Services\TransactionExportQueryService;
 use App\Rules\MatchOldPasswordRule;
-use DateTime;
+use App\Support\MonthlyReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -350,167 +350,26 @@ class AdminController extends Controller
     ], 422);
   }
 
-  //monthly  earning
   public function monthly_earning(Request $request)
   {
-    if ($request->filled('year')) {
-      $date = $request->input('year');
-    } else {
-      $date = date('Y');
-    }
-    $monthWiseTotalIncomes = DB::table('transactions')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(grand_total) as total'))
-      ->where('payment_status', 1)
-      ->where(function ($query) {
-        return $query->whereNotIn('transcation_type', [3, 4, 5]);
-      })
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
+    $year = MonthlyReport::year($request);
+    $rows = MonthlyReport::query(DB::table('transactions')->where('payment_status', '1'), $year)
+      ->selectRaw('SUM(CASE WHEN transcation_type NOT IN (3, 4, 5) THEN grand_total ELSE 0 END) AS incomes')
+      ->selectRaw('SUM(CASE WHEN transcation_type NOT IN (2, 3, 4, 5) THEN tax ELSE 0 END) AS taxs')
       ->get();
 
-    $monthWiseTotaltaxs = DB::table('transactions')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(tax) as total'))
-      ->where('payment_status', 1)
-      ->where(function ($query) {
-        return $query->whereNotIn('transcation_type', [2, 3, 4, 5]);
-      })
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-
-
-    $months = [];
-    $incomes = [];
-    $taxs = [];
-    for ($i = 1; $i <= 12; $i++) {
-      // get all 12 months name
-      $monthNum = $i;
-      $dateObj = DateTime::createFromFormat('!m', $monthNum);
-      $monthName = $dateObj->format('F');
-      array_push($months, $monthName);
-
-      // get all 12 months's income of equipment booking
-      $incomeFound = false;
-      foreach ($monthWiseTotalIncomes as $incomeInfo) {
-        if ($incomeInfo->month == $i) {
-          $incomeFound = true;
-          array_push($incomes, $incomeInfo->total);
-          break;
-        }
-      }
-      if ($incomeFound == false) {
-        array_push($incomes, 0);
-      }
-
-      // get all 12 months's income of equipment booking
-      $taxFound = false;
-      foreach ($monthWiseTotaltaxs as $taxInfo) {
-        if ($taxInfo->month == $i) {
-          $taxFound = true;
-          array_push($taxs, $taxInfo->total);
-          break;
-        }
-      }
-      if ($taxFound == false) {
-        array_push($taxs, 0);
-      }
-    }
-    $information['months'] = $months;
-    $information['incomes'] = $incomes;
-    $information['taxs'] = $taxs;
-
-    return view('backend.admin.earning', $information);
+    return view('backend.admin.earning', MonthlyReport::series($rows, ['incomes', 'taxs'], 'F'));
   }
 
-  //monthly  income
   public function monthly_profit(Request $request)
   {
-    if ($request->filled('year')) {
-      $date = $request->input('year');
-    } else {
-      $date = date('Y');
-    }
-    $monthWiseTotalIncomes = DB::table('transactions')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(commission) as total'))
-      ->where('payment_status', 1)
-      ->where('organizer_id', '!=', null)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-      
-    $monthWiseTotalProfits = DB::table('transactions')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(tax) as total'))
-      ->where('payment_status', 1)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
+    $year = MonthlyReport::year($request);
+    $rows = MonthlyReport::query(DB::table('transactions')->where('payment_status', '1'), $year)
+      ->selectRaw('SUM(CASE WHEN organizer_id IS NOT NULL THEN commission ELSE 0 END) AS incomes')
+      ->selectRaw('SUM(tax) AS taxs')
+      ->selectRaw('SUM(CASE WHEN organizer_id IS NULL THEN grand_total ELSE 0 END) AS admin_profit')
       ->get();
 
-    $monthWiseTotalAdminProfits = DB::table('transactions')
-      ->select(DB::raw('month(created_at) as month'), DB::raw('sum(grand_total) as total'))
-      ->where('payment_status', 1)
-      ->where('organizer_id', '=', null)
-      ->groupBy('month')
-      ->whereYear('created_at', '=', $date)
-      ->get();
-
-
-
-    $months = [];
-    $incomes = [];
-    $taxs = [];
-    $admin_profit = [];
-    for ($i = 1; $i <= 12; $i++) {
-      // get all 12 months name
-      $monthNum = $i;
-      $dateObj = DateTime::createFromFormat('!m', $monthNum);
-      $monthName = $dateObj->format('M');
-      array_push($months, $monthName);
-
-      // get all 12 months's income of event booking
-      $incomeFound = false;
-      foreach ($monthWiseTotalIncomes as $incomeInfo) {
-        if ($incomeInfo->month == $i) {
-          $incomeFound = true;
-          array_push($incomes, $incomeInfo->total);
-          break;
-        }
-      }
-      if ($incomeFound == false) {
-        array_push($incomes, 0);
-      }
-
-      // get all 12 months's tax's of event booking
-      $taxFound = false;
-      foreach ($monthWiseTotalProfits as $profitInfo) {
-        if ($profitInfo->month == $i) {
-          $taxFound = true;
-          array_push($taxs, $profitInfo->total);
-          break;
-        }
-      }
-      if ($taxFound == false) {
-        array_push($taxs, 0);
-      }
-
-      // get all 12 months's tax's of event booking
-      $adminProfitFound = false;
-      foreach ($monthWiseTotalAdminProfits as $AdminProfit) {
-        if ($AdminProfit->month == $i) {
-          $adminProfitFound = true;
-          array_push($admin_profit, $AdminProfit->total);
-          break;
-        }
-      }
-      if ($adminProfitFound == false) {
-        array_push($admin_profit, 0);
-      }
-    }
-    $information['months'] = $months;
-    $information['incomes'] = $incomes;
-    $information['taxs'] = $taxs;
-    $information['admin_profit'] = $admin_profit;
-
-
-    return view('backend.admin.profit', $information);
+    return view('backend.admin.profit', MonthlyReport::series($rows, ['incomes', 'taxs', 'admin_profit']));
   }
 }

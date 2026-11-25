@@ -285,7 +285,7 @@
                                                                 @endif
                                                             </td>
                                                             <td>
-                                                                @if (!is_null($booking->attachmentFile))
+                                                                @if (filled($booking->attachmentFile))
                                                                     <a class="btn btn-sm btn-info" href="#"
                                                                         data-toggle="modal"
                                                                         data-target="#attachmentModal-{{ $booking->id }}">

@@ -73,7 +73,7 @@ class WithdrawController extends Controller
       'payout_reference' => ['required', 'string', 'max:191'],
     ]);
     try {
-      $withdraw = (new WithdrawalDecisionService())->markPaid(
+      $withdraw = app(PayoutTransferService::class)->recordExternalPayment(
         (int) $id,
         $validated['payout_reference'],
         (int) Auth::guard('admin')->id()
@@ -246,6 +246,18 @@ class WithdrawController extends Controller
       'success',
       'The payout was queued via ' . ucfirst((string) $transfer->gateway) . ' with reference ' . $transfer->reference . '. It is only marked paid after the provider confirms it.'
     );
+  }
+
+  public function approveRelease(Request $request, int $id, PayoutTransferService $transfers)
+  {
+    $validated = $request->validate(['review_fingerprint' => ['required', 'string', 'size:64']]);
+    try {
+      $transfers->approveRelease($id, (int) Auth::guard('admin')->id(), $validated['review_fingerprint']);
+    } catch (RuntimeException $exception) {
+      return redirect()->back()->with('warning', $exception->getMessage());
+    }
+
+    return redirect()->back()->with('success', 'Payout approved. A different authorized admin can release it before the approval expires.');
   }
 
   public function reviewDispute(

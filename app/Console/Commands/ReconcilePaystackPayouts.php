@@ -25,11 +25,6 @@ class ReconcilePaystackPayouts extends Command implements Isolatable
             return self::INVALID;
         }
 
-        if (!(bool) config('payouts.paystack_transfers_enabled', false)) {
-            $this->line('Paystack payout transfers are disabled; nothing to reconcile.');
-            return self::SUCCESS;
-        }
-
         $summary = $service->reconcileDue(null, (int) $rawLimit);
         if ($this->option('json')) {
             $this->line(json_encode($summary, JSON_PRETTY_PRINT));

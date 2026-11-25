@@ -20,6 +20,10 @@ not switches that perform the work.
 
 ## Environment and infrastructure
 
+Create or designate a Vercel Preview deployment for the exact candidate and verify its SHA under **Deployments**. Scope secrets and config to that preview, use a separate database, queue, mail/SMS sink and provider test account, and seed synthetic events, accounts and payment fixtures only. Verify the destination and provider environment before checkout, refund, transfer, scan or restore tests. Record the preview URL, SHA and fixture references in the release evidence.
+
+Assign each enrolled gate device to a synthetic event in **Organizer → Scanners → Manage enrolled scanners**. Restrict the gate to a ticket type where policy requires it. Admission opens 60 minutes before the scheduled start by default and closes at the scheduled end in the event timezone. Offline scanning defaults to off. Enable it only for a drill or an approved policy that allows provisional admissions before sync.
+
 | Gate | Required action and evidence | Owner / evidence |
 |---|---|---|
 | Database | Provision the production MySQL database, apply the authoritative baseline and migrations, reconcile the singleton earnings row and run the schema/data integrity checks. The application account must connect with least privilege. | Database owner, migration log, backup reference |
@@ -36,6 +40,7 @@ not switches that perform the work.
 | Gate | Required action and evidence | Owner / evidence |
 |---|---|---|
 | Payment contract | For every enabled hardened provider, run event checkout, signed webhook and replay, lost-callback recovery, reservation expiry, terminal refund and reconciliation. Reconciliation evidence must come from a successfully completed, non-truncated provider scan; exercise multi-page input and prove the 1,000-page safety ceiling creates a failed run with no false local-only classification. Never use partial entries or counters from a failed run for finance close. Paystack also requires the shop path. Record `PAYMENT_OPERATIONS_OWNER_EMAIL`, `PAYMENT_PRODUCTION_DRILL_AT`, `PAYMENT_PRODUCTION_DRILL_REFERENCE` and only the verified scenario flags. | Payments owner, provider/database/ledger evidence |
+| Paystack chargebacks | Exercise dispute creation and resolution before and after organizer payout. Verify admission and unsettled proceeds are held, a confirmed debit posts once to chargeback suspense, and Finance records the reconciled allocation reference before lifting the organizer payout hold. Retain the sandbox event and matching ledger evidence. | Finance owner, dispute and settlement evidence |
 | Legacy gateways | Keep `ALLOW_LEGACY_NON_PRODUCTION_GATEWAYS=false`. Do not enable a gateway outside `PRODUCTION_READY_PAYMENT_GATEWAYS` until its durable contract is implemented and certified. | Payments owner, gateway allowlist review |
 | Ticket SMS | Configure the approved Termii sender and secret. Prove local and international delivery, provider rejection, ambiguous timeout handling, exact signed-link access and payments-worker SLA before setting the SMS drill fields. | SMS owner, Termii case/message references |
 | Payouts | Keep automatic release off unless the eligibility policy is approved and the production payout/reconciliation drill has passed. Confirm finance alerts and exact transfer-reference replay behavior. | Finance owner, approval and drill references |

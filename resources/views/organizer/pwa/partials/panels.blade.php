@@ -27,7 +27,7 @@
       </div>
     </div>
   </div>
-  @if(Auth::guard('organizer')->check())
+  @if(Auth::guard('organizer')->check() && \App\Support\TeamPermissions::isOwner())
   <div class="col-12 mb-4">
     <div id="scanner-staff" class="card mx-auto scanner-panel">
       <div class="card-body">
@@ -68,11 +68,14 @@
         <div class="scanner-panel-head">
           <span class="scanner-panel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15.5a5 5 0 0 1 1.3-9.8A7 7 0 0 1 18.8 8 4 4 0 0 1 19 16H7"/><path d="M8 19h8M12 15v6"/></svg></span>
           <div class="scanner-panel-copy">
-            <h2 class="h5 mb-1">{{ __('Offline readiness') }}</h2>
-            <p class="text-muted mb-0">{{ __('Prepare an event before doors open. Offline scans sync and verify when this device reconnects.') }}</p>
+            <h2 class="h5 mb-1">{{ config('tickets.offline_enabled') ? __('Offline readiness') : __('Live attendance') }}</h2>
+            @if (config('tickets.offline_enabled'))
+              <p class="text-muted mb-0">{{ __('Offline scans are provisional. Wait for online confirmation if this event requires a single admission across all gates.') }}</p>
+            @endif
           </div>
           <span id="offline-network-badge" class="badge badge-success px-3 py-2">{{ __('Online') }}</span>
         </div>
+        @if (config('tickets.offline_enabled'))
         <div class="form-row align-items-end">
           <div class="col-sm-8 mb-2">
             <label for="offline-event-select">{{ __('Event') }}</label>
@@ -83,6 +86,7 @@
           </div>
         </div>
         <div id="offline-manifest-status" class="small text-muted mt-2" role="status" aria-live="polite">{{ __('No offline event prepared on this browser.') }}</div>
+        @endif
         <div id="scanner-live-metrics" class="scanner-live-metrics d-none mt-4 pt-3 border-top" aria-live="polite">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div><p class="scanner-eyebrow mb-1">{{ __('Live attendance') }}</p><h3 id="scanner-metrics-event" class="h6 mb-0"></h3></div>
@@ -96,11 +100,13 @@
           <div class="mt-3"><strong class="small">{{ __('Admissions by gate') }}</strong><div id="scanner-metrics-gates" class="mt-1"></div></div>
           <small id="scanner-metrics-updated" class="text-muted d-block mt-2"></small>
         </div>
+        @if (config('tickets.offline_enabled'))
         <div class="scanner-sync-row mt-3 pt-3 border-top">
           <div><strong id="offline-pending-count">0</strong> {{ __('provisional scan(s) waiting') }}</div>
           <button id="offline-sync" class="btn btn-primary btn-sm" type="button" disabled>{{ __('Synchronize now') }}</button>
         </div>
         <div id="offline-sync-status" class="small mt-2" role="status" aria-live="polite"></div>
+        @endif
       </div>
     </div>
   </div>

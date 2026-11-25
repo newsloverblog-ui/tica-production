@@ -193,7 +193,7 @@
                                   {{ __('Details') }}
                                 </a>
 
-                                @if (!is_null($booking->attachmentFile))
+                                @if (filled($booking->attachmentFile))
                                   <a href="#" class="dropdown-item" target="_blank" data-toggle="modal"
                                     data-target="#attachmentModal-{{ $booking->id }}">
                                     {{ __('Attachment') }}

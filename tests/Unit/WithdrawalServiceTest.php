@@ -74,6 +74,21 @@ class WithdrawalServiceTest extends TestCase
         $this->assertDatabaseCount('transactions', 0);
     }
 
+    public function test_retried_withdrawal_returns_the_original_reference_and_reserves_once(): void
+    {
+        $organizer = $this->organizer('verified', 50000);
+        $this->payoutAccount($organizer);
+        $method = $this->method();
+        $service = new WithdrawalService();
+        $key = (string) \Illuminate\Support\Str::uuid();
+        $first = $service->request($organizer->id, $method->id, 10000, null, '₦', 'left', $key);
+        $again = $service->request($organizer->id, $method->id, 10000, null, '₦', 'left', $key);
+        $this->assertSame($first->withdraw_id, $again->withdraw_id);
+        $this->assertDatabaseCount('withdraws', 1);
+        $this->assertDatabaseCount('transactions', 1);
+        $this->assertSame(40000.0, (float) $organizer->fresh()->amount);
+    }
+
     public function test_verified_organizer_without_verified_bank_account_cannot_withdraw(): void
     {
         $organizer = $this->organizer('verified', 50000);

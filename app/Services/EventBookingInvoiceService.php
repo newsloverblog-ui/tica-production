@@ -75,10 +75,12 @@ class EventBookingInvoiceService
         $mb = '35px';
         $ml = '18px';
 
-        $contents = PDF::loadView(
+        $document = PDF::loadView(
             'frontend.event.invoice',
             compact('bookingInfo', 'eventInfo', 'width', 'float', 'mb', 'ml')
-        )->output();
+        );
+        $document->getDomPDF()->setHttpContext(stream_context_create(['http' => ['timeout' => 3]]));
+        $contents = $document->output();
 
         return $currentTickets
             ? $this->documents->storeCurrentTickets($booking, $contents)

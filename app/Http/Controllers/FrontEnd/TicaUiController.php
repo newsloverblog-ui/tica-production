@@ -36,12 +36,22 @@ class TicaUiController extends Controller
     'missing' => 'Page not found', 'content' => 'TICA',
   ];
 
+  private const PUBLIC_DESCRIPTIONS = [
+    'discover' => 'Find upcoming concerts, campus nights and conferences on TICA. Browse events by city, date, category or ticket price.',
+    'how' => 'See how TICA works for event organisers and ticket buyers, from setting ticket prices to scanning e-tickets at the gate.',
+    'pricing' => 'See the booking fee for paid tickets and estimate what buyers pay and organisers receive with the TICA fee calculator.',
+    'contact' => 'Contact TICA for help finding your tickets, getting started as an organiser or running a larger event.',
+  ];
+
   public function page(Request $request, TicaUiPayload $payload, string $page = 'home', ?string $section = null)
   {
     // Laravel hands route values over by position, so /dashboard/{section} with a
     // 'page' default arrives swapped. Read both by name instead.
     $page = (string) ($request->route('page') ?? 'home');
     $section = $request->route('section');
+    if ($page === 'tickets' && $request->user('customer')) {
+      return redirect(route('tica.account') . '#tickets');
+    }
     $path = $page === 'home' ? '' : $page . ($section ? '/' . $section : '');
 
     return $this->render($request, $payload, $page, $path);
@@ -278,28 +288,43 @@ class TicaUiController extends Controller
     $data = $payload->build($language, $path, $event, $extra);
     $siteSeo = TicaSite::get('seo');
     $title = $event ? $event['name'] : (self::TITLES[$page] ?? 'TICA');
+    $pageTitle = $page === 'home' ? $siteSeo['title'] : $title . ' | TICA';
     $description = $event
       ? Str::limit(trim(strip_tags($event['desc'])) ?: $event['name'] . ', ' . $event['label'], 158)
-      : ($page === 'home' ? $siteSeo['description'] : ($this->seo($page, $language->id) ?: $siteSeo['description']));
-
-    $meta = null;
-    if (isset($view['meta'])) {
-      $meta = $view['meta'] + ['robots' => 'index,follow'];
+      : ($page === 'home' ? $siteSeo['description'] : ($this->seo($page, $language->id) ?: (self::PUBLIC_DESCRIPTIONS[$page] ?? $siteSeo['description'])));
+    $shareImage = $siteSeo['og_image'] ?: (TicaSite::get('home')['hero_images'][0] ?? '');
+    $meta = $view['meta'] ?? [];
+    $image = ($meta['image'] ?? $event['image'] ?? null) ?: (filled($shareImage) ? TicaSite::imageUrl($shareImage) : null);
+    $meta['image'] = $image ? url($image) : null;
+    $structuredData = $event ? $this->eventSchema($event) : null;
+    if ($page === 'about') {
+      $brand = TicaSite::get('branding');
+      $structuredData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'AboutPage',
+        'url' => url('/about'),
+        'name' => $pageTitle,
+        'mainEntity' => [
+          '@type' => 'Organization',
+          'name' => $brand['site_name'],
+          'url' => url('/'),
+          'logo' => url(TicaSite::imageUrl($brand['logo'])),
+        ],
+      ];
     }
 
     return response()->view('tica-ui.app', [
       'initialPage' => $page,
       'payload' => $data,
       'assetVersion' => $this->assetVersion(),
-      'meta' => $meta ?? [
-        'title' => $page === 'home' ? $siteSeo['title'] : $title . ' | TICA',
+      'meta' => $meta + [
+        'title' => $pageTitle,
         'description' => $description,
-        'ogTitle' => $event ? $event['name'] . ' | TICA' : $siteSeo['title'],
+        'ogTitle' => $pageTitle,
         'ogDescription' => $description,
-        'image' => $event['image'] ?? (filled($siteSeo['og_image']) ? TicaSite::imageUrl($siteSeo['og_image']) : null),
         'robots' => in_array($page, ['checkout', 'login', 'signup', 'forgot', 'account', 'tickets', 'dashboard', 'create', 'checkin', 'missing'], true) ? 'noindex,follow' : (($siteSeo['index_site'] ?? true) ? 'index,follow' : 'noindex,follow'),
       ],
-      'structuredData' => $event ? $this->eventSchema($event) : null,
+      'structuredData' => $structuredData,
       'content' => $view['content'] ?? null,
     ], $status);
   }

@@ -5,6 +5,7 @@ return [
     'verify_provider_balance' => (bool) env('PAYOUT_VERIFY_PROVIDER_BALANCE', true),
     'paystack_transfers_enabled' => (bool) env('PAYSTACK_TRANSFERS_ENABLED', false),
     'automatic_release_enabled' => (bool) env('PAYOUT_AUTOMATIC_RELEASE_ENABLED', false),
+    'approval_minutes' => max(1, min(120, (int) env('PAYOUT_APPROVAL_MINUTES', 30))),
     'reconcile_after_minutes' => (int) env('PAYOUT_RECONCILE_AFTER_MINUTES', 5),
     'reconcile_batch_limit' => (int) env('PAYOUT_RECONCILE_BATCH_LIMIT', 100),
     'verification_max_attempts' => (int) env('PAYOUT_VERIFICATION_MAX_ATTEMPTS', 5),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BackEnd\Organizer;
 
 use App\Http\Controllers\Controller;
 use App\Services\ScannerOfflineService;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,13 +12,16 @@ class ScannerOfflineController extends Controller
 {
     public function events(Request $request, ScannerOfflineService $service)
     {
+        abort_unless(config('tickets.offline_enabled'), 403);
+        $eventId = (int) $request->attributes->get('scanner_device')?->event_id;
         return response()->json([
-            'events' => $service->events($this->organizerId($request)),
+            'events' => $service->events($this->organizerId($request), $eventId),
         ])->header('Cache-Control', 'no-store, private');
     }
 
     public function store(Request $request, ScannerOfflineService $service)
     {
+        abort_unless(config('tickets.offline_enabled'), 403);
         $validated = $request->validate(['event_id' => ['required', 'integer', 'min:1']]);
         $payload = $service->createManifest(
             $this->organizerId($request),
@@ -31,6 +35,7 @@ class ScannerOfflineController extends Controller
 
     public function sync(Request $request, ScannerOfflineService $service)
     {
+        abort_unless(config('tickets.offline_enabled'), 403);
         $batchSize = (int) config('tickets.offline_sync_batch_size', 250);
         $validated = $request->validate([
             'manifest_id' => ['required', 'uuid'],
@@ -49,14 +54,16 @@ class ScannerOfflineController extends Controller
             $staff,
             $validated['manifest_id'],
             $validated['scans'],
-            function (string $qrPayload) use ($request, $organizerId, $device, $staff) {
+            function (string $qrPayload, CarbonInterface $scannedAt, int $eventId) use ($request, $organizerId, $device, $staff) {
                 $checkRequest = Request::create('/scanner/check-qrcode', 'POST', [
                     'booking_id' => $qrPayload,
-                    'source' => 'offline_sync',
+                    'event_id' => $eventId,
                 ]);
                 $checkRequest->attributes->set('scanner_organizer_id', $organizerId);
                 $checkRequest->attributes->set('scanner_device', $device);
                 $checkRequest->attributes->set('scanner_staff', $staff);
+                $checkRequest->attributes->set('scanner_check_in_source', 'offline_sync');
+                $checkRequest->attributes->set('scanner_admission_time', $scannedAt);
                 $checkRequest->attributes->set('scanner_access_role', $request->attributes->get('scanner_access_role'));
 
                 return app(OrganizerController::class)->check_qrcode($checkRequest);

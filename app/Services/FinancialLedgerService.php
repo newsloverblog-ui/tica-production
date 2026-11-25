@@ -37,6 +37,15 @@ class FinancialLedgerService
     public const PROCESSOR_FEES = 'gateway_processing_expense';
     public const PROMOTION_REVENUE = 'platform_promotion_revenue';
 
+    public function postPaystackChargeback(int $disputeId, string $currency, int $amountMinor): void
+    {
+        $suspense = $this->account(null, null, 'platform_chargeback_suspense', 'Chargebacks pending allocation', 'asset', 'debit', $currency);
+        $clearing = $this->account(null, null, self::CLEARING, 'Gateway clearing', 'asset', 'debit', $currency);
+        $this->post('paystack-chargeback:' . $disputeId, 'payment_chargeback', [
+            [$suspense, 'debit', $amountMinor], [$clearing, 'credit', $amountMinor],
+        ], \App\Models\PaystackDispute::class, $disputeId);
+    }
+
     public function recordSale(object $booking, Transaction $legacy, ?int $processorFeeMinor = null): OrganizerEarningRelease
     {
         $organizerId = (int) ($booking->organizer_id ?? 0);
@@ -107,6 +116,11 @@ class FinancialLedgerService
         $ids = OrganizerEarningRelease::query()
             ->where('status', 'pending')
             ->whereNotNull('available_at')->where('available_at', '<=', now())
+            ->when(\Illuminate\Support\Facades\Schema::hasTable('paystack_disputes'), fn ($query) => $query->whereNotExists(
+                fn ($disputes) => $disputes->selectRaw('1')->from('paystack_disputes')
+                    ->whereColumn('paystack_disputes.booking_id', 'organizer_earning_releases.booking_id')
+                    ->where('paystack_disputes.status', '!=', 'declined')
+            ))
             ->oldest('available_at')->limit(max(1, min(500, $limit)))->pluck('id');
         $summary = ['checked' => $ids->count(), 'released' => 0, 'held' => 0];
 
@@ -115,6 +129,9 @@ class FinancialLedgerService
                 $release = OrganizerEarningRelease::whereKey($id)->lockForUpdate()->first();
                 if (!$release || $release->status !== 'pending' || !$release->available_at || $release->available_at->isFuture()) {
                     return 'skipped';
+                }
+                if (\App\Models\PaystackDispute::blocksBooking((int) $release->booking_id)) {
+                    return 'held';
                 }
                 $event = $release->event_id ? Event::whereKey($release->event_id)->lockForUpdate()->first() : null;
                 if ($event && (($event->lifecycle_status ?? 'scheduled') === 'cancelled' || $event->cancelled_at)) {

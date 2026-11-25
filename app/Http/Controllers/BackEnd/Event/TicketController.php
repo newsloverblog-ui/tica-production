@@ -22,11 +22,8 @@ class TicketController extends Controller
 
     $language = Language::where('code', $request->language)->firstOrFail();
     $information['language'] = $language;
-    $event = EventContent::where('event_id', $request->event_id)->where('language_id', $language->id)->first();
-    if (empty($event)) {
-      $event = EventContent::where('event_id', $request->event_id)->first();
-    }
-    $tickets = Ticket::where('event_id', $request->event_id)->orderBy('id', 'desc')->get();
+    $event = $this->eventContent($request, $language);
+    $tickets = Ticket::where('event_id', $event->event_id)->orderBy('id', 'desc')->get();
     $information['event'] = $event;
 
     $information['tickets'] = $tickets;
@@ -38,13 +35,10 @@ class TicketController extends Controller
     $information = [];
     $languages = Language::get();
     $language = Language::where('code', $request->language)->firstOrFail();
-    $event = EventContent::where('event_id', $request->event_id)->where('language_id', $language->id)->first();
-    if (empty($event)) {
-      $event = EventContent::where('event_id', $request->event_id)->first();
-    }
+    $event = $this->eventContent($request, $language);
 
     $information['languages'] = $languages;
-    $eventType = Event::where('id', $request->event_id)->select('event_type')->first();
+    $eventType = Event::query()->findOrFail($event->event_id, ['event_type']);
     $information['eventType'] = $eventType;
     $information['event'] = $event;
     $information['getCurrencyInfo']  = $this->getCurrencyInfo();
@@ -129,17 +123,27 @@ class TicketController extends Controller
     $languages = Language::get();
     $language = Language::where('code', $request->language)->firstOrFail();
     $information['languages'] = $languages;
-    $event = EventContent::where('event_id', $request->event_id)->where('language_id', $language->id)->first();
-    if (empty($event)) {
-      $event = EventContent::where('event_id', $request->event_id)->first();
-    }
+    $event = $this->eventContent($request, $language);
     $information['event'] = $event;
-    $ticket = Ticket::where('id', $request->id)->firstOrFail();
+    $ticketId = filter_var($request->query('id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    abort_unless($ticketId !== false, 404);
+    $ticket = Ticket::where('event_id', $event->event_id)->findOrFail($ticketId);
     $information['ticket'] = $ticket;
     $information['variations'] = json_decode($ticket->variations, true);
     $information['getCurrencyInfo']  = $this->getCurrencyInfo();
     return view('backend.event.ticket.edit', $information);
   }
+
+  private function eventContent(Request $request, Language $language): EventContent
+  {
+    $eventId = filter_var($request->query('event_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    abort_unless($eventId !== false, 404);
+
+    $contents = EventContent::query()->where('event_id', $eventId);
+
+    return (clone $contents)->where('language_id', $language->id)->first() ?? $contents->firstOrFail();
+  }
+
   //update
   public function update(TicketRequest $request)
   {

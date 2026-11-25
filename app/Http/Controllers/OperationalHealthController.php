@@ -12,20 +12,20 @@ class OperationalHealthController extends Controller
 {
     public function ready(QueueHealthService $queues, SharedStateHealthService $sharedState)
     {
-        $databaseHealthy = true;
+        $check = 'database';
         try {
             DB::select('select 1');
+            $check = 'dependency';
+            $queue = $queues->evaluate();
+            $state = $sharedState->evaluate();
+            $healthy = $queue['healthy'] && $state['healthy'];
         } catch (Throwable $exception) {
-            Log::error('Readiness database check failed.', [
+            Log::error("Readiness {$check} check failed.", [
                 'exception_type' => $exception::class,
                 'exception_code' => (string) $exception->getCode(),
             ]);
-            $databaseHealthy = false;
+            $healthy = false;
         }
-
-        $queue = $queues->evaluate();
-        $state = $sharedState->evaluate();
-        $healthy = $databaseHealthy && $queue['healthy'] && $state['healthy'];
 
         return response()->json([
             'status' => $healthy ? 'ready' : 'unavailable',

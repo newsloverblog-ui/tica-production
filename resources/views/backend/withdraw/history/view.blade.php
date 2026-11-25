@@ -56,21 +56,30 @@
   </div>
 
   @if (in_array((int) $item->status, [0, 3], true))
-    @if (config('payouts.paystack_transfers_enabled') && optional($item->payoutAccount)->provider === 'paystack' && optional($item->payoutAccount)->status === 'verified')
+    @if (in_array(optional($item->payoutAccount)->provider, ['paystack', 'monnify'], true) && $item->payoutAccount->status === 'verified')
       <div class="modal fade" id="paystackModal{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content">
           <form method="post" action="{{ route('admin.withdraw.submit_paystack', ['id' => $item->id]) }}">
             @csrf
-            <div class="modal-header"><h4 class="modal-title">{{ __('Submit Paystack payout') }}</h4><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button></div>
+            <div class="modal-header"><h4 class="modal-title">{{ __('Review payout release') }}</h4><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button></div>
             <div class="modal-body">
-              <p>{{ __('This queues a real transfer to the verified destination below. The withdrawal stays reserved until a signed Paystack webhook or server verification confirms the final outcome.') }}</p>
+              <p>{{ __('One authorized admin must approve the amount and destination. A different admin can then queue the transfer before approval expires.') }}</p>
               <div class="alert alert-info">
                 <strong>{{ $item->payoutAccount->resolved_account_name }}</strong><br>
                 {{ $item->payoutAccount->bank_name }} · {{ $item->payoutAccount->maskedNumber() }}<br>
                 {{ __('Payable amount') }}: {{ number_format((float) $item->payable_amount, 2) }} {{ $item->payoutAccount->currency }}
               </div>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button><button type="submit" class="btn btn-primary">{{ __('Queue verified payout') }}</button></div>
+            <div class="modal-footer">
+              @if (Auth::guard('admin')->user()?->hasPermission('Transaction'))
+                <input type="hidden" name="review_fingerprint" value="{{ app(\App\Services\PayoutTransferService::class)->approvalFingerprint($item, $item->payoutAccount) }}">
+                <button type="submit" formaction="{{ route('admin.withdraw.approve_release', ['id' => $item->id]) }}" class="btn btn-outline-primary">{{ __('Approve release') }}</button>
+              @endif
+              @if (config('payouts.paystack_transfers_enabled') && (int) data_get($item->release_approval, 'expires_at') > now()->getTimestamp() && (int) data_get($item->release_approval, 'admin_id') !== (int) Auth::guard('admin')->id())
+                <button type="submit" class="btn btn-primary">{{ __('Queue approved payout') }}</button>
+              @endif
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Close') }}</button>
+            </div>
           </form>
         </div></div>
       </div>

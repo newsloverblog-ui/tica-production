@@ -46,6 +46,8 @@ return [
     'guest_retention_enabled' => filter_var(env('TICKET_GUEST_RETENTION_ENABLED', false), FILTER_VALIDATE_BOOL),
 
     /* Offline scanner snapshots are deliberately short-lived and bounded. */
+    'admission_early_minutes' => max(0, (int) env('SCANNER_ADMISSION_EARLY_MINUTES', 60)),
+    'offline_enabled' => filter_var(env('SCANNER_OFFLINE_ENABLED', false), FILTER_VALIDATE_BOOL),
     'offline_manifest_hours' => max(1, (int) env('SCANNER_OFFLINE_MANIFEST_HOURS', 12)),
     'offline_sync_grace_hours' => max(1, (int) env('SCANNER_OFFLINE_SYNC_GRACE_HOURS', 24)),
     'offline_manifest_max_tickets' => max(100, (int) env('SCANNER_OFFLINE_MAX_TICKETS', 25000)),

@@ -73,25 +73,47 @@ class IndividualTicketCheckInTest extends TestCase
         $this->assertSame('issued', $unit->fresh()->status);
     }
 
-    public function test_explicitly_empty_check_in_source_is_rejected_without_admitting_ticket(): void
+    public function test_missing_event_selection_is_rejected_without_admitting_ticket(): void
     {
         $organizer = $this->organizer();
         Auth::guard('organizer')->login($organizer);
         $unit = $this->unit($this->booking($organizer->id, 1), 1);
         $request = $this->scanRequest($unit);
-        $request->merge(['source' => null]);
+        $request->merge(['event_id' => null]);
 
         try {
             (new OrganizerController())->check_qrcode($request);
-            $this->fail('An explicitly empty check-in source must fail validation.');
+            $this->fail('An explicitly empty event assignment must fail validation.');
         } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('source', $exception->errors());
+            $this->assertArrayHasKey('event_id', $exception->errors());
         }
 
         $this->assertSame('issued', $unit->fresh()->status);
         $this->assertNull($unit->fresh()->checked_in_at);
         $this->assertDatabaseCount('audit_logs', 0);
         $this->assertDatabaseCount('funnel_analytics_events', 0);
+    }
+
+    public function test_wrong_event_gate_or_admission_window_leaves_ticket_issued(): void
+    {
+        $organizer = $this->organizer();
+        Auth::guard('organizer')->login($organizer);
+        $unit = $this->unit($this->booking($organizer->id, 1), 1);
+        $controller = new OrganizerController();
+        $device = $this->scannerDevice($organizer->id);
+
+        $wrongEvent = $this->scanRequestForDevice($unit, $device);
+        $wrongEvent->merge(['booking_id' => signedTicketUnitPayload($unit->public_id, 51)]);
+        $this->assertSame(404, $controller->check_qrcode($wrongEvent)->getStatusCode());
+
+        $device->forceFill(['admission_ticket_id' => 123])->save();
+        $this->assertSame(403, $controller->check_qrcode($this->scanRequestForDevice($unit, $device))->getStatusCode());
+
+        $device->forceFill(['admission_ticket_id' => null])->save();
+        DB::table('events')->where('id', 50)->update(['start_date' => now()->addDays(2)->toDateString(), 'end_date' => now()->addDays(2)->toDateString()]);
+        $this->assertSame(403, $controller->check_qrcode($this->scanRequestForDevice($unit, $device))->getStatusCode());
+        $this->assertSame('issued', $unit->fresh()->status);
+        $this->assertDatabaseCount('audit_logs', 0);
     }
 
     public function test_unitless_or_partial_booking_cannot_bypass_admission_ledger(): void
@@ -103,6 +125,7 @@ class IndividualTicketCheckInTest extends TestCase
 
         $legacyRequest = Request::create('/organizer/check-qrcode', 'POST', [
             'booking_id' => signedTicketPayload($unitless->booking_id, $unitless->event_id),
+            'event_id' => $unitless->event_id,
         ]);
         $legacyRequest->attributes->set('scanner_device', $this->scannerDevice($organizer->id));
         $missingResponse = $controller->check_qrcode($legacyRequest);
@@ -131,6 +154,7 @@ class IndividualTicketCheckInTest extends TestCase
         $unit = $this->unit($booking, 1);
         $request = Request::create('/organizer/check-qrcode', 'POST', [
             'booking_id' => signedTicketPayload($booking->booking_id, $booking->event_id),
+            'event_id' => $booking->event_id,
         ]);
         $request->attributes->set('scanner_device', $this->scannerDevice($organizer->id));
 
@@ -150,16 +174,12 @@ class IndividualTicketCheckInTest extends TestCase
         Auth::guard('organizer')->login($owner);
         $controller = new OrganizerController();
 
-        $lookup = $controller->ticketLookup(Request::create('/organizer/scanner/ticket-lookup', 'POST', [
-            'query' => 'ada@example.com',
-        ]));
+        $lookup = $controller->ticketLookup($this->lookupRequest($ownedUnit, 'ada@example.com'));
         $matches = $lookup->getData(true)['tickets'];
         $this->assertCount(1, $matches);
         $this->assertSame($ownedUnit->id, $matches[0]['id']);
 
-        $numberLookup = $controller->ticketLookup(Request::create('/organizer/scanner/ticket-lookup', 'POST', [
-            'query' => 'REG-001',
-        ]));
+        $numberLookup = $controller->ticketLookup($this->lookupRequest($ownedUnit, 'REG-001'));
         $numberMatch = $numberLookup->getData(true)['tickets'][0];
         $this->assertSame('REG-001', $numberMatch['ticket_number']);
         $this->assertSame('01', $numberMatch['seat']);
@@ -168,6 +188,7 @@ class IndividualTicketCheckInTest extends TestCase
 
         $manualRequest = Request::create('/organizer/scanner/manual-check-in', 'POST', [
             'ticket_unit_id' => $ownedUnit->id,
+            'event_id' => $ownedUnit->event_id,
         ]);
         $manualRequest->attributes->set('scanner_device', $this->scannerDevice($owner->id));
         $staff = $this->scannerStaff($owner->id);
@@ -187,6 +208,7 @@ class IndividualTicketCheckInTest extends TestCase
 
         $duplicateRequest = Request::create('/organizer/scanner/manual-check-in', 'POST', [
             'ticket_unit_id' => $ownedUnit->id,
+            'event_id' => $ownedUnit->event_id,
         ]);
         $duplicateRequest->attributes->set('scanner_device', $this->scannerDevice($owner->id));
         $duplicate = $controller->manualCheckIn($duplicateRequest);
@@ -249,13 +271,21 @@ class IndividualTicketCheckInTest extends TestCase
 
     private function scanRequest(BookingTicket $unit): Request
     {
-        return $this->scanRequestForDevice($unit, $this->scannerDevice($unit->organizer_id));
+        return $this->scanRequestForDevice($unit, $this->scannerDevice(Auth::guard('organizer')->id()));
+    }
+
+    private function lookupRequest(BookingTicket $unit, string $query): Request
+    {
+        $request = Request::create('/scanner/ticket-lookup', 'POST', ['query' => $query, 'event_id' => $unit->event_id]);
+        $request->attributes->set('scanner_device', $this->scannerDevice($unit->organizer_id));
+        return $request;
     }
 
     private function scanRequestForDevice(BookingTicket $unit, ScannerDevice $device, ?ScannerStaff $staff = null): Request
     {
         $request = Request::create('/organizer/check-qrcode', 'POST', [
             'booking_id' => signedTicketUnitPayload($unit->public_id, $unit->event_id),
+            'event_id' => $unit->event_id,
         ]);
         $request->attributes->set('scanner_device', $device);
         if ($staff) {
@@ -278,15 +308,18 @@ class IndividualTicketCheckInTest extends TestCase
             'password' => 'hash',
             'role' => 'check_in',
             'status' => 'active',
+            'auth_version' => 1,
         ]);
     }
 
     private function device(int $organizerId, string $name): ScannerDevice
     {
-        return ScannerDevice::firstOrCreate(
+        $device = ScannerDevice::firstOrCreate(
             ['organizer_id' => $organizerId, 'name' => $name],
             ['public_id' => (string) Str::uuid(), 'secret_hash' => hash('sha256', 'test-secret'), 'status' => 'active']
         );
+        $device->forceFill(['event_id' => 50])->save();
+        return $device;
     }
 
     private function organizer(): Organizer
@@ -299,6 +332,11 @@ class IndividualTicketCheckInTest extends TestCase
 
     private function booking(int $organizerId, int $quantity = 2): Booking
     {
+        DB::table('events')->insertOrIgnore([
+            'id' => 50, 'organizer_id' => $organizerId, 'status' => 1,
+            'start_date' => now()->subDay()->toDateString(), 'start_time' => '00:00:00',
+            'end_date' => now()->addDay()->toDateString(), 'end_time' => '23:59:59', 'timezone' => config('app.timezone'),
+        ]);
         DB::table('event_contents')->updateOrInsert(
             ['event_id' => 50, 'language_id' => 1],
             ['title' => 'TICA Test Night']
@@ -341,6 +379,11 @@ class IndividualTicketCheckInTest extends TestCase
             $table->id(); $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('language_id');
             $table->string('title');
         });
+        Schema::create('events', function (Blueprint $table) {
+            $table->id(); $table->unsignedBigInteger('organizer_id'); $table->integer('status');
+            $table->date('start_date'); $table->time('start_time'); $table->date('end_date'); $table->time('end_time');
+            $table->string('timezone');
+        });
         Schema::create('booking_tickets', function (Blueprint $table) {
             $table->id(); $table->uuid('public_id')->unique(); $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('organizer_id')->nullable();
@@ -376,6 +419,7 @@ class IndividualTicketCheckInTest extends TestCase
             $table->timestamp('last_login_at')->nullable(); $table->timestamp('last_seen_at')->nullable();
             $table->timestamp('revoked_at')->nullable(); $table->rememberToken(); $table->timestamps();
         });
+        (require database_path('migrations/2026_11_25_121000_scope_scanner_devices_to_events.php'))->up();
         Schema::create('scanner_check_in_conflicts', function (Blueprint $table) {
             $table->id(); $table->unsignedBigInteger('organizer_id'); $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('booking_ticket_id'); $table->unsignedBigInteger('original_scanner_device_id');

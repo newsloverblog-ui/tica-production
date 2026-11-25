@@ -69,7 +69,7 @@
                     <tr>
                       <td>
                         @php
-                          $monthNum = $key;
+                          $monthNum = $key + 1;
                           $dateObj = DateTime::createFromFormat('!m', $monthNum);
                           $monthName = $dateObj->format('F');
                         @endphp

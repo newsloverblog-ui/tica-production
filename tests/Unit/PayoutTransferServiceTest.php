@@ -109,6 +109,63 @@ class PayoutTransferServiceTest extends TestCase
         $this->assertDatabaseCount('payout_transfers', 0);
     }
 
+    public function test_manual_release_requires_distinct_active_admins_and_current_terms(): void
+    {
+        Queue::fake();
+        [, $account, $withdrawal] = $this->payoutFixture();
+        $service = new PayoutTransferService();
+        foreach ([999 => 'different admin', 101 => 'active admin'] as $admin => $reason) {
+            try {
+                $service->queue($withdrawal->id, $admin);
+                $this->fail('This admin must not release the payout.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString($reason, $exception->getMessage());
+            }
+        }
+
+        $account->update(['account_number_hash' => hash('sha256', 'changed fixture')]);
+        $this->expectExceptionMessage('A fresh approval is required');
+        $service->queue($withdrawal->id, 19);
+    }
+
+    public function test_pause_stops_dispatch_and_reconciles_a_stranded_original_reference(): void
+    {
+        Queue::fake();
+        [, , $withdrawal] = $this->payoutFixture('recipient-for-pause-test');
+        $service = new PayoutTransferService();
+        $transfer = $service->queue($withdrawal->id, 19);
+        config()->set('payouts.paystack_transfers_enabled', false);
+        $client = Mockery::mock(PaystackGatewayClient::class);
+        $client->shouldNotReceive('initiateTransfer');
+        $this->assertSame('queued', $service->submit($transfer->id, $client)->status);
+
+        $transfer->forceFill(['status' => 'submitting', 'updated_at' => now()->subMinutes(5)])->save();
+        $client->shouldReceive('verifyTransfer')->once()->with($transfer->reference)->andReturn([
+            'data' => [
+                'reference' => $transfer->reference, 'amount' => 980000, 'currency' => 'NGN',
+                'status' => 'success', 'transfer_code' => 'controlled-transfer',
+            ],
+        ]);
+        $this->assertSame(['checked' => 1, 'updated' => 1, 'errors' => 0], $service->reconcileDue($client));
+        $this->assertSame(Withdraw::STATUS_PAID, (int) $withdrawal->fresh()->status);
+    }
+
+    public function test_queued_payout_with_expired_approval_is_held_before_submission(): void
+    {
+        Queue::fake();
+        [, , $withdrawal] = $this->payoutFixture('recipient-for-expiry-test');
+        $service = new PayoutTransferService();
+        $transfer = $service->queue($withdrawal->id, 19);
+        $approval = $withdrawal->fresh()->release_approval;
+        $approval['expires_at'] = now()->getTimestamp();
+        $withdrawal->forceFill(['release_approval' => $approval])->save();
+
+        $client = Mockery::mock(PaystackGatewayClient::class);
+        $client->shouldNotReceive('initiateTransfer');
+        $this->assertSame('failed', $service->submit($transfer->id, $client)->status);
+        $this->assertSame(Withdraw::STATUS_HELD, (int) $withdrawal->fresh()->status);
+    }
+
     public function test_lost_submission_handoff_is_durable_and_recovered_without_duplicate_transfer(): void
     {
         Queue::fake();
@@ -288,7 +345,7 @@ class PayoutTransferServiceTest extends TestCase
         );
     }
 
-    public function test_failed_webhook_returns_reserved_balance_and_rejects_withdrawal(): void
+    public function test_failed_webhook_keeps_funds_reserved_for_finance_review(): void
     {
         [$transfer, $withdrawal, $organizer] = $this->submittedTransfer();
 
@@ -300,9 +357,31 @@ class PayoutTransferServiceTest extends TestCase
         ]);
 
         $this->assertSame('failed', $transfer->fresh()->status);
-        $this->assertSame(Withdraw::STATUS_REJECTED, (int) $withdrawal->fresh()->status);
-        $this->assertSame(11000.0, (float) $organizer->fresh()->amount);
-        $this->assertSame('2', (string) Transaction::firstOrFail()->payment_status);
+        $this->assertSame(Withdraw::STATUS_HELD, (int) $withdrawal->fresh()->status);
+        $this->assertSame(1000.0, (float) $organizer->fresh()->amount);
+        $this->assertSame('0', (string) Transaction::firstOrFail()->payment_status);
+    }
+
+    public function test_reversal_holds_funds_without_downgrading_success_from_a_late_failure(): void
+    {
+        [$transfer, $withdrawal, $organizer] = $this->submittedTransfer();
+        $service = new PayoutTransferService();
+        $evidence = [
+            'reference' => $transfer->reference, 'transfer_code' => $transfer->gateway_transfer_code,
+            'amount' => 980000, 'currency' => 'NGN',
+        ];
+        $service->handleWebhook('transfer.success', $evidence);
+        $service->handleWebhook('transfer.failed', $evidence);
+        $this->assertSame('success', $transfer->fresh()->status);
+        $this->assertSame(Withdraw::STATUS_PAID, (int) $withdrawal->fresh()->status);
+
+        $service->handleWebhook('transfer.reversed', $evidence);
+        $service->handleWebhook('transfer.reversed', $evidence);
+        $service->handleWebhook('transfer.success', $evidence);
+        $this->assertSame('reversed', $transfer->fresh()->status);
+        $this->assertSame(Withdraw::STATUS_HELD, (int) $withdrawal->fresh()->status);
+        $this->assertSame(1000.0, (float) $organizer->fresh()->amount);
+        $this->assertSame('0', (string) Transaction::firstOrFail()->payment_status);
     }
 
     public function test_unknown_submission_outcome_is_audited_and_reconciled_not_marked_failed(): void
@@ -330,7 +409,7 @@ class PayoutTransferServiceTest extends TestCase
         );
     }
 
-    public function test_terminal_submission_failure_keeps_raw_diagnostic_out_of_audit_evidence(): void
+    public function test_ambiguous_submission_keeps_raw_diagnostic_out_of_audit_evidence(): void
     {
         Queue::fake();
         [, , $withdrawal] = $this->payoutFixture('RCP_terminal_failure');
@@ -342,16 +421,16 @@ class PayoutTransferServiceTest extends TestCase
 
         $result = $service->submit($transfer->id, $client);
 
-        $this->assertSame('failed', $result->status);
-        $this->assertSame(Withdraw::STATUS_HELD, (int) $withdrawal->fresh()->status);
-        $this->assertStringContainsString('sensitive terminal provider response', (string) $result->last_error);
+        $this->assertSame('verification_required', $result->status);
+        $this->assertSame(Withdraw::STATUS_PROCESSING, (int) $withdrawal->fresh()->status);
+        $this->assertStringNotContainsString('sensitive terminal provider response', (string) $result->last_error);
         $this->assertStringNotContainsString(
             'sensitive terminal provider response',
             (string) DB::table('payout_transfers')->where('id', $transfer->id)->value('last_error')
         );
         $this->assertStringNotContainsString(
             'sensitive terminal provider response',
-            (string) DB::table('audit_logs')->where('action', 'payout.transfer_failed')->value('metadata')
+            (string) DB::table('audit_logs')->where('action', 'payout.transfer_verification_required')->value('metadata')
         );
     }
 
@@ -620,11 +699,22 @@ class PayoutTransferServiceTest extends TestCase
             'pre_balance' => 11000,
             'after_balance' => 1000,
         ]);
+        $service = new PayoutTransferService();
+        $service->approveRelease($withdrawal->id, 999, $service->approvalFingerprint($withdrawal, $account));
         return [$organizer, $account, $withdrawal];
     }
 
     private function createSchema(): void
     {
+        Schema::create('admins', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('role_id')->nullable();
+            $table->integer('status');
+        });
+        foreach (range(1, 100) as $id) {
+            DB::table('admins')->insert(['id' => $id, 'status' => 1]);
+        }
+        DB::table('admins')->insert(['id' => 999, 'status' => 1]);
         Schema::create('organizers', function (Blueprint $table) {
             $table->id(); $table->string('email')->nullable(); $table->string('username')->nullable();
             $table->string('password')->nullable(); $table->integer('status')->default(1);
@@ -682,6 +772,7 @@ class PayoutTransferServiceTest extends TestCase
             $table->string('organizer_notified_status', 32)->nullable(); $table->timestamp('organizer_notified_at')->nullable();
             $table->string('finance_notified_status', 32)->nullable(); $table->timestamp('finance_notified_at')->nullable();
         });
+        (require database_path('migrations/2026_11_25_120000_add_payout_release_approval.php'))->up();
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id(); $table->string('actor_type'); $table->unsignedBigInteger('actor_id')->nullable();
             $table->string('action'); $table->string('subject_type')->nullable(); $table->unsignedBigInteger('subject_id')->nullable();

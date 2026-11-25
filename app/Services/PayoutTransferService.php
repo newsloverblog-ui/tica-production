@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Contracts\PayoutProvider;
-use App\Exceptions\GatewayOutcomeUnknownException;
 use App\Services\Payouts\PayoutProviders;
 use App\Services\Payouts\PaystackPayoutProvider;
 use App\Jobs\SendPayoutStatusNotification;
@@ -12,7 +11,8 @@ use App\Models\OrganizerPayoutAccount;
 use App\Models\Organizer;
 use App\Models\PayoutTransfer;
 use App\Models\Withdraw;
-use Illuminate\Http\Client\ConnectionException;
+use App\Models\Admin;
+use App\Support\Money;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +23,7 @@ use Throwable;
 
 class PayoutTransferService
 {
-    private const ACTIVE = ['queued', 'submitting', 'pending', 'processing', 'verification_required'];
+    private const ACTIVE = ['queued', 'submitting', 'pending', 'processing', 'verification_required', 'needs_attention'];
     private const ORGANIZER_NOTIFICATION_STATUSES = ['queued', 'success', 'failed', 'reversed'];
     private const FINANCE_NOTIFICATION_STATUSES = ['failed', 'reversed', 'verification_required', 'needs_attention'];
 
@@ -35,6 +35,108 @@ class PayoutTransferService
     public function queue(int $withdrawalId, int $adminId): PayoutTransfer
     {
         return $this->queueTransfer($withdrawalId, $adminId, 'manual');
+    }
+
+    public function approveRelease(int $withdrawalId, int $adminId, string $expectedFingerprint): void
+    {
+        if (!Schema::hasColumn('withdraws', 'release_approval')) {
+            throw new RuntimeException('Payout approvals will be available after the database update.');
+        }
+        DB::transaction(function () use ($withdrawalId, $adminId, $expectedFingerprint): void {
+            $withdrawal = Withdraw::whereKey($withdrawalId)->lockForUpdate()->firstOrFail();
+            $this->authorizeAdmin($adminId, approval: true);
+            if (!in_array((int) $withdrawal->status, [Withdraw::STATUS_PENDING, Withdraw::STATUS_HELD], true)) {
+                throw new RuntimeException('Only pending or held withdrawals can be approved for release.');
+            }
+            $this->withdrawalEvidence->lockAndValidate($withdrawal, [0]);
+            $account = $this->verifiedAccount($withdrawal);
+            $fingerprint = $this->approvalFingerprint($withdrawal, $account);
+            if (!hash_equals($fingerprint, $expectedFingerprint)) {
+                throw new RuntimeException('This payout changed. Review the current amount and beneficiary.');
+            }
+            $approval = [
+                'id' => (string) Str::uuid(),
+                'admin_id' => $adminId,
+                'fingerprint' => $fingerprint,
+                'expires_at' => now()->addMinutes(max(1, (int) config('payouts.approval_minutes', 30)))->getTimestamp(),
+            ];
+            $withdrawal->forceFill(['release_approval' => $approval])->save();
+            AuditLogger::record('payout.release_approved', $withdrawal, [], [
+                'approval_id' => $approval['id'], 'approver_id' => $adminId, 'expires_at' => $approval['expires_at'],
+                'amount_minor' => Money::toMinor($withdrawal->payable_amount), 'currency' => $account->currency,
+                'payout_account_id' => $account->id,
+            ]);
+        }, 3);
+    }
+
+    private function authorizeAdmin(int $id, bool $approval = false): void
+    {
+        $admin = Admin::find($id);
+        if (!$admin || (int) $admin->status !== 1 || !$admin->hasPermission('Withdraw Method')
+            || ($approval && !$admin->hasPermission('Transaction'))) {
+            throw new RuntimeException('An active admin with the correct payout permissions is required.');
+        }
+    }
+
+    private function verifiedAccount(Withdraw $withdrawal): OrganizerPayoutAccount
+    {
+        if (!Organizer::whereKey($withdrawal->organizer_id)->where('kyc_status', 'verified')->lockForUpdate()->first()) {
+            throw new RuntimeException('Organizer verification is required to release this payout.');
+        }
+        if (\App\Models\PaystackDispute::holdsOrganizer((int) $withdrawal->organizer_id)) {
+            throw new RuntimeException('An unresolved payment dispute requires finance review before releasing this payout.');
+        }
+        $account = OrganizerPayoutAccount::whereKey($withdrawal->payout_account_id)
+            ->where('organizer_id', $withdrawal->organizer_id)
+            ->whereIn('provider', ['paystack', 'monnify'])
+            ->where('status', 'verified')->where('is_default', true)->lockForUpdate()->first();
+        if (!$account || strtoupper((string) $account->currency) !== 'NGN') {
+            throw new RuntimeException('The original verified NGN payout account must still be active and selected.');
+        }
+        if ($account->hold_until && now()->lt($account->hold_until)) {
+            throw new RuntimeException('This payout account is still within its security hold.');
+        }
+        return $account;
+    }
+
+    public function approvalFingerprint(Withdraw $withdrawal, OrganizerPayoutAccount $account): string
+    {
+        return hash('sha256', json_encode([
+            (int) $withdrawal->id, (int) $withdrawal->organizer_id, Money::toMinor($withdrawal->amount),
+            Money::toMinor($withdrawal->payable_amount), (int) $account->id, $account->provider,
+            strtoupper((string) $account->currency), $account->bank_code, $account->account_number_hash,
+            $account->verified_at?->getTimestamp(), $account->hold_until?->getTimestamp(),
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    private function requireApproval(Withdraw $withdrawal, OrganizerPayoutAccount $account, int $adminId): array
+    {
+        $this->authorizeAdmin($adminId);
+        $approval = $withdrawal->release_approval;
+        if (!$approval || (int) $approval['expires_at'] <= now()->getTimestamp()
+            || !hash_equals($approval['fingerprint'], $this->approvalFingerprint($withdrawal, $account))) {
+            throw new RuntimeException('A fresh approval is required for the current payout amount and beneficiary.');
+        }
+        if ((int) $approval['admin_id'] === $adminId) {
+            throw new RuntimeException('A different admin must release this payout.');
+        }
+        $this->authorizeAdmin((int) $approval['admin_id'], approval: true);
+        return $approval;
+    }
+
+    public function recordExternalPayment(int $withdrawalId, string $reference, int $adminId): Withdraw
+    {
+        return DB::transaction(function () use ($withdrawalId, $reference, $adminId): Withdraw {
+            $withdrawal = Withdraw::whereKey($withdrawalId)->lockForUpdate()->firstOrFail();
+            $this->authorizeAdmin($adminId);
+            if ((int) $withdrawal->status !== Withdraw::STATUS_PAID) {
+                $this->requireApproval($withdrawal, $this->verifiedAccount($withdrawal), $adminId);
+                if (PayoutTransfer::where('withdrawal_id', $withdrawalId)->exists()) {
+                    throw new RuntimeException('Reconcile the existing provider transfer before recording an external payout.');
+                }
+            }
+            return app(WithdrawalDecisionService::class)->markPaid($withdrawalId, $reference, $adminId);
+        }, 3);
     }
 
     public function queueAutomatically(
@@ -67,6 +169,9 @@ class PayoutTransferService
             $withdrawal = Withdraw::whereKey($withdrawalId)->lockForUpdate()->firstOrFail();
             $organizer = Organizer::whereKey($withdrawal->organizer_id)->lockForUpdate()->firstOrFail();
             $withdrawal->setRelation('organizer', $organizer);
+            if ($adminId !== null) {
+                $this->authorizeAdmin($adminId);
+            }
             $existing = PayoutTransfer::where('withdrawal_id', $withdrawal->id)
                 ->whereIn('status', self::ACTIVE)
                 ->latest('id')
@@ -78,6 +183,9 @@ class PayoutTransferService
                     [(int) $withdrawal->status === Withdraw::STATUS_PAID ? 1 : 0]
                 );
                 return $existing;
+            }
+            if ($withdrawal->paid_at || PayoutTransfer::where('withdrawal_id', $withdrawal->id)->where('status', 'reversed')->exists()) {
+                throw new RuntimeException('A reversed payout must be resolved by finance before any new withdrawal.');
             }
             $allowedStatuses = $releaseSource === 'automatic'
                 ? [Withdraw::STATUS_PENDING]
@@ -94,18 +202,8 @@ class PayoutTransferService
                 $policyDecision = ($eligibility ?: new PayoutEligibilityService())->assertEligible($withdrawal);
             }
 
-            $account = OrganizerPayoutAccount::whereKey($withdrawal->payout_account_id)
-                ->where('organizer_id', $withdrawal->organizer_id)
-                ->whereIn('provider', ['paystack', 'monnify'])
-                ->where('status', 'verified')
-                ->lockForUpdate()
-                ->first();
-            if (!$account) {
-                throw new RuntimeException('A verified payout account is required.');
-            }
-            if ($account->hold_until && now()->lt($account->hold_until)) {
-                throw new RuntimeException('This payout account is still within its 24-hour security hold.');
-            }
+            $account = $this->verifiedAccount($withdrawal);
+            $approval = $adminId === null ? null : $this->requireApproval($withdrawal, $account, $adminId);
 
             $transfer = PayoutTransfer::create([
                 'public_id' => (string) Str::uuid(),
@@ -120,6 +218,9 @@ class PayoutTransferService
                 'release_source' => $releaseSource,
                 'policy_version' => $policyDecision['policy_version'] ?? null,
             ]);
+            if ($approval) {
+                $transfer->forceFill(['release_approval_id' => $approval['id']])->save();
+            }
 
             $before = (int) $withdrawal->status;
             $withdrawal->forceFill([
@@ -153,6 +254,9 @@ class PayoutTransferService
     {
         $transfer = PayoutTransfer::query()->find($transferId);
         if (!$transfer || $transfer->status !== 'queued') {
+            return true;
+        }
+        if (!$this->submissionsEnabled($transfer)) {
             return true;
         }
         $hasMetadata = Schema::hasColumn('payout_transfers', 'dispatch_attempts');
@@ -227,18 +331,26 @@ class PayoutTransferService
 
     public function submit(int $transferId, mixed $client = null): PayoutTransfer
     {
-        $claimed = DB::transaction(function () use ($transferId) {
-            $transfer = PayoutTransfer::whereKey($transferId)->lockForUpdate()->firstOrFail();
-            if ($transfer->status !== 'queued') {
-                return false;
-            }
-            $transfer->forceFill([
-                'status' => 'submitting',
-                'attempts' => (int) $transfer->attempts + 1,
-                'last_error' => null,
-            ])->save();
-            return true;
-        }, 3);
+        $transfer = PayoutTransfer::findOrFail($transferId);
+        try {
+            $claimed = DB::transaction(function () use ($transfer) {
+                $withdrawal = Withdraw::whereKey($transfer->withdrawal_id)->lockForUpdate()->firstOrFail();
+                $transfer = PayoutTransfer::whereKey($transfer->id)->lockForUpdate()->firstOrFail();
+                if ($transfer->status !== 'queued' || !$this->submissionsEnabled($transfer)) {
+                    return false;
+                }
+                $this->assertSubmissionTerms($withdrawal, $transfer);
+                $transfer->forceFill([
+                    'status' => 'submitting',
+                    'attempts' => (int) $transfer->attempts + 1,
+                    'last_error' => null,
+                ])->save();
+                return true;
+            }, 3);
+        } catch (RuntimeException $exception) {
+            $this->markFailed($transferId, $exception, 'queued');
+            return PayoutTransfer::findOrFail($transferId);
+        }
 
         if (!$claimed) {
             return PayoutTransfer::findOrFail($transferId);
@@ -263,6 +375,24 @@ class PayoutTransferService
                     throw new RuntimeException('The Paystack payout balance is too low for this transfer. Add funds before retrying.');
                 }
             }
+            DB::transaction(function () use ($transfer, $account): void {
+                $withdrawal = Withdraw::whereKey($transfer->withdrawal_id)->lockForUpdate()->firstOrFail();
+                $current = $this->assertSubmissionTerms($withdrawal, $transfer);
+                if ($current->provider_recipient_code !== $account->provider_recipient_code) {
+                    throw new RuntimeException('The provider recipient changed while the payout was queued.');
+                }
+            }, 3);
+        } catch (Throwable $exception) {
+            $this->markFailed($transferId, $exception);
+            return PayoutTransfer::findOrFail($transferId);
+        }
+
+        if (!$this->submissionsEnabled($transfer)) {
+            PayoutTransfer::whereKey($transferId)->where('status', 'submitting')->update(['status' => 'queued']);
+            return PayoutTransfer::findOrFail($transferId);
+        }
+
+        try {
             $result = $provider->initiateTransfer(
                 $account->provider_recipient_code,
                 (float) $transfer->amount,
@@ -273,13 +403,34 @@ class PayoutTransferService
             $data = (array) $result['data'];
             $data['status'] = $data['status'] ?? 'pending';
             $this->applyGatewayUpdate($transfer->id, $data, 'submission', (array) $result['raw']);
-        } catch (ConnectionException|GatewayOutcomeUnknownException $exception) {
-            $this->markVerificationRequired($transfer->id, $exception);
         } catch (Throwable $exception) {
-            $this->markFailed($transfer->id, $exception);
+            $this->markVerificationRequired($transfer->id, $exception);
         }
 
         return PayoutTransfer::findOrFail($transferId);
+    }
+
+    private function assertSubmissionTerms(Withdraw $withdrawal, PayoutTransfer $transfer): OrganizerPayoutAccount
+    {
+        $account = $this->verifiedAccount($withdrawal);
+        if ((int) $withdrawal->status !== Withdraw::STATUS_PROCESSING || (int) $transfer->payout_account_id !== (int) $account->id
+            || Money::toMinor($transfer->amount) !== Money::toMinor($withdrawal->payable_amount)
+            || $transfer->gateway !== $account->provider || $transfer->currency !== strtoupper($account->currency)) {
+            throw new RuntimeException('The queued payout does not match the approved withdrawal.');
+        }
+        if ($transfer->release_source !== 'automatic') {
+            $approval = $this->requireApproval($withdrawal, $account, (int) $transfer->requested_by_admin_id);
+            if (($transfer->release_approval_id ?? '') !== $approval['id']) {
+                throw new RuntimeException('This queued payout requires a new approval.');
+            }
+        }
+        return $account;
+    }
+
+    private function submissionsEnabled(PayoutTransfer $transfer): bool
+    {
+        return (bool) config('payouts.paystack_transfers_enabled', false)
+            && ($transfer->release_source !== 'automatic' || (bool) config('payouts.automatic_release_enabled', false));
     }
 
     public function handleWebhook(string $eventName, array $data): ?PayoutTransfer
@@ -336,7 +487,7 @@ class PayoutTransferService
         $summary = ['checked' => 0, 'updated' => 0, 'errors' => 0];
 
         $transfers = PayoutTransfer::query()
-            ->whereIn('status', ['pending', 'processing', 'verification_required'])
+            ->whereIn('status', ['submitting', 'pending', 'processing', 'verification_required'])
             ->where('updated_at', '<=', $threshold)
             ->oldest('updated_at')
             ->oldest('id')
@@ -404,10 +555,18 @@ class PayoutTransferService
     private function applyGatewayUpdate(int $transferId, array $data, string $source, array $response): void
     {
         DB::transaction(function () use ($transferId, $data, $source, $response) {
+            $withdrawal = Withdraw::whereKey(PayoutTransfer::findOrFail($transferId)->withdrawal_id)->lockForUpdate()->firstOrFail();
             $transfer = PayoutTransfer::whereKey($transferId)->lockForUpdate()->firstOrFail();
-            $withdrawal = Withdraw::whereKey($transfer->withdrawal_id)->lockForUpdate()->firstOrFail();
             $issues = $this->verificationIssues($transfer, $data);
             if ($issues !== []) {
+                if (in_array($transfer->status, ['success', 'failed', 'reversed'], true)) {
+                    DB::afterCommit(fn () => app(IncidentAlertService::class)->alert(
+                        'payout-terminal-mismatch:' . $transfer->id,
+                        'A provider update did not match a completed payout.',
+                        ['payout_transfer_id' => $transfer->id, 'issues' => $issues]
+                    ));
+                    return;
+                }
                 $transfer->forceFill([
                     'status' => 'needs_attention',
                     'gateway_response' => $response,
@@ -478,6 +637,17 @@ class PayoutTransferService
                 'pending', 'received' => 'pending',
                 default => 'processing',
             };
+            if (in_array($transfer->status, ['success', 'failed', 'reversed'], true)
+                && !($transfer->status === 'success' && $status === 'reversed')) {
+                if ($status !== $transfer->status && in_array($status, ['success', 'failed', 'reversed'], true)) {
+                    DB::afterCommit(fn () => app(IncidentAlertService::class)->alert(
+                        'payout-terminal-conflict:' . $transfer->id,
+                        'Payout received conflicting terminal outcomes. Finance review is required.',
+                        ['payout_transfer_id' => $transfer->id]
+                    ));
+                }
+                return;
+            }
             $transfer->forceFill([
                 'status' => $status,
                 'gateway_status' => $gatewayStatus,
@@ -522,32 +692,20 @@ class PayoutTransferService
             } elseif ($status === 'reversed' && (int) $withdrawal->status === Withdraw::STATUS_PAID) {
                 if (Schema::hasTable('financial_ledger_accounts')) {
                     app(FinancialLedgerService::class)->reversePaidWithdrawal($withdrawal, $transfer->currency);
-                    app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, $transfer->currency);
                 }
-                $organizer = Organizer::whereKey($withdrawal->organizer_id)->lockForUpdate()->firstOrFail();
-                $organizer->amount = round((float) $organizer->amount + (float) $withdrawal->amount, 2);
-                $organizer->save();
                 $withdrawal->forceFill([
-                    'status' => Withdraw::STATUS_REJECTED,
-                    'decision_reason' => 'The provider reversed this payout; funds were returned to the available balance.',
+                    'status' => Withdraw::STATUS_HELD,
+                    'decision_reason' => 'The provider reversed this payout. Funds are reserved for finance review.',
                     'paid_at' => null,
-                ])->save();
-                $withdrawalTransaction->payment_status = 2;
+                ] + $this->clearedReleaseApproval($withdrawal))->save();
+                $withdrawalTransaction->payment_status = 0;
                 $withdrawalTransaction->save();
             } elseif (in_array($status, ['failed', 'reversed'], true)
                 && (int) $withdrawal->status === Withdraw::STATUS_PROCESSING) {
-                if (Schema::hasTable('financial_ledger_accounts')) {
-                    app(FinancialLedgerService::class)->restoreWithdrawal($withdrawal, $transfer->currency);
-                }
-                $organizer = Organizer::whereKey($withdrawal->organizer_id)->lockForUpdate()->firstOrFail();
-                $organizer->amount = round((float) $organizer->amount + (float) $withdrawal->amount, 2);
-                $organizer->save();
                 $withdrawal->forceFill([
-                    'status' => Withdraw::STATUS_REJECTED,
-                    'decision_reason' => 'Paystack transfer ' . $status . '; funds were returned to the available balance.',
-                ])->save();
-                $withdrawalTransaction->payment_status = 2;
-                $withdrawalTransaction->save();
+                    'status' => Withdraw::STATUS_HELD,
+                    'decision_reason' => 'Payout ' . $status . '. Funds are reserved for finance review.',
+                ] + $this->clearedReleaseApproval($withdrawal))->save();
             }
 
             AuditLogger::record('payout.transfer_status_changed', $transfer, [], [
@@ -568,6 +726,10 @@ class PayoutTransferService
     private function verificationIssues(PayoutTransfer $transfer, array $data): array
     {
         $issues = [];
+        if (in_array(strtolower((string) ($data['status'] ?? '')), ['success', 'failed', 'reversed'], true)
+            && (!isset($data['reference'], $data['amount'], $data['currency']) || !is_numeric($data['amount']))) {
+            $issues[] = 'incomplete_terminal_evidence';
+        }
         if (($data['reference'] ?? $transfer->reference) !== $transfer->reference) {
             $issues[] = 'reference_mismatch';
         }
@@ -587,13 +749,14 @@ class PayoutTransferService
 
     private function markVerificationRequired(int $transferId, Throwable $exception): void
     {
-        $transfer = PayoutTransfer::findOrFail($transferId);
-        $before = ['status' => $transfer->status];
-        $transfer->forceFill([
+        $updated = PayoutTransfer::whereKey($transferId)->where('status', 'submitting')->update([
             'status' => 'verification_required',
-            'last_error' => mb_substr($exception->getMessage(), 0, 1000),
-        ])->save();
-        AuditLogger::record('payout.transfer_verification_required', $transfer, $before, [
+        ]);
+        if ($updated !== 1) {
+            return;
+        }
+        $transfer = PayoutTransfer::findOrFail($transferId);
+        AuditLogger::record('payout.transfer_verification_required', $transfer, ['status' => 'submitting'], [
             'status' => 'verification_required',
         ], [
             'exception_type' => $exception::class,
@@ -613,6 +776,9 @@ class PayoutTransferService
     {
         DB::transaction(function () use ($transferId, $exception) {
             $transfer = PayoutTransfer::whereKey($transferId)->lockForUpdate()->firstOrFail();
+            if (!in_array($transfer->status, ['submitting', 'pending', 'processing', 'verification_required'], true)) {
+                return;
+            }
             $attempts = (int) $transfer->verification_attempts + 1;
             $maxAttempts = max(1, (int) config('payouts.verification_max_attempts', 5));
             $exhausted = $attempts >= $maxAttempts;
@@ -622,7 +788,7 @@ class PayoutTransferService
                 'status' => $exhausted ? 'needs_attention' : $transfer->status,
                 'verification_attempts' => $attempts,
                 'last_verified_at' => now(),
-                'last_error' => mb_substr($exception->getMessage(), 0, 1000),
+                'last_error' => 'The provider did not confirm the original transfer. Funds remain reserved.',
             ])->save();
 
             if ($exhausted) {
@@ -659,22 +825,25 @@ class PayoutTransferService
         }, 3);
     }
 
-    private function markFailed(int $transferId, Throwable $exception): void
+    private function markFailed(int $transferId, Throwable $exception, string $expectedStatus = 'submitting'): void
     {
-        DB::transaction(function () use ($transferId, $exception) {
+        DB::transaction(function () use ($transferId, $exception, $expectedStatus) {
+            $withdrawal = Withdraw::whereKey(PayoutTransfer::findOrFail($transferId)->withdrawal_id)->lockForUpdate()->firstOrFail();
             $transfer = PayoutTransfer::whereKey($transferId)->lockForUpdate()->firstOrFail();
+            if ($transfer->status !== $expectedStatus) {
+                return;
+            }
             $transfer->forceFill([
                 'status' => 'failed',
-                'last_error' => mb_substr($exception->getMessage(), 0, 1000),
+                'last_error' => 'The transfer could not start. Review the payout approval and provider configuration.',
                 'completed_at' => now(),
             ])->save();
-            Withdraw::whereKey($transfer->withdrawal_id)
-                ->where('status', Withdraw::STATUS_PROCESSING)
-                ->update([
+            if ((int) $withdrawal->status === Withdraw::STATUS_PROCESSING) {
+                $withdrawal->forceFill([
                     'status' => Withdraw::STATUS_HELD,
-                    'decision_reason' => 'Paystack transfer submission failed; finance review is required.',
-                    'updated_at' => now(),
-                ]);
+                    'decision_reason' => 'Transfer submission failed; finance review is required.',
+                ] + $this->clearedReleaseApproval($withdrawal))->save();
+            }
             AuditLogger::record('payout.transfer_failed', $transfer, [], [
                 'status' => 'failed',
             ], [
@@ -683,5 +852,10 @@ class PayoutTransferService
             ]);
             DB::afterCommit(fn () => $this->dispatchStatusNotification($transfer->id, 'failed'));
         }, 3);
+    }
+
+    private function clearedReleaseApproval(Withdraw $withdrawal): array
+    {
+        return array_intersect_key(['release_approval' => null], $withdrawal->getAttributes());
     }
 }

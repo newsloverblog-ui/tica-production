@@ -16,11 +16,19 @@ use Spatie\GoogleCalendar\Event;
 
 Route::get('/offline', 'FrontEnd\HomeController@offline');
 
-Route::get('/health/live', function () {
-  return response()->json(['status' => 'ok'])->header('Cache-Control', 'no-store');
-})->name('health.live');
+Route::withoutMiddleware([
+  \App\Http\Middleware\EncryptCookies::class,
+  \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+  \Illuminate\Session\Middleware\StartSession::class,
+  \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+  \App\Http\Middleware\VerifyCsrfToken::class,
+])->group(function () {
+  Route::get('/health/live', function () {
+    return response()->json(['status' => 'ok'])->header('Cache-Control', 'no-store');
+  })->name('health.live');
 
-Route::get('/health/ready', 'OperationalHealthController@ready')->name('health.ready');
+  Route::get('/health/ready', 'OperationalHealthController@ready')->name('health.ready');
+});
 
 Route::get('/api/vercel/cron', App\Http\Controllers\VercelCronController::class)
   ->middleware('throttle:6,1')
@@ -608,7 +616,8 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
   Route::post('/order-lookup', 'FrontEnd\TicaApiController@orderLookup')->middleware('throttle:10,1')->name('tica.api.order-lookup');
 
   Route::post('/team/accept', 'FrontEnd\TicaApiController@acceptTeamInvite')->middleware('throttle:authentication')->name('tica.api.team.accept');
-  Route::post('/checkin/code', 'FrontEnd\TicaApiController@checkinCode')->middleware('throttle:scanner')->name('tica.api.checkin.code');
+  Route::post('/checkin/code', 'FrontEnd\TicaApiController@checkinCode')
+    ->middleware(['scanner.access', 'scanner.device', 'throttle:scanner'])->name('tica.api.checkin.code');
 
   Route::middleware(['auth:organizer', 'Deactive:organizer', 'EmailStatus:organizer'])->group(function () {
     Route::post('/events', 'FrontEnd\TicaOrganizerController@storeEvent')->middleware(['tica.team', 'throttle:20,1'])->name('tica.api.events.store');

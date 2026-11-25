@@ -128,6 +128,17 @@ class PaystackGatewayClient
         return $payload;
     }
 
+    public function listDisputes(int $page): array
+    {
+        $response = Http::withToken($this->secret)->acceptJson()->timeout(20)
+            ->get('https://api.paystack.co/dispute', ['page' => $page, 'perPage' => 100]);
+        $payload = $response->json();
+        if (!$response->successful() || ($payload['status'] ?? false) !== true || !is_array($payload['data'] ?? null)) {
+            throw new RuntimeException('Paystack did not return a valid dispute page.');
+        }
+        return $payload;
+    }
+
     public function listRefundsForTransaction(
         string $transactionId,
         int $page = 1,

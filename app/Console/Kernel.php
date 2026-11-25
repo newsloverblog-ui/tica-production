@@ -67,6 +67,11 @@ class Kernel extends ConsoleKernel
     $schedule->command('payments:reconcile-paystack-settlements')
       ->dailyAt('02:45')
       ->withoutOverlapping();
+    $schedule->command('payments:reconcile-paystack-disputes')
+      ->hourly()
+      ->when(fn () => (bool) config('services.paystack.secret')
+        || \App\Models\PaymentGateway\OnlineGateway::whereKeyword('paystack')->where('status', 1)->exists())
+      ->withoutOverlapping();
     $schedule->command('payouts:reconcile-paystack')
       ->everyTenMinutes()
       ->withoutOverlapping();

@@ -24,6 +24,7 @@ class ScannerOfflineServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config()->set('tickets.offline_enabled', true);
         config()->set('database.default', 'sqlite');
         config()->set('database.connections.sqlite', [
             'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => true,
@@ -142,7 +143,7 @@ class ScannerOfflineServiceTest extends TestCase
         $staff = ScannerStaff::create([
             'organizer_id' => $organizer->id, 'name' => 'Offline attendant',
             'email' => Str::uuid().'@example.com', 'password' => 'hash',
-            'role' => 'check_in', 'status' => 'active',
+            'role' => 'check_in', 'status' => 'active', 'auth_version' => 1,
         ]);
         $request->attributes->set('scanner_staff', $staff);
         $request->attributes->set('scanner_access_role', 'organizer');
@@ -185,13 +186,15 @@ class ScannerOfflineServiceTest extends TestCase
         ]);
         Auth::guard('organizer')->login($organizer);
         $event = Event::create([
-            'organizer_id' => $organizer->id, 'status' => 1, 'start_date' => now()->addDay()->toDateString(),
+            'organizer_id' => $organizer->id, 'status' => 1, 'start_date' => now()->subDay()->toDateString(),
+            'start_time' => '00:00:00', 'end_date' => now()->addDay()->toDateString(), 'end_time' => '23:59:59',
         ]);
         EventContent::create(['event_id' => $event->id, 'title' => 'Offline Test Event']);
         $device = ScannerDevice::create([
             'public_id' => (string) Str::uuid(), 'organizer_id' => $organizer->id,
             'name' => 'Main gate', 'secret_hash' => hash('sha256', 'secret'), 'status' => 'active',
         ]);
+        $device->forceFill(['event_id' => $event->id])->save();
         return [$organizer, $event, $device];
     }
 
@@ -221,7 +224,8 @@ class ScannerOfflineServiceTest extends TestCase
         });
         Schema::create('events', function (Blueprint $table) {
             $table->id(); $table->unsignedBigInteger('organizer_id'); $table->integer('status');
-            $table->date('start_date')->nullable(); $table->timestamps();
+            $table->date('start_date')->nullable(); $table->time('start_time')->nullable();
+            $table->date('end_date')->nullable(); $table->time('end_time')->nullable(); $table->timestamps();
         });
         Schema::create('event_contents', function (Blueprint $table) {
             $table->id(); $table->unsignedBigInteger('event_id'); $table->string('title'); $table->timestamps();
@@ -256,6 +260,7 @@ class ScannerOfflineServiceTest extends TestCase
             $table->timestamp('last_login_at')->nullable(); $table->timestamp('last_seen_at')->nullable();
             $table->timestamp('revoked_at')->nullable(); $table->rememberToken(); $table->timestamps();
         });
+        (require database_path('migrations/2026_11_25_121000_scope_scanner_devices_to_events.php'))->up();
         Schema::create('scanner_offline_manifests', function (Blueprint $table) {
             $table->id(); $table->uuid('public_id')->unique(); $table->unsignedBigInteger('organizer_id');
             $table->unsignedBigInteger('event_id'); $table->unsignedBigInteger('scanner_device_id');

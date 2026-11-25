@@ -243,6 +243,17 @@ class PaystackController extends Controller
 
         Log::info('Webhook received: ' . $eventName);
 
+        if (in_array($eventName, ['charge.dispute.create', 'charge.dispute.remind', 'charge.dispute.resolve'], true)) {
+            if (!\App\Models\PaystackDispute::available()) {
+                return response()->json(['status' => 'dispute processing unavailable'], 503);
+            }
+            $data = json_decode($input, true)['data'] ?? [];
+            $dispute = app(\App\Services\PaystackDisputeService::class)->record(is_array($data) ? $data : []);
+            return $dispute
+                ? response()->json(['status' => 'accepted'])
+                : response()->json(['status' => 'invalid dispute identity'], 422);
+        }
+
         if (str_starts_with($eventName, 'transfer.')) {
             $transfer = (new PayoutTransferService())->handleWebhook(
                 $eventName,
@@ -379,6 +390,9 @@ class PaystackController extends Controller
             }
             if ($result['status'] === 'already_processed') {
                 return response()->json(['status' => 'already processed'], 200);
+            }
+            if ($result['status'] === 'verification_required') {
+                return response()->json(['status' => 'verification_required'], 200);
             }
 
             return response()->json(['status' => 'success'], 200);
@@ -545,14 +559,19 @@ class PaystackController extends Controller
             }
 
             $bookingInfo = null;
+            $disputed = false;
 
-            DB::transaction(function () use ($reference, $arrData, &$bookingInfo) {
+            DB::transaction(function () use ($reference, $arrData, &$bookingInfo, &$disputed) {
 
                 $intent = PaymentIntent::where('gateway', 'paystack')
                     ->where('reference', $reference)
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                if (\App\Models\PaystackDispute::blocksPayment($reference)) {
+                    $disputed = true;
+                    return;
+                }
                 if ($intent->status === 'completed') {
                     return;
                 }
@@ -598,6 +617,10 @@ class PaystackController extends Controller
                     'currency' => $intent->currency,
                 ]);
             });
+
+            if ($disputed) {
+                return ['status' => 'verification_required'];
+            }
 
             if (!$bookingInfo) {
                 $existingTxn = Transaction::where('gateway', 'paystack')

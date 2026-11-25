@@ -11,6 +11,7 @@ class ScannerMetricsController extends Controller
 {
     public function show(Request $request, int $event, ScannerMetricsService $service)
     {
+        app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, $event);
         $organizerId = (int) (
             $request->attributes->get('scanner_organizer_id')
             ?: Auth::guard('organizer')->id()
