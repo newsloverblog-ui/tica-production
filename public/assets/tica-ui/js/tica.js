@@ -1095,7 +1095,7 @@ var cur=(window.TICA_DATA&&typeof TICA_DATA.path==='string')?TICA_DATA.path:path
 function go(path){path=String(path).replace(/^\/+/,'');if(!isSpa(path.split('?')[0])){location.href='/'+path;return}cur=path;try{history.pushState(null,'','/'+path)}catch(err){}route()}
 document.addEventListener('click',function(ev){
   if(ev.defaultPrevented||ev.button!==0||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey)return;
-  var a=ev.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download'))return;
+  var a=ev.target.closest('a[href]');if(!a||a.target&&a.target!=='_self'||a.hasAttribute('download')||a.hasAttribute('data-full-page'))return;
   if(a.matches('#os-side [data-panel]'))return;
   var u;try{u=new URL(a.getAttribute('href'),location.href)}catch(err){return}
   if(u.origin!==location.origin||u.search||u.hash)return;
@@ -1556,7 +1556,45 @@ function N(n){return window.TICA_MONEY(n)}
 /* an amount in a given currency (null = base currency) */
 function Nc(n,c){var o=window.TICA_CUR;window.TICA_CUR=c||null;var s=N(n);window.TICA_CUR=o;return s}
 var api=window.TICA_API;
-function get(url){return fetch(url,{credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j.message||'Something went wrong.');e.data=j;throw e}return j})})}
+function get(url){
+  return fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}}).then(function(response){
+    var redirectedToLogin=response.redirected&&new URL(response.url).pathname==='/login';
+    return response.json().catch(function(){return null}).then(function(data){
+      if(response.ok&&data&&!redirectedToLogin)return data;
+      var error=new Error(data&&data.message||'Something went wrong. Please try again.');
+      error.data=data;
+      error.status=redirectedToLogin?401:response.status;
+      throw error;
+    });
+  });
+}
+function showDirectoryError(error, table, status, loadMore, append, retry){
+  var signedOut=error.status===401;
+  var forbidden=error.status===403;
+  var title=signedOut?'Sign in to continue':forbidden?'Access unavailable':'Unable to load this list';
+  var message=signedOut?'Sign in as an organiser to reopen this page.':forbidden?'Your current access does not include this list.':error.status===422?errText(error):'Try again in a moment.';
+  loadMore.hidden=true;
+  if(append&&!signedOut&&!forbidden){
+    status.textContent='Couldn’t load more. ';
+  }else{
+    status.textContent='';
+    table.innerHTML='<div class="t-card t-empty"><h3>'+title+'</h3><p>'+esc(message)+'</p></div>';
+    status=table.firstElementChild;
+  }
+  if(forbidden)return;
+  var action=document.createElement(signedOut?'a':'button');
+  action.className='t-btn t-btn--secondary t-btn--sm';
+  if(signedOut){
+    action.href=location.pathname;
+    action.setAttribute('data-full-page','');
+    action.textContent='Sign in again';
+  }else{
+    action.type='button';
+    action.textContent='Try again';
+    action.addEventListener('click',retry);
+  }
+  status.appendChild(action);
+}
 function errText(er){var e=er.data&&er.data.errors,k=e&&Object.keys(e)[0];return k?e[k][0]:er.message}
 var ROLE=D.role||'owner',PERMS=D.permissions||['*'],PERM=function(k){return PERMS.indexOf('*')>-1||PERMS.indexOf(k)>-1},CAN={events:PERM('events.manage'),promote:PERM('promote.manage'),payouts:PERM('payouts.view'),withdraw:PERM('withdrawals.request'),refund:PERM('refunds.manage'),team:PERM('team.manage'),settings:PERM('settings.manage'),orders:PERM('orders.view'),checkin:PERM('checkin.run')};
 var toastEl=document.createElement('div');toastEl.className='od-toast';toastEl.setAttribute('role','status');document.body.appendChild(toastEl);
@@ -1895,8 +1933,11 @@ function paintTicketCategories(){
 function ticketQuery(){return 'q='+encodeURIComponent($('tk-q').value.trim())+'&event='+$('tk-event').value+'&ticket='+$('tk-category').value+'&status='+$('tk-status').value}
 function loadTickets(append){
   if(tkLoading||append&&!tkCursor)return;var seq=++tkRequest,url='/tica-api/organizer/attendees?'+ticketQuery()+(append?'&cursor='+encodeURIComponent(tkCursor):'');tkLoading=true;$('tk-units').setAttribute('aria-busy','true');$('tk-more').disabled=true;
+  $('tk-msg').textContent=append?'Loading more tickets…':'';
   if(!append)$('tk-units').innerHTML='<div class="t-table-wrap or-skel">'+[1,2,3,4].map(function(){return '<span class="t-skel" style="height:52px;margin:12px 16px"></span>'}).join('')+'</div>';
-  get(url).then(function(r){if(seq!==tkRequest)return;TK=append?TK.concat(r.rows):r.rows;tkCursor=r.nextCursor||null;paintTickets(r)},function(er){if(seq===tkRequest){$('tk-msg').textContent=er.message;$('tk-more').hidden=true}}).then(function(){if(seq===tkRequest){tkLoading=false;$('tk-units').removeAttribute('aria-busy');$('tk-more').disabled=false}});
+  get(url).then(function(r){if(seq!==tkRequest)return;TK=append?TK.concat(r.rows):r.rows;tkCursor=r.nextCursor||null;paintTickets(r)}).catch(function(error){
+    if(seq===tkRequest)showDirectoryError(error,$('tk-units'),$('tk-msg'),$('tk-more'),append,function(){loadTickets(append)});
+  }).finally(function(){if(seq===tkRequest){tkLoading=false;$('tk-units').removeAttribute('aria-busy');$('tk-more').disabled=false}});
 }
 function paintTickets(r){
   if(!TK.length){$('tk-units').innerHTML='<div class="t-empty"><h3>No assigned tickets match</h3><p>Ticket assignments appear after a verified payment or complimentary issue.</p></div>';$('tk-more').hidden=true;$('tk-msg').textContent='';return}
@@ -1959,7 +2000,9 @@ function loadAtt(append){
   var seq=++attRequest,url='/tica-api/organizer/attendees?'+attQuery()+(append?'&cursor='+encodeURIComponent(attCursor):'');
   attLoading=true;$('od-att').setAttribute('aria-busy','true');$('od-att-more').disabled=true;$('od-att-msg').textContent=append?'Loading more attendees…':'';
   if(!append)$('od-att').innerHTML='<div class="t-table-wrap or-skel">'+[1,2,3,4,5].map(function(){return '<span class="t-skel" style="height:44px;margin:12px 16px"></span>'}).join('')+'</div>';
-  get(url).then(function(r){if(seq!==attRequest)return;ATT=append?ATT.concat(r.rows):r.rows;attCursor=r.nextCursor||null;paintAtt(r)},function(er){if(seq===attRequest){$('od-att-msg').textContent=er.message;$('od-att-more').hidden=true}}).then(function(){if(seq===attRequest){attLoading=false;$('od-att').removeAttribute('aria-busy');$('od-att-more').disabled=false}});
+  get(url).then(function(r){if(seq!==attRequest)return;ATT=append?ATT.concat(r.rows):r.rows;attCursor=r.nextCursor||null;paintAtt(r)}).catch(function(error){
+    if(seq===attRequest)showDirectoryError(error,$('od-att'),$('od-att-msg'),$('od-att-more'),append,function(){loadAtt(append)});
+  }).finally(function(){if(seq===attRequest){attLoading=false;$('od-att').removeAttribute('aria-busy');$('od-att-more').disabled=false}});
 }
 function attQuery(){return 'q='+encodeURIComponent($('od-q').value.trim())+'&event='+$('od-fe').value+'&status='+$('od-fs').value+'&from='+($('od-from').value||'')+'&to='+($('od-to').value||'')}
 function attStatus(s){var c=s==='Paid'?'green':s==='Checked in'?'blue':s==='Refunded'||s==='Refund requested'?'orange':'';return '<span class="t-badge'+(c?' t-badge--'+c:'')+'">'+esc(s)+'</span>'}

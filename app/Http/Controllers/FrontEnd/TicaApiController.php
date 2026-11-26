@@ -358,15 +358,16 @@ class TicaApiController extends Controller
         Auth::guard('organizer')->logout();
         return response()->json(['message' => 'Verify your email address first. Use the link we emailed you.'], 403);
       }
+      $destination = $request->session()->pull(\App\Services\TicaUi\OrganizerWorkspace::LOGIN_DESTINATION);
       if ($mfa->enabled($organizer)) {
-        $mfa->beginLogin($request, 'organizer', $organizer, '/dashboard');
+        $mfa->beginLogin($request, 'organizer', $organizer, $destination ?? '/dashboard');
         return response()->json(['mfa_required' => true, 'redirect' => route('mfa.login.challenge')]);
       }
       Auth::guard('scanner')->logout();
       $request->session()->regenerate();
       Session::put('secret_login', 0);
 
-      return response()->json(['redirect' => '/create']);
+      return response()->json(['redirect' => $destination ?? '/create']);
     }
 
     if (!Auth::guard('customer')->attempt(['email' => $email, 'password' => $validated['password'], 'status' => 1])) {
@@ -438,7 +439,9 @@ class TicaApiController extends Controller
       Session::put('secret_login', 0);
       \App\Services\AuditLogger::record('organizer.team_member_logged_in', $member, [], ['role' => $member->role]);
 
-      return response()->json(['redirect' => '/dashboard']);
+      return response()->json(['redirect' => $request->session()->pull(
+        \App\Services\TicaUi\OrganizerWorkspace::LOGIN_DESTINATION, '/dashboard'
+      )]);
     }
 
     if (Auth::guard('scanner')->attempt(['email' => $email, 'password' => $password, 'status' => 'active'])) {

@@ -128,8 +128,10 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
   });
 
 
-  Route::get('/monthly-profit', 'BackEnd\AdminController@monthly_profit')->name('admin.monthly_profit');
-  Route::get('/monthly-earning', 'BackEnd\AdminController@monthly_earning')->name('admin.monthly_earning');
+  Route::get('/monthly-profit', 'BackEnd\AdminController@monthly_profit')
+    ->middleware('permission:Total Profit')->name('admin.monthly_profit');
+  Route::get('/monthly-earning', 'BackEnd\AdminController@monthly_earning')
+    ->middleware('permission:Lifetime Earning')->name('admin.monthly_earning');
 
   Route::group(['middleware' => 'permission:Event Management'], function () {
     Route::get('event-cancellations', 'BackEnd\EventCancellationController@index')->name('admin.event_cancellations.index');

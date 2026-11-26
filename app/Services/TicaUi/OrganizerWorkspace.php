@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\Schema;
  */
 class OrganizerWorkspace
 {
+  public const LOGIN_DESTINATION = 'organizer.workspace_login_destination';
+
   public const PREFERENCE_DEFAULTS = [
     'buyers_pay_fee' => true,
     'show_remaining' => true,

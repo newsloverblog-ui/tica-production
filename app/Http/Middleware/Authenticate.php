@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TicaUi\OrganizerWorkspace;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,14 @@ class Authenticate extends Middleware
   protected function redirectTo($request)
   {
     if (!$request->expectsJson()) {
+      if ($request->routeIs('tica.dashboard')) {
+        $request->session()->put(OrganizerWorkspace::LOGIN_DESTINATION, route('tica.dashboard', [
+          'section' => $request->route('section'),
+        ], false));
+
+        return route('organizer.login');
+      }
+
       if (Route::is('admin.*')) {
         return route('admin.login');
       }

@@ -110,9 +110,10 @@ class SocialSignInController extends Controller
 
   private function signIn(Request $request, Organizer $organizer): RedirectResponse
   {
+    $destination = $request->session()->pull(\App\Services\TicaUi\OrganizerWorkspace::LOGIN_DESTINATION, '/dashboard');
     $mfa = app(AccountMfaService::class);
     if ($mfa->enabled($organizer)) {
-      $mfa->beginLogin($request, 'organizer', $organizer, '/dashboard');
+      $mfa->beginLogin($request, 'organizer', $organizer, $destination);
       return redirect()->route('mfa.login.challenge');
     }
     Auth::guard('scanner')->logout();
@@ -122,7 +123,7 @@ class SocialSignInController extends Controller
     $request->session()->put('secret_login', 0);
     \App\Services\AuditLogger::record('organizer.google_sign_in', $organizer, [], []);
 
-    return redirect('/dashboard');
+    return redirect($destination);
   }
 
   private function createOrganizer(Request $request, string $email, string $name): RedirectResponse

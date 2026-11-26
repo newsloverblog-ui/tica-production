@@ -611,6 +611,49 @@ body.tica-admin .cd-card-h{
 }
 body.tica-admin .cd-pill{font-size:13px;color:var(--c-mute)}
 body.tica-admin .cd-empty{margin:0;padding:16px;color:var(--c-mute);font-size:14px}
+body.tica-admin .cd-today {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  margin: 0;
+}
+body.tica-admin .cd-today > div {
+  padding: 14px 16px;
+  border-inline-start: 1px solid var(--c-line-2);
+}
+body.tica-admin .cd-today > div:first-child { border-inline-start: 0; }
+body.tica-admin .cd-today dt { color: var(--c-mute); font-weight: 500; }
+body.tica-admin .cd-today dd {
+  margin: 3px 0 0;
+  color: var(--c-ink);
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+body.tica-admin #cd-reports-h { scroll-margin-top: 90px; }
+body.tica-admin .cd-report-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 8px 14px;
+  list-style: none;
+  padding: 12px 16px;
+  margin: 0;
+}
+body.tica-admin .cd-report-links a {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--c-ink);
+  text-decoration: none;
+}
+body.tica-admin .cd-report-links a:hover,
+body.tica-admin .cd-report-links a:focus-visible { background: var(--c-blue-soft); }
+body.tica-admin .cd-report-links strong,
+body.tica-admin .cd-report-links small { display: block; }
+body.tica-admin .cd-report-links small { margin-top: 3px; color: var(--c-mute); }
 body.tica-admin .cd-record{color:var(--c-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 body.tica-admin .cd-upcoming-list{list-style:none;margin:0;padding:0 16px;font-size:14px}
 body.tica-admin .cd-upcoming-list li{padding:11px 0;border-bottom:1px solid var(--c-line-2)}

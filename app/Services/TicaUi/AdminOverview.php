@@ -31,9 +31,12 @@ class AdminOverview
 
     return [
       'base' => ['code' => $base, 'symbol' => TicaCurrency::symbol($base), 'position' => (string) (DB::table('basic_settings')->value('base_currency_symbol_position') ?: 'left')],
+      'today' => $this->today(),
       'month' => $this->month(),
       'attention' => $this->attention(),
       'series' => $this->series(),
+      'currencies' => $this->currencies(),
+      'recent' => $this->recent(),
       'upcoming' => $this->upcoming(),
       'payouts' => $this->payouts(),
     ];
@@ -72,6 +75,20 @@ class AdminOverview
     $out['through'] = $now;
 
     return $out;
+  }
+
+  private function today(): array
+  {
+    $bookings = Booking::query()->whereBetween('created_at', [today(), now()]);
+    $counted = (clone $bookings)->whereIn('paymentStatus', self::COUNTED)
+      ->selectRaw('COUNT(*) as orders, SUM(quantity) as tickets')->first();
+    $paid = $this->baseOnly($bookings->whereIn('paymentStatus', self::PAID));
+
+    return [
+      'orders' => (int) ($counted?->orders ?? 0),
+      'tickets' => (int) ($counted?->tickets ?? 0),
+      'sales' => round((float) $paid->sum(DB::raw(EventFinancialBreakdown::bookingCustomerPaidSql())), 2),
+    ];
   }
 
   private function attention(): array
@@ -114,6 +131,42 @@ class AdminOverview
   private function titles(array $eventIds): array
   {
     return DB::table('event_contents')->whereIn('event_id', $eventIds)->where('language_id', $this->languageId)->pluck('title', 'event_id')->all();
+  }
+
+  private function currencies(): array
+  {
+    $currencyColumn = DB::connection()->getQueryGrammar()->wrap('currencyText');
+    $customerPaid = EventFinancialBreakdown::bookingCustomerPaidSql();
+    $platformRevenue = EventFinancialBreakdown::bookingPlatformRevenueSql();
+
+    return Booking::query()->whereIn('paymentStatus', self::PAID)->whereYear('created_at', now()->year)
+      ->selectRaw("COALESCE(NULLIF(UPPER(TRIM({$currencyColumn})), ''), ?) as code, SUM({$customerPaid}) as sales, SUM({$platformRevenue}) as fees, COUNT(*) as orders", [TicaCurrency::base()])
+      ->groupBy('code')->orderByDesc('sales')->get()
+      ->map(fn ($row) => [
+        'code' => (string) $row->code,
+        'sales' => round((float) $row->sales, 2),
+        'fees' => round((float) $row->fees, 2),
+        'orders' => (int) $row->orders,
+      ])->all();
+  }
+
+  private function recent(): array
+  {
+    $rows = Booking::query()->latest('id')->limit(7)
+      ->get(['id', 'event_id', 'fname', 'lname', 'email', 'price', 'tax', 'quantity', 'paymentStatus', 'currencyText', 'created_at']);
+    $titles = $this->titles($rows->pluck('event_id')->all());
+
+    return $rows->map(fn (Booking $row) => [
+      'id' => (int) $row->id,
+      'reference' => $row->order_reference,
+      'buyer' => trim($row->fname . ' ' . $row->lname) ?: (string) $row->email,
+      'event' => $titles[$row->event_id] ?? __('Event #:id', ['id' => $row->event_id]),
+      'tickets' => (int) $row->quantity,
+      'amount' => round((float) $row->price + (float) $row->tax, 2),
+      'currency' => strtoupper(trim((string) $row->currencyText)) ?: TicaCurrency::base(),
+      'status' => (string) $row->paymentStatus,
+      'when' => $row->created_at?->diffForHumans(),
+    ])->all();
   }
 
   private function organisers(array $organizerIds): array

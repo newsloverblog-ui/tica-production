@@ -31,10 +31,10 @@
             </div>
             <div class="col-lg-7">
               <div class="card-title d-inline-block">
-                <form action="{{ route('admin.monthly_earning') }}" id="year" method="get">
+                <form action="{{ route('admin.monthly_earning') }}" id="revenue-year-form" method="get">
                   <div class="form-group">
                     <select id="year" class="form-control" name="year"
-                      onchange="document.getElementById('year').submit()">
+                      aria-label="{{ __('Report year') }}" onchange="this.form.submit()">
                       <option value="">{{ __('Select Year') }}</option>
                       @for ($year = 2023; $year <= date('Y'); $year++)
                         <option
@@ -68,14 +68,7 @@
                 <tbody>
                   @foreach ($incomes as $key => $value)
                     <tr>
-                      <td>
-                        @php
-                          $monthNum = $key + 1;
-                          $dateObj = DateTime::createFromFormat('!m', $monthNum);
-                          $monthName = $dateObj->format('F');
-                        @endphp
-                        {{ $monthName }}
-                      </td>
+                      <td>{{ $months[$key] }}</td>
                       <td class="t-num">
                         {{ $settings->base_currency_symbol_position == 'left' ? $settings->base_currency_symbol : '' }}
                         {{ round($value + $taxs[$key], 2) }}

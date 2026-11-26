@@ -549,7 +549,9 @@ Route::middleware('change.lang')->group(function () {
   Route::get('/create/{id}', 'FrontEnd\TicaUiController@organizerEdit')->whereNumber('id')
     ->middleware(['auth:organizer', 'Deactive:organizer', 'tica.team'])->name('tica.edit');
   Route::get('/dashboard/{section?}', 'FrontEnd\TicaUiController@page')->defaults('page', 'dashboard')
-    ->where('section', '[a-z-]+')->middleware('tica.team')->name('tica.dashboard');
+    ->where('section', '[a-z-]+')->middleware([
+      'auth:organizer', 'Deactive:organizer', 'EmailStatus:organizer', 'tica.team', 'cache.headers:private;no_store',
+    ])->name('tica.dashboard');
   Route::get('/checkin', 'FrontEnd\TicaUiController@page')->defaults('page', 'checkin')->middleware('tica.team')->name('tica.checkin');
   Route::get('/team/accept/{token}', 'FrontEnd\TicaUiController@teamAccept')->where('token', '[A-Za-z0-9]{20,100}')->name('tica.team.accept');
 });
@@ -627,7 +629,8 @@ Route::prefix('tica-api')->middleware('change.lang')->group(function () {
       Route::post('/events/{id}/details', 'FrontEnd\TicaOrganizerController@updateOrganizerEvent')->whereNumber('id')->middleware('throttle:30,1');
       Route::post('/events/{id}/date', 'FrontEnd\TicaWorkspaceController@changeDate')->whereNumber('id')->middleware('throttle:10,1');
       Route::post('/events/{id}/cancel', 'FrontEnd\TicaWorkspaceController@cancel')->whereNumber('id')->middleware('throttle:5,1');
-      Route::get('/attendees', 'FrontEnd\TicaWorkspaceController@attendees')->middleware('throttle:120,1');
+      Route::get('/attendees', 'FrontEnd\TicaWorkspaceController@attendees')
+        ->middleware('throttle:120,1', 'cache.headers:private;no_store');
       Route::get('/attendees.csv', 'FrontEnd\TicaWorkspaceController@attendeesCsv')->middleware('throttle:10,1');
       Route::post('/orders/{booking}/resend', 'FrontEnd\TicaWorkspaceController@resend')->whereNumber('booking')->middleware('throttle:20,1');
       Route::post('/orders/{booking}/refund', 'FrontEnd\TicaWorkspaceController@refund')->whereNumber('booking')->middleware('throttle:10,1');

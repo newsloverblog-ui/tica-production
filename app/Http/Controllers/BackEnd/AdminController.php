@@ -24,11 +24,14 @@ use App\Services\AccountMfaService;
 use App\Services\TransactionExportQueryService;
 use App\Rules\MatchOldPasswordRule;
 use App\Support\MonthlyReport;
+use App\Support\TicaCurrency;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -353,9 +356,10 @@ class AdminController extends Controller
   public function monthly_earning(Request $request)
   {
     $year = MonthlyReport::year($request);
-    $rows = MonthlyReport::query(DB::table('transactions')->where('payment_status', '1'), $year)
-      ->selectRaw('SUM(CASE WHEN transcation_type NOT IN (3, 4, 5) THEN grand_total ELSE 0 END) AS incomes')
-      ->selectRaw('SUM(CASE WHEN transcation_type NOT IN (2, 3, 4, 5) THEN tax ELSE 0 END) AS taxs')
+    $sales = $this->reportableTransactions()->whereIn('transcation_type', [1, 2]);
+    $rows = MonthlyReport::query($sales, $year)
+      ->selectRaw('SUM(grand_total) AS incomes')
+      ->selectRaw('SUM(CASE WHEN transcation_type = 1 THEN tax ELSE 0 END) AS taxs')
       ->get();
 
     return view('backend.admin.earning', MonthlyReport::series($rows, ['incomes', 'taxs'], 'F'));
@@ -364,12 +368,24 @@ class AdminController extends Controller
   public function monthly_profit(Request $request)
   {
     $year = MonthlyReport::year($request);
-    $rows = MonthlyReport::query(DB::table('transactions')->where('payment_status', '1'), $year)
+    // Completed withdrawals can carry a recorded fee. Only sale principal
+    // belongs in the platform-owned sales total.
+    $transactions = $this->reportableTransactions()->whereIn('transcation_type', [1, 2, 3]);
+    $rows = MonthlyReport::query($transactions, $year)
       ->selectRaw('SUM(CASE WHEN organizer_id IS NOT NULL THEN commission ELSE 0 END) AS incomes')
       ->selectRaw('SUM(tax) AS taxs')
-      ->selectRaw('SUM(CASE WHEN organizer_id IS NULL THEN grand_total ELSE 0 END) AS admin_profit')
+      ->selectRaw('SUM(CASE WHEN organizer_id IS NULL AND transcation_type IN (1, 2) THEN grand_total ELSE 0 END) AS admin_profit')
       ->get();
 
-    return view('backend.admin.profit', MonthlyReport::series($rows, ['incomes', 'taxs', 'admin_profit']));
+    return view('backend.admin.profit', MonthlyReport::series($rows, ['incomes', 'taxs', 'admin_profit'], 'F'));
+  }
+
+  private function reportableTransactions(): Builder
+  {
+    return DB::table('transactions')
+      ->whereIn('payment_status', ['1', 'completed', 'processed'])
+      ->when(Schema::hasColumn('transactions', 'currency'), fn (Builder $query) => $query
+        ->where(fn (Builder $currencies) => $currencies->whereNull('currency')
+          ->orWhereRaw("UPPER(TRIM(currency)) IN ('', ?)", [TicaCurrency::base()])));
   }
 }

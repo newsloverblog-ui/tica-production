@@ -55,6 +55,11 @@
   $showSales = $can('Event Bookings', 'Transaction');
   $showEvents = $can('Event Management');
   $showChart = $showSales && collect($o['series'])->contains(fn ($row) => $row['tickets'] > 0 || $row['orders'] > 0);
+  $todayStats = array_filter([
+    $can('Event Bookings') ? [__('Confirmed orders'), number_format($o['today']['orders'])] : null,
+    $can('Event Bookings') ? [__('Tickets booked'), number_format($o['today']['tickets'])] : null,
+    $can('Lifetime Earning') ? [__('Buyer payments (:currency)', ['currency' => $o['base']['code']]), $money($o['today']['sales'])] : null,
+  ]);
 @endphp
 
 @section('content')
@@ -66,7 +71,7 @@
       </div>
       <div class="cd-actions">
         <a class="cd-btn" href="{{ route('account-security.show', ['guard' => 'admin']) }}"><i class="fal fa-shield-check" aria-hidden="true"></i>{{ __('Account security') }}</a>
-        @if ($can('Event Bookings'))<a class="cd-btn" href="{{ route('admin.data_exports.index') }}"><i class="fal fa-file-chart-line" aria-hidden="true"></i>{{ __('Reports') }}</a>@endif
+        @if ($can('Event Bookings', 'Lifetime Earning', 'Total Profit', 'Transaction'))<a class="cd-btn" href="#cd-reports-h"><i class="fal fa-file-chart-line" aria-hidden="true"></i>{{ __('Reports') }}</a>@endif
         @if ($showEvents)<a class="cd-btn primary" href="{{ route('admin.choose-event-type', ['language' => $defaultLang->code]) }}"><i class="fal fa-plus" aria-hidden="true"></i>{{ __('Create event') }}</a>@endif
       </div>
     </header>
@@ -122,6 +127,19 @@
       </section>
     @endif
 
+    @if ($todayStats)
+      <section class="cd-card" aria-labelledby="cd-today-h">
+        <div class="cd-card-h"><h2 id="cd-today-h">{{ __('Today') }}</h2></div>
+        <dl class="cd-today">
+          @foreach ($todayStats as [$label, $value])
+            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
+          @endforeach
+        </dl>
+      </section>
+    @endif
+
+    @include('backend.admin.dashboard-reports')
+
     @if ($can('Withdraw Method'))
       <section class="cd-card cd-table" aria-labelledby="cd-pay-h">
         <div class="cd-card-h">
@@ -157,6 +175,8 @@
         @endif
       </section>
     @endif
+
+    @include('backend.admin.dashboard-activity')
 
     @if ($showSales || $showEvents)
       <div class="cd-row {{ $showSales && $showEvents ? 'cd-row--split' : '' }}">

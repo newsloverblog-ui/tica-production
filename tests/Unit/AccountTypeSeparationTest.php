@@ -13,6 +13,8 @@ use App\Rules\AccountTypeEmail;
 use App\Services\AccountMfaService;
 use App\Services\AccountTypeGuard;
 use App\Services\OrganizerUpgradeService;
+use App\Services\TicaUi\OrganizerAttendeeDirectory;
+use App\Services\TicaUi\OrganizerWorkspace;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -50,6 +52,35 @@ class AccountTypeSeparationTest extends TestCase
         $this->schema();
         (require database_path('migrations/2026_11_19_180000_add_account_type_controls.php'))->up();
         $this->withSession([]);
+    }
+
+    public function test_organizer_resume_returns_to_the_attendee_workspace_after_signing_in(): void
+    {
+        $organizer = $this->organizer('organizer@example.com');
+        $organizer->forceFill(['password' => Hash::make('Correct-horse-44')])->saveQuietly();
+
+        $this->getJson('/tica-api/organizer/attendees')->assertUnauthorized();
+        $this->get('/dashboard/orders')
+            ->assertRedirect(route('organizer.login'))
+            ->assertSessionHas(OrganizerWorkspace::LOGIN_DESTINATION, '/dashboard/orders');
+
+        $this->postJson('/tica-api/login', [
+            'role' => 'org',
+            'email' => $organizer->email,
+            'password' => 'Correct-horse-44',
+        ])->assertOk()
+            ->assertJsonPath('redirect', '/dashboard/orders')
+            ->assertSessionMissing(OrganizerWorkspace::LOGIN_DESTINATION);
+
+        $this->assertAuthenticatedAs($organizer, 'organizer');
+
+        $this->mock(OrganizerAttendeeDirectory::class, function ($mock) use ($organizer): void {
+            $mock->shouldReceive('page')->once()->with($organizer->id, [], 50, null)
+                ->andReturn(['rows' => [], 'more' => false, 'nextCursor' => null]);
+        });
+        $this->getJson('/tica-api/organizer/attendees')
+            ->assertOk()->assertJsonPath('rows', [])
+            ->assertHeaderContains('Cache-Control', 'no-store');
     }
 
     // ---- Google ---------------------------------------------------------
