@@ -100,35 +100,64 @@ class PayoutTransferServiceTest extends TestCase
             }
         };
         $request = Request::create('/admin/withdraw/withdraw-request');
-        $data = $controller->index($request)->getData();
-        $destination = $data['collection']->sole()->payoutAccount;
+        $render = fn (array $data): string => view('backend.withdraw.history.view', $data + [
+            'errors' => new \Illuminate\Support\ViewErrorBag(),
+        ])->render();
+        $queue = $controller->index($request)->getData();
+        $data = $controller->review($withdrawal->id)->getData();
+        $destination = $data['item']->payoutAccount;
         $fingerprint = app(PayoutTransferService::class)->approvalFingerprint($withdrawal, $account);
-        $html = view('backend.withdraw.history.view', $data)->render();
+        $html = $render($data);
 
         $this->assertArrayNotHasKey('account_number', $destination->getAttributes());
         $this->assertStringContainsString('value="'.$fingerprint.'"', $html);
         $this->assertStringContainsString('Approve withdrawal', $html);
         $this->assertStringContainsString(route('admin.withdraw.approve_release', $withdrawal->id), $html);
         $this->assertStringNotContainsString('Queue approved payout', $html);
+        $this->assertTrue($queue['payoutReviews'][$withdrawal->id]['can_approve']);
+        $this->assertTrue($data['review']['can_approve']);
 
         $approve = Request::create(route('admin.withdraw.approve_release', $withdrawal->id), 'POST', ['review_fingerprint' => $fingerprint]);
-        $controller->approveRelease($approve, $withdrawal->id, app(PayoutTransferService::class));
+        $response = $controller->approveRelease($approve, $withdrawal->id, app(PayoutTransferService::class));
+        $this->assertTrue($response->getSession()->get('payout_review_notice.success'));
         $this->assertSame(999, $withdrawal->fresh()->release_approval['admin_id']);
         $this->assertSame(Withdraw::STATUS_PENDING, (int) $withdrawal->fresh()->status);
         $this->assertDatabaseCount('payout_transfers', 0);
-        $reviewed = view('backend.withdraw.history.view', $controller->index($request)->getData())->render();
+        $reviewed = $render($controller->review($withdrawal->id)->getData());
         $this->assertStringContainsString('A different authorized admin can release it', $reviewed);
         $this->assertStringNotContainsString('Queue approved payout', $reviewed);
 
         Auth::guard('admin')->setUser(Admin::findOrFail(19));
-        $this->assertStringContainsString('Queue approved payout', view('backend.withdraw.history.view', $controller->index($request)->getData())->render());
+        $this->assertStringContainsString('Queue approved payout', $render($controller->review($withdrawal->id)->getData()));
 
         $account->update(['status' => 'locked']);
-        $blocked = view('backend.withdraw.history.view', $controller->index($request)->getData())->render();
-        $this->assertStringContainsString('Review withdrawal', $blocked);
+        $blockedData = $controller->review($withdrawal->id)->getData();
+        $blocked = $render($blockedData);
         $this->assertStringContainsString('The attached payout account needs verified status before approval.', $blocked);
         $this->assertStringNotContainsString('Approve withdrawal', $blocked);
+        $this->assertFalse($blockedData['review']['can_approve']);
         $this->assertStringNotContainsString('Queue approved payout', $blocked);
+
+        Schema::table('withdraws', fn (Blueprint $table) => $table->dropColumn('release_approval'));
+        $missingMigration = $render($controller->review($withdrawal->id)->getData());
+        $this->assertStringContainsString('Apply the payout approval database migration to approve this withdrawal.', $missingMigration);
+        $this->assertStringNotContainsString('Approve withdrawal', $missingMigration);
+    }
+
+    public function test_repeated_approval_keeps_original_approver_and_hold_clears_approval(): void
+    {
+        [, $account, $withdrawal] = $this->payoutFixture();
+        $transfers = app(PayoutTransferService::class);
+        $original = $withdrawal->fresh()->release_approval;
+
+        $transfers->approveRelease($withdrawal->id, 19, $transfers->approvalFingerprint($withdrawal, $account));
+        $this->assertSame($original, $withdrawal->fresh()->release_approval);
+
+        $held = app(\App\Services\WithdrawalDecisionService::class)->hold($withdrawal->id, 'Review beneficiary', 19);
+        $this->assertSame(Withdraw::STATUS_HELD, (int) $held->status);
+        $this->assertNull($held->release_approval);
+        $this->expectExceptionMessage('A fresh approval is required');
+        $transfers->queue($withdrawal->id, 19);
     }
 
     public function test_queue_fails_closed_when_withdrawal_financial_evidence_is_missing_or_duplicated(): void

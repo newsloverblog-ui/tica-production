@@ -30,6 +30,9 @@ class WithdrawalDecisionService
             $withdrawal->decision_reason = $reason;
             $withdrawal->reviewed_by_admin_id = $adminId;
             $withdrawal->reviewed_at = now();
+            if (array_key_exists('release_approval', $withdrawal->getAttributes())) {
+                $withdrawal->release_approval = null;
+            }
             $withdrawal->save();
 
             AuditLogger::record('withdrawal.held', $withdrawal, ['status' => Withdraw::STATUS_PENDING], [

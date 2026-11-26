@@ -54,6 +54,7 @@ class AdminMutationAuthorizationTest extends TestCase
             'admin.user_management.push_notification.send_notification' => 'permission:Push Notification',
             'admin.event_booking.invoice' => 'permission:Event Bookings',
             'admin.event_booking.attachment' => 'permission:Event Bookings',
+            'admin.withdraw.review' => 'permission:Withdraw Method',
         ];
 
         foreach ($expected as $name => $middleware) {

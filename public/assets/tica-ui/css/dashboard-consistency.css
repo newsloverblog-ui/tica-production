@@ -672,3 +672,338 @@ body.tica-admin .admin-bookings__row-actions .deleteBtn {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Finance queue and withdrawal review. */
+.withdraw-queue {
+  container: withdraw-queue / inline-size;
+  min-inline-size: 0;
+}
+
+body.tica-admin .withdraw-queue .card-header form.withdraw-queue__filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+body.tica-admin .withdraw-queue .withdraw-queue__filters label {
+  display: grid;
+  gap: 6px;
+  min-inline-size: 0;
+  white-space: normal;
+  font: var(--tica-text-label);
+}
+
+body.tica-admin .withdraw-queue .withdraw-queue__filters .form-control {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+}
+
+.withdraw-queue__filter-actions,
+.withdraw-queue__tools,
+.withdraw-queue__exports {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.withdraw-queue__tools {
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.withdraw-queue__tools:not(:empty) {
+  margin-block-start: 16px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--dash-line);
+}
+
+body.tica-admin .withdraw-queue .withdraw-queue__exports form {
+  inline-size: auto;
+  max-inline-size: 100%;
+  flex-wrap: wrap;
+}
+
+.withdraw-queue__exports .form-control {
+  inline-size: 88px;
+}
+
+.withdraw-queue__results {
+  border: 1px solid var(--dash-line);
+  border-radius: var(--dash-radius);
+}
+
+.withdraw-queue__table {
+  inline-size: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.withdraw-queue__table :is(th, td) {
+  padding: 12px;
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.withdraw-queue__table th {
+  background: var(--dash-subtle);
+}
+
+.withdraw-queue__table th:first-child {
+  inline-size: 36%;
+  border-start-start-radius: calc(var(--dash-radius) - 1px);
+}
+
+.withdraw-queue__table th:nth-child(2) { inline-size: 21%; }
+.withdraw-queue__table th:nth-child(3) { inline-size: 20%; }
+
+.withdraw-queue__table th:last-child {
+  border-start-end-radius: calc(var(--dash-radius) - 1px);
+}
+
+.withdraw-queue__table td {
+  border-block-start: 1px solid var(--dash-line);
+}
+
+body.tica-admin .withdraw-queue .withdraw-queue__table .t-num {
+  text-align: end !important;
+  white-space: normal;
+}
+
+.withdraw-queue__reference,
+.withdraw-queue__meta {
+  display: block;
+  color: var(--dash-muted);
+  font: var(--tica-text-body-sm);
+  overflow-wrap: anywhere;
+}
+
+.withdraw-queue__reference { margin-block: 4px; }
+.withdraw-queue__cell-label { display: none; }
+
+.withdraw-queue__empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  color: var(--dash-muted);
+}
+
+.withdraw-queue__pagination .pagination {
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+}
+
+.withdraw-queue__disputes > summary,
+.withdraw-review__option > summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  font: var(--tica-text-label);
+}
+
+.withdraw-queue__cases {
+  display: grid;
+  gap: 16px;
+}
+
+.withdraw-queue__case {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: var(--dash-radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.withdraw-review__back {
+  display: inline-block;
+  margin-block-end: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.withdraw-review__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.withdraw-review__layout .card {
+  margin-block-end: 16px;
+}
+
+.withdraw-review__summary,
+.withdraw-review__decision {
+  display: grid;
+  gap: 16px;
+  overflow-wrap: anywhere;
+}
+
+.withdraw-review__summary > h2,
+.withdraw-review__decision > h2 {
+  margin: 0;
+}
+
+.withdraw-review__destination > h3 {
+  margin: 0 0 4px;
+}
+
+.withdraw-review__destination > p,
+.withdraw-review__decision > p,
+.withdraw-review__option form > p,
+.withdraw-queue__case p:last-child {
+  margin: 0;
+}
+
+.withdraw-review__amounts,
+.withdraw-review__facts {
+  display: grid;
+  gap: 12px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.withdraw-review__amounts {
+  padding: 16px;
+  border-radius: var(--dash-radius-sm);
+  background: var(--dash-subtle);
+}
+
+.withdraw-review__amounts > div:last-child {
+  grid-column: 1 / -1;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--dash-line);
+}
+
+.withdraw-review__amounts > div:last-child dd {
+  font: var(--tica-text-h3);
+  color: var(--dash-ink);
+}
+
+.withdraw-review :is(dt, dd) {
+  margin: 0;
+}
+
+.withdraw-review dt {
+  color: var(--dash-muted);
+  font: var(--tica-text-label);
+}
+
+.withdraw-review__options {
+  display: grid;
+  gap: 8px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--dash-line);
+}
+
+.withdraw-review__option {
+  border: 1px solid var(--dash-line);
+  border-radius: var(--dash-radius-sm);
+}
+
+.withdraw-review__option > summary {
+  min-block-size: 44px;
+  padding: 12px;
+  color: var(--dash-ink);
+}
+
+.withdraw-review__option--reject > summary {
+  color: #a42c37;
+}
+
+.withdraw-review__option form,
+.withdraw-queue__case form {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.withdraw-review__option form,
+.withdraw-review__option .withdraw-review__facts {
+  padding: 0 12px 12px;
+}
+
+.withdraw-review__option label,
+.withdraw-queue__case label {
+  margin: 0;
+}
+
+@container withdraw-queue (max-width: 1020px) {
+  body.tica-admin .withdraw-queue .card-header form.withdraw-queue__filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container withdraw-queue (max-width: 720px) {
+  .withdraw-review__layout,
+  .withdraw-queue__case {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container withdraw-queue (max-width: 590px) {
+  .withdraw-queue__results {
+    border: 0;
+  }
+
+  .withdraw-queue__table,
+  .withdraw-queue__table tbody {
+    display: block;
+  }
+
+  .withdraw-queue__table thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .withdraw-queue__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--dash-line);
+    border-radius: var(--dash-radius-sm);
+  }
+
+  .withdraw-queue__table tbody tr + tr {
+    margin-block-start: 12px;
+  }
+
+  .withdraw-queue__table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .withdraw-queue__table td:first-child,
+  .withdraw-queue__action {
+    grid-column: 1 / -1;
+  }
+
+  body.tica-admin .withdraw-queue .withdraw-queue__table .t-num {
+    text-align: start !important;
+  }
+
+  .withdraw-queue__cell-label {
+    display: block;
+    margin-block-end: 2px;
+    color: var(--dash-muted);
+    font: var(--tica-text-label);
+  }
+}
+
+@container withdraw-queue (max-width: 470px) {
+  body.tica-admin .withdraw-queue .card-header form.withdraw-queue__filters,
+  .withdraw-review__facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

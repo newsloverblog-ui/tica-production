@@ -55,6 +55,9 @@ class PayoutTransferService
             if (!hash_equals($fingerprint, $expectedFingerprint)) {
                 throw new RuntimeException('This payout changed. Review the current amount and beneficiary.');
             }
+            if ($this->currentApproval($withdrawal, $account) !== null) {
+                return;
+            }
             $approval = [
                 'id' => (string) Str::uuid(),
                 'admin_id' => $adminId,
@@ -113,16 +116,30 @@ class PayoutTransferService
     private function requireApproval(Withdraw $withdrawal, OrganizerPayoutAccount $account, int $adminId): array
     {
         $this->authorizeAdmin($adminId);
-        $approval = $withdrawal->release_approval;
-        if (!$approval || (int) $approval['expires_at'] <= now()->getTimestamp()
-            || !hash_equals($approval['fingerprint'], $this->approvalFingerprint($withdrawal, $account))) {
+        $approval = $this->currentApproval($withdrawal, $account);
+        if (!$approval) {
             throw new RuntimeException('A fresh approval is required for the current payout amount and beneficiary.');
         }
         if ((int) $approval['admin_id'] === $adminId) {
             throw new RuntimeException('A different admin must release this payout.');
         }
-        $this->authorizeAdmin((int) $approval['admin_id'], approval: true);
         return $approval;
+    }
+
+    public function currentApproval(Withdraw $withdrawal, OrganizerPayoutAccount $account): ?array
+    {
+        $approval = $withdrawal->release_approval;
+        if (!$approval || (int) ($approval['expires_at'] ?? 0) <= now()->getTimestamp()
+            || !hash_equals((string) ($approval['fingerprint'] ?? ''), $this->approvalFingerprint($withdrawal, $account))) {
+            return null;
+        }
+
+        $approver = Admin::find((int) ($approval['admin_id'] ?? 0));
+
+        return $approver && (int) $approver->status === 1
+            && $approver->hasPermission('Withdraw Method') && $approver->hasPermission('Transaction')
+            ? $approval
+            : null;
     }
 
     public function recordExternalPayment(int $withdrawalId, string $reference, int $adminId): Withdraw

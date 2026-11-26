@@ -216,7 +216,7 @@
           @elseif (request()->routeIs('admin.withdraw.payment_method')) active
           @elseif (request()->routeIs('admin.withdraw_payment_method.mange_input')) active
           @elseif (request()->routeIs('admin.withdraw_payment_method.edit_input')) active
-          @elseif (request()->routeIs('admin.withdraw.withdraw_request')) active
+          @elseif (request()->routeIs('admin.withdraw.withdraw_request', 'admin.withdraw.review')) active
           @elseif (request()->routeIs('admin.payout_accounts.*')) active @endif">
                         <a data-toggle="collapse" href="#withdraw_method">
                             <i class="fal fa-wallet" aria-hidden="true"></i>
@@ -230,11 +230,11 @@
             @elseif (request()->routeIs('admin.withdraw.payment_method')) show
             @elseif (request()->routeIs('admin.withdraw_payment_method.mange_input')) show 
             @elseif (request()->routeIs('admin.withdraw_payment_method.edit_input')) show 
-            @elseif (request()->routeIs('admin.withdraw.withdraw_request')) show
+            @elseif (request()->routeIs('admin.withdraw.withdraw_request', 'admin.withdraw.review')) show
             @elseif (request()->routeIs('admin.payout_accounts.*')) show @endif">
                             <ul class="nav nav-collapse">
                                 <li
-                                    class="{{ request()->routeIs('admin.withdraw.withdraw_request') && empty(request()->input('status')) ? 'active' : '' }}">
+                                    class="{{ request()->routeIs('admin.withdraw.withdraw_request', 'admin.withdraw.review') ? 'active' : '' }}">
                                     <a
                                         href="{{ route('admin.withdraw.withdraw_request', ['language' => $defaultLang->code]) }}">
                                         <span class="sub-item">{{ __('Payout requests') }}</span>

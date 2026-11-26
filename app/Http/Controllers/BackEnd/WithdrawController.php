@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BackEnd;
 use App\Http\Controllers\Controller;
 use App\Models\BasicSettings\Basic;
 use App\Models\BasicSettings\MailTemplate;
+use App\Models\PaystackDispute;
 use App\Models\Withdraw;
 use App\Models\PayoutDispute;
 use App\Services\PayoutDisputeService;
@@ -14,10 +15,11 @@ use App\Services\ApplicationMailService;
 use App\Services\DataExportService;
 use App\Services\WithdrawalExportQueryService;
 use DomainException;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Session;
 use RuntimeException;
 
 class WithdrawController extends Controller
@@ -26,16 +28,10 @@ class WithdrawController extends Controller
   public function index(Request $request)
   {
     $filters = $this->exportFilters($request);
-    $collection = app(WithdrawalExportQueryService::class)->query($filters)
-      ->with([
-        'latestPayoutTransfer',
-        'latestPayoutDispute',
-        'organizer:id,kyc_status',
-        'payoutAccount' => fn ($query) => $query->select([
-          'id', 'public_id', 'organizer_id', 'bank_name', 'account_last4', 'currency', 'provider',
-          'status', 'is_default', 'resolved_account_name', 'bank_code', 'account_number_hash', 'verified_at', 'hold_until',
-        ]),
-      ])
+    $query = app(WithdrawalExportQueryService::class)->query($filters);
+    $collection = $this->withReviewDetails($query)
+      ->when(!isset($filters['status']), fn (Builder $query) =>
+        $query->orderByRaw('CASE WHEN status IN (?, ?) THEN 0 ELSE 1 END', [Withdraw::STATUS_PENDING, Withdraw::STATUS_HELD]))
       ->orderByDesc('id')->paginate(10)->withQueryString();
     $payoutDisputes = PayoutDispute::with(['withdrawal', 'organizer'])
       ->whereIn('status', [PayoutDispute::STATUS_OPEN, PayoutDispute::STATUS_UNDER_REVIEW])
@@ -43,15 +39,89 @@ class WithdrawController extends Controller
       ->limit(100)
       ->get();
     $currencyInfo = $this->getCurrencyInfo();
+    [$payoutReviews] = $this->releaseReviews($collection->getCollection());
+
+    return view('backend.withdraw.history.index', compact('collection', 'currencyInfo', 'payoutDisputes', 'payoutReviews'));
+  }
+
+  public function review(int $id)
+  {
+    $item = $this->withReviewDetails(Withdraw::query())->findOrFail($id);
+    [$reviews, $transfersEnabled] = $this->releaseReviews([$item], PaystackDispute::holdsOrganizer((int) $item->organizer_id));
+
+    return view('backend.withdraw.history.review', [
+      'item' => $item,
+      'review' => $reviews[$id] ?? null,
+      'transfersEnabled' => $transfersEnabled,
+      'currencyInfo' => $this->getCurrencyInfo(),
+    ]);
+  }
+
+  private function withReviewDetails(Builder $query): Builder
+  {
+    return $query->with([
+      'latestPayoutTransfer',
+      'method:id,name',
+      'organizer:id,username,kyc_status',
+      'payoutAccount' => fn ($accountQuery) => $accountQuery->select([
+        'id', 'public_id', 'organizer_id', 'bank_name', 'account_last4', 'currency', 'provider',
+        'status', 'is_default', 'resolved_account_name', 'bank_code', 'account_number_hash', 'verified_at', 'hold_until',
+      ]),
+    ]);
+  }
+
+  private function releaseReviews(iterable $withdrawals, bool $disputeHold = false): array
+  {
     $payoutApprovalAvailable = Schema::hasColumn('withdraws', 'release_approval');
     $payoutAdmin = Auth::guard('admin')->user();
     $canManagePayout = (int) ($payoutAdmin?->status) === 1 && $payoutAdmin->hasPermission('Withdraw Method');
     $canApprovePayout = $canManagePayout && $payoutAdmin->hasPermission('Transaction');
+    $transfersEnabled = (bool) config('payouts.paystack_transfers_enabled');
+    $transfers = app(PayoutTransferService::class);
+    $payoutReviews = [];
 
-    return view('backend.withdraw.history.index', compact(
-      'collection', 'currencyInfo', 'payoutDisputes', 'payoutApprovalAvailable',
-      'payoutAdmin', 'canManagePayout', 'canApprovePayout'
-    ));
+    foreach ($withdrawals as $withdrawal) {
+      if (!in_array((int) $withdrawal->status, [Withdraw::STATUS_PENDING, Withdraw::STATUS_HELD], true)) {
+        continue;
+      }
+
+      $account = $withdrawal->payoutAccount;
+      $blocker = match (true) {
+        !$payoutApprovalAvailable => __('Apply the payout approval database migration to approve this withdrawal.'),
+        !$canManagePayout => __('Reviewing a payout requires an active admin with Withdraw Method permission.'),
+        !$account => __('This withdrawal has no payout account attached. Finance needs to review the original request.'),
+        (int) $account->organizer_id !== (int) $withdrawal->organizer_id
+          => __('Finance needs to review the organiser and bank account on this request.'),
+        $withdrawal->organizer?->kyc_status !== 'verified' => __('The organiser needs to complete identity verification before approval.'),
+        $disputeHold => __('The organizer has an unresolved payment dispute. Finance must review it before releasing this payout.'),
+        $account->status !== 'verified' => __('The attached payout account needs verified status before approval.'),
+        !$account->is_default => __('The attached account must still be the organiser’s default payout account.'),
+        !in_array($account->provider, ['paystack', 'monnify'], true) || strtoupper((string) $account->currency) !== 'NGN'
+          => __('The attached account must support NGN payouts through Paystack or Monnify.'),
+        $account->hold_until && now()->lt($account->hold_until)
+          => __('The payout account is on a security hold until :time.', ['time' => $account->hold_until->format('j M Y, H:i T')]),
+        default => null,
+      };
+      $fingerprint = $blocker === null ? $transfers->approvalFingerprint($withdrawal, $account) : null;
+      $approval = $fingerprint !== null ? $transfers->currentApproval($withdrawal, $account) : null;
+      $approved = $approval !== null;
+      $canRelease = $approved && (int) $approval['admin_id'] !== (int) $payoutAdmin->id;
+
+      $payoutReviews[$withdrawal->id] = [
+        'approved' => $approved,
+        'can_approve' => $fingerprint !== null && $canApprovePayout && !$approved,
+        'can_queue' => $canRelease && $transfersEnabled,
+        'can_record_external' => $canRelease && !$withdrawal->latestPayoutTransfer,
+        'can_release' => $canRelease,
+        'fingerprint' => $fingerprint,
+        'expires_at' => $approval['expires_at'] ?? null,
+        'blocker' => !$approved && !$canApprovePayout && $blocker === null
+          ? __('Approving a withdrawal requires Transaction permission. Ask a finance admin to approve it.')
+          : $blocker,
+      ];
+    }
+
+    return [$payoutReviews, $transfersEnabled];
   }
 
   public function export(Request $request, DataExportService $exports)
@@ -83,198 +153,135 @@ class WithdrawController extends Controller
     return redirect()->back()->with('warning', 'Financial withdrawal records are retained for audit and cannot be deleted.');
   }
 
-  //approve
   public function approve(Request $request, $id)
   {
-    $validated = $request->validate([
+    $validated = $request->validateWithBag('external', [
       'payout_reference' => ['required', 'string', 'max:191'],
     ]);
     try {
-      $withdraw = app(PayoutTransferService::class)->recordExternalPayment(
-        (int) $id,
-        $validated['payout_reference'],
-        (int) Auth::guard('admin')->id()
+      $withdrawal = app(PayoutTransferService::class)->recordExternalPayment(
+        (int) $id, $validated['payout_reference'], (int) Auth::guard('admin')->id(),
       );
     } catch (RuntimeException $exception) {
-      return redirect()->back()->with('warning', $exception->getMessage());
+      return $this->payoutFailure($exception, 'external');
     }
-    \App\Support\AdminQueues::forget();
-    \App\Support\OrganizerInbox::send((int) $withdraw->organizer_id, 'withdrawal.' . (request()->routeIs('*decline*') || $request->has('decision_reason') ? 'rejected' : 'paid'),
-      $request->has('decision_reason') ? __('Withdrawal declined') : __('Withdrawal paid'),
-      $request->has('decision_reason') ? (string) $request->input('decision_reason') : __('TICA marked your withdrawal as paid.'),
-      url('/dashboard/payouts'));
 
-    //mail sending
-    // get the website title & mail's smtp information from db
-    $info = Basic::select('website_title', 'base_currency_symbol_position', 'base_currency_symbol')
-      ->first();
-
-    //preparing mail info
-    // get the mail template info from db
-    $mailTemplate = MailTemplate::query()->where('mail_type', '=', 'withdraw_approve')->first();
-    $mailData['subject'] = $mailTemplate->mail_subject;
-    $mailBody = $mailTemplate->mail_body;
-
-    // get the website title info from db
-    $website_info = Basic::select('website_title')->first();
-
-    $organizer = $withdraw->organizer()->first();
-
-    // preparing dynamic data
-    $organizerName = $organizer->username;
-    $organizerEmail = $organizer->email;
-    $organizer_amount = $organizer->amount;
-    $withdraw_amount = $withdraw->amount;
-    $total_charge = $withdraw->total_charge;
-    $payable_amount = $withdraw->payable_amount;
-
-    $method = $withdraw->method()->select('name')->first();
-
-    $websiteTitle = $website_info->website_title;
-
-    // replacing with actual data
-    $mailBody = str_replace('{organizer_username}', $organizerName, $mailBody);
-    $mailBody = str_replace('{withdraw_id}', $withdraw->withdraw_id, $mailBody);
-
-    $mailBody = str_replace('{current_balance}', $info->base_currency_symbol . $organizer_amount, $mailBody);
-    $mailBody = str_replace('{withdraw_amount}', $info->base_currency_symbol . $withdraw_amount, $mailBody);
-    $mailBody = str_replace('{charge}', $info->base_currency_symbol . $total_charge, $mailBody);
-    $mailBody = str_replace('{payable_amount}', $info->base_currency_symbol . $payable_amount, $mailBody);
-
-    $mailBody = str_replace('{withdraw_method}', $method->name, $mailBody);
-    $mailBody = str_replace('{website_title}', $websiteTitle, $mailBody);
-
-    $mailData['body'] = $mailBody;
-
-    $mailData['recipient'] = $organizerEmail;
-    //preparing mail info end
-
-    try {
-      app(ApplicationMailService::class)->queueHtml(
-        'withdrawal_paid', $mailData['recipient'], $mailData['subject'], $mailData['body'], [], null, $withdraw
-      );
-      Session::flash('success', 'Withdrawal marked paid; its notification was queued.');
-    } catch (\Throwable $e) {
-      report($e);
-      Session::flash('warning', 'Withdrawal was marked paid, but its email could not be queued.');
-    }
-    return redirect()->back();
+    return $this->notifyWithdrawalDecision($withdrawal, true);
   }
-  //decline
-  public function decline(Request $request, $id)
+
+  public function decline(Request $request, $id, WithdrawalDecisionService $decisions)
   {
-    $validated = $request->validate([
+    $validated = $request->validateWithBag('reject', [
       'decision_reason' => ['required', 'string', 'max:2000'],
     ]);
     try {
-      $withdraw = (new WithdrawalDecisionService())->reject(
-        (int) $id,
-        $validated['decision_reason'],
-        (int) Auth::guard('admin')->id()
-      );
+      $withdrawal = $decisions->reject((int) $id, $validated['decision_reason'], (int) Auth::guard('admin')->id());
     } catch (RuntimeException $exception) {
-      return redirect()->back()->with('warning', $exception->getMessage());
+      return $this->payoutFailure($exception, 'reject');
     }
-    \App\Support\AdminQueues::forget();
-    \App\Support\OrganizerInbox::send((int) $withdraw->organizer_id, 'withdrawal.' . (request()->routeIs('*decline*') || $request->has('decision_reason') ? 'rejected' : 'paid'),
-      $request->has('decision_reason') ? __('Withdrawal declined') : __('Withdrawal paid'),
-      $request->has('decision_reason') ? (string) $request->input('decision_reason') : __('TICA marked your withdrawal as paid.'),
-      url('/dashboard/payouts'));
 
-    //mail sending
-    // get the website title & mail's smtp information from db
-    $info = Basic::select('website_title', 'base_currency_symbol_position', 'base_currency_symbol')
-      ->first();
-
-    //preparing mail info
-    // get the mail template info from db
-    $mailTemplate = MailTemplate::query()->where('mail_type', '=', 'withdraw_rejected')->first();
-    $mailData['subject'] = $mailTemplate->mail_subject;
-    $mailBody = $mailTemplate->mail_body;
-
-    // get the website title info from db
-    $website_info = Basic::select('website_title')->first();
-
-    $organizer = $withdraw->organizer()->first();
-
-    // preparing dynamic data
-    $organizerName = $organizer->username;
-    $organizerEmail = $organizer->email;
-    $organizer_amount = $organizer->amount;
-
-    $method = $withdraw->method()->select('name')->first();
-
-    $websiteTitle = $website_info->website_title;
-
-    // replacing with actual data
-    $mailBody = str_replace('{organizer_username}', $organizerName, $mailBody);
-    $mailBody = str_replace('{withdraw_id}', $withdraw->withdraw_id, $mailBody);
-
-    $mailBody = str_replace('{current_balance}', $info->base_currency_symbol . $organizer_amount, $mailBody);
-    $mailBody = str_replace('{website_title}', $websiteTitle, $mailBody);
-
-    $mailData['body'] = $mailBody;
-
-    $mailData['recipient'] = $organizerEmail;
-    //preparing mail info end
-
-    try {
-      app(ApplicationMailService::class)->queueHtml(
-        'withdrawal_rejected', $mailData['recipient'], $mailData['subject'], $mailData['body'], [], null, $withdraw
-      );
-      Session::flash('success', 'Withdrawal rejected, balance restored, and its notification queued.');
-    } catch (\Throwable $e) {
-      report($e);
-      Session::flash('warning', 'The withdrawal was rejected, but its email could not be queued.');
-    }
-    return redirect()->back();
+    return $this->notifyWithdrawalDecision($withdrawal, false);
   }
 
-  public function hold(Request $request, $id)
+  public function hold(Request $request, $id, WithdrawalDecisionService $decisions)
   {
-    $validated = $request->validate([
+    $validated = $request->validateWithBag('hold', [
       'decision_reason' => ['required', 'string', 'max:2000'],
     ]);
     try {
-      (new WithdrawalDecisionService())->hold(
-        (int) $id,
-        $validated['decision_reason'],
-        (int) Auth::guard('admin')->id()
-      );
+      $decisions->hold((int) $id, $validated['decision_reason'], (int) Auth::guard('admin')->id());
     } catch (RuntimeException $exception) {
-      return redirect()->back()->with('warning', $exception->getMessage());
+      return $this->payoutFailure($exception, 'hold');
     }
 
-    return redirect()->back()->with('success', 'Withdrawal placed on hold for finance review.');
+    return $this->payoutNotice(__('Withdrawal placed on hold. Finance can reopen it for review.'));
   }
 
-  public function submitPaystack($id)
+  public function submitPaystack($id, PayoutTransferService $transfers)
   {
     try {
-      $transfer = (new PayoutTransferService())->queue(
-        (int) $id,
-        (int) Auth::guard('admin')->id()
-      );
+      $transfer = $transfers->queue((int) $id, (int) Auth::guard('admin')->id());
     } catch (RuntimeException $exception) {
-      return redirect()->back()->with('warning', $exception->getMessage());
+      return $this->payoutFailure($exception, 'release');
     }
 
-    return redirect()->back()->with(
-      'success',
-      'The payout was queued via ' . ucfirst((string) $transfer->gateway) . ' with reference ' . $transfer->reference . '. It is only marked paid after the provider confirms it.'
-    );
+    return $this->payoutNotice(__('Payout queued through :provider. The withdrawal moves to Paid after the provider confirms the transfer.', [
+      'provider' => ucfirst((string) $transfer->gateway),
+    ]));
+  }
+
+  private function notifyWithdrawalDecision(Withdraw $withdrawal, bool $paid)
+  {
+    $message = $paid
+      ? __('Withdrawal marked paid.')
+      : __('Withdrawal rejected. The reserved amount was returned to the organizer’s balance.');
+
+    try {
+      \App\Support\AdminQueues::forget();
+      \App\Support\OrganizerInbox::send(
+        (int) $withdrawal->organizer_id,
+        $paid ? 'withdrawal.paid' : 'withdrawal.rejected',
+        $paid ? __('Withdrawal paid') : __('Withdrawal declined'),
+        $paid ? __('TICA marked your withdrawal as paid.') : (string) $withdrawal->decision_reason,
+        url('/dashboard/payouts'),
+      );
+
+      $template = MailTemplate::query()->where('mail_type', $paid ? 'withdraw_approve' : 'withdraw_rejected')->firstOrFail();
+      $settings = Basic::query()->first();
+      $organizer = $withdrawal->organizer()->firstOrFail();
+      $symbol = $settings->base_currency_symbol ?? '';
+      $body = strtr($template->mail_body, [
+        '{organizer_username}' => $organizer->username,
+        '{withdraw_id}' => $withdrawal->withdraw_id,
+        '{current_balance}' => $symbol . $organizer->amount,
+        '{withdraw_amount}' => $symbol . $withdrawal->amount,
+        '{charge}' => $symbol . $withdrawal->total_charge,
+        '{payable_amount}' => $symbol . $withdrawal->payable_amount,
+        '{withdraw_method}' => (string) $withdrawal->method()->value('name'),
+        '{website_title}' => $settings->website_title ?? '',
+      ]);
+
+      app(ApplicationMailService::class)->queueHtml(
+        $paid ? 'withdrawal_paid' : 'withdrawal_rejected', $organizer->email, $template->mail_subject, $body, [], null, $withdrawal,
+      );
+    } catch (\Throwable $exception) {
+      report($exception);
+
+      return $this->payoutNotice($message . ' ' . __('The organizer notification could not be queued.'), false);
+    }
+
+    return $this->payoutNotice($message);
+  }
+
+  private function payoutFailure(RuntimeException $exception, string $action)
+  {
+    $message = $exception->getMessage();
+    if ($exception instanceof QueryException) {
+      report($exception);
+      $message = __('The withdrawal could not be updated. Reopen the review and try again.');
+    }
+
+    return $this->payoutNotice($message, false, $action)->withInput();
+  }
+
+  private function payoutNotice(string $message, bool $success = true, ?string $action = null)
+  {
+    return back()->with('payout_review_notice', compact('message', 'success', 'action'));
   }
 
   public function approveRelease(Request $request, int $id, PayoutTransferService $transfers)
   {
-    $validated = $request->validate(['review_fingerprint' => ['required', 'string', 'size:64']]);
+    $validated = $request->validate(
+      ['review_fingerprint' => ['required', 'string', 'size:64']],
+      ['review_fingerprint.*' => __('Reopen the withdrawal and review the amount and destination before approving.')]
+    );
     try {
       $transfers->approveRelease($id, (int) Auth::guard('admin')->id(), $validated['review_fingerprint']);
     } catch (RuntimeException $exception) {
-      return redirect()->back()->with('warning', $exception->getMessage());
+      return $this->payoutFailure($exception, 'approve');
     }
 
-    return redirect()->back()->with('success', 'Payout approved. A different authorized admin can release it before the approval expires.');
+    return $this->payoutNotice(__('Withdrawal approved. A different authorized admin can release it before the approval expires.'));
   }
 
   public function reviewDispute(
@@ -295,7 +302,8 @@ class WithdrawController extends Controller
         $validated['resolution'] ?? null
       );
     } catch (RuntimeException $exception) {
-      return back()->withInput()->with('warning', $exception->getMessage());
+      return back()->withInput($request->only('status', 'resolution') + ['dispute_id' => $dispute->id])
+        ->with('warning', $exception->getMessage());
     }
 
     return back()->with('success', 'Payout dispute ' . $reviewed->public_id . ' is now ' . str_replace('_', ' ', $reviewed->status) . '.');

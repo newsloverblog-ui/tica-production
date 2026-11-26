@@ -310,6 +310,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('payout-accounts/automatic-release', 'BackEnd\PayoutAccountController@automaticRelease')
       ->middleware('permission:Transaction')->name('admin.payout_automatic_release.update');
     Route::get('withdraw/withdraw-request', 'BackEnd\WithdrawController@index')->name('admin.withdraw.withdraw_request');
+    Route::get('withdraw/withdraw-request/{id}/review', 'BackEnd\WithdrawController@review')
+      ->whereNumber('id')->name('admin.withdraw.review');
     Route::post('withdraw/withdraw-request/export', 'BackEnd\WithdrawController@export')
       ->middleware('permission:Transaction')->name('admin.withdraw_exports.store');
     Route::get('withdraw/withdraw-request/exports', 'BackEnd\DataExportController@withdrawalIndex')
