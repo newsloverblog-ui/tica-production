@@ -7,9 +7,23 @@ use App\Models\ScannerDevice;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ScannerAdmissionPolicy
 {
+    public function deviceForEvent(Request $request, int $eventId): ?ScannerDevice
+    {
+        if (!$request->routeIs('organizer.scanner.online.*')) {
+            return $this->assignedDevice($request, $eventId);
+        }
+
+        $organizerId = Auth::guard('organizer')->id();
+        abort_unless($organizerId && Event::query()
+            ->whereKey($eventId)->where('organizer_id', $organizerId)->exists(), 403, 'This event is not available to your organizer account.');
+
+        return null;
+    }
+
     public function assignedDevice(Request $request, int $eventId): ScannerDevice
     {
         $enrolled = $request->attributes->get('scanner_device');

@@ -72,6 +72,16 @@ Route::prefix('/organizer')->group(function () {
 
 Route::prefix('/organizer')->middleware('auth:organizer', 'Deactive:organizer', 'EmailStatus:organizer', 'adminLang', 'tica.team')->group(function () {
   Route::get('/pwa', 'BackEnd\Organizer\OrganizerController@pwa')->name('organizer.pwa');
+  Route::prefix('scanner/online')->name('organizer.scanner.online.')->group(function () {
+    Route::get('/events', 'BackEnd\Organizer\ScannerMetricsController@events')->name('events');
+    Route::get('/events/{event}/metrics', 'BackEnd\Organizer\ScannerMetricsController@show')->whereNumber('event')->name('metrics');
+    Route::middleware('throttle:scanner')->group(function () {
+      Route::post('/check-qrcode', 'BackEnd\Organizer\OrganizerController@check_qrcode')->name('scan');
+      Route::post('/ticket-lookup', 'BackEnd\Organizer\OrganizerController@ticketLookup')->name('lookup');
+      Route::post('/manual-check-in', 'BackEnd\Organizer\OrganizerController@manualCheckIn')->name('manual');
+      Route::post('/code', 'FrontEnd\TicaApiController@checkinCode')->name('code');
+    });
+  });
   Route::get('/scanner/devices', 'BackEnd\Organizer\ScannerDeviceController@index')->name('organizer.scanner.devices.index');
   Route::post('/scanner/devices', 'BackEnd\Organizer\ScannerDeviceController@store')->middleware('throttle:scanner')->name('organizer.scanner.devices.store');
   Route::post('/scanner/devices/{device}/revoke', 'BackEnd\Organizer\ScannerDeviceController@revoke')->name('organizer.scanner.devices.revoke');

@@ -987,22 +987,37 @@ document.addEventListener('click',function(ev){
     fetch(r.dataset.resend,{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'}}).then(function(res){r.textContent=res.ok?'Sent':'Try again';r.disabled=!res.ok?false:true;flash(res.ok?'Your tickets are on their way to '+((ACC.profile||{}).email||'your email')+'.':'We couldn\'t send them just now. Please try again.')},function(){r.disabled=false;r.textContent='Try again';flash('No connection. Please try again.')})}
 });
 
-/* Tica gate check-in: real scans through Tica's scanner, from this browser as an enrolled gate device. */
-var CK={total:0,in:0,log:[]},CKE=null,CKCAM=null,CKLAST={};
+/* Tica gate check-in uses the organizer session online and an assigned device for gate staff. */
+var CK={total:0,in:0,log:[]},CKE=null,CKCAM=null,CKLAST={},CKSESSION=0;
 var CKS={get:function(k){try{return localStorage.getItem(k)||''}catch(e){return ''}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},del:function(k){try{localStorage.removeItem(k)}catch(e){}}};
+var CKORGANIZER=!!window.TICA_ORG;
 function ckTime(){var d=new Date();return d.toLocaleTimeString('en-NG',{hour:'numeric',minute:'2-digit'})}
-function ckHeaders(){return {'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest','X-Scanner-Device':CKS.get('tica_scanner_device_id'),'X-Scanner-Secret':CKS.get('tica_scanner_device_secret')}}
-function ckFetch(url,opts){opts=opts||{};opts.credentials='same-origin';opts.headers=ckHeaders();return fetch(url,opts).then(function(r){return r.json().catch(function(){return {}}).then(function(j){j.__status=r.status;return j})})}
-function ckEvents(){
-  if(TICA_DATA.dashboard)return TICA_DATA.dashboard.events.filter(function(r){return r.state==='up'||r.state==='past'&&Date.now()-r.ts<2*864e5}).sort(function(a,b){return a.ts-b.ts}).map(function(r){return {id:r.id,label:r.name+', '+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(r.ts).getDay()]+' '+r.day+' '+r.mon}});
-  return (TICA_DATA.gate&&TICA_DATA.gate.events)||[];
+function ckEndpoint(path){return (CKORGANIZER?'/organizer/scanner/online':'/scanner')+path}
+function ckEventKey(){return 'tica_ck_event_'+TICA_DATA.organizer.id}
+function ckHeaders(){
+  var headers={'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf,'X-Requested-With':'XMLHttpRequest'};
+  if(!CKORGANIZER){headers['X-Scanner-Device']=CKS.get('tica_scanner_device_id');headers['X-Scanner-Secret']=CKS.get('tica_scanner_device_secret')}
+  return headers;
 }
-/* The device credential is shared with Tica's own scanner page on this browser. */
-function ckDevice(){
-  if(CKS.get('tica_scanner_device_id')&&CKS.get('tica_scanner_device_secret'))return Promise.resolve(true);
-  if(!window.TICA_ORG)return Promise.reject(new Error('This device isn\'t set up for scanning. Ask the event owner to open check-in on it once to set it up.'));
-  return api('/organizer/scanner/devices',{name:'TICA gate, '+(navigator.platform||'browser')}).then(function(r){
-    CKS.set('tica_scanner_device_id',r.device.public_id);CKS.set('tica_scanner_device_secret',r.secret);CKS.set('tica_scanner_device_name',r.device.name);return true});
+function ckFetch(url,opts){opts=opts||{};opts.credentials='same-origin';opts.headers=ckHeaders();return fetch(url,opts).then(function(r){return r.json().catch(function(){return {}}).then(function(j){j.__status=r.status;return j})})}
+function ckIdle(message){
+  var result=$('ck-res'),p=document.createElement('p');
+  result.className='ck-res';
+  p.className='ck-idle';p.textContent=message;
+  result.replaceChildren(p);
+}
+function ckSelectEvent(eventId,message){
+  CKE=eventId;CKSESSION++;
+  CK={total:0,in:0,log:[]};CKLAST={};
+  $('ck-found').replaceChildren();
+  if(!eventId&&CKCAM)ckStop();
+  $('ck-cam-go').disabled=!eventId;
+  ['ck-manual','ck-find'].forEach(function(id){
+    $(id).querySelectorAll('input,button').forEach(function(control){control.disabled=!eventId});
+  });
+  ckIdle(message||(eventId?'Scan a ticket to see the result here.':'Choose an event to start check-in.'));
+  ckDraw();
+  if(eventId)ckMetrics();
 }
 function ckDraw(){
   $('ck-in').textContent=CK.in.toLocaleString('en-NG');$('ck-total').textContent=CK.total.toLocaleString('en-NG');
@@ -1018,16 +1033,24 @@ function ckShow(k,title,lines){
 }
 function ckMetrics(){
   if(!CKE)return;
-  ckFetch('/scanner/events/'+CKE+'/metrics').then(function(m){if(m.__status>=400)return;CK.total=m.total||0;CK.in=m.scanned||0;ckDraw()});
+  var selection=CKSESSION;
+  ckFetch(ckEndpoint('/events/'+CKE+'/metrics')).then(function(m){
+    if(selection!==CKSESSION||m.__status>=400)return;
+    CK.total=m.total||0;CK.in=m.scanned||0;ckDraw();
+  }).catch(function(){});
 }
-function ckCheck(payload,source,label){
+function ckCheck(payload){
   if(!CKE){ckShow('bad','Choose an event',['Pick the event you\'re checking in for first.']);return}
-  ckFetch('/scanner/check-qrcode',{method:'POST',body:JSON.stringify({booking_id:payload,event_id:CKE})}).then(function(r){ckResult(r,label)},function(){ckShow('bad','No connection',['Check the internet connection, then scan again.'])});
+  var selection=CKSESSION;
+  ckFetch(ckEndpoint('/check-qrcode'),{method:'POST',body:JSON.stringify({booking_id:payload,event_id:CKE})}).then(function(r){
+    if(selection===CKSESSION)ckResult(r);
+  },function(){if(selection===CKSESSION)ckShow('bad','No connection',['Check the internet connection, then scan again.'])});
 }
 /* Shared by QR scans, typed codes and guests found by search. Returns 'ok', 'used' or 'bad'. */
 function ckResult(r,label){
   var who=label||r.booking_id||'Ticket';
-  if(r.__status===401&&r.code&&/scanner_device/.test(r.code)){CKS.del('tica_scanner_device_id');CKS.del('tica_scanner_device_secret');ckShow('bad','This device needs setting up',[r.message||'Reload the page to set it up again.']);return 'bad'}
+  if(CKORGANIZER&&(r.__status===401||r.__status===419)){ckShow('bad','Sign in again',['Your organizer session has expired. Sign in to keep checking in tickets.']);return 'bad'}
+  if(!CKORGANIZER&&r.__status===401&&r.code&&/scanner_device/.test(r.code)){CKS.del('tica_scanner_device_id');CKS.del('tica_scanner_device_secret');ckShow('bad','This device needs setting up',[r.message||'Reload the page to set it up again.']);return 'bad'}
   var k;
   if(r.alert_type==='success'){k='ok';ckShow('ok','Valid ticket',[label||'Ticket checked in',r.message||'']);CK.log.unshift({k:'ok',name:label||'Ticket checked in',sub:r.message||'',t:ckTime()});ckMetrics()}
   else if(/already/i.test(r.message||'')){k='used';ckShow('used','Already checked in',[label||'This ticket',(r.message||'')+'. Don\'t let this ticket in twice.']);CK.log.unshift({k:'used',name:label||'Scanned again',sub:r.message||'',t:ckTime()})}
@@ -1036,21 +1059,42 @@ function ckResult(r,label){
   return k;
 }
 function renderCheckin(){
-  var sel=$('ck-event'),evs=ckEvents();
-  sel.innerHTML=evs.length?evs.map(function(e){return '<option value="'+e.id+'">'+esc(e.label)+'</option>'}).join(''):'<option value="">No events to check in</option>';
-  CKE=evs.length?(+CKS.get('tica_ck_event')&&evs.some(function(e){return e.id===+CKS.get('tica_ck_event')})?+CKS.get('tica_ck_event'):evs[0].id):null;if(CKE)sel.value=String(CKE);
-  ckSync();ckDraw();
-  /* Owners manage gate staff and devices from the same place they scan */
-  var su=$('ck-setup');if(su)su.hidden=!(window.TICA_ORG&&!TICA_DATA.gate&&((TICA_DATA.dashboard||{}).role||'owner')==='owner');
-  ckDevice().then(function(){return ckFetch('/scanner/device/current')}).then(function(r){
+  var sel=$('ck-event');
+  sel.disabled=true;
+  sel.replaceChildren(new Option('Loading events…',''));
+  ckSelectEvent(null,'Loading events…');
+  var selection=CKSESSION;
+  ckSync();
+  if(CKORGANIZER){
+    ckFetch(ckEndpoint('/events')).then(function(r){
+      if(selection!==CKSESSION)return;
+      if(r.__status>=400||!Array.isArray(r.events))throw new Error(r.message||'Reload the page to try again.');
+      var events=r.events,preferred=Number(CKS.get(ckEventKey()));
+      var selected=events.some(function(event){return event.id===preferred})?preferred:(events.length===1?events[0].id:null);
+      sel.replaceChildren(new Option(events.length?'Choose an event':'No events available',''));
+      events.forEach(function(event){sel.add(new Option(event.title+(event.date?' · '+event.date:''),String(event.id)))});
+      sel.disabled=!events.length;
+      sel.value=String(selected||'');
+      ckSelectEvent(selected,events.length?'':'No published ticketed events are scheduled or recently ended.');
+    }).catch(function(error){
+      if(selection!==CKSESSION)return;
+      sel.replaceChildren(new Option('Events unavailable',''));
+      ckShow('bad','Could not load your events',[error.message]);
+    });
+    return;
+  }
+  ckFetch('/scanner/device/current').then(function(r){
+    if(selection!==CKSESSION)return;
     var device=r.device;
-    if(!device||!device.event_id)throw new Error('Ask the event organizer to assign this gate to an event.');
-    CKE=Number(device.event_id);
-    var entry=evs.find(function(e){return Number(e.id)===CKE});
-    sel.innerHTML='<option value="'+CKE+'">'+esc(entry?entry.label:'Event #'+CKE)+'</option>';
-    $('ck-cam-go').disabled=false;
-    ckMetrics();
-  }).catch(function(er){CKE=null;sel.innerHTML='<option value="">Gate assignment required</option>';ckShow('bad','This device isn\'t set up',[er.message]);$('ck-cam-go').disabled=true});
+    if(!device||!device.event_id)throw new Error('Ask the event organizer to enroll this browser and assign it to an event.');
+    var event=((TICA_DATA.gate||{}).events||[]).find(function(entry){return Number(entry.id)===Number(device.event_id)});
+    sel.replaceChildren(new Option(event?event.label:'Event #'+device.event_id,String(device.event_id)));
+    ckSelectEvent(Number(device.event_id));
+  }).catch(function(error){
+    if(selection!==CKSESSION)return;
+    sel.replaceChildren(new Option('Gate assignment required',''));
+    ckShow('bad','This device isn\'t set up',[error.message]);
+  });
 }
 function ckSync(){var s=document.querySelector('.ck-sync');if(s)s.innerHTML='<i aria-hidden="true"'+(navigator.onLine?'':' style="background:#F04438;box-shadow:0 0 0 4px rgba(240,68,56,.18)"')+'></i>'+(navigator.onLine?'Online. Results are live.':'Offline. Reconnect to keep checking tickets.')}
 addEventListener('online',ckSync);addEventListener('offline',ckSync);
@@ -1064,11 +1108,12 @@ function ckLoadReader(){
   return new Promise(function(ok,no){var s=document.createElement('script');s.src='/assets/pwa_scanner/html5-qrcode.min.js';s.onload=ok;s.onerror=function(){no(new Error('The camera reader didn\'t load.'))};document.head.appendChild(s)});
 }
 function ckStart(){
+  if(!CKE)return;
   var go=$('ck-cam-go');go.disabled=true;go.textContent='Starting camera...';
   ckLoadReader().then(function(){
     CKCAM=new Html5Qrcode('ck-reader',{verbose:false});
     return CKCAM.start({facingMode:'environment'},{fps:10,qrbox:function(w,h){var s=Math.floor(Math.min(w,h)*.6);return {width:s,height:s}}},function(text){
-      var now=Date.now();if(CKLAST[text]&&now-CKLAST[text]<4000)return;CKLAST[text]=now;ckCheck(text,'scanner');
+      var now=Date.now();if(CKLAST[text]&&now-CKLAST[text]<4000)return;CKLAST[text]=now;ckCheck(text);
     },function(){});
   }).then(function(){document.querySelector('.ck-cam').classList.add('live');go.hidden=true;$('ck-cam-stop').hidden=false;go.disabled=false;go.textContent='Start scanning'},
   function(er){go.disabled=false;go.textContent='Start scanning';ckShow('bad','Camera unavailable',[er&&er.message?er.message:'Allow camera access in your browser settings, then try again.'])});
@@ -1082,31 +1127,47 @@ window.addEventListener('tica:navigate',function(){if(CKCAM&&!document.querySele
   f.addEventListener('submit',function(ev){ev.preventDefault();var q=$('ck-q').value.trim();
     if(q.length<3){stat('Type at least 3 letters of a name, an email or a booking ID.');return}
     if(!CKE){stat('Pick the event you\'re checking in for first.');return}
+    var selection=CKSESSION;
     stat('Searching…');
-    ckFetch('/scanner/ticket-lookup',{method:'POST',body:JSON.stringify({query:q,event_id:CKE})}).then(function(r){
+    ckFetch(ckEndpoint('/ticket-lookup'),{method:'POST',body:JSON.stringify({query:q,event_id:CKE})}).then(function(r){
+      if(selection!==CKSESSION)return;
       if(r.__status>=400){if(r.__status===401)ckResult(r);stat(r.message||'Search failed. Try again.');return}
       FOUND=r.tickets||[];
       if(!FOUND.length){stat('No ticket for "'+q+'" at this event. Check the spelling, or try their email.');return}
       out.innerHTML=FOUND.map(function(t,i){var st=t.status==='issued'?'':t.status==='checked_in'?'Checked in':String(t.status||'').replace(/_/g,' ');
         return '<li><div><b>'+esc(t.holder_name||'Guest')+'</b><span>'+esc(t.holder_email||'')+'</span><small>'+esc((t.variation_name?t.variation_name+' · ':'')+(t.ticket_number?t.ticket_number+' · ':'Booking '+t.booking_id+' · ticket '+t.sequence+' of '+t.quantity)+(t.seat?' · '+[t.section,t.row?'Row '+t.row:null,'Seat '+t.seat].filter(Boolean).join(' · '):''))+'</small></div>'+
           (st?'<em class="ck-found-st'+(t.status==='checked_in'?' in':'')+'">'+esc(st.charAt(0).toUpperCase()+st.slice(1))+'</em>':'<button class="btn btn-hot" type="button" data-found="'+i+'">Check in</button>')+'</li>'}).join('');
-    },function(){stat('No connection. Check the internet, then search again.')});
+    },function(){if(selection===CKSESSION)stat('No connection. Check the internet, then search again.')});
   });
-  out.addEventListener('click',function(ev){var b=ev.target.closest('[data-found]');if(!b)return;var t=FOUND[+b.dataset.found];if(!t)return;
+  out.addEventListener('click',function(ev){var b=ev.target.closest('[data-found]');if(!b)return;var t=FOUND[+b.dataset.found];if(!t||Number(t.event_id)!==CKE)return;
+    var selection=CKSESSION;
     b.disabled=true;b.textContent='Checking in…';
-    ckFetch('/scanner/manual-check-in',{method:'POST',body:JSON.stringify({ticket_unit_id:t.id,event_id:CKE})}).then(function(r){
+    ckFetch(ckEndpoint('/manual-check-in'),{method:'POST',body:JSON.stringify({ticket_unit_id:t.id,event_id:CKE})}).then(function(r){
+      if(selection!==CKSESSION)return;
       var k=ckResult(r,t.holder_name||'Guest');var em=document.createElement('em');em.className='ck-found-st'+(k==='bad'?' bad':' in');em.textContent=k==='ok'?'Checked in':k==='used'?'Already in':'Not valid';b.replaceWith(em);
-    },function(){b.disabled=false;b.textContent='Try again';ckShow('bad','No connection',['Check the internet connection, then try again.'])});
+    },function(){if(selection!==CKSESSION)return;b.disabled=false;b.textContent='Try again';ckShow('bad','No connection',['Check the internet connection, then try again.'])});
   });
 })();
-$('ck-manual').addEventListener('submit',function(ev){ev.preventDefault();var v=$('ck-code').value.trim().toUpperCase();if(!v)return;$('ck-code').value='';
-  if(!CKE){ckShow('bad','Choose an event',['Pick the event you\'re checking in for first.']);return}
-  ckFetch('/tica-api/checkin/code',{method:'POST',body:JSON.stringify({event_id:CKE,code:v})}).then(function(r){
+$('ck-manual').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  var input=$('ck-code'),code=input.value.trim().toUpperCase();
+  if(!code||!CKE)return;
+  var eventId=CKE,selection=CKSESSION;
+  ckFetch(CKORGANIZER?ckEndpoint('/code'):'/tica-api/checkin/code',{method:'POST',body:JSON.stringify({event_id:eventId,code:code})}).then(function(r){
+    if(selection!==CKSESSION)return;
     if(r.__status>=400){ckResult(r);return}
-    return ckFetch('/scanner/manual-check-in',{method:'POST',body:JSON.stringify({event_id:CKE,ticket_unit_id:r.ticket_unit_id})}).then(function(result){ckResult(result,r.name+', '+r.tier)});
-  }).catch(function(){ckShow('bad','No connection',['Check the internet connection, then try again.'])});
+    return ckFetch(ckEndpoint('/manual-check-in'),{method:'POST',body:JSON.stringify({event_id:eventId,ticket_unit_id:r.ticket_unit_id})}).then(function(result){
+      if(selection!==CKSESSION)return;
+      if(ckResult(result,r.name+', '+r.tier)==='ok')input.value='';
+    });
+  }).catch(function(){if(selection===CKSESSION)ckShow('bad','No connection',['Check the internet connection, then try again.'])});
 });
-$('ck-event').addEventListener('change',function(){CKE=+this.value||null;CKS.set('tica_ck_event',String(CKE||''));CK={total:0,in:0,log:[]};$('ck-res').className='ck-res';$('ck-res').innerHTML='<p class="ck-idle">Scan a ticket to see the result here.</p>';ckDraw();ckMetrics()});
+$('ck-event').addEventListener('change',function(){
+  if(!CKORGANIZER)return;
+  var event=Number(this.value)||null;
+  CKS.set(ckEventKey(),String(event||''));
+  ckSelectEvent(event);
+});
 setInterval(function(){if(document.querySelector('.page[data-page=checkin]:not([hidden])')&&!document.hidden)ckMetrics()},20000);
 
 var TITLES={home:'Home',discover:'Discover events',how:'How TICA works',pricing:'Pricing',about:'About us',contact:'Contact',create:'Create an event',policies:'Terms and policies',login:'Log in',account:'Your tickets',checkin:'Gate check-in',tickets:'My tickets',dashboard:'Dashboard',signup:'Create your account',forgot:'Reset your password',join:'Join',missing:'Page not found'};

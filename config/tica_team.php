@@ -70,7 +70,7 @@ return [
     'refunds.manage' => ['organizer.refunds.store', 'organizer.refund_disputes.store', 'organizer.event_booking.update_payment_status'],
     'payouts.view' => ['organizer.withdraw', 'organizer.withdraw_exports.*'],
     'withdrawals.request' => ['organizer.withdraw.create', 'organizer.withdraw.send-request', 'organizer.withdraw.disputes.store', 'organizer.witdraw.*'],
-    'checkin.run' => ['organizer.scanner.devices.index', 'organizer.scanner.devices.store', 'organizer.scanner.devices.revoke', 'organizer.check_in_ledger_exports.*'],
+    'checkin.run' => ['organizer.scanner.online.*', 'organizer.scanner.devices.index', 'organizer.scanner.devices.store', 'organizer.scanner.devices.revoke', 'organizer.check_in_ledger_exports.*'],
     'support.use' => ['organizer.support_ticket.*', 'organizer.support_tickets*'],
     // Owner only (listed so the matrix test covers them): bookings deletion,
     // profile, password, identity and bank, scanner staff, export schedules.

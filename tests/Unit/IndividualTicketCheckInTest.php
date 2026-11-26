@@ -73,6 +73,59 @@ class IndividualTicketCheckInTest extends TestCase
         $this->assertSame('issued', $unit->fresh()->status);
     }
 
+    public function test_organizer_can_check_in_tickets_from_two_owned_events_without_an_enrolled_device(): void
+    {
+        $owner = $this->organizer();
+        Auth::guard('organizer')->login($owner);
+        $first = $this->unit($this->booking($owner->id, 1), 1);
+        $second = $this->unit($this->booking($owner->id, 1, 51), 1);
+        $controller = new OrganizerController();
+
+        $request = $this->organizerScanRequest('scan', [
+            'booking_id' => signedTicketUnitPayload($second->public_id, $second->event_id),
+            'event_id' => $first->event_id,
+        ]);
+        $this->assertSame(404, $controller->check_qrcode($request)->getStatusCode());
+        $this->assertSame('issued', $second->fresh()->status);
+
+        $scan = $this->organizerScanRequest('scan', [
+            'booking_id' => signedTicketUnitPayload($first->public_id, $first->event_id),
+            'event_id' => $first->event_id,
+        ]);
+        $this->assertSame(200, $controller->check_qrcode($scan)->getStatusCode());
+        $this->assertSame(409, $controller->check_qrcode($scan)->getStatusCode());
+
+        $lookup = $this->organizerScanRequest('lookup', ['query' => 'Ada', 'event_id' => $second->event_id]);
+        $this->assertSame([$second->id], array_column($controller->ticketLookup($lookup)->getData(true)['tickets'], 'id'));
+        $manual = $this->organizerScanRequest('manual', ['ticket_unit_id' => $second->id, 'event_id' => $second->event_id]);
+        $this->assertSame(200, $controller->manualCheckIn($manual)->getStatusCode());
+
+        $this->assertSame((int) $owner->id, (int) $second->fresh()->checked_in_by_organizer_id);
+        $this->assertNull($second->fresh()->checked_in_scanner_device_id);
+        $this->assertSame('manual', $second->fresh()->checked_in_source);
+        $this->assertDatabaseCount('scanner_devices', 0);
+    }
+
+    public function test_organizer_online_scanner_refuses_an_event_owned_by_someone_else(): void
+    {
+        $owner = $this->organizer();
+        $other = $this->organizer();
+        $unit = $this->unit($this->booking($owner->id, 1), 1);
+        Auth::guard('organizer')->login($other);
+        $request = $this->organizerScanRequest('scan', [
+            'booking_id' => signedTicketUnitPayload($unit->public_id, $unit->event_id),
+            'event_id' => $unit->event_id,
+        ]);
+
+        try {
+            (new OrganizerController())->check_qrcode($request);
+            $this->fail('Only the event organizer may scan this ticket.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+        $this->assertSame('issued', $unit->fresh()->status);
+    }
+
     public function test_missing_event_selection_is_rejected_without_admitting_ticket(): void
     {
         $organizer = $this->organizer();
@@ -269,6 +322,15 @@ class IndividualTicketCheckInTest extends TestCase
         }
     }
 
+    private function organizerScanRequest(string $action, array $input): Request
+    {
+        $name = 'organizer.scanner.online.' . $action;
+        $request = Request::create(route($name), 'POST', $input);
+        $request->setRouteResolver(fn () => app('router')->getRoutes()->getByName($name));
+
+        return $request;
+    }
+
     private function scanRequest(BookingTicket $unit): Request
     {
         return $this->scanRequestForDevice($unit, $this->scannerDevice(Auth::guard('organizer')->id()));
@@ -330,20 +392,20 @@ class IndividualTicketCheckInTest extends TestCase
         ]);
     }
 
-    private function booking(int $organizerId, int $quantity = 2): Booking
+    private function booking(int $organizerId, int $quantity = 2, int $eventId = 50): Booking
     {
         DB::table('events')->insertOrIgnore([
-            'id' => 50, 'organizer_id' => $organizerId, 'status' => 1,
+            'id' => $eventId, 'organizer_id' => $organizerId, 'status' => 1,
             'start_date' => now()->subDay()->toDateString(), 'start_time' => '00:00:00',
             'end_date' => now()->addDay()->toDateString(), 'end_time' => '23:59:59', 'timezone' => config('app.timezone'),
         ]);
         DB::table('event_contents')->updateOrInsert(
-            ['event_id' => 50, 'language_id' => 1],
+            ['event_id' => $eventId, 'language_id' => 1],
             ['title' => 'TICA Test Night']
         );
 
         return Booking::create([
-            'booking_id' => (string) Str::uuid(), 'event_id' => 50, 'organizer_id' => $organizerId,
+            'booking_id' => (string) Str::uuid(), 'event_id' => $eventId, 'organizer_id' => $organizerId,
             'fname' => 'Ada', 'lname' => 'Okafor', 'email' => 'ada@example.com', 'quantity' => $quantity,
             'scan_status' => 0, 'paymentStatus' => 'completed', 'refund_status' => null,
         ]);

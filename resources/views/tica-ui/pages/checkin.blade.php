@@ -11,7 +11,7 @@
         @endif
       </header>
       <div class="ck-top">
-        <div class="ck-ev"><label for="ck-event">Checking in for</label><select id="ck-event"></select></div>
+        <div class="ck-ev"><label for="ck-event">Checking in for</label><select id="ck-event" disabled><option value="">Loading events…</option></select></div>
         <p class="ck-sync"><i aria-hidden="true"></i>Checking connection…</p>
       </div>
       <div class="ck-grid">

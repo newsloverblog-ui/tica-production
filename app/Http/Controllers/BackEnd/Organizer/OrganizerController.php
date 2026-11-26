@@ -558,21 +558,25 @@ class OrganizerController extends Controller
     ]);
     $checkInSource = $request->attributes->get('scanner_check_in_source', 'scanner');
     $policy = app(\App\Services\ScannerAdmissionPolicy::class);
-    $assigned = $policy->assignedDevice($request, (int) $validated['event_id']);
+    $eventId = (int) $validated['event_id'];
+    $assigned = $policy->deviceForEvent($request, $eventId);
     $scannerStaff = $request->attributes->get('scanner_staff');
     $ticket = verifySignedTicketPayload($request->booking_id);
     if (!$ticket) {
       return response()->json(['alert_type' => 'error', 'message' => 'Invalid or unsigned ticket'], 422);
     }
-    if ((int) $ticket['event_id'] !== (int) $assigned->event_id) {
+    if ((int) $ticket['event_id'] !== $eventId) {
       return response()->json(['alert_type' => 'error', 'message' => 'Ticket is not valid for the selected event'], 404);
     }
 
     return DB::transaction(function () use ($ticket, $request, $assigned, $scannerStaff, $checkInSource, $policy) {
       $organizerId = (int) ($request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id());
-      $scannerDevice = ScannerDevice::whereKey($assigned->id)->where('organizer_id', $organizerId)
-        ->where('status', 'active')->where('event_id', $assigned->event_id)->lockForUpdate()->first();
-      abort_unless($scannerDevice, 403, 'This gate assignment is no longer active.');
+      $scannerDevice = null;
+      if ($assigned) {
+        $scannerDevice = ScannerDevice::whereKey($assigned->id)->where('organizer_id', $organizerId)
+          ->where('status', 'active')->where('event_id', $assigned->event_id)->lockForUpdate()->first();
+        abort_unless($scannerDevice, 403, 'This gate assignment is no longer active.');
+      }
       if ($scannerStaff) {
         abort_unless(\App\Models\ScannerStaff::whereKey($scannerStaff->id)
           ->where('status', 'active')->where('auth_version', $scannerStaff->auth_version)->lockForUpdate()->first(), 403, 'This gate session has been revoked.');
@@ -628,7 +632,7 @@ class OrganizerController extends Controller
         $unit = $units->first();
       }
 
-      if ($scannerDevice->admission_ticket_id && (int) $scannerDevice->admission_ticket_id !== (int) $unit?->ticket_id) {
+      if ($scannerDevice?->admission_ticket_id && (int) $scannerDevice->admission_ticket_id !== (int) $unit?->ticket_id) {
         return response()->json(['alert_type' => 'error', 'message' => 'This ticket must use another gate'], 403);
       }
 
@@ -776,13 +780,14 @@ class OrganizerController extends Controller
     }
     $like = '%' . $term . '%';
     $organizerId = (int) ($request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id());
-    $device = app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, (int) $validated['event_id']);
+    $eventId = (int) $validated['event_id'];
+    $device = app(\App\Services\ScannerAdmissionPolicy::class)->deviceForEvent($request, $eventId);
 
     $tickets = BookingTicket::query()
       ->with('booking')
       ->where('organizer_id', $organizerId)
-      ->where('event_id', $device->event_id)
-      ->when($device->admission_ticket_id, fn ($query, $ticketId) => $query->where('ticket_id', $ticketId))
+      ->where('event_id', $eventId)
+      ->when($device?->admission_ticket_id, fn ($query, $ticketId) => $query->where('ticket_id', $ticketId))
       ->where(function ($query) use ($term, $like) {
         $query->where('public_id', $term)
           ->orWhere('ticket_number', $term)
@@ -828,10 +833,11 @@ class OrganizerController extends Controller
       'ticket_unit_id' => ['required', 'integer', 'min:1'],
       'event_id' => ['required', 'integer', 'min:1'],
     ]);
-    $device = app(\App\Services\ScannerAdmissionPolicy::class)->assignedDevice($request, (int) $validated['event_id']);
+    $eventId = (int) $validated['event_id'];
+    app(\App\Services\ScannerAdmissionPolicy::class)->deviceForEvent($request, $eventId);
     $unit = BookingTicket::query()
       ->whereKey($validated['ticket_unit_id'])
-      ->where('event_id', $device->event_id)
+      ->where('event_id', $eventId)
       ->where('organizer_id', $request->attributes->get('scanner_organizer_id') ?: Auth::guard('organizer')->id())
       ->first();
 

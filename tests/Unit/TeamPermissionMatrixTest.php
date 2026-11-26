@@ -37,6 +37,9 @@ class TeamPermissionMatrixTest extends TestCase
     ['tica.create', null, true, false],
     ['tica.edit', null, true, false],
     ['tica.checkin', null, true, false],
+    ['organizer.scanner.online.events', null, true, false],
+    ['organizer.scanner.online.scan', null, true, false],
+    ['organizer.scanner.online.manual', null, true, false],
     // Events
     ['TicaOrganizerController@storeEvent', null, true, false],
     ['TicaOrganizerController@updateOrganizerEvent', null, true, false],
