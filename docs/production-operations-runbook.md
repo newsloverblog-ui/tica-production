@@ -39,7 +39,7 @@ WEB_INSTALLER_ENABLED=false
 WEB_UPDATER_ENABLED=false
 ```
 
-Only enable Paystack transfers after the sandbox transfer/webhook/reversal drill passes and the finance alert recipient is verified. `PAYOUT_AUTOMATIC_RELEASE_ENABLED` stays false until eligibility and risk policy are implemented and approved. Web installer/updater routes are unconditionally blocked in production; database migrations belong in authenticated CLI/CI deployment, never a public HTTP workflow.
+Only enable Paystack transfers after the sandbox transfer/webhook/reversal drill passes and the finance alert recipient is verified. Keep automatic release off until finance approves the eligibility and risk policy. Finance can then turn it on in **Admin → Payout Accounts**. The saved setting overrides the deployment default. Web installer/updater routes are blocked in production. Apply database migrations through authenticated CLI or CI deployment.
 
 Payout disputes are support evidence, not payout actions. Finance must reconcile the withdrawal, transfer, settlement and bank/provider evidence before responding. Moving a dispute to under review, resolved or rejected never changes the withdrawal status or organizer balance; use only the separate controlled withdrawal actions after reconciliation. A closing response must explain the result without including bank credentials or secrets, and a second dispute cannot be opened while one remains active.
 

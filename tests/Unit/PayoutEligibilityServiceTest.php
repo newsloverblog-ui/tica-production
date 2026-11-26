@@ -2,7 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Http\Controllers\BackEnd\PayoutAccountController;
 use App\Jobs\SubmitPaystackPayout;
+use App\Models\Admin;
 use App\Models\Organizer;
 use App\Models\OrganizerPayoutAccount;
 use App\Models\PayoutDispute;
@@ -13,9 +15,13 @@ use App\Services\AutomaticPayoutReleaseService;
 use App\Services\PayoutEligibilityService;
 use App\Services\PayoutTransferService;
 use App\Services\OrganizerPayoutScheduleService;
+use App\Support\TicaPlatform;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
@@ -156,6 +162,46 @@ class PayoutEligibilityServiceTest extends TestCase
         $this->assertSame('ready', $summary['status']);
         $this->assertSame($withdrawal->id, $summary['withdrawal_id']);
         $this->assertSame('2026-11-03T10:00:00+01:00', $summary['scheduled_at']);
+    }
+
+    public function test_admin_setting_controls_scheduled_release_and_pauses_unsent_transfers(): void
+    {
+        Queue::fake();
+        Http::preventStrayRequests();
+        Schema::create('basic_settings', function (Blueprint $table): void {
+            $table->id();
+            $table->timestamp('updated_at')->nullable();
+        });
+        DB::table('basic_settings')->insert(['id' => 1]);
+        (require database_path('migrations/2026_11_26_030000_add_automatic_payout_release_to_basic_settings.php'))->up();
+        Auth::guard('admin')->setUser((new Admin())->forceFill(['id' => 7, 'status' => 1]));
+        config()->set('payouts.automatic_release_enabled', false);
+        [, , $withdrawal] = $this->fixture();
+        $eligibility = new PayoutEligibilityService();
+        $controller = new PayoutAccountController();
+        $turnOn = Request::create('/', 'POST', ['enabled' => '1']);
+
+        config()->set('payouts.eligibility_policy.approved', false);
+        $controller->automaticRelease($turnOn, $eligibility);
+        $this->assertFalse(TicaPlatform::automaticPayoutReleaseEnabled());
+        $this->assertDatabaseCount('audit_logs', 0);
+
+        config()->set('payouts.eligibility_policy.approved', true);
+        $controller->automaticRelease($turnOn, $eligibility);
+        $this->assertTrue(TicaPlatform::automaticPayoutReleaseEnabled());
+        $service = new PayoutTransferService();
+        $runner = new AutomaticPayoutReleaseService($eligibility, $service);
+        $this->assertSame(1, $runner->run(true, 10)['queued']);
+        $transfer = $withdrawal->latestPayoutTransfer()->firstOrFail();
+        Queue::assertPushed(SubmitPaystackPayout::class, 1);
+
+        config()->set('payouts.automatic_release_enabled', true);
+        $controller->automaticRelease(Request::create('/', 'POST', ['enabled' => '0']), $eligibility);
+        $this->assertFalse(TicaPlatform::automaticPayoutReleaseEnabled());
+        $this->assertSame('queued', $service->submit($transfer->id)->status);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'platform.automatic_payout_release_changed', 'actor_id' => 7]);
+        $this->assertSame(2, DB::table('audit_logs')->where('action', 'platform.automatic_payout_release_changed')->count());
+        Http::assertNothingSent();
     }
 
     public function test_organizer_payout_schedule_does_not_promise_date_when_automatic_release_is_disabled(): void

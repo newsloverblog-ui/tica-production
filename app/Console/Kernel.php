@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Jobs\QueueHeartbeat;
 use App\Services\QueueHealthService;
+use App\Support\TicaPlatform;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -84,7 +85,7 @@ class Kernel extends ConsoleKernel
     $schedule->command('payouts:release-eligible --apply')
       ->dailyAt(sprintf('%02d:00', max(0, min(23, (int) config('payouts.eligibility_policy.release_hour', 10)))))
       ->timezone((string) config('payouts.eligibility_policy.timezone', 'Africa/Lagos'))
-      ->when(fn () => (bool) config('payouts.automatic_release_enabled', false))
+      ->when(fn () => TicaPlatform::automaticPayoutReleaseEnabled())
       ->withoutOverlapping();
     $schedule->command('bookings:monitor-deliveries')
       ->everyFiveMinutes()

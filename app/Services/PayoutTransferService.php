@@ -13,6 +13,7 @@ use App\Models\PayoutTransfer;
 use App\Models\Withdraw;
 use App\Models\Admin;
 use App\Support\Money;
+use App\Support\TicaPlatform;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -161,7 +162,7 @@ class PayoutTransferService
         if (!(bool) config('payouts.paystack_transfers_enabled', false)) {
             throw new RuntimeException('Paystack payout transfers are disabled by configuration.');
         }
-        if ($releaseSource === 'automatic' && !(bool) config('payouts.automatic_release_enabled', false)) {
+        if ($releaseSource === 'automatic' && !TicaPlatform::automaticPayoutReleaseEnabled()) {
             throw new RuntimeException('Automatic payout release is disabled by configuration.');
         }
 
@@ -430,7 +431,10 @@ class PayoutTransferService
     private function submissionsEnabled(PayoutTransfer $transfer): bool
     {
         return (bool) config('payouts.paystack_transfers_enabled', false)
-            && ($transfer->release_source !== 'automatic' || (bool) config('payouts.automatic_release_enabled', false));
+            && ($transfer->release_source !== 'automatic' || (
+                TicaPlatform::automaticPayoutReleaseEnabled()
+                && app(PayoutEligibilityService::class)->automaticReleaseConfigurationIssues() === []
+            ));
     }
 
     public function handleWebhook(string $eventName, array $data): ?PayoutTransfer

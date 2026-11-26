@@ -23,6 +23,8 @@ class Basic extends Model
 
   protected $table = 'basic_settings';
 
+  protected $casts = ['payout_automatic_release_enabled' => 'boolean'];
+
   /**
    * The attributes that are mass assignable.
    *

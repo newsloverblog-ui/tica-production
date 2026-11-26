@@ -141,7 +141,7 @@ class ReleaseReadinessService
         return [
             'basic_settings' => [
                 'smtp_password', 'google_recaptcha_secret_key',
-                'facebook_app_secret', 'google_client_secret',
+                'facebook_app_secret', 'google_client_secret', 'payout_automatic_release_enabled',
             ],
             'application_mail_deliveries' => [
                 'public_id', 'kind', 'source_type', 'source_id', 'created_by_type', 'created_by_id',
@@ -557,7 +557,7 @@ class ReleaseReadinessService
     ) {
     }
 
-    public function evaluate(array $enabledGateways = []): array
+    public function evaluate(array $enabledGateways = [], ?bool $automaticPayoutRelease = null): array
     {
         $checks = [];
         $appKey = (string) config('app.key', '');
@@ -1020,15 +1020,9 @@ class ReleaseReadinessService
                 'Complete a production-like Paystack recipient, transfer, signed-webhook, reconciliation, reversal and notification drill, then record its UTC date and non-secret evidence reference.'
             );
         }
-        $automaticRelease = (bool) config('payouts.automatic_release_enabled', false);
-        $policy = (array) config('payouts.eligibility_policy', []);
-        $policyIssues = (new PayoutEligibilityService())->configurationIssues($policy);
-        $automaticReleaseReady = !$automaticRelease || (
-            (bool) config('payouts.paystack_transfers_enabled', false)
-            && (bool) ($policy['approved'] ?? false)
-            && trim((string) ($policy['approval_reference'] ?? '')) !== ''
-            && $policyIssues === []
-        );
+        $automaticRelease = $automaticPayoutRelease ?? (bool) config('payouts.automatic_release_enabled', false);
+        $policyIssues = (new PayoutEligibilityService())->automaticReleaseConfigurationIssues();
+        $automaticReleaseReady = !$automaticRelease || $policyIssues === [];
         $checks[] = $this->check(
             'payouts.automatic_release',
             $automaticReleaseReady,

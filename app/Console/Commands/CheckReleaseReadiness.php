@@ -13,6 +13,7 @@ use App\Services\LegacyPublicTicketQrArtifacts;
 use App\Services\QueueHealthService;
 use App\Services\SharedStateHealthService;
 use App\Services\TicketUnitIntegrityService;
+use App\Support\TicaPlatform;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -34,6 +35,7 @@ class CheckReleaseReadiness extends Command
     ): int
     {
         $enabledGateways = [];
+        $automaticPayoutRelease = null;
         $legacyProductDocuments = null;
         $legacyEventDocuments = null;
         $legacyProductPublicFiles = null;
@@ -65,6 +67,7 @@ class CheckReleaseReadiness extends Command
         try {
             DB::select('SELECT 1');
             $databaseAvailable = true;
+            $automaticPayoutRelease = TicaPlatform::automaticPayoutReleaseEnabled();
             $enabledGateways = OnlineGateway::where('status', 1)
                 ->pluck('keyword')
                 ->map(fn ($keyword) => strtolower((string) $keyword))
@@ -284,7 +287,7 @@ class CheckReleaseReadiness extends Command
             ];
         }
 
-        $configurationChecks = $service->evaluate($enabledGateways);
+        $configurationChecks = $service->evaluate($enabledGateways, $automaticPayoutRelease);
         if (!$databaseAvailable) {
             $configurationChecks = array_map(static function (array $check): array {
                 if ($check['id'] !== 'payments.production_contract') {

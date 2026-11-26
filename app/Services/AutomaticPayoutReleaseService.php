@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Withdraw;
+use App\Support\TicaPlatform;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 use Throwable;
@@ -22,7 +23,7 @@ class AutomaticPayoutReleaseService
         if ($limit < 1 || $limit > min(500, max(1, $configuredLimit))) {
             throw new RuntimeException('The payout release limit must be within the approved batch limit.');
         }
-        if ($apply && !(bool) config('payouts.automatic_release_enabled', false)) {
+        if ($apply && !TicaPlatform::automaticPayoutReleaseEnabled()) {
             throw new RuntimeException('Automatic payout release is disabled.');
         }
 

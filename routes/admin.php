@@ -302,6 +302,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::post('payout-accounts/{account}/lock', 'BackEnd\PayoutAccountController@lock')->whereUuid('account')->name('admin.payout_accounts.lock');
     Route::post('payout-provider', 'BackEnd\PayoutAccountController@provider')->name('admin.payout_provider.update');
     Route::post('payout-provider/test', 'BackEnd\PayoutAccountController@test')->middleware('throttle:10,1')->name('admin.payout_provider.test');
+    Route::post('payout-accounts/automatic-release', 'BackEnd\PayoutAccountController@automaticRelease')
+      ->middleware('permission:Transaction')->name('admin.payout_automatic_release.update');
     Route::get('withdraw/withdraw-request', 'BackEnd\WithdrawController@index')->name('admin.withdraw.withdraw_request');
     Route::post('withdraw/withdraw-request/export', 'BackEnd\WithdrawController@export')
       ->middleware('permission:Transaction')->name('admin.withdraw_exports.store');

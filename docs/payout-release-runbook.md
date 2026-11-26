@@ -16,7 +16,7 @@ This runbook is the production gate for Paystack organizer transfers and the opt
 2. Use production-like MySQL, shared cache, durable queues and the same network path as production.
 3. Register the signed Paystack webhook and confirm the `payments` and `default` workers plus scheduler are healthy.
 4. Configure a deliverable `PAYOUT_FINANCE_EMAIL` and an off-server incident destination.
-5. Keep both `PAYSTACK_TRANSFERS_ENABLED=false` and `PAYOUT_AUTOMATIC_RELEASE_ENABLED=false` while preparing the drill.
+5. Keep `PAYSTACK_TRANSFERS_ENABLED=false` while preparing the drill. Keep **Automatic payout release** off in **Admin → Payout Accounts**. The deployment default is `PAYOUT_AUTOMATIC_RELEASE_ENABLED=false`.
 6. Finance approves the versioned policy values and records the decision in the change system. Do not put confidential discussion, bank details or credentials in the approval reference.
 
 ## Required provider drill
@@ -55,14 +55,13 @@ The command is dry-run-only without `--apply`. Finance must review every reason 
 
 ## Enablement
 
-Set the approved policy evidence and enablement flags through the deployment secret/configuration system:
+Set the approved policy evidence and enable provider transfers through deployment configuration.
 
 ```dotenv
 PAYOUT_ELIGIBILITY_POLICY_APPROVED=true
 PAYOUT_ELIGIBILITY_POLICY_APPROVAL_REFERENCE=FINANCE-RISK-CHANGE-1234
 PAYOUT_SETTLEMENT_OWNER=platform
 PAYSTACK_TRANSFERS_ENABLED=true
-PAYOUT_AUTOMATIC_RELEASE_ENABLED=true
 ```
 
 Then run the release gate before shifting traffic:
@@ -71,7 +70,7 @@ Then run the release gate before shifting traffic:
 php artisan ops:release-readiness --configuration-only --json
 ```
 
-Do not deploy if any critical check remains. Once enabled, the scheduler evaluates withdrawals daily at the configured local hour. It queues only withdrawals whose next configured business day has arrived and rechecks eligibility under database locks before creating the transfer.
+After the checks pass, an authorised finance admin can turn on **Automatic payout release** under **Admin → Payout Accounts**. The saved setting takes precedence over the deployment default. The scheduler evaluates withdrawals daily at the configured local hour. It queues withdrawals whose next configured business day has arrived and rechecks eligibility under database locks before creating the transfer.
 
 ## Monitoring and daily reconciliation
 
@@ -83,7 +82,7 @@ Do not deploy if any critical check remains. Once enabled, the scheduler evaluat
 
 ## Emergency stop and rollback
 
-1. Set `PAYOUT_AUTOMATIC_RELEASE_ENABLED=false` and reload configuration. This stops new automatic queueing but does not cancel submitted provider transfers.
+1. Turn off **Automatic payout release** under **Admin → Payout Accounts**. New automatic releases and queued automatic transfers awaiting submission pause. Already-submitted transfers continue through reconciliation.
 2. If provider behavior is unsafe, also set `PAYSTACK_TRANSFERS_ENABLED=false` and reload the payments workers. New queued transfers stay paused. Keep signed webhooks and reconciliation running for transfers already submitted. Reconcile interrupted submissions by their original reference.
 3. Do not delete queued or processing transfer rows. Reconcile each controlled reference to a terminal provider state.
 4. Place affected withdrawals on hold and follow the incident runbook. Do not restore organizer balances until finance has proven the provider did not pay.

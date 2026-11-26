@@ -16,6 +16,7 @@ use App\Services\WithdrawalExportQueryService;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use RuntimeException;
 
@@ -26,7 +27,14 @@ class WithdrawController extends Controller
   {
     $filters = $this->exportFilters($request);
     $collection = app(WithdrawalExportQueryService::class)->query($filters)
-      ->with(['latestPayoutTransfer', 'latestPayoutDispute'])
+      ->with([
+        'latestPayoutTransfer',
+        'latestPayoutDispute',
+        'payoutAccount' => fn ($query) => $query->select([
+          'id', 'public_id', 'organizer_id', 'bank_name', 'account_last4', 'currency', 'provider',
+          'status', 'is_default', 'resolved_account_name', 'bank_code', 'account_number_hash', 'verified_at', 'hold_until',
+        ]),
+      ])
       ->orderByDesc('id')->paginate(10)->withQueryString();
     $payoutDisputes = PayoutDispute::with(['withdrawal', 'organizer'])
       ->whereIn('status', [PayoutDispute::STATUS_OPEN, PayoutDispute::STATUS_UNDER_REVIEW])
@@ -34,7 +42,8 @@ class WithdrawController extends Controller
       ->limit(100)
       ->get();
     $currencyInfo = $this->getCurrencyInfo();
-    return view('backend.withdraw.history.index', compact('collection', 'currencyInfo', 'payoutDisputes'));
+    $payoutApprovalAvailable = Schema::hasColumn('withdraws', 'release_approval');
+    return view('backend.withdraw.history.index', compact('collection', 'currencyInfo', 'payoutDisputes', 'payoutApprovalAvailable'));
   }
 
   public function export(Request $request, DataExportService $exports)

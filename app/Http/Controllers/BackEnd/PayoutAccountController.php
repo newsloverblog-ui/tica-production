@@ -8,6 +8,7 @@ use App\Models\Organizer;
 use App\Models\OrganizerPayoutAccount;
 use App\Services\AuditLogger;
 use App\Services\OrganizerPayoutAccountService;
+use App\Services\PayoutEligibilityService;
 use App\Services\Payouts\BankDirectory;
 use App\Services\Payouts\PayoutProviders;
 use App\Support\TicaPlatform;
@@ -28,7 +29,7 @@ class PayoutAccountController extends Controller
     'all' => 'All',
   ];
 
-  public function index(Request $request)
+  public function index(Request $request, PayoutEligibilityService $eligibility)
   {
     $filter = array_key_exists((string) $request->query('status'), self::FILTERS) ? (string) $request->query('status') : 'needs_review';
     $search = trim((string) $request->query('q'));
@@ -58,6 +59,9 @@ class PayoutAccountController extends Controller
       'search' => $search,
       'provider' => TicaPlatform::payoutProvider(),
       'transfersEnabled' => (bool) config('payouts.paystack_transfers_enabled'),
+      'automaticReleaseEnabled' => TicaPlatform::automaticPayoutReleaseEnabled(),
+      'automaticReleaseIssues' => $eligibility->automaticReleaseConfigurationIssues(),
+      'canSetAutomaticRelease' => $this->canSetAutomaticRelease(),
     ]);
   }
 
@@ -119,6 +123,37 @@ class PayoutAccountController extends Controller
 
     return back()->with('success', 'New payout accounts will now be checked with ' . ucfirst($validated['provider'])
       . '. Existing accounts keep paying out through the provider they were verified with.');
+  }
+
+  public function automaticRelease(Request $request, PayoutEligibilityService $eligibility)
+  {
+    abort_unless($this->canSetAutomaticRelease(), 403);
+    $request->validate(['enabled' => ['required', 'boolean']]);
+    $enabled = $request->boolean('enabled');
+    if ($enabled && $eligibility->automaticReleaseConfigurationIssues() !== []) {
+      return back()->with('warning', 'Automatic release requires enabled Paystack transfers and a valid, approved payout policy.');
+    }
+
+    try {
+      TicaPlatform::saveAutomaticPayoutRelease($enabled);
+    } catch (RuntimeException $exception) {
+      if ($exception instanceof \Illuminate\Database\QueryException) {
+        throw $exception;
+      }
+      return back()->with('warning', $exception->getMessage());
+    }
+
+    return back()->with('success', $enabled
+      ? 'Automatic payout release is on. Eligible requests will be checked at the next scheduled run.'
+      : 'Automatic payout release is off. Automatic transfers awaiting submission are paused.');
+  }
+
+  private function canSetAutomaticRelease(): bool
+  {
+    $admin = Auth::guard('admin')->user();
+
+    return $admin && (int) $admin->status === 1
+      && $admin->hasPermission('Withdraw Method') && $admin->hasPermission('Transaction');
   }
 
   public function test(Request $request, PayoutProviders $providers)

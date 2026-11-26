@@ -3,9 +3,11 @@
 namespace Tests\Unit;
 
 use App\Console\Commands\ReconcilePaystackPayouts;
+use App\Http\Controllers\BackEnd\WithdrawController;
 use App\Jobs\SubmitPaystackPayout;
 use App\Jobs\SendPayoutStatusNotification;
 use App\Mail\PayoutStatusMail;
+use App\Models\Admin;
 use App\Models\Organizer;
 use App\Models\OrganizerPayoutAccount;
 use App\Models\PayoutTransfer;
@@ -19,6 +21,8 @@ use Illuminate\Contracts\Console\Isolatable;
 use Illuminate\Console\Command;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Mail;
@@ -76,6 +80,44 @@ class PayoutTransferServiceTest extends TestCase
         Queue::assertPushed(SendPayoutStatusNotification::class, fn ($job) =>
             $job->transferId === $first->id && $job->expectedStatus === 'queued'
         );
+    }
+
+    public function test_admin_withdrawal_review_loads_approval_fields_and_displays_the_account_blocker(): void
+    {
+        Schema::create('withdraw_payment_methods', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+        });
+        (require database_path('migrations/2026_11_02_180000_create_payout_disputes_table.php'))->up();
+        (require database_path('migrations/2026_11_10_120000_add_security_hold_to_organizer_payout_accounts.php'))->up();
+        [, $account, $withdrawal] = $this->payoutFixture();
+        Auth::guard('admin')->setUser(Admin::findOrFail(999));
+        $controller = new class extends WithdrawController {
+            public function getCurrencyInfo()
+            {
+                return (object) ['base_currency_symbol' => '₦', 'base_currency_symbol_position' => 'left'];
+            }
+        };
+        $request = Request::create('/admin/withdraw/withdraw-request');
+        $data = $controller->index($request)->getData();
+        $destination = $data['collection']->sole()->payoutAccount;
+        $fingerprint = app(PayoutTransferService::class)->approvalFingerprint($withdrawal, $account);
+        $html = view('backend.withdraw.history.view', $data)->render();
+
+        $this->assertArrayNotHasKey('account_number', $destination->getAttributes());
+        $this->assertStringContainsString('value="'.$fingerprint.'"', $html);
+        $this->assertStringContainsString('Approve release', $html);
+        $this->assertStringNotContainsString('Queue approved payout', $html);
+
+        Auth::guard('admin')->setUser(Admin::findOrFail(19));
+        $this->assertStringContainsString('Queue approved payout', view('backend.withdraw.history.view', $data)->render());
+
+        $account->update(['status' => 'locked']);
+        $blocked = view('backend.withdraw.history.view', $controller->index($request)->getData())->render();
+        $this->assertStringContainsString('Review payout release', $blocked);
+        $this->assertStringContainsString('The attached payout account needs verified status before release.', $blocked);
+        $this->assertStringNotContainsString('Approve release', $blocked);
+        $this->assertStringNotContainsString('Queue approved payout', $blocked);
     }
 
     public function test_queue_fails_closed_when_withdrawal_financial_evidence_is_missing_or_duplicated(): void

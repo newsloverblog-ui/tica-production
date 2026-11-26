@@ -160,9 +160,7 @@
                                                                 <i class="fas fa-eye"></i>
                                                             </span> {{ __('View') }}</a>
                                                         @if (in_array((int) $item->status, [0, 3], true))
-                                                            @if (in_array(optional($item->payoutAccount)->provider, ['paystack', 'monnify'], true) && optional($item->payoutAccount)->status === 'verified')
-                                                                <button type="button" data-toggle="modal" data-target="#paystackModal{{ $item->id }}" class="btn btn-primary mt-1 btn-xs">{{ __('Review payout release') }}</button>
-                                                            @endif
+                                                            <button type="button" data-toggle="modal" data-target="#paystackModal{{ $item->id }}" class="btn btn-primary mt-1 btn-xs">{{ __('Review payout release') }}</button>
                                                             @if ((int) data_get($item->release_approval, 'expires_at') > now()->getTimestamp() && (int) data_get($item->release_approval, 'admin_id') !== (int) Auth::guard('admin')->id() && !$item->latestPayoutTransfer)
                                                                 <button type="button" data-toggle="modal" data-target="#paidModal{{ $item->id }}" class="btn btn-success mt-1 btn-xs">{{ __('Record external payment') }}</button>
                                                             @endif

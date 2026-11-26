@@ -3,7 +3,10 @@
 namespace App\Support;
 
 use App\Models\BasicSettings\Basic;
+use App\Services\AuditLogger;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
  * What the admin allows across the whole platform: the event features
@@ -81,6 +84,37 @@ final class TicaPlatform
     }
     Basic::query()->update(['tica_platform' => json_encode(array_merge(self::stored(), ['payout_provider' => $provider]))]);
     self::$cache = null;
+  }
+
+  public static function automaticPayoutReleaseEnabled(): bool
+  {
+    $default = (bool) config('payouts.automatic_release_enabled', false);
+    if (!Schema::hasColumn('basic_settings', 'payout_automatic_release_enabled')) {
+      return $default;
+    }
+
+    return Basic::query()->useWritePdo()->orderBy('id')->value('payout_automatic_release_enabled') ?? $default;
+  }
+
+  public static function saveAutomaticPayoutRelease(bool $enabled): void
+  {
+    if (!Schema::hasColumn('basic_settings', 'payout_automatic_release_enabled')) {
+      throw new RuntimeException('Apply the payout settings migration before changing automatic release.');
+    }
+
+    DB::transaction(function () use ($enabled): void {
+      $settings = Basic::query()->orderBy('id')->lockForUpdate()->first(['id', 'payout_automatic_release_enabled']);
+      if (!$settings) {
+        throw new RuntimeException('Payout settings are unavailable.');
+      }
+      if ($settings->payout_automatic_release_enabled === $enabled) {
+        return;
+      }
+
+      $before = $settings->payout_automatic_release_enabled ?? (bool) config('payouts.automatic_release_enabled', false);
+      $settings->forceFill(['payout_automatic_release_enabled' => $enabled])->save();
+      AuditLogger::record('platform.automatic_payout_release_changed', $settings, ['enabled' => $before], ['enabled' => $enabled]);
+    }, 3);
   }
 
   private static function stored(): array

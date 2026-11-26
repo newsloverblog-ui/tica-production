@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\PayoutTransfer;
 use App\Services\IncidentAlertService;
+use App\Services\PayoutEligibilityService;
 use App\Services\PayoutTransferService;
+use App\Support\TicaPlatform;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,7 +15,7 @@ class DispatchPendingPayouts extends Command
     protected $signature = 'payouts:dispatch-pending {--limit=100} {--stale-minutes=10}';
     protected $description = 'Recover payout submission and status-notification queue handoffs';
 
-    public function handle(PayoutTransferService $payouts, IncidentAlertService $alerts): int
+    public function handle(PayoutTransferService $payouts, IncidentAlertService $alerts, PayoutEligibilityService $eligibility): int
     {
         if (!Schema::hasTable('payout_transfers') || !Schema::hasColumn('payout_transfers', 'dispatch_attempts')) {
             $this->error('The payout dispatch metadata migration is not applied.');
@@ -28,9 +30,10 @@ class DispatchPendingPayouts extends Command
         $notificationFailed = 0;
         $notificationAlerted = 0;
 
+        $automaticRelease = TicaPlatform::automaticPayoutReleaseEnabled() && $eligibility->automaticReleaseConfigurationIssues() === [];
         $transfers = PayoutTransfer::query()
             ->where('status', 'queued')
-            ->when(!config('payouts.automatic_release_enabled'), fn ($query) => $query->where('release_source', '!=', 'automatic'))
+            ->when(!$automaticRelease, fn ($query) => $query->where('release_source', '!=', 'automatic'))
             ->orderBy('id')
             ->limit($limit)
             ->when(config('payouts.paystack_transfers_enabled'), fn ($query) => $query->get(), fn () => collect());

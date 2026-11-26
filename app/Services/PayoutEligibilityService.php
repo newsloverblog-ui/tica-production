@@ -6,6 +6,7 @@ use App\Models\OrganizerPayoutAccount;
 use App\Models\PayoutDispute;
 use App\Models\PayoutTransfer;
 use App\Models\Withdraw;
+use App\Support\TicaPlatform;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use DateTimeZone;
@@ -26,16 +27,9 @@ class PayoutEligibilityService
         $withdrawal->loadMissing(['organizer', 'payoutAccount']);
         $organizer = $withdrawal->organizer;
         $account = $withdrawal->payoutAccount;
-        $reasons = $this->configurationIssues($policy);
-
-        if (!(bool) config('payouts.paystack_transfers_enabled', false)) {
-            $reasons[] = 'transfers_disabled';
-        }
-        if (!(bool) config('payouts.automatic_release_enabled', false)) {
+        $reasons = $this->automaticReleaseConfigurationIssues($policy);
+        if (!TicaPlatform::automaticPayoutReleaseEnabled()) {
             $reasons[] = 'automatic_release_disabled';
-        }
-        if (!(bool) ($policy['approved'] ?? false)) {
-            $reasons[] = 'policy_not_approved';
         }
         if ((int) $withdrawal->status !== Withdraw::STATUS_PENDING) {
             $reasons[] = 'withdrawal_not_pending';
@@ -151,6 +145,20 @@ class PayoutEligibilityService
         }
 
         throw new RuntimeException('No payout business day is configured within the next year.');
+    }
+
+    public function automaticReleaseConfigurationIssues(?array $policy = null): array
+    {
+        $policy ??= (array) config('payouts.eligibility_policy', []);
+        $issues = $this->configurationIssues($policy);
+        if (!config('payouts.paystack_transfers_enabled', false)) {
+            $issues[] = 'transfers_disabled';
+        }
+        if (empty($policy['approved'])) {
+            $issues[] = 'policy_not_approved';
+        }
+
+        return $issues;
     }
 
     public function configurationIssues(?array $policy = null): array

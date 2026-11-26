@@ -87,6 +87,27 @@
       </div>
     </section>
 
+    <section class="tpa-card tpa-prov" aria-labelledby="tpa-auto-h">
+      <div>
+        <h2 id="tpa-auto-h">{{ __('Automatic payout release') }}</h2>
+        <p>{{ $automaticReleaseEnabled ? ($automaticReleaseIssues ? __('Paused by configuration') : __('On')) : __('Off') }} · {{ __('Eligible Paystack withdrawal requests are released on the configured business-day schedule.') }}</p>
+        @if ($automaticReleaseIssues)
+          <p class="tpa-note">{{ in_array('transfers_disabled', $automaticReleaseIssues, true) ? __('Enable provider transfers before turning on automatic release.') : __('Automatic release requires a valid, approved payout policy.') }}</p>
+        @elseif (!$canSetAutomaticRelease)
+          <p class="tpa-note">{{ __('An authorised finance admin can change this setting.') }}</p>
+        @endif
+      </div>
+      @if ($canSetAutomaticRelease)
+        <form method="POST" action="{{ route('admin.payout_automatic_release.update') }}">
+          @csrf
+          <input type="hidden" name="enabled" value="{{ $automaticReleaseEnabled ? 0 : 1 }}">
+          <button type="submit" class="tpa-btn {{ $automaticReleaseEnabled ? '' : 'pri' }}" @disabled(!$automaticReleaseEnabled && $automaticReleaseIssues)>
+            {{ $automaticReleaseEnabled ? __('Turn off automatic release') : __('Turn on automatic release') }}
+          </button>
+        </form>
+      @endif
+    </section>
+
     <div class="tpa-tabs">
       @foreach ($filters as $key => $label)
         @php($n = $key === 'all' ? null : (int) ($counts[$key] ?? 0))
