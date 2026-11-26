@@ -59,7 +59,7 @@ class AdminFinanceReportsTest extends TestCase
     public function test_dashboard_renders_report_links_only_with_their_permissions(): void
     {
         $render = fn (array $granted) => view('backend.admin.dashboard-reports', [
-            'can' => fn (string $permission) => in_array($permission, $granted, true),
+            'can' => fn (string ...$permissions) => array_intersect($permissions, $granted) !== [],
         ])->render();
 
         $bookings = $render(['Event Bookings']);
@@ -71,6 +71,13 @@ class AdminFinanceReportsTest extends TestCase
         $this->assertStringContainsString('Monthly revenue', $finance);
         $this->assertStringContainsString('Payment reconciliation', $finance);
         $this->assertStringContainsString('Payout exports', $finance);
+        $this->assertStringContainsString('Transaction exports', $finance);
+        $this->assertStringContainsString('Reconciliation exports', $finance);
         $this->assertStringNotContainsString('Booking report', $finance);
+        $this->assertStringNotContainsString('Cancellation exports', $finance);
+        $this->assertStringNotContainsString('Directory exports', $finance);
+
+        $this->assertStringContainsString('Cancellation exports', $render(['Transaction', 'Event Management']));
+        $this->assertStringContainsString('Directory exports', $render(['Customer Management']));
     }
 }

@@ -5,36 +5,42 @@
   $admin = Auth::guard('admin')->user();
   $can = fn (string ...$any) => $admin?->hasPermission(...$any) ?? false;
   $money = function ($amount) use ($o) {
+    if ($amount === null) {
+      return __('Unavailable');
+    }
+
     $value = number_format((float) $amount, 2);
     $symbol = $o['base']['symbol'];
 
     return $o['base']['position'] === 'right' ? $value . ' ' . $symbol : $symbol . $value;
   };
   $month = $o['month'];
-  $current = $month['this'];
-  $previous = $month['last'];
-  $delta = function ($value, $before) {
-    if ($value === $before) {
-      return null;
-    }
-    if ($before <= 0) {
-      return $value > 0 ? ['up', __('New activity'), __('No activity at this point last month.')] : null;
-    }
-    $percent = round(($value - $before) / $before * 100, 1);
-    if ($percent == 0) {
-      return null;
-    }
-    $label = ($percent > 0 ? '+' : '−') . abs($percent) . '%';
-
-    return [$percent > 0 ? 'up' : 'down', $label, __('Compared with the same point last month.')];
-  };
+  $lifetime = $o['lifetime'];
+  $counts = $o['counts'];
   $payoutUrl = route('admin.withdraw.withdraw_request', ['language' => $defaultLang->code]);
   $eventUrl = route('admin.event_management.event', ['language' => $defaultLang->code]);
   $kpis = array_filter([
-    $can('Lifetime Earning') ? [__('Gross ticket sales'), $money($current['sales']), $delta($current['sales'], $previous['sales']), 'fa-sack-dollar', route('admin.monthly_earning')] : null,
-    $can('Total Profit') ? [__('Platform booking fees'), $money($current['fees']), $delta($current['fees'], $previous['fees']), 'fa-chart-line', route('admin.monthly_profit')] : null,
-    $can('Event Bookings') ? [__('Tickets booked'), number_format($current['tickets']), $delta($current['tickets'], $previous['tickets']), 'fa-ticket-alt', route('admin.event.booking')] : null,
-    $can('Withdraw Method') ? [__('Payouts sent'), $money($current['payouts']), $delta($current['payouts'], $previous['payouts']), 'fa-wallet', $payoutUrl] : null,
+    $can('Lifetime Earning') ? [__('Total revenue'), $money($lifetime['revenue']), 'fa-sack-dollar', route('admin.monthly_earning')] : null,
+    $can('Total Profit') ? [__('TICA earnings'), $money($lifetime['earnings']), 'fa-chart-line', route('admin.monthly_profit')] : null,
+    $can('Event Bookings') ? [__('Tickets sold'), number_format($lifetime['tickets']), 'fa-ticket-alt', route('admin.event.booking')] : null,
+    $can('Withdraw Method') ? [__('Payouts issued'), $money($lifetime['payouts']), 'fa-wallet', $payoutUrl] : null,
+  ]);
+  $monthStats = array_filter([
+    $can('Lifetime Earning') ? [__('Gross ticket sales'), $money($month['sales'])] : null,
+    $can('Event Bookings') ? [__('Tickets booked'), number_format($month['tickets'])] : null,
+    $can('Withdraw Method') ? [__('Payouts sent'), $money($month['payouts'])] : null,
+  ]);
+  $glance = array_filter([
+    $can('Event Management') ? [__('Events'), $counts['events'], $eventUrl] : null,
+    $can('Event Management') ? [__('Categories'), $counts['categories'], route('admin.event_management.categories', ['language' => $defaultLang->code])] : null,
+    $can('Event Bookings') ? [__('Bookings'), $counts['bookings'], route('admin.event.booking')] : null,
+    $can('Transaction') ? [__('Transactions'), $counts['transactions'], route('admin.transcation')] : null,
+    $can('Blog Management') ? [__('Blog posts'), $counts['blogs'], route('admin.blog_management.blogs', ['language' => $defaultLang->code])] : null,
+  ]);
+  $people = array_filter([
+    $can('Customer Management') ? [__('Customers'), $counts['customers'], route('admin.organizer_management.registered_customer')] : null,
+    $can('Organizer Mangement') ? [__('Organisers'), $counts['organisers'], route('admin.organizer_management.registered_organizer')] : null,
+    $can('Admin Management') ? [__('Admins'), $counts['admins'], route('admin.admin_management.registered_admins')] : null,
   ]);
   $queues = collect(\App\Support\AdminQueues::all())->keyBy('key');
   $attention = $o['attention'];
@@ -71,10 +77,28 @@
       </div>
       <div class="cd-actions">
         <a class="cd-btn" href="{{ route('account-security.show', ['guard' => 'admin']) }}"><i class="fal fa-shield-check" aria-hidden="true"></i>{{ __('Account security') }}</a>
-        @if ($can('Event Bookings', 'Lifetime Earning', 'Total Profit', 'Transaction'))<a class="cd-btn" href="#cd-reports-h"><i class="fal fa-file-chart-line" aria-hidden="true"></i>{{ __('Reports') }}</a>@endif
+        @if ($can('Event Bookings', 'Lifetime Earning', 'Total Profit', 'Transaction', 'Organizer Mangement', 'Customer Management'))<a class="cd-btn" href="#cd-reports-h"><i class="fal fa-file-chart-line" aria-hidden="true"></i>{{ __('Reports') }}</a>@endif
         @if ($showEvents)<a class="cd-btn primary" href="{{ route('admin.choose-event-type', ['language' => $defaultLang->code]) }}"><i class="fal fa-plus" aria-hidden="true"></i>{{ __('Create event') }}</a>@endif
       </div>
     </header>
+
+    @if ($kpis)
+      <section aria-labelledby="cd-lifetime-h">
+        <div class="cd-period">
+          <h2 id="cd-lifetime-h">{{ __('Lifetime totals') }}</h2>
+          <p>{{ $o['base']['code'] }}</p>
+        </div>
+        <div class="cd-kpis">
+          @foreach ($kpis as [$label, $value, $icon, $href])
+            <a class="cd-card cd-kpi" href="{{ $href }}">
+              <span class="cd-ic"><i class="fal {{ $icon }}" aria-hidden="true"></i></span>
+              <span class="cd-kpi-l">{{ $label }}</span>
+              <b class="cd-kpi-value">{{ $value }}</b>
+            </a>
+          @endforeach
+        </div>
+      </section>
+    @endif
 
     @if ($waiting)
       <section class="cd-card cd-review" aria-labelledby="cd-review-h">
@@ -101,29 +125,24 @@
       </section>
     @endif
 
-    @if ($kpis)
-      <section aria-labelledby="cd-period-h">
-        <div class="cd-period">
+    @include('backend.admin.dashboard-reports')
+
+    @if ($monthStats)
+      <section class="cd-card" aria-labelledby="cd-period-h">
+        <div class="cd-card-h">
           <h2 id="cd-period-h">{{ __('Month to date') }}</h2>
-          <p>
+          <span class="cd-pill">
             <time datetime="{{ $month['from']->toDateString() }}">{{ $month['from']->translatedFormat('j M') }}</time>
             <span aria-hidden="true">–</span><span class="sr-only"> {{ __('to') }} </span>
             <time datetime="{{ $month['through']->toDateString() }}">{{ $month['through']->translatedFormat('j M Y') }}</time>
             <span aria-hidden="true"> · </span>{{ $o['base']['code'] }}
-          </p>
+          </span>
         </div>
-        <div class="cd-kpis">
-          @foreach ($kpis as [$label, $value, $change, $icon, $href])
-            <a class="cd-card cd-kpi" href="{{ $href }}">
-              <span class="cd-ic"><i class="fal {{ $icon }}" aria-hidden="true"></i></span>
-              <span class="cd-kpi-l">{{ $label }}</span>
-              <b class="cd-kpi-value">{{ $value }}</b>
-              @if ($change)
-                <span class="cd-chg {{ $change[0] }}"><span>{{ $change[1] }}</span><span class="sr-only">{{ $change[2] }}</span></span>
-              @endif
-            </a>
+        <dl class="cd-today">
+          @foreach ($monthStats as [$label, $value])
+            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
           @endforeach
-        </div>
+        </dl>
       </section>
     @endif
 
@@ -137,8 +156,6 @@
         </dl>
       </section>
     @endif
-
-    @include('backend.admin.dashboard-reports')
 
     @if ($can('Withdraw Method'))
       <section class="cd-card cd-table" aria-labelledby="cd-pay-h">
@@ -233,6 +250,19 @@
         @endif
       </div>
     @endif
+
+    @foreach (['cd-glance-h' => [__('Platform at a glance'), $glance], 'cd-people-h' => [__('People on TICA'), $people]] as $headingId => [$heading, $items])
+      @if ($items)
+        <section class="cd-card" aria-labelledby="{{ $headingId }}">
+          <div class="cd-card-h"><h2 id="{{ $headingId }}">{{ $heading }}</h2></div>
+          <ul class="cd-overview-links">
+            @foreach ($items as [$label, $count, $href])
+              <li><a href="{{ $href }}"><span>{{ $label }}</span><strong>{{ number_format($count) }}</strong></a></li>
+            @endforeach
+          </ul>
+        </section>
+      @endif
+    @endforeach
   </div>
 @endsection
 

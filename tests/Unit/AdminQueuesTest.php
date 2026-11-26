@@ -36,10 +36,11 @@ class AdminQueuesTest extends TestCase
     }
   }
 
-  public function test_top_bar_has_title_bell_and_account_menu(): void
+  public function test_top_bar_has_bell_and_account_menu_without_a_duplicate_heading(): void
   {
     $bar = file_get_contents(resource_path('views/backend/partials/top-navbar.blade.php'));
-    foreach (['id="os-title"', 'ad-bell', 'AdminQueues::all()', "route('admin.edit_profile')", "route('admin.change_password')", "route('index')", "route('admin.logout')"] as $needle) {
+    $this->assertStringNotContainsString('<h1', $bar);
+    foreach (['ad-bell', 'AdminQueues::all()', "route('admin.edit_profile')", "route('admin.change_password')", "route('index')", "route('admin.logout')"] as $needle) {
       $this->assertStringContainsString($needle, $bar, $needle);
     }
   }

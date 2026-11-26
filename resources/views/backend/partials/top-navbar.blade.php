@@ -34,7 +34,7 @@
   </div>
   <!-- Logo Header End -->
 
-  <!-- Navbar Header Start: page title, work waiting for an admin, account menu -->
+  <!-- Navbar Header Start: notifications and account menu -->
   @php
     $topbarPerms = is_null($roleInfo ?? null) ? null : (array) json_decode($roleInfo->permissions ?? '[]', true);
     $topbarCan = fn (string $perm) => is_null($topbarPerms) || in_array($perm, $topbarPerms, true);
@@ -44,7 +44,6 @@
   @endphp
   <nav class="navbar navbar-header navbar-expand-lg ad-top" data-background-color="white2" aria-label="{{ __('Admin top bar') }}">
     <div class="container-fluid">
-      <h1 class="os-top__title" id="os-title">{{ __('Admin') }}</h1>
       <div class="ad-top__right">
         <details class="t-menu ad-bell">
           <summary class="t-icon-btn" aria-label="{{ $topbarWaiting ? trans_choice(':count item waiting for you|:count items waiting for you', $topbarWaiting) : __('Nothing waiting for you') }}">
@@ -77,9 +76,6 @@
   </nav>
   <script>
     (function () {
-      // The page's own heading becomes the top-bar title, so it isn't shown twice.
-      var t = document.getElementById('os-title'), pt = document.querySelector('.page-header .page-title, .page-inner h1:not(#os-title)');
-      if (t && pt && pt.textContent.trim()) { t.textContent = pt.textContent.trim(); document.body.classList.add('ad-titled'); }
       document.addEventListener('click', function (e) { document.querySelectorAll('.ad-top details[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); }); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.ad-top details[open]').forEach(function (d) { d.removeAttribute('open'); }); });
     })();

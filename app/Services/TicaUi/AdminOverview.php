@@ -2,12 +2,18 @@
 
 namespace App\Services\TicaUi;
 
+use App\Models\Admin;
+use App\Models\Customer;
 use App\Models\Event;
 use App\Models\Event\Booking;
+use App\Models\Event\EventCategory;
+use App\Models\Journal\Blog;
 use App\Models\OperationalIncident;
 use App\Models\Organizer;
 use App\Models\PaymentIntent;
+use App\Models\Transaction;
 use App\Models\Withdraw;
+use App\Services\PlatformEarningService;
 use App\Support\EventFinancialBreakdown;
 use App\Support\TicaCurrency;
 use Carbon\Carbon;
@@ -31,6 +37,8 @@ class AdminOverview
 
     return [
       'base' => ['code' => $base, 'symbol' => TicaCurrency::symbol($base), 'position' => (string) (DB::table('basic_settings')->value('base_currency_symbol_position') ?: 'left')],
+      'lifetime' => $this->lifetime(),
+      'counts' => $this->platformCounts(),
       'today' => $this->today(),
       'month' => $this->month(),
       'attention' => $this->attention(),
@@ -53,28 +61,45 @@ class AdminOverview
   private function month(): array
   {
     $now = now();
-    $customerPaid = EventFinancialBreakdown::bookingCustomerPaidSql();
-    $platformRevenue = EventFinancialBreakdown::bookingPlatformRevenueSql();
-    $ranges = [
-      'this' => [$now->copy()->startOfMonth(), $now],
-      'last' => [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()],
-    ];
-    $out = [];
+    $start = $now->copy()->startOfMonth();
+    $bookings = Booking::query()->whereBetween('created_at', [$start, $now]);
+    $paidBookings = $this->baseOnly((clone $bookings)->whereIn('paymentStatus', self::PAID));
     $paidOn = DB::raw('COALESCE(paid_at, reviewed_at, updated_at)');
-    foreach ($ranges as $key => [$from, $to]) {
-      $paid = $this->baseOnly(Booking::query()->whereIn('paymentStatus', self::PAID)->whereBetween('created_at', [$from, $to]))
-        ->selectRaw("SUM({$customerPaid}) as sales, SUM({$platformRevenue}) as fees")->first();
-      $out[$key] = [
-        'sales' => round((float) ($paid?->sales ?? 0), 2),
-        'fees' => round((float) ($paid?->fees ?? 0), 2),
-        'tickets' => (int) Booking::query()->whereIn('paymentStatus', self::COUNTED)->whereBetween('created_at', [$from, $to])->sum('quantity'),
-        'payouts' => round((float) Withdraw::query()->where('status', Withdraw::STATUS_PAID)->whereBetween($paidOn, [$from, $to])->sum('amount'), 2),
-      ];
-    }
-    $out['from'] = $ranges['this'][0];
-    $out['through'] = $now;
 
-    return $out;
+    return [
+      'from' => $start,
+      'through' => $now,
+      'sales' => round((float) $paidBookings->sum(DB::raw(EventFinancialBreakdown::bookingCustomerPaidSql())), 2),
+      'tickets' => (int) $bookings->whereIn('paymentStatus', self::COUNTED)->sum('quantity'),
+      'payouts' => round((float) Withdraw::query()->where('status', Withdraw::STATUS_PAID)
+        ->whereBetween($paidOn, [$start, $now])->sum('amount'), 2),
+    ];
+  }
+
+  private function lifetime(): array
+  {
+    $earnings = app(PlatformEarningService::class)->snapshot();
+
+    return [
+      'revenue' => $earnings?->total_revenue,
+      'earnings' => $earnings?->total_earning,
+      'tickets' => (int) Booking::query()->whereIn('paymentStatus', self::COUNTED)->sum('quantity'),
+      'payouts' => round((float) Withdraw::query()->where('status', Withdraw::STATUS_PAID)->sum('amount'), 2),
+    ];
+  }
+
+  private function platformCounts(): array
+  {
+    return [
+      'events' => Event::query()->count(),
+      'categories' => EventCategory::query()->where('language_id', $this->languageId)->count(),
+      'bookings' => Booking::query()->count(),
+      'transactions' => Transaction::query()->count(),
+      'blogs' => Blog::query()->count(),
+      'organisers' => Organizer::query()->count(),
+      'customers' => Customer::query()->count(),
+      'admins' => Admin::query()->count(),
+    ];
   }
 
   private function today(): array

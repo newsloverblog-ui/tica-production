@@ -44,6 +44,20 @@ class PlatformEarningServiceTest extends TestCase
         $this->assertTrue($locked->is($earning));
     }
 
+    public function test_dashboard_snapshot_reads_accounting_totals_without_creating_a_row(): void
+    {
+        $service = app(PlatformEarningService::class);
+        $this->assertNull($service->snapshot());
+        $this->assertDatabaseCount('earnings', 0);
+
+        Earning::create(['total_revenue' => 500, 'total_earning' => 180]);
+
+        $snapshot = $service->snapshot();
+        $this->assertSame(500.0, (float) $snapshot->total_revenue);
+        $this->assertSame(180.0, (float) $snapshot->total_earning);
+        $this->assertDatabaseCount('earnings', 1);
+    }
+
     public function test_missing_authoritative_row_is_repaired_when_singleton_constraint_exists(): void
     {
         $locked = DB::transaction(fn () => app(PlatformEarningService::class)->lock());
@@ -63,6 +77,7 @@ class PlatformEarningServiceTest extends TestCase
         Earning::create(['total_revenue' => 100, 'total_earning' => 25]);
         Earning::create(['total_revenue' => 200, 'total_earning' => 50]);
 
+        $this->assertNull(app(PlatformEarningService::class)->snapshot());
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('exactly one');
 

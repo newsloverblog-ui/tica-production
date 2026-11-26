@@ -599,10 +599,6 @@ body.tica-admin .cd-kpi-value{
   max-width:100%;font-size:clamp(19px,2.15vw,28px);line-height:1.15;
   overflow-wrap:anywhere;font-variant-numeric:tabular-nums
 }
-body.tica-admin .cd-chg{
-  padding:2px 6px;border-radius:5px;font-size:12px;font-weight:650;color:var(--c-text);background:#f1f5fa
-}
-
 body.tica-admin .cd-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
 body.tica-admin .cd-row--split{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
 body.tica-admin .cd-card-h{
@@ -630,15 +626,26 @@ body.tica-admin .cd-today dd {
   font-variant-numeric: tabular-nums;
 }
 body.tica-admin #cd-reports-h { scroll-margin-top: 90px; }
-body.tica-admin .cd-report-links {
+body.tica-admin .cd-report-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
-  gap: 8px 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+  padding: 14px 16px;
+}
+body.tica-admin .cd-report-groups h3 {
+  margin: 0;
+  padding: 0 10px 6px;
+  color: var(--c-mute);
+  font-size: 14px;
+}
+body.tica-admin .cd-report-links,
+body.tica-admin .cd-overview-links {
   list-style: none;
-  padding: 12px 16px;
+  padding: 0;
   margin: 0;
 }
-body.tica-admin .cd-report-links a {
+body.tica-admin .cd-report-links a,
+body.tica-admin .cd-overview-links a {
   display: flex;
   height: 100%;
   align-items: center;
@@ -650,10 +657,19 @@ body.tica-admin .cd-report-links a {
   text-decoration: none;
 }
 body.tica-admin .cd-report-links a:hover,
-body.tica-admin .cd-report-links a:focus-visible { background: var(--c-blue-soft); }
+body.tica-admin .cd-report-links a:focus-visible,
+body.tica-admin .cd-overview-links a:hover,
+body.tica-admin .cd-overview-links a:focus-visible { background: var(--c-blue-soft); }
 body.tica-admin .cd-report-links strong,
 body.tica-admin .cd-report-links small { display: block; }
 body.tica-admin .cd-report-links small { margin-top: 3px; color: var(--c-mute); }
+body.tica-admin .cd-overview-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px), 1fr));
+  gap: 6px;
+  padding: 8px 12px;
+}
+body.tica-admin .cd-overview-links strong { font-variant-numeric: tabular-nums; }
 body.tica-admin .cd-record{color:var(--c-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 body.tica-admin .cd-upcoming-list{list-style:none;margin:0;padding:0 16px;font-size:14px}
 body.tica-admin .cd-upcoming-list li{padding:11px 0;border-bottom:1px solid var(--c-line-2)}

@@ -9,6 +9,19 @@ use LogicException;
 
 class PlatformEarningService
 {
+    /** Read the accounting totals without locking or creating an earnings row. */
+    public function snapshot(): ?Earning
+    {
+        $rows = Earning::query()->orderBy('id')->limit(2)->get();
+        if ($rows->count() !== 1) {
+            return null;
+        }
+
+        $earning = $rows->first();
+
+        return (int) ($earning->singleton_key ?? 1) === 1 ? $earning : null;
+    }
+
     /**
      * Return the one authoritative platform-earnings row under a write lock.
      *
