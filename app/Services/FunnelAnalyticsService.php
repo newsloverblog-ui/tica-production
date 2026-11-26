@@ -15,7 +15,6 @@ use Throwable;
 class FunnelAnalyticsService
 {
     public const BROWSER_EVENTS = [
-        'page_view',
         'search',
         'view_event',
         'select_ticket',
@@ -46,14 +45,6 @@ class FunnelAnalyticsService
         $eventName = (string) ($payload['event'] ?? '');
         if (!in_array($eventName, self::BROWSER_EVENTS, true)) {
             throw new InvalidArgumentException('This analytics event cannot be accepted from a browser.');
-        }
-
-        if ($eventName === 'page_view') {
-            return app(PageTrafficAnalytics::class)->record(
-                $request,
-                is_array($payload['properties'] ?? null) ? $payload['properties'] : [],
-                $this->sessionHash($request),
-            );
         }
 
         $occurredAt = $this->browserOccurredAt($payload['occurred_at'] ?? null);

@@ -80,15 +80,6 @@
                     </a>
                 </li>
 
-                @if ($adminUser?->hasPermission('Transaction'))
-                    <li class="nav-item {{ request()->routeIs('admin.analytics.page_traffic') ? 'active' : '' }}">
-                        <a href="{{ route('admin.analytics.page_traffic') }}" @if (request()->routeIs('admin.analytics.page_traffic')) aria-current="page" @endif>
-                            <i class="fal fa-chart-bar" aria-hidden="true"></i>
-                            <p>{{ __('Page traffic') }}</p>
-                        </a>
-                    </li>
-                @endif
-
                 @if ($adminUser?->hasPermission(...\App\Http\Controllers\BackEnd\AdminController::REPORT_PERMISSIONS))
                     <li class="nav-item {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
                         <a href="{{ route('admin.reports.index') }}" @if (request()->routeIs('admin.reports.index')) aria-current="page" @endif>

@@ -361,11 +361,11 @@ function api(url,body){
     .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var m=j.message||'Something went wrong. Please try again.';if(j.errors){var k=Object.keys(j.errors)[0];if(k)m=j.errors[k][0]}var er=new Error(m);er.data=j;er.status=r.status;throw er}return j})});
 }
 window.TICA_API=api;
-/* Tica funnel analytics: page views and checkout steps, only with analytics consent. */
+/* Tica funnel analytics: event views and checkout steps, only with analytics consent. */
 function track(name, props) {
   try {
     var consent = window.TICA_consent && window.TICA_consent();
-    if (!consent || !consent.a) return false;
+    if (!consent || !consent.a) return;
     fetch('/analytics/events', {
       method: 'POST',
       credentials: 'same-origin',
@@ -373,39 +373,9 @@ function track(name, props) {
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': TICA_DATA.csrf},
       body: JSON.stringify({event: name, properties: props || {}})
     }).catch(function () {});
-    return true;
-  } catch (error) {
-    return false;
-  }
+  } catch (error) {}
 }
 
-var publicTrafficPages = ['home', 'discover', 'event', 'how', 'pricing', 'about', 'contact', 'join', 'policies', 'content'];
-var trackedPublicPath = null;
-var trackedPageDetails = null;
-var recordedPageView = false;
-function trafficReferrer(initialVisit) {
-  if (!initialVisit) return window.location.hostname;
-  if (!document.referrer) return null;
-
-  try {
-    return new URL(document.referrer).hostname;
-  } catch (error) {
-    return null;
-  }
-}
-function recordCurrentPageView() {
-  if (trackedPageDetails && !recordedPageView && !document.hidden) {
-    recordedPageView = track('page_view', trackedPageDetails);
-  }
-}
-document.addEventListener('tica:consent', recordCurrentPageView);
-document.addEventListener('visibilitychange', recordCurrentPageView);
-window.addEventListener('pageshow', function (event) {
-  if (event.persisted) {
-    recordedPageView = false;
-    recordCurrentPageView();
-  }
-});
 /* Approved organizer provider IDs are loaded only on that organizer's event page
    and only after analytics consent. Identifiers are data, never executable code. */
 (function(){var loaded=false,providers=TICA_DATA.trackingProviders||[];if(!providers.length)return;
@@ -1219,7 +1189,6 @@ function reveal(root){
 }
 window.TICA_go=go;
 function route(){
-  var initialVisit = !route.ran;
   var c0=cur.split('/')[0];
   if(c0==='account'&&!window.TICA_USER){cur='login';[].forEach.call(document.querySelectorAll('.au'),function(a){a.dataset.role='att'});[].forEach.call(document.querySelectorAll('.au-seg button'),function(b){b.setAttribute('aria-pressed',b.dataset.role==='att'?'true':'false')});try{history.replaceState(null,'','/login')}catch(err){}}
   if((c0==='create'||c0==='dashboard'||c0==='checkin')&&!window.TICA_ORG&&!(c0==='create'&&window.TICA_ADMIN)&&!(c0==='checkin'&&TICA_DATA.gate)){
@@ -1256,17 +1225,6 @@ function route(){
   if(p==='discover')filter();
   hydrateImages(pg);
   var first=$('tica-first-page');if(first)first.remove();
-  var publicPath = publicTrafficPages.indexOf(p) !== -1 ? window.location.pathname : null;
-  if (trackedPublicPath !== publicPath) {
-    trackedPublicPath = publicPath;
-    trackedPageDetails = publicPath === null ? null : {
-      page: p,
-      event_id: p === 'event' && e.visibility === 'public' ? e.id : undefined,
-      referrer_host: trafficReferrer(initialVisit)
-    };
-    recordedPageView = false;
-    recordCurrentPageView();
-  }
   try{window.dispatchEvent(new Event('tica:navigate'))}catch(err){}
 }
 function fromUrl(){var path=pathOf(location);if(cur===path)return;cur=path;route()}

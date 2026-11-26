@@ -196,10 +196,6 @@
       </div>
     @endif
 
-    @if ($can('Transaction'))
-      @include('backend.admin.dashboard-traffic')
-    @endif
-
     @if ($can('Withdraw Method'))
       <section class="cd-card cd-table" aria-labelledby="cd-pay-h">
         <div class="cd-card-h">
@@ -273,9 +269,6 @@
 @endsection
 
 @section('script')
-  @if ($can('Transaction'))
-    <script src="{{ asset('assets/tica-ui/js/admin-site-traffic.js') }}?v={{ tica_asset_version('assets/tica-ui/js/admin-site-traffic.js') }}" defer></script>
-  @endif
   @if ($showSales || $peopleTotal)
     <script src="{{ asset('assets/admin/js/chart.min.js') }}"></script>
     <script>
