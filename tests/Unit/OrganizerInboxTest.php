@@ -63,15 +63,17 @@ class OrganizerInboxTest extends TestCase
     foreach ([
       'app/Http/Controllers/BackEnd/Organizer/OrganizerKycReviewController.php' => "'kyc.'",
       'app/Http/Controllers/BackEnd/PayoutAccountController.php' => "'payout_account.'",
-      'app/Http/Controllers/BackEnd/WithdrawController.php' => "'withdrawal.'",
+      'app/Http/Controllers/BackEnd/WithdrawController.php' => ["'withdrawal.paid'", "'withdrawal.rejected'"],
       'app/Http/Controllers/BackEnd/TicaPromotionController.php' => "'promotion.'",
       'app/Http/Controllers/BackEnd/PaymentRefundController.php' => "'refund.approved'",
       'app/Http/Controllers/BackEnd/SupportTicketController.php' => "'support.reply'",
       'app/Jobs/SendPayoutStatusNotification.php' => "'payout.'",
-    ] as $file => $kind) {
+    ] as $file => $kinds) {
       $src = file_get_contents(base_path($file));
       $this->assertStringContainsString('OrganizerInbox::send(', $src, $file);
-      $this->assertStringContainsString($kind, $src, $file);
+      foreach ((array) $kinds as $kind) {
+        $this->assertStringContainsString($kind, $src, $file);
+      }
     }
   }
 
