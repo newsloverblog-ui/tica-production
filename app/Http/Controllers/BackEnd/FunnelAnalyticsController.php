@@ -15,9 +15,7 @@ class FunnelAnalyticsController extends Controller
     public function siteTraffic(): JsonResponse
     {
         $now = CarbonImmutable::now()->floorSecond();
-        $views = FunnelAnalyticsEvent::query()
-            ->where('event_name', 'page_view')
-            ->where('source', 'browser')
+        $views = FunnelAnalyticsEvent::query()->pageViews()
             ->where('occurred_at', '>', $now->subDay())
             ->where('occurred_at', '<=', $now)
             ->selectRaw('COUNT(*) AS views_day, COUNT(DISTINCT CASE WHEN occurred_at > ? THEN session_hash END) AS active_sessions', [

@@ -846,6 +846,17 @@ BEGIN
   END IF;
 END $$;
 
+-- Public page and referrer data for traffic analytics.
+DO $$
+BEGIN
+  IF to_regclass('public.funnel_analytics_events') IS NOT NULL THEN
+    ALTER TABLE public.funnel_analytics_events
+      ADD COLUMN IF NOT EXISTS page_key varchar(24),
+      ADD COLUMN IF NOT EXISTS referrer_host varchar(253);
+    PERFORM pg_temp.tica_mark_migration('2026_11_26_060000_add_page_traffic_dimensions_to_funnel_analytics_events');
+  END IF;
+END $$;
+
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
 -- missing table or update (send those rows to the developer).
@@ -1215,6 +1226,7 @@ SELECT 'update not recorded', m.name
   ,('2026_11_23_000001_add_consent_fields_to_subscribers_table')
   ,('2026_11_26_030000_add_automatic_payout_release_to_basic_settings')
   ,('2026_11_26_040000_add_fixed_booking_fee_to_basic_settings')
+  ,('2026_11_26_060000_add_page_traffic_dimensions_to_funnel_analytics_events')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)

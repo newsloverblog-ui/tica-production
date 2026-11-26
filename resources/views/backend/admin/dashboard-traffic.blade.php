@@ -7,7 +7,7 @@
       <h2 id="cd-traffic-h">{{ __('Live site traffic') }}</h2>
       <p class="cd-traffic-caption">{{ __('Public pages viewed by visitors who allow analytics. Refreshes every 15 seconds.') }}</p>
     </div>
-    <a class="cd-btn sm" href="{{ route('admin.funnel_analytics.index') }}">{{ __('Checkout analytics') }}</a>
+    <a class="cd-btn sm" href="{{ route('admin.analytics.page_traffic') }}">{{ __('View page traffic') }} <i class="fal fa-arrow-right" aria-hidden="true"></i></a>
   </div>
   <p class="cd-traffic-status" data-traffic-status role="status">{{ __('Loading traffic…') }}</p>
   <noscript><p class="cd-traffic-status">{{ __('Enable JavaScript to see live traffic.') }}</p></noscript>

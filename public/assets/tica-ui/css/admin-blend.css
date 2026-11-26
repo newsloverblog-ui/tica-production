@@ -691,6 +691,107 @@ body.tica-admin .cd-traffic-bar::before {
   background: var(--c-blue);
   border-radius: inherit;
 }
+body.tica-admin #cd-traffic-h { scroll-margin-top: 96px; }
+
+/* Page traffic */
+body.tica-admin .pt-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+body.tica-admin .pt-presets,
+body.tica-admin .pt-dates,
+body.tica-admin .pt-chart-options:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+body.tica-admin .pt-dates label { display: block; margin-bottom: 5px; font-weight: 600; }
+body.tica-admin .pt-dates .form-control { width: 148px; max-width: 100%; }
+body.tica-admin .pt-date-error { flex-basis: 100%; margin: 0; color: var(--c-red); }
+body.tica-admin .pt-presets [aria-current],
+body.tica-admin .pt-chart-options [aria-pressed="true"] {
+  background: var(--c-blue-soft);
+  border-color: var(--c-blue-line);
+  color: var(--c-blue);
+}
+body.tica-admin .pt-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 20px;
+}
+body.tica-admin .pt-metrics > div {
+  padding: 14px 16px;
+  background: #f5f7fc;
+  border-radius: 10px;
+  min-width: 0;
+}
+body.tica-admin .pt-metrics dt { display: flex; align-items: baseline; gap: 8px; color: var(--c-mute); }
+body.tica-admin .pt-metrics dt i { color: var(--c-blue); }
+body.tica-admin .pt-metrics dd {
+  margin: 4px 0 0;
+  color: var(--c-ink);
+  font-size: clamp(1.25rem, 3cqi, 1.75rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+body.tica-admin .pt-chart-wrap { padding: 0 20px 18px; }
+body.tica-admin .pt-chart { position: relative; height: clamp(205px, 29cqi, 340px); }
+body.tica-admin .pt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 0;
+  margin: 0 0 12px;
+  list-style: none;
+  color: var(--c-mute);
+  font-size: 13px;
+}
+body.tica-admin .pt-legend li { display: inline-flex; align-items: center; gap: 6px; }
+body.tica-admin .pt-legend li span { width: 10px; height: 10px; border-radius: 3px; }
+body.tica-admin .pt-legend-views { background: #4669db; }
+body.tica-admin .pt-legend-sessions { background: #142b52; }
+body.tica-admin .pt .cd-series .cd-scroll { max-height: 305px; overflow: auto; }
+body.tica-admin .pt-rankings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+body.tica-admin .pt-ranked { padding: 0 20px; margin: 0; list-style: none; }
+body.tica-admin .pt-ranked li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 16px;
+  align-items: baseline;
+  padding: 11px 0;
+  overflow-wrap: anywhere;
+}
+body.tica-admin .pt-ranked li + li { border-top: 1px solid var(--c-line-2); }
+body.tica-admin .pt-ranked a { color: var(--c-ink); text-underline-offset: 3px; }
+body.tica-admin .pt-ranked a:hover { color: var(--c-blue); }
+body.tica-admin .pt-ranked strong { font-variant-numeric: tabular-nums; }
+body.tica-admin .pt-ranked-bar { display: block; width: 100%; height: 5px; background: #f0f3f9; border-radius: 8px; }
+body.tica-admin .pt-ranked-bar span { display: block; height: 100%; border-radius: inherit; background: var(--c-blue); }
+body.tica-admin .pt-note,
+body.tica-admin .pt-rank-unit { margin: 0; color: var(--c-mute); font-size: 13px; }
+@container admin-dashboard (max-width: 590px) {
+  body.tica-admin .pt-rankings { grid-template-columns: minmax(0, 1fr); }
+}
+@container admin-dashboard (max-width: 430px) {
+  body.tica-admin .pt-filter,
+  body.tica-admin .pt-metrics,
+  body.tica-admin .pt-ranked,
+  body.tica-admin .pt-chart-wrap { padding-inline: 14px; }
+  body.tica-admin .pt-dates { width: 100%; }
+  body.tica-admin .pt-dates > div { flex: 1; min-width: 130px; }
+  body.tica-admin .pt-dates .form-control { width: 100%; }
+  body.tica-admin .pt-metrics { grid-template-columns: 1fr; gap: 6px; }
+  body.tica-admin .pt-metrics > div { display: flex; justify-content: space-between; gap: 8px; }
+  body.tica-admin .pt-metrics dd { margin: 0; }
+}
 body.tica-admin .cd-report-groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));

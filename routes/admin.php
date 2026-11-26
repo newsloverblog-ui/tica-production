@@ -46,6 +46,7 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('/transcation/exports/{export}/download', 'BackEnd\TransactionExportController@download')
       ->middleware('signed')->name('admin.transaction_exports.download');
     Route::get('/analytics/funnel', 'BackEnd\FunnelAnalyticsController@index')->name('admin.funnel_analytics.index');
+    Route::get('/analytics/page-traffic', 'BackEnd\PageTrafficController')->name('admin.analytics.page_traffic');
     Route::get('/analytics/site-traffic', 'BackEnd\FunnelAnalyticsController@siteTraffic')
       ->middleware('throttle:30,1')->name('admin.analytics.site_traffic');
     Route::get('/operations/incidents', 'BackEnd\OperationalIncidentController@index')->name('admin.operational_incidents.index');

@@ -49,12 +49,11 @@ class FunnelAnalyticsService
         }
 
         if ($eventName === 'page_view') {
-            return FunnelAnalyticsEvent::create([
-                'event_name' => $eventName,
-                'source' => 'browser',
-                'session_hash' => $this->sessionHash($request),
-                'occurred_at' => now(),
-            ]);
+            return app(PageTrafficAnalytics::class)->record(
+                $request,
+                is_array($payload['properties'] ?? null) ? $payload['properties'] : [],
+                $this->sessionHash($request),
+            );
         }
 
         $occurredAt = $this->browserOccurredAt($payload['occurred_at'] ?? null);

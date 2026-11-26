@@ -381,10 +381,21 @@ function track(name, props) {
 
 var publicTrafficPages = ['home', 'discover', 'event', 'how', 'pricing', 'about', 'contact', 'join', 'policies', 'content'];
 var trackedPublicPath = null;
+var trackedPageDetails = null;
 var recordedPageView = false;
+function trafficReferrer(initialVisit) {
+  if (!initialVisit) return window.location.hostname;
+  if (!document.referrer) return null;
+
+  try {
+    return new URL(document.referrer).hostname;
+  } catch (error) {
+    return null;
+  }
+}
 function recordCurrentPageView() {
-  if (trackedPublicPath !== null && !recordedPageView && !document.hidden) {
-    recordedPageView = track('page_view');
+  if (trackedPageDetails && !recordedPageView && !document.hidden) {
+    recordedPageView = track('page_view', trackedPageDetails);
   }
 }
 document.addEventListener('tica:consent', recordCurrentPageView);
@@ -1208,6 +1219,7 @@ function reveal(root){
 }
 window.TICA_go=go;
 function route(){
+  var initialVisit = !route.ran;
   var c0=cur.split('/')[0];
   if(c0==='account'&&!window.TICA_USER){cur='login';[].forEach.call(document.querySelectorAll('.au'),function(a){a.dataset.role='att'});[].forEach.call(document.querySelectorAll('.au-seg button'),function(b){b.setAttribute('aria-pressed',b.dataset.role==='att'?'true':'false')});try{history.replaceState(null,'','/login')}catch(err){}}
   if((c0==='create'||c0==='dashboard'||c0==='checkin')&&!window.TICA_ORG&&!(c0==='create'&&window.TICA_ADMIN)&&!(c0==='checkin'&&TICA_DATA.gate)){
@@ -1247,6 +1259,11 @@ function route(){
   var publicPath = publicTrafficPages.indexOf(p) !== -1 ? window.location.pathname : null;
   if (trackedPublicPath !== publicPath) {
     trackedPublicPath = publicPath;
+    trackedPageDetails = publicPath === null ? null : {
+      page: p,
+      event_id: p === 'event' && e.visibility === 'public' ? e.id : undefined,
+      referrer_host: trafficReferrer(initialVisit)
+    };
     recordedPageView = false;
     recordCurrentPageView();
   }
