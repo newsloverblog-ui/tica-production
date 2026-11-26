@@ -28,33 +28,17 @@ class EventBookingController extends Controller
 {
     public function index(Request $request)
     {
-        $bookingId = $paymentStatus = null;
-        $eventIds = [];
-
-        if ($request->filled('booking_id')) {
-            $bookingId = $request['booking_id'];
-        }
-
-        if ($request->filled('event_title')) {
-            $event_contents = EventContent::where('title', 'like', '%' . $request->event_title . '%')->get();
-            foreach ($event_contents as $event_content) {
-                if (!in_array($event_content->event_id, $eventIds)) {
-                    $eventIds[] = $event_content->event_id;
-                }
-            }
-        }
-
-        if ($request->filled('status')) {
-            $paymentStatus = $request['status'];
-        }
-
-        $bookings = Booking::when($bookingId, function ($query) use ($bookingId) {
-            return $query->where('booking_id', 'like', '%' . $bookingId . '%');
-        })->when($paymentStatus, function ($query, $paymentStatus) {
-            return $query->where('paymentStatus', '=', $paymentStatus);
-        })->when($eventIds, function ($query) use ($eventIds) {
-            return $query->whereIn('event_id', $eventIds);
-        })->orderByDesc('id')->paginate(10);
+        $bookings = Booking::with(['customerInfo', 'organizer'])
+            ->when($request->filled('booking_id'), fn ($query) =>
+                $query->where('booking_id', 'like', '%' . $request->input('booking_id') . '%'))
+            ->when($request->filled('status'), fn ($query) =>
+                $query->where('paymentStatus', $request->input('status')))
+            ->when($request->filled('event_title'), fn ($query) =>
+                $query->whereIn('event_id', EventContent::query()
+                    ->select('event_id')->where('title', 'like', '%' . $request->input('event_title') . '%')))
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->appends($request->only(['booking_id', 'event_title', 'status']));
 
         return view('backend.event.booking.index', compact('bookings'));
     }

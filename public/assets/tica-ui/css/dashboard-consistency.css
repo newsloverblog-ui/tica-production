@@ -391,3 +391,295 @@ body.tica-admin .transaction-export .form-control {
     transition: none !important;
   }
 }
+
+/* Admin booking list adapts to the space remaining beside the sidebar. */
+.admin-bookings {
+  container: admin-bookings / inline-size;
+  min-inline-size: 0;
+}
+
+body.tica-admin .admin-bookings form.booking-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+}
+
+body.tica-admin .admin-bookings form.booking-filters .form-control {
+  min-inline-size: 0;
+  max-inline-size: none;
+  inline-size: 100%;
+}
+
+body.tica-admin .admin-bookings .booking-filters__actions {
+  width: auto;
+  flex-wrap: wrap;
+}
+
+.admin-bookings__toolbar,
+.admin-bookings__selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.admin-bookings__toolbar {
+  justify-content: space-between;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--dash-line);
+}
+
+body.tica-admin .admin-bookings .booking-toolbar__actions,
+body.tica-admin .admin-bookings .booking-export {
+  width: auto;
+}
+
+.admin-bookings__selection:empty {
+  display: none;
+}
+
+.admin-bookings__count,
+.admin-bookings__secondary,
+.admin-bookings__label {
+  color: var(--dash-muted);
+}
+
+.admin-bookings__select-all,
+.admin-bookings__select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+  min-block-size: 32px;
+}
+
+.admin-bookings__select-row {
+  align-items: flex-start;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-bookings .bulk-check {
+  inline-size: 16px;
+  block-size: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--dash-blue);
+}
+
+.admin-bookings__select-row .bulk-check {
+  margin-block-start: 3px;
+}
+
+.admin-bookings__results {
+  border: 1px solid var(--dash-line);
+  border-radius: var(--dash-radius);
+}
+
+.admin-bookings__table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: start;
+}
+
+.admin-bookings__table :is(th, td) {
+  padding: 12px 10px;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.admin-bookings__table th {
+  background: var(--dash-subtle);
+  color: var(--dash-text);
+}
+
+.admin-bookings__table th:first-child {
+  border-start-start-radius: calc(var(--dash-radius) - 1px);
+}
+
+.admin-bookings__table th:last-child {
+  border-start-end-radius: calc(var(--dash-radius) - 1px);
+}
+
+.admin-bookings__table td {
+  border-block-start: 1px solid var(--dash-line);
+  vertical-align: top;
+}
+
+body.tica-admin .admin-bookings .admin-bookings__table .t-num {
+  text-align: end !important;
+  white-space: normal;
+}
+
+.admin-bookings__table th:nth-child(1) { width: 15%; }
+.admin-bookings__table th:nth-child(2) { width: 16%; }
+.admin-bookings__table th:nth-child(3) { width: 11%; }
+.admin-bookings__table th:nth-child(4) { width: 11%; }
+.admin-bookings__table th:nth-child(5) { width: 13%; }
+.admin-bookings__table th:nth-child(6) { width: 13%; }
+.admin-bookings__table th:nth-child(7) { width: 10%; }
+.admin-bookings__table th:nth-child(8) { width: 11%; }
+
+.admin-bookings__event-title,
+.admin-bookings__action {
+  font-weight: 600;
+}
+
+.admin-bookings__secondary {
+  display: block;
+  margin-block-start: 4px;
+  font: var(--tica-text-body-sm);
+}
+
+.admin-bookings__table .badge {
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: start;
+}
+
+body.tica-admin .admin-bookings .paymentStatusBtn {
+  min-block-size: 38px;
+  max-inline-size: 100%;
+  padding-inline: 8px;
+}
+
+.admin-bookings__label {
+  display: none;
+}
+
+.admin-bookings__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  margin-block-start: -4px;
+}
+
+.admin-bookings__action {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 40px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  text-align: start;
+  color: var(--dash-blue);
+  cursor: pointer;
+}
+
+.admin-bookings__action--delete {
+  color: #a42c37;
+}
+
+.admin-bookings__action:hover {
+  text-decoration: underline;
+}
+
+.admin-bookings__empty {
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--dash-muted);
+}
+
+.admin-bookings__pagination .pagination {
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+}
+
+@container admin-bookings (max-width: 990px) {
+  .admin-bookings__results {
+    border: 0;
+  }
+
+  .admin-bookings__table,
+  .admin-bookings__table tbody {
+    display: block;
+  }
+
+  .admin-bookings__table thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .admin-bookings__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 16px;
+    padding: 16px;
+    border: 1px solid var(--dash-line);
+    border-radius: var(--dash-radius-sm);
+  }
+
+  .admin-bookings__table tbody tr + tr {
+    margin-block-start: 12px;
+  }
+
+  .admin-bookings__table td {
+    display: block;
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  body.tica-admin .admin-bookings .admin-bookings__table .t-num {
+    text-align: start !important;
+  }
+
+  .admin-bookings__event {
+    grid-column: span 2;
+  }
+
+  .admin-bookings__reference {
+    font-weight: 600;
+  }
+
+  .admin-bookings__table .admin-bookings__action-cell {
+    grid-column: 1 / -1;
+    padding-block-start: 12px;
+    border-block-start: 1px solid var(--dash-line);
+  }
+
+  .admin-bookings__label {
+    display: block;
+    margin-block-end: 4px;
+    font: var(--tica-text-label);
+  }
+
+  .admin-bookings__row-actions {
+    gap: 4px 16px;
+  }
+}
+
+@container admin-bookings (max-width: 795px) {
+  body.tica-admin .admin-bookings form.booking-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container admin-bookings (max-width: 630px) {
+  .admin-bookings__table tbody tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-bookings__reference,
+  .admin-bookings__event,
+  .admin-bookings__customer {
+    grid-column: 1 / -1;
+  }
+}
+
+@container admin-bookings (max-width: 470px) {
+  body.tica-admin .admin-bookings form.booking-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

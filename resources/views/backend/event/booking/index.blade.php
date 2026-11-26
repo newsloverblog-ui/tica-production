@@ -3,323 +3,226 @@
 @section('content')
   @php
     $canManageTransactions = Auth::guard('admin')->user()?->hasPermission('Transaction') ?? false;
+    $hasFilters = request()->anyFilled(['booking_id', 'event_title', 'status']);
   @endphp
-  <div class="page-header">
-    <h4 class="page-title">{{ __('Event Booking') }}</h4>
-    <ul class="breadcrumbs">
-      <li class="nav-home">
-        <a href="{{ route('admin.dashboard') }}">
-          <i class="flaticon-home"></i>
-        </a>
-      </li>
-      <li class="separator">
-        <i class="flaticon-right-arrow"></i>
-      </li>
-      <li class="nav-item">
-        <a href="#">{{ __('Event Booking') }}</a>
-      </li>
-      @if (!request()->filled('status'))
-        <li class="separator">
-          <i class="flaticon-right-arrow"></i>
-        </li>
-        <li class="nav-item">
-          <a href="#">{{ __('All Bookings') }}</a>
-        </li>
-      @endif
-      @if (request()->filled('status') && request()->input('status') == 'completed')
-        <li class="separator">
-          <i class="flaticon-right-arrow"></i>
-        </li>
-        <li class="nav-item">
-          <a href="#">{{ __('Completed Bookings') }}</a>
-        </li>
-      @endif
-      @if (request()->filled('status') && request()->input('status') == 'pending')
-        <li class="separator">
-          <i class="flaticon-right-arrow"></i>
-        </li>
-        <li class="nav-item">
-          <a href="#">{{ __('Pending Bookings') }}</a>
-        </li>
-      @endif
-      @if (request()->filled('status') && request()->input('status') == 'rejected')
-        <li class="separator">
-          <i class="flaticon-right-arrow"></i>
-        </li>
-        <li class="nav-item">
-          <a href="#">{{ __('Rejected Bookings') }}</a>
-        </li>
-      @endif
 
-    </ul>
-  </div>
+  <section class="admin-bookings" aria-labelledby="admin-bookings-title">
+    <div class="page-header">
+      <h1 class="page-title" id="admin-bookings-title">{{ __('Event bookings') }}</h1>
+    </div>
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header booking-toolbar">
-          <div class="booking-toolbar__head">
-            <div>
-              <div class="card-title">{{ __('Event bookings') }}</div>
-              <p>{{ __('Search purchases, review payment status and export the current result set.') }}</p>
-            </div>
-            <div class="booking-toolbar__actions">
-              <button class="btn btn-danger btn-sm d-none bulk-delete" data-href="{{ route('admin.event_booking.bulk_delete') }}">
-                <i class="flaticon-interface-5" aria-hidden="true"></i> {{ __('Delete selected') }}
+    <div class="card">
+      <div class="card-header booking-toolbar">
+        <form class="booking-filters" action="{{ route('admin.event.booking') }}" method="GET">
+          <label>
+            <span>{{ __('Booking ID') }}</span>
+            <input name="booking_id" type="search" class="form-control" placeholder="{{ __('Search booking ID') }}" value="{{ request('booking_id') }}">
+          </label>
+          <label>
+            <span>{{ __('Event') }}</span>
+            <input name="event_title" type="search" class="form-control" placeholder="{{ __('Search event title') }}" value="{{ request('event_title') }}">
+          </label>
+          <label>
+            <span>{{ __('Payment status') }}</span>
+            <select class="form-control" name="status">
+              <option value="" @selected(!request()->filled('status'))>{{ __('All statuses') }}</option>
+              <option value="completed" @selected(request('status') === 'completed')>{{ __('Completed') }}</option>
+              <option value="pending" @selected(request('status') === 'pending')>{{ __('Pending') }}</option>
+              <option value="rejected" @selected(request('status') === 'rejected')>{{ __('Rejected') }}</option>
+            </select>
+          </label>
+          <div class="booking-filters__actions">
+            <button class="btn btn-primary" type="submit">{{ __('Apply filters') }}</button>
+            @if ($hasFilters)
+              <a class="btn btn-outline-secondary" href="{{ route('admin.event.booking') }}">{{ __('Clear') }}</a>
+            @endif
+          </div>
+        </form>
+
+        <div class="admin-bookings__toolbar">
+          <div class="admin-bookings__selection">
+            @if ($bookings->isNotEmpty())
+              <span class="admin-bookings__count t-num">
+                {{ __('Showing :first–:last of :total', ['first' => $bookings->firstItem(), 'last' => $bookings->lastItem(), 'total' => number_format($bookings->total())]) }}
+              </span>
+              <label class="admin-bookings__select-all">
+                <input type="checkbox" class="bulk-check" data-val="all">
+                {{ __('Select all') }}<span class="sr-only"> {{ __('bookings on this page') }}</span>
+              </label>
+              <button type="button" class="btn btn-danger btn-sm d-none bulk-delete" data-href="{{ route('admin.event_booking.bulk_delete') }}">
+                {{ __('Delete selected') }}
               </button>
-              <form class="booking-export" action="{{ route('admin.event_bookings.export') }}" method="POST">
-                @csrf
-                <input type="hidden" name="booking_id" value="{{ request('booking_id') }}">
-                <input type="hidden" name="event_title" value="{{ request('event_title') }}">
-                <input type="hidden" name="status" value="{{ request('status') }}">
-                <label class="sr-only" for="admin-booking-export">{{ __('Export format') }}</label>
-                <select id="admin-booking-export" class="form-control form-control-sm" name="fileType">
-                  <option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pdf">PDF</option>
-                </select>
-                <button class="btn btn-outline-primary btn-sm" type="submit">{{ __('Export') }}</button>
-              </form>
-              <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.event_booking.report') }}">{{ __('Report') }}</a>
-              <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.data_exports.index') }}">{{ __('Export history') }}</a>
-            </div>
+            @endif
           </div>
-          <form class="booking-filters" action="{{ route('admin.event.booking') }}" method="GET">
-            <label>
-              <span>{{ __('Booking ID') }}</span>
-              <input name="booking_id" type="search" class="form-control" placeholder="{{ __('Search booking ID') }}" value="{{ request('booking_id') }}">
-            </label>
-            <label>
-              <span>{{ __('Event') }}</span>
-              <input name="event_title" type="search" class="form-control" placeholder="{{ __('Search event title') }}" value="{{ request('event_title') }}">
-            </label>
-            <label>
-              <span>{{ __('Payment status') }}</span>
-              <select class="form-control" name="status">
-                <option value="" @selected(!request()->filled('status'))>{{ __('All statuses') }}</option>
-                <option value="completed" @selected(request('status') === 'completed')>{{ __('Completed') }}</option>
-                <option value="pending" @selected(request('status') === 'pending')>{{ __('Pending') }}</option>
-                <option value="rejected" @selected(request('status') === 'rejected')>{{ __('Rejected') }}</option>
+          <div class="booking-toolbar__actions">
+            <form class="booking-export" action="{{ route('admin.event_bookings.export') }}" method="POST">
+              @csrf
+              <input type="hidden" name="booking_id" value="{{ request('booking_id') }}">
+              <input type="hidden" name="event_title" value="{{ request('event_title') }}">
+              <input type="hidden" name="status" value="{{ request('status') }}">
+              <label class="sr-only" for="admin-booking-export">{{ __('Export format') }}</label>
+              <select id="admin-booking-export" class="form-control form-control-sm" name="fileType">
+                <option value="csv">CSV</option>
+                <option value="xlsx">XLSX</option>
+                <option value="pdf">PDF</option>
               </select>
-            </label>
-            <div class="booking-filters__actions">
-              <button class="btn btn-primary" type="submit">{{ __('Apply filters') }}</button>
-              @if(request()->hasAny(['booking_id', 'event_title', 'status']))
-                <a class="btn btn-outline-secondary" href="{{ route('admin.event.booking') }}">{{ __('Clear') }}</a>
-              @endif
-            </div>
-          </form>
-        </div>
-
-        <div class="card-body">
-          <div class="row">
-            <div class="col-lg-12">
-              @if (count($bookings) == 0)
-                <h3 class="text-center mt-2">{{ __('NO EVENT BOOKING FOUND') . '!' }}</h3>
-              @else
-                <div class="table-responsive">
-                  <table class="table table-striped mt-3">
-                    <thead>
-                      <tr>
-                        <th scope="col">
-                          <input type="checkbox" class="bulk-check" data-val="all">
-                        </th>
-                        <th scope="col">{{ __('Booking ID') }}</th>
-                        <th scope="col" width="25%">{{ __('Event') }}</th>
-                        <th scope="col">{{ __('Organizer') }}</th>
-                        <th scope="col">{{ __('Customer') }}</th>
-                        <th scope="col">{{ __('Cust. Paid') }}</th>
-                        <th scope="col">{{ __('Org. Received') }}</th>
-                        <th scope="col">{{ __('Paid via') }}</th>
-                        <th scope="col">{{ __('Payment Status') }}</th>
-                        <th scope="col">{{ __('Tickect Scan Status') }}</th>
-                        <th scope="col">{{ __('Actions') }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @foreach ($bookings as $booking)
-                        <tr>
-                          <td>
-                            <input type="checkbox" class="bulk-check" data-val="{{ $booking->id }}">
-                          </td>
-                          <td>{{ '#' . $booking->booking_id }}</td>
-                          @php
-                            $eventInfo = \App\Models\Event\EventContent::where('language_id', $defaultLang->id)
-                                ->where('event_id', $booking->event_id)
-                                ->first();
-                            if (is_null($eventInfo)) {
-                                $eventInfo = \App\Models\Event\EventContent::where('event_id', $booking->event_id)->first();
-                            }
-                            $title = $eventInfo ? $eventInfo->title : '';
-                            $slug = $eventInfo ? $eventInfo->slug : '';
-                          @endphp
-
-                          <td>
-                            @if ($eventInfo)
-                              <a href="{{ route('event.details', ['slug' => $slug, 'id' => $eventInfo ? $eventInfo->event_id : 0]) }}"
-                                target="_blank">
-                                {{ strlen($title) > 30 ? mb_substr($title, 0, 30, 'utf-8') . '...' : $title }}
-                              </a>
-                            @else
-                              {{ '-' }}
-                            @endif
-
-                          </td>
-
-                          <td>
-                            @if ($booking->organizer)
-                              <a target="_blank"
-                                href="{{ route('admin.organizer_management.organizer_details', ['id' => $booking->organizer_id, 'language' => $defaultLang->code]) }}">{{ strlen($booking->organizer->username) > 20 ? mb_substr($booking->organizer->username, 0, 20, 'UTF-8') . '....' : $booking->organizer->username }}</a>
-                            @else
-                              <span class="badge badge-success">{{ __('Admin') }}</span>
-                            @endif
-                          </td>
-
-                          @php
-                            $customer = $booking->customerInfo()->first();
-                          @endphp
-
-                          <td>
-                            @if ($customer)
-                              <a
-                                href="{{ route('admin.customer_management.customer_details', ['id' => $customer->id, 'language' => $defaultLang->code]) }}">{{ $customer->fname }}
-                                {{ $customer->lname }}</a>
-                            @else
-                              @if (is_null($booking->customer_id))
-                                {{ __('Guest') }}
-                              @else
-                                {{ '-' }}
-                              @endif
-                            @endif
-                          </td>
-                          @php
-                            $position = $booking->currencyTextPosition;
-                            $symbol = $booking->currencySymbol;
-                          @endphp
-
-                          <td>
-                            {{ $position == 'left' ? $symbol . ' ' : '' }}{{ $booking->price + $booking->tax }}{{ $position == 'right' ? ' ' . $symbol : '' }}
-                          </td>
-                          <td>
-                            @if ($booking->organizer)
-                              {{ $position == 'left' ? $symbol . ' ' : '' }}{{ $booking->price - $booking->commission }}{{ $position == 'right' ? ' ' . $symbol : '' }}
-                            @else
-                              -
-                            @endif
-
-                          </td>
-                          <td>{{ !is_null($booking->paymentMethod) ? $booking->paymentMethod : '-' }}</td>
-                          <td>
-                            @if ($booking->gatewayType == 'online')
-                              <h2 class="d-inline-block"><span class="badge badge-success">{{ __('Completed') }}</span>
-                              </h2>
-                            @elseif ($booking->gatewayType == 'offline')
-                              @if ($booking->paymentStatus == 'pending' && $canManageTransactions)
-                                <form class="d-inline-block paymentStatusForm"
-                                  action="{{ route('admin.event_booking.update_payment_status', $booking->id) }}"
-                                  method="post">
-                                  @csrf
-                                  <select
-                                    class="form-control paymentStatusBtn form-control-sm @if ($booking->paymentStatus == 'completed') bg-success @elseif ($booking->paymentStatus == 'pending') bg-warning text-dark @else bg-danger @endif"
-                                    name="payment_status">
-                                    <option value="completed"
-                                      {{ $booking->paymentStatus == 'completed' ? 'selected' : '' }}>
-                                      {{ __('Completed') }}
-                                    </option>
-                                    <option value="pending"
-                                      {{ $booking->paymentStatus == 'pending' ? 'selected' : '' }}>
-                                      {{ __('Pending') }}
-                                    </option>
-                                    <option value="rejected"
-                                      {{ $booking->paymentStatus == 'rejected' ? 'selected' : '' }}>
-                                      {{ __('Rejected') }}
-                                    </option>
-                                  </select>
-                                </form>
-                              @else
-                                <span
-                                  class="badge badge-{{ $booking->paymentStatus == 'rejected' ? 'danger' : ($booking->paymentStatus == 'pending' ? 'warning' : 'success') }}">{{ $booking->paymentStatus == 'pending' ? __('Pending finance review') : ucfirst($booking->paymentStatus) }}</span>
-                              @endif
-                            @else
-                              @if ($booking->paymentStatus == 'free')
-                                <span class="badge badge-primary">{{ ucfirst($booking->paymentStatus) }}</span>
-                              @else
-                                -
-                              @endif
-                            @endif
-                          </td>
-                          <td>
-                            @if ($booking->scan_status == 1)
-                              <span class="badge badge-success">{{ __('Already Scanned') }}</span>
-                            @else
-                              <span class="badge badge-danger">{{ __('Not Scanned') }}</span>
-                            @endif
-                          </td>
-                          <td>
-                            <div class="dropdown">
-                              <button class="btn btn-secondary btn-sm dropdown-toggle" type="button"
-                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
-                                {{ __('Select') }}
-                              </button>
-
-                              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <a href="{{ route('admin.event_booking.details', ['id' => $booking->id]) }}"
-                                  class="dropdown-item">
-                                  {{ __('Details') }}
-                                </a>
-
-                                @if (filled($booking->attachmentFile))
-                                  <a href="#" data-toggle="modal"
-                                    data-target="#attachmentModal-{{ $booking->id }}" class="dropdown-item"
-                                    target="_blank">
-                                    {{ __('Attachment') }}
-                                  </a>
-                                @endif
-                                @php
-                                  $exts = explode('.', $booking->invoice);
-                                  $info = new SplFileInfo($booking->invoice);
-                                  $ext = $info->getExtension();
-                                @endphp
-                                @if ($ext == 'pdf')
-                                  <a href="{{ route('admin.event_booking.invoice', $booking->id) }}"
-                                    class="dropdown-item" target="_blank">
-                                    {{ __('Invoice') }}
-                                  </a>
-                                @endif
-
-
-                                <form class="deleteForm d-block"
-                                  action="{{ route('admin.event_booking.delete', ['id' => $booking->id]) }}"
-                                  method="post">
-
-                                  @csrf
-                                  <button type="submit" class="deleteBtn">
-                                    {{ __('Delete') }}
-                                  </button>
-                                </form>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        @includeIf('backend.event.booking.show-attachment')
-                      @endforeach
-                    </tbody>
-                  </table>
-                </div>
-              @endif
-            </div>
-          </div>
-        </div>
-
-        <div class="card-footer text-center">
-          <div class="d-inline-block mt-3">
-            {{ $bookings->appends([
-                    'booking_id' => request()->input('booking_id'),
-                    'status' => request()->input('status'),
-                ])->links() }}
+              <button class="btn btn-outline-primary btn-sm" type="submit">{{ __('Export') }}</button>
+            </form>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.event_booking.report') }}">{{ __('Report') }}</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.data_exports.index') }}">{{ __('Export history') }}</a>
           </div>
         </div>
       </div>
+
+      <div class="card-body">
+        @if ($bookings->isEmpty())
+          <p class="admin-bookings__empty">
+            {{ $hasFilters ? __('No bookings match these filters.') : __('No bookings yet.') }}
+          </p>
+        @else
+          <div class="admin-bookings__results">
+            <table class="admin-bookings__table" role="table" aria-labelledby="admin-bookings-title">
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">{{ __('Booking ID') }}</th>
+                  <th scope="col" role="columnheader">{{ __('Event') }}</th>
+                  <th scope="col" role="columnheader">{{ __('Customer') }}</th>
+                  <th scope="col" role="columnheader" class="t-num">{{ __('Customer paid') }}</th>
+                  <th scope="col" role="columnheader" class="t-num">{{ __('Organizer received') }}</th>
+                  <th scope="col" role="columnheader">{{ __('Payment') }}</th>
+                  <th scope="col" role="columnheader">{{ __('Ticket scan') }}</th>
+                  <th scope="col" role="columnheader">{{ __('Actions') }}</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                @foreach ($bookings as $booking)
+                  @php
+                    $eventInfo = \App\Models\Event\EventContent::where('event_id', $booking->event_id)
+                        ->where('language_id', $defaultLang->id)->first()
+                        ?? \App\Models\Event\EventContent::where('event_id', $booking->event_id)->first();
+                    $customer = $booking->customerInfo;
+                    $detailsUrl = route('admin.event_booking.details', ['id' => $booking->id]);
+                    $currencyBefore = $booking->currencyTextPosition === 'left' ? $booking->currencySymbol . ' ' : '';
+                    $currencyAfter = $booking->currencyTextPosition === 'right' ? ' ' . $booking->currencySymbol : '';
+                  @endphp
+                  <tr role="row">
+                    <td role="cell" class="admin-bookings__reference">
+                      <label class="admin-bookings__select-row">
+                        <input type="checkbox" class="bulk-check" data-val="{{ $booking->id }}" aria-label="{{ __('Select booking :id', ['id' => $booking->booking_id]) }}">
+                        <span dir="ltr">#{{ $booking->booking_id }}</span>
+                      </label>
+                    </td>
+                    <td role="cell" class="admin-bookings__event">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Event') }}</span>
+                      @if ($eventInfo)
+                        <a class="admin-bookings__event-title" href="{{ route('event.details', ['slug' => $eventInfo->slug, 'id' => $eventInfo->event_id]) }}" target="_blank" rel="noopener">
+                          {{ $eventInfo->title }}
+                        </a>
+                      @else
+                        {{ __('Event unavailable') }}
+                      @endif
+                      <span class="admin-bookings__secondary">
+                        @if ($booking->organizer)
+                          <a href="{{ route('admin.organizer_management.organizer_details', ['id' => $booking->organizer_id, 'language' => $defaultLang->code]) }}" target="_blank" rel="noopener">
+                            {{ $booking->organizer->username }}
+                          </a>
+                        @else
+                          {{ __('Admin') }}
+                        @endif
+                      </span>
+                    </td>
+                    <td role="cell" class="admin-bookings__customer">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Customer') }}</span>
+                      @if ($customer)
+                        <a href="{{ route('admin.customer_management.customer_details', ['id' => $customer->id, 'language' => $defaultLang->code]) }}">
+                          {{ $customer->fname }} {{ $customer->lname }}
+                        </a>
+                      @else
+                        {{ is_null($booking->customer_id) ? __('Guest') : '—' }}
+                      @endif
+                    </td>
+                    <td role="cell" class="t-num">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Customer paid') }}</span>
+                      {{ $currencyBefore . number_format($booking->price + $booking->tax, 2) . $currencyAfter }}
+                    </td>
+                    <td role="cell" class="t-num">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Organizer received') }}</span>
+                      {{ $booking->organizer ? $currencyBefore . number_format($booking->price - $booking->commission, 2) . $currencyAfter : '—' }}
+                    </td>
+                    <td role="cell">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Payment') }}</span>
+                      @if ($booking->gatewayType === 'online')
+                        <span class="badge badge-success">{{ __('Completed') }}</span>
+                      @elseif ($booking->gatewayType === 'offline')
+                        @if ($booking->paymentStatus === 'pending' && $canManageTransactions)
+                          <form class="paymentStatusForm" action="{{ route('admin.event_booking.update_payment_status', $booking->id) }}" method="post">
+                            @csrf
+                            <select class="form-control paymentStatusBtn form-control-sm bg-warning text-dark"
+                              name="payment_status" aria-label="{{ __('Payment status for booking :id', ['id' => $booking->booking_id]) }}">
+                              <option value="pending" selected>{{ __('Pending') }}</option>
+                              <option value="completed">{{ __('Completed') }}</option>
+                              <option value="rejected">{{ __('Rejected') }}</option>
+                            </select>
+                          </form>
+                        @else
+                          <span class="badge badge-{{ $booking->paymentStatus === 'rejected' ? 'danger' : ($booking->paymentStatus === 'pending' ? 'warning' : 'success') }}">
+                            {{ $booking->paymentStatus === 'pending' ? __('Pending finance review') : __(ucfirst($booking->paymentStatus)) }}
+                          </span>
+                        @endif
+                      @elseif ($booking->paymentStatus === 'free')
+                        <span class="badge badge-primary">{{ __('Free') }}</span>
+                      @else
+                        —
+                      @endif
+                      @if (filled($booking->paymentMethod))
+                        <span class="admin-bookings__secondary">{{ $booking->paymentMethod }}</span>
+                      @endif
+                    </td>
+                    <td role="cell">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Ticket scan') }}</span>
+                      @if ($booking->scan_status == 1)
+                        <span class="badge badge-success">{{ __('Scanned') }}</span>
+                      @else
+                        <span class="badge badge-light">{{ __('Not scanned') }}</span>
+                      @endif
+                    </td>
+                    <td role="cell" class="admin-bookings__action-cell">
+                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Actions') }}</span>
+                      <div class="admin-bookings__row-actions">
+                        <a class="admin-bookings__action" href="{{ $detailsUrl }}">{{ __('Details') }}</a>
+                        @if (filled($booking->attachmentFile))
+                          <button class="admin-bookings__action" type="button" data-toggle="modal" data-target="#attachmentModal-{{ $booking->id }}">
+                            {{ __('Attachment') }}
+                          </button>
+                        @endif
+                        @if (pathinfo((string) $booking->invoice, PATHINFO_EXTENSION) === 'pdf')
+                          <a class="admin-bookings__action" href="{{ route('admin.event_booking.invoice', $booking->id) }}" target="_blank" rel="noopener">
+                            {{ __('Invoice') }}
+                          </a>
+                        @endif
+                        <form class="deleteForm" action="{{ route('admin.event_booking.delete', ['id' => $booking->id]) }}" method="post">
+                          @csrf
+                          <button type="submit" class="admin-bookings__action admin-bookings__action--delete deleteBtn">{{ __('Delete') }}</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        @endif
+      </div>
+
+      @if ($bookings->hasPages())
+        <div class="card-footer admin-bookings__pagination">
+          {{ $bookings->links() }}
+        </div>
+      @endif
     </div>
-  </div>
+  </section>
+
+  @foreach ($bookings as $booking)
+    @includeIf('backend.event.booking.show-attachment')
+  @endforeach
 @endsection
