@@ -524,8 +524,7 @@ body.tica-admin .admin-bookings .admin-bookings__table .t-num {
 .admin-bookings__table th:nth-child(7) { width: 10%; }
 .admin-bookings__table th:nth-child(8) { width: 11%; }
 
-.admin-bookings__event-title,
-.admin-bookings__action {
+.admin-bookings__event-title {
   font-weight: 600;
 }
 
@@ -553,30 +552,24 @@ body.tica-admin .admin-bookings .paymentStatusBtn {
 
 .admin-bookings__row-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 8px;
-  margin-block-start: -4px;
+  justify-content: flex-end;
 }
 
-.admin-bookings__action {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 40px;
-  padding: 0;
-  background: transparent;
-  border: 0;
+body.tica-admin .admin-bookings__row-actions .dropdown-toggle {
+  padding: 0 8px !important;
+  white-space: nowrap;
+}
+
+.admin-bookings__row-actions .dropdown-menu {
+  inset-inline: auto 0;
+}
+
+body.tica-admin .admin-bookings__row-actions .dropdown-item {
   text-align: start;
-  color: var(--dash-blue);
-  cursor: pointer;
 }
 
-.admin-bookings__action--delete {
-  color: #a42c37;
-}
-
-.admin-bookings__action:hover {
-  text-decoration: underline;
+body.tica-admin .admin-bookings__row-actions .deleteBtn {
+  color: #a42c37 !important;
 }
 
 .admin-bookings__empty {
@@ -653,10 +646,6 @@ body.tica-admin .admin-bookings .paymentStatusBtn {
     display: block;
     margin-block-end: 4px;
     font: var(--tica-text-label);
-  }
-
-  .admin-bookings__row-actions {
-    gap: 4px 16px;
   }
 }
 

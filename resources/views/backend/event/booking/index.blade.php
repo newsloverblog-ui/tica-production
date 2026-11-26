@@ -187,23 +187,31 @@
                       @endif
                     </td>
                     <td role="cell" class="admin-bookings__action-cell">
-                      <span class="admin-bookings__label" aria-hidden="true">{{ __('Actions') }}</span>
-                      <div class="admin-bookings__row-actions">
-                        <a class="admin-bookings__action" href="{{ $detailsUrl }}">{{ __('Details') }}</a>
-                        @if (filled($booking->attachmentFile))
-                          <button class="admin-bookings__action" type="button" data-toggle="modal" data-target="#attachmentModal-{{ $booking->id }}">
-                            {{ __('Attachment') }}
-                          </button>
-                        @endif
-                        @if (pathinfo((string) $booking->invoice, PATHINFO_EXTENSION) === 'pdf')
-                          <a class="admin-bookings__action" href="{{ route('admin.event_booking.invoice', $booking->id) }}" target="_blank" rel="noopener">
-                            {{ __('Invoice') }}
-                          </a>
-                        @endif
-                        <form class="deleteForm" action="{{ route('admin.event_booking.delete', ['id' => $booking->id]) }}" method="post">
-                          @csrf
-                          <button type="submit" class="admin-bookings__action admin-bookings__action--delete deleteBtn">{{ __('Delete') }}</button>
-                        </form>
+                      <div class="dropdown admin-bookings__row-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                          data-toggle="dropdown" data-display="static" aria-expanded="false"
+                          aria-controls="booking-actions-{{ $booking->id }}"
+                          aria-label="{{ __('Actions for booking :id', ['id' => $booking->booking_id]) }}">
+                          {{ __('Actions') }}
+                        </button>
+                        <div class="dropdown-menu" id="booking-actions-{{ $booking->id }}">
+                          <a class="dropdown-item" href="{{ $detailsUrl }}">{{ __('Details') }}</a>
+                          @if (filled($booking->attachmentFile))
+                            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#attachmentModal-{{ $booking->id }}">
+                              {{ __('Attachment') }}
+                            </button>
+                          @endif
+                          @if (pathinfo((string) $booking->invoice, PATHINFO_EXTENSION) === 'pdf')
+                            <a class="dropdown-item" href="{{ route('admin.event_booking.invoice', $booking->id) }}" target="_blank" rel="noopener">
+                              {{ __('Invoice') }}
+                            </a>
+                          @endif
+                          <div class="dropdown-divider"></div>
+                          <form class="deleteForm" action="{{ route('admin.event_booking.delete', ['id' => $booking->id]) }}" method="post">
+                            @csrf
+                            <button type="submit" class="dropdown-item text-danger deleteBtn">{{ __('Delete') }}</button>
+                          </form>
+                        </div>
                       </div>
                     </td>
                   </tr>
