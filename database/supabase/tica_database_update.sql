@@ -834,6 +834,18 @@ SELECT pg_temp.tica_mark_migration('2026_11_25_120000_add_payout_release_approva
 SELECT pg_temp.tica_mark_migration('2026_11_25_121000_scope_scanner_devices_to_events');
 SELECT pg_temp.tica_mark_migration('2026_11_25_122000_create_paystack_disputes');
 
+-- Admin settings for automatic payout release and fixed booking fees.
+DO $$
+BEGIN
+  IF to_regclass('public.basic_settings') IS NOT NULL THEN
+    ALTER TABLE public.basic_settings
+      ADD COLUMN IF NOT EXISTS payout_automatic_release_enabled boolean,
+      ADD COLUMN IF NOT EXISTS booking_fee_fixed numeric(10, 2) NOT NULL DEFAULT 100;
+    PERFORM pg_temp.tica_mark_migration('2026_11_26_030000_add_automatic_payout_release_to_basic_settings');
+    PERFORM pg_temp.tica_mark_migration('2026_11_26_040000_add_fixed_booking_fee_to_basic_settings');
+  END IF;
+END $$;
+
 -- Health check: every table the app uses, and every update it expects. -----
 -- One row "All good" when the database is complete; otherwise one row per
 -- missing table or update (send those rows to the developer).
@@ -1201,6 +1213,8 @@ SELECT 'update not recorded', m.name
   ,('2026_11_25_121000_scope_scanner_devices_to_events')
   ,('2026_11_25_122000_create_paystack_disputes')
   ,('2026_11_23_000001_add_consent_fields_to_subscribers_table')
+  ,('2026_11_26_030000_add_automatic_payout_release_to_basic_settings')
+  ,('2026_11_26_040000_add_fixed_booking_fee_to_basic_settings')
   ) AS m(name)
  WHERE to_regclass('public.migrations') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM public.migrations x WHERE x.migration = m.name)
