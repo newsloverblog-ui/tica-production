@@ -28,22 +28,10 @@
     </ul>
   </div>
 
-  <div class="alert alert-info" role="status">
-    <strong>{{ __('Transactional gateway policy') }}:</strong>
-    {{ __('Only gateways backed by the certified durable payment contract can be activated for normal use.') }}
-    {{ __('Certified event gateways:') }}
-    <strong>{{ collect($certifiedEventGateways ?? [])->map(fn ($gateway) => ucfirst($gateway))->join(', ') ?: __('None') }}</strong>.
-    @if ($legacyActivationAllowed ?? false)
-      {{ __('The explicit local/testing integration-development override is active; legacy gateways must not be used for real payments.') }}
-    @else
-      {{ __('Legacy gateway activation is blocked in this environment.') }}
-    @endif
-  </div>
-
-  <div class="row">
+  <div class="online-gateway-grid">
 
     {{-- paystack --}}
-    <div class="col-lg-4">
+    <div class="online-gateway-grid__item">
       <div class="card">
         <form action="{{ route('admin.payment_gateways.update_paystack_info') }}" method="post">
           @csrf
@@ -110,7 +98,7 @@
       @php
         $monnifyInfo = json_decode($monnify->information, true) ?: [];
       @endphp
-      <div class="col-lg-4">
+      <div class="online-gateway-grid__item">
         <div class="card">
           <form action="{{ route('admin.payment_gateways.update_monnify_info') }}" method="post">
             @csrf
@@ -197,7 +185,7 @@
     @endif
 
     {{-- Flutterwave --}}
-    <div class="col-lg-4">
+    <div class="online-gateway-grid__item">
       <div class="card">
         <form action="{{ route('admin.payment_gateways.update_flutterwave_info') }}" method="post">
           @csrf
@@ -269,7 +257,7 @@
       </div>
     </div>
     {{-- Stripe --}}
-    <div class="col-lg-4">
+    <div class="online-gateway-grid__item">
       <div class="card">
         <form action="{{ route('admin.payment_gateways.update_stripe_info') }}" method="post">
           @csrf

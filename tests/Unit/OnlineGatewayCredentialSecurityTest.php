@@ -89,8 +89,7 @@ class OnlineGatewayCredentialSecurityTest extends TestCase
 
         $this->assertStringContainsString('name="paystack_key" value=""', $view);
         $this->assertStringContainsString('name="flutterwave_secret_key" value=""', $view);
-        $this->assertStringContainsString('Transactional gateway policy', $view);
-        $this->assertStringContainsString('Legacy gateway activation is blocked in this environment.', $view);
+        $this->assertStringNotContainsString('Transactional gateway policy', $view);
         $this->assertStringNotContainsString('value="{{ $paystackInfo[\'key\'] }}"', $view);
         $this->assertStringNotContainsString('value="{{ $flutterwaveInfo[\'secret_key\'] }}"', $view);
 

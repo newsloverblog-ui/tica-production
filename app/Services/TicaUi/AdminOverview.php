@@ -62,17 +62,22 @@ class AdminOverview
   {
     $now = now();
     $start = $now->copy()->startOfMonth();
+    $priorThrough = $now->copy()->subMonthNoOverflow();
+    $priorStart = $priorThrough->copy()->startOfMonth();
     $bookings = Booking::query()->whereBetween('created_at', [$start, $now]);
     $paidBookings = $this->baseOnly((clone $bookings)->whereIn('paymentStatus', self::PAID));
+    $ticketBookings = Booking::query()->whereIn('paymentStatus', self::COUNTED);
+    $paidPayouts = Withdraw::query()->where('status', Withdraw::STATUS_PAID);
     $paidOn = DB::raw('COALESCE(paid_at, reviewed_at, updated_at)');
 
     return [
       'from' => $start,
       'through' => $now,
       'sales' => round((float) $paidBookings->sum(DB::raw(EventFinancialBreakdown::bookingCustomerPaidSql())), 2),
-      'tickets' => (int) $bookings->whereIn('paymentStatus', self::COUNTED)->sum('quantity'),
-      'payouts' => round((float) Withdraw::query()->where('status', Withdraw::STATUS_PAID)
-        ->whereBetween($paidOn, [$start, $now])->sum('amount'), 2),
+      'tickets' => (int) (clone $ticketBookings)->whereBetween('created_at', [$start, $now])->sum('quantity'),
+      'prior_tickets' => (int) $ticketBookings->whereBetween('created_at', [$priorStart, $priorThrough])->sum('quantity'),
+      'payouts' => round((float) (clone $paidPayouts)->whereBetween($paidOn, [$start, $now])->sum('amount'), 2),
+      'prior_payouts' => round((float) $paidPayouts->whereBetween($paidOn, [$priorStart, $priorThrough])->sum('amount'), 2),
     ];
   }
 

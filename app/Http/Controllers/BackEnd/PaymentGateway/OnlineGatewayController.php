@@ -14,9 +14,6 @@ class OnlineGatewayController extends Controller
 {
   public function index()
   {
-    $policy = app(PaymentGatewayPolicy::class);
-    $gatewayInfo['certifiedEventGateways'] = $policy->productionReadyGateways();
-    $gatewayInfo['legacyActivationAllowed'] = $policy->canOfferOnline('razorpay');
     $gatewayInfo['instamojo'] = OnlineGateway::where('keyword', 'instamojo')->first();
     $gatewayInfo['paystack'] = OnlineGateway::where('keyword', 'paystack')->first();
     $gatewayInfo['monnify'] = OnlineGateway::where('keyword', 'monnify')->first();
