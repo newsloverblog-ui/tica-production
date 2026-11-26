@@ -362,7 +362,39 @@ function api(url,body){
 }
 window.TICA_API=api;
 /* Tica funnel analytics: page views and checkout steps, only with analytics consent. */
-function track(name,props){try{var c=window.TICA_consent&&TICA_consent();if(!c||!c.a)return;fetch('/analytics/events',{method:'POST',credentials:'same-origin',keepalive:true,headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':TICA_DATA.csrf},body:JSON.stringify({event:name,properties:props||{}})}).catch(function(){})}catch(e){}}
+function track(name, props) {
+  try {
+    var consent = window.TICA_consent && window.TICA_consent();
+    if (!consent || !consent.a) return false;
+    fetch('/analytics/events', {
+      method: 'POST',
+      credentials: 'same-origin',
+      keepalive: true,
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': TICA_DATA.csrf},
+      body: JSON.stringify({event: name, properties: props || {}})
+    }).catch(function () {});
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+var publicTrafficPages = ['home', 'discover', 'event', 'how', 'pricing', 'about', 'contact', 'join', 'policies', 'content'];
+var trackedPublicPath = null;
+var recordedPageView = false;
+function recordCurrentPageView() {
+  if (trackedPublicPath !== null && !recordedPageView && !document.hidden) {
+    recordedPageView = track('page_view');
+  }
+}
+document.addEventListener('tica:consent', recordCurrentPageView);
+document.addEventListener('visibilitychange', recordCurrentPageView);
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted) {
+    recordedPageView = false;
+    recordCurrentPageView();
+  }
+});
 /* Approved organizer provider IDs are loaded only on that organizer's event page
    and only after analytics consent. Identifiers are data, never executable code. */
 (function(){var loaded=false,providers=TICA_DATA.trackingProviders||[];if(!providers.length)return;
@@ -1151,6 +1183,12 @@ function route(){
   if(p==='discover')filter();
   hydrateImages(pg);
   var first=$('tica-first-page');if(first)first.remove();
+  var publicPath = publicTrafficPages.indexOf(p) !== -1 ? window.location.pathname : null;
+  if (trackedPublicPath !== publicPath) {
+    trackedPublicPath = publicPath;
+    recordedPageView = false;
+    recordCurrentPageView();
+  }
   try{window.dispatchEvent(new Event('tica:navigate'))}catch(err){}
 }
 function fromUrl(){var path=pathOf(location);if(cur===path)return;cur=path;route()}

@@ -38,6 +38,10 @@ use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+  public const REPORT_PERMISSIONS = [
+    'Event Bookings', 'Lifetime Earning', 'Total Profit', 'Transaction', 'Organizer Mangement', 'Customer Management',
+  ];
+
   public function login()
   {
     return view('backend.login');

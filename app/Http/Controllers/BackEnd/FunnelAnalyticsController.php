@@ -7,10 +7,45 @@ use App\Models\Event\EventContent;
 use App\Models\FunnelAnalyticsEvent;
 use App\Services\FunnelAnalyticsService;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FunnelAnalyticsController extends Controller
 {
+    public function siteTraffic(): JsonResponse
+    {
+        $now = CarbonImmutable::now()->floorSecond();
+        $views = FunnelAnalyticsEvent::query()
+            ->where('event_name', 'page_view')
+            ->where('source', 'browser')
+            ->where('occurred_at', '>', $now->subDay())
+            ->where('occurred_at', '<=', $now)
+            ->selectRaw('COUNT(*) AS views_day, COUNT(DISTINCT CASE WHEN occurred_at > ? THEN session_hash END) AS active_sessions', [
+                $now->subMinutes(5),
+            ]);
+
+        $windows = [];
+        for ($index = 0; $index < 6; $index++) {
+            $start = $now->subMinutes(30 - $index * 5);
+            $end = $start->addMinutes(5);
+            $windows[] = ['start' => $start->toIso8601String(), 'end' => $end->toIso8601String()];
+            $views->selectRaw("COUNT(CASE WHEN occurred_at > ? AND occurred_at <= ? THEN 1 END) AS views_{$index}", [$start, $end]);
+        }
+
+        $counts = $views->toBase()->first();
+        foreach (array_keys($windows) as $index) {
+            $windows[$index]['views'] = (int) $counts->{"views_{$index}"};
+        }
+
+        return response()->json([
+            'updated_at' => $now->toIso8601String(),
+            'active_sessions' => (int) $counts->active_sessions,
+            'views_30_minutes' => array_sum(array_column($windows, 'views')),
+            'views_24_hours' => (int) $counts->views_day,
+            'windows' => $windows,
+        ])->header('Cache-Control', 'private, no-store');
+    }
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -29,6 +64,7 @@ class FunnelAnalyticsController extends Controller
         }
 
         $base = FunnelAnalyticsEvent::query()
+            ->where('event_name', '!=', 'page_view')
             ->whereBetween('occurred_at', [$from, $to])
             ->when($validated['event_id'] ?? null, fn ($query, $eventId) => $query->where('event_id', $eventId));
 

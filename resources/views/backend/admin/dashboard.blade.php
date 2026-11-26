@@ -103,7 +103,6 @@
       </div>
       <div class="cd-actions">
         <a class="cd-btn" href="{{ route('account-security.show', ['guard' => 'admin']) }}"><i class="fal fa-shield-check" aria-hidden="true"></i>{{ __('Account security') }}</a>
-        @if ($can('Event Bookings', 'Lifetime Earning', 'Total Profit', 'Transaction', 'Organizer Mangement', 'Customer Management'))<a class="cd-btn" href="#cd-reports-h"><i class="fal fa-file-chart-line" aria-hidden="true"></i>{{ __('Generate reports') }}</a>@endif
         @if ($showEvents)<a class="cd-btn primary" href="{{ route('admin.choose-event-type', ['language' => $defaultLang->code]) }}"><i class="fal fa-plus" aria-hidden="true"></i>{{ __('Create event') }}</a>@endif
       </div>
     </header>
@@ -207,6 +206,10 @@
       </div>
     @endif
 
+    @if ($can('Transaction'))
+      @include('backend.admin.dashboard-traffic')
+    @endif
+
     @if ($can('Withdraw Method'))
       <section class="cd-card cd-table" aria-labelledby="cd-pay-h">
         <div class="cd-card-h">
@@ -255,8 +258,6 @@
         </ul>
       </section>
     @endif
-
-    @include('backend.admin.dashboard-reports')
 
     @if ($monthStats)
       <section class="cd-card" aria-labelledby="cd-period-h">
@@ -312,6 +313,9 @@
 @endsection
 
 @section('script')
+  @if ($can('Transaction'))
+    <script src="{{ asset('assets/tica-ui/js/admin-site-traffic.js') }}?v={{ tica_asset_version('assets/tica-ui/js/admin-site-traffic.js') }}" defer></script>
+  @endif
   @if ($showSales || $peopleTotal)
     <script src="{{ asset('assets/admin/js/chart.min.js') }}"></script>
     <script>

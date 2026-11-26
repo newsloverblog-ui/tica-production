@@ -80,6 +80,15 @@
                     </a>
                 </li>
 
+                @if ($adminUser?->hasPermission(...\App\Http\Controllers\BackEnd\AdminController::REPORT_PERMISSIONS))
+                    <li class="nav-item {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
+                        <a href="{{ route('admin.reports.index') }}" @if (request()->routeIs('admin.reports.index')) aria-current="page" @endif>
+                            <i class="fal fa-file-chart-line" aria-hidden="true"></i>
+                            <p>{{ __('Reports') }}</p>
+                        </a>
+                    </li>
+                @endif
+
                 @php
                     $canPromotions = is_null($roleInfo) || (!empty($rolePermissions) && (in_array('Advertise', $rolePermissions) || in_array('Event Bookings', $rolePermissions)));
                     $promotionsOpen = request()->routeIs('admin.advertise.tica_promotions*', 'admin.event_management.coupons');

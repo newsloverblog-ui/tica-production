@@ -27,8 +27,7 @@
 @endphp
 
 @if ($reportGroups)
-  <section class="cd-card" aria-labelledby="cd-reports-h">
-    <div class="cd-card-h"><h2 id="cd-reports-h">{{ __('Reports') }}</h2></div>
+  <section class="cd-card" aria-label="{{ __('Available reports') }}">
     <div class="cd-report-groups">
       @foreach ($reportGroups as $group => $reports)
         <div>

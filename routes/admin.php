@@ -14,6 +14,9 @@ Route::get('admin/get-state-city/{id}', 'BackEnd\Event\EventController@city_stat
 Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang', 'audit.configuration', 'tica.retired'])->group(function () {
   // admin redirect to dashboard route
   Route::get('/dashboard', 'BackEnd\AdminController@redirectToDashboard')->name('admin.dashboard');
+  Route::view('/reports', 'backend.admin.reports')
+    ->middleware('permission:' . implode(',', \App\Http\Controllers\BackEnd\AdminController::REPORT_PERMISSIONS))
+    ->name('admin.reports.index');
 
   Route::get('/directory-exports', 'BackEnd\AdminDirectoryExportController@index')
     ->name('admin.directory_exports.index');
@@ -43,6 +46,8 @@ Route::prefix('/admin')->middleware(['auth:admin', 'Deactive:admin', 'adminLang'
     Route::get('/transcation/exports/{export}/download', 'BackEnd\TransactionExportController@download')
       ->middleware('signed')->name('admin.transaction_exports.download');
     Route::get('/analytics/funnel', 'BackEnd\FunnelAnalyticsController@index')->name('admin.funnel_analytics.index');
+    Route::get('/analytics/site-traffic', 'BackEnd\FunnelAnalyticsController@siteTraffic')
+      ->middleware('throttle:30,1')->name('admin.analytics.site_traffic');
     Route::get('/operations/incidents', 'BackEnd\OperationalIncidentController@index')->name('admin.operational_incidents.index');
     Route::post('/operations/incidents/{incident}/resolve', 'BackEnd\OperationalIncidentController@resolve')->name('admin.operational_incidents.resolve');
     Route::post('/operations/incidents/export', 'BackEnd\OperationsEvidenceExportController@storeIncidents')->name('admin.operational_incidents.export');

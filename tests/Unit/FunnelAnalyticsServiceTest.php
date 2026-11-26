@@ -3,8 +3,10 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\BackEnd\FunnelAnalyticsController;
+use App\Models\Admin;
 use App\Models\FunnelAnalyticsEvent;
 use App\Models\PaymentIntent;
+use App\Models\RolePermission;
 use App\Services\FunnelAnalyticsService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -159,6 +161,58 @@ class FunnelAnalyticsServiceTest extends TestCase
         $this->assertSame(1, $data['counts']['payment_success']);
         $this->assertSame('Analytics concert', $data['titles'][52]);
         $this->assertSame(50.0, (float) $data['topEvents']->first()->purchases / (float) $data['topEvents']->first()->views * 100);
+    }
+
+    public function test_public_page_views_use_server_time_and_store_no_page_or_customer_details(): void
+    {
+        $now = now()->startOfMinute();
+        $this->travelTo($now);
+        $this->postJson(route('analytics.events.store'), [
+            'event' => 'page_view',
+            'occurred_at' => $now->copy()->subHour()->toIso8601String(),
+            'properties' => ['event_id' => 52, 'path' => '/event/private-invitation', 'email' => 'person@example.com'],
+        ])->assertAccepted();
+
+        $view = FunnelAnalyticsEvent::sole();
+        $this->assertSame('page_view', $view->event_name);
+        $this->assertSame('browser', $view->source);
+        $this->assertTrue($view->occurred_at->equalTo($now));
+        $this->assertNull($view->customer_id);
+        $this->assertNull($view->event_id);
+        $this->assertNull($view->properties);
+    }
+
+    public function test_live_traffic_is_restricted_and_counts_only_the_expected_windows(): void
+    {
+        $now = now()->startOfMinute();
+        $this->travelTo($now);
+        $url = route('admin.analytics.site_traffic');
+        $this->getJson($url)->assertUnauthorized();
+
+        $restricted = new Admin(['role_id' => 7, 'status' => 1]);
+        $restricted->setRelation('role', new RolePermission(['permissions' => '["Event Bookings"]']));
+        $this->actingAs($restricted, 'admin')->getJson($url)->assertForbidden();
+
+        foreach ([
+            [0, 'a'], [1, 'a'], [5, 'b'], [7, 'b'], [40, 'c'], [24 * 60, 'd'], [-1, 'e'],
+        ] as [$minutesAgo, $session]) {
+            FunnelAnalyticsEvent::create([
+                'event_name' => 'page_view',
+                'source' => 'browser',
+                'session_hash' => hash('sha256', $session),
+                'occurred_at' => $now->copy()->subMinutes($minutesAgo),
+            ]);
+        }
+        app(FunnelAnalyticsService::class)->recordServer('payment_success');
+
+        $response = $this->actingAs(new Admin(['status' => 1]), 'admin')->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('active_sessions', 1)
+            ->assertJsonPath('views_30_minutes', 4)
+            ->assertJsonPath('views_24_hours', 5)
+            ->assertJsonCount(6, 'windows');
+        $this->assertSame([0, 0, 0, 0, 2, 2], array_column($response->json('windows'), 'views'));
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
 
     private function createSchema(): void
