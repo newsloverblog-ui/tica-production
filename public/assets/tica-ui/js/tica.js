@@ -1951,7 +1951,7 @@ function paintTickets(r){
 var curEv=null;
 function seg(name,val,opts){return '<div class="od-seg" role="radiogroup">'+opts.map(function(o){return '<label><input type="radio" name="'+name+'" value="'+o[0]+'"'+(val===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div>'}
 function sw(id,on,label,sub){return '<li><span><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span><input class="ck-sw" type="checkbox" id="'+id+'"'+(on?' checked':'')+' aria-label="'+esc(label)+'"></li>'}
-function feeEx(r,payer){var t=r.tiers.filter(function(x){return x.price>0})[0];if(!t)return 'Free tickets have no fee.';var p=t.price,f=window.TICA_BOOKING_FEE(p,1);return payer==='buyer'?'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p+f)+', you get '+N(p)+'.':'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p)+', you get '+N(p-f)+'.'}
+function feeEx(r,payer){var t=r.tiers.filter(function(x){return x.price>0})[0];if(!t)return 'Free tickets have no fee.';var p=t.price,f=window.TICA_BOOKING_FEE(p,1);return payer==='buyer'?'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p+f)+', you get '+N(p)+'.':'A '+N(p)+' '+esc(t.name)+' ticket: the buyer pays '+N(p)+', you get '+N(Math.max(0,p-f))+'.'}
 var VISN={public:'Shown on Discover and in search.',unlisted:'Hidden from Discover. Anyone with the link can buy.',private:'Only people you invite by email can come.'};
 function openEv(id){
   var r=evById(id),online=r.mode!=='In person';curEv=r.id;window.TICA_CUR=r.cur||null;
@@ -2479,7 +2479,7 @@ function upd(){
   f.querySelector('.ce-sell').hidden=false;f.querySelector('.ce-reg').hidden=!reg;
   var tiers=f.querySelectorAll('#ce-tiers .ce-tier');$('ce-add').hidden=(m==='Online'&&tiers.length>=1)||tiers.length>=MAX_TYPES;
   $('ce-ex-b').textContent=p?'Buyer pays '+N(p+fee)+'. You get '+N(p)+'.':'Free tickets have no fee.';
-  $('ce-ex-m').textContent=p?'Buyer pays '+N(p)+'. You get '+N(p-fee)+'.':'Free tickets have no fee.';
+  $('ce-ex-m').textContent=p?'Buyer pays '+N(p)+'. You get '+N(Math.max(0,p-fee))+'.':'Free tickets have no fee.';
   var priced=$('c-price').value.trim()!=='',pf=$('p-fee');pf.hidden=!priced;
   pf.textContent=!priced?'':!p?'Free, no booking fee':payer()==='buyer'?'+ '+N(fee)+' booking fee at checkout':'Booking fee included';
   var tag=$('p-mode');tag.hidden=m==='In person';tag.textContent=m==='Hybrid'?'In person and online':'Online';

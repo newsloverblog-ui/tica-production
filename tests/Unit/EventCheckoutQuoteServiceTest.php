@@ -98,6 +98,20 @@ class EventCheckoutQuoteServiceTest extends TestCase
         $this->assertSame(5400.0, $quote['grand_total']);
     }
 
+    public function test_quote_uses_saved_fixed_fee_and_accepts_zero(): void
+    {
+        (require database_path('migrations/2026_11_26_040000_add_fixed_booking_fee_to_basic_settings.php'))->up();
+        $ticketId = DB::table('tickets')->insertGetId($this->ticket(['price' => 5000]));
+        session()->put('selTickets', [['ticket_id' => $ticketId, 'name' => 'Entry', 'qty' => 2]]);
+        $quotes = app(EventCheckoutQuoteService::class);
+
+        DB::table('basic_settings')->update(['booking_fee_fixed' => 145.50]);
+        $this->assertSame(10891.0, $quotes->refreshSession(42)['grand_total']);
+
+        DB::table('basic_settings')->update(['booking_fee_fixed' => 0]);
+        $this->assertSame(10600.0, $quotes->refreshSession(42)['grand_total']);
+    }
+
     public function test_reserved_seat_section_price_is_rebuilt_from_active_server_holds(): void
     {
         $ticketId = DB::table('tickets')->insertGetId($this->ticket([

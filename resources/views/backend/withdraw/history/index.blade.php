@@ -154,14 +154,16 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <a href="javascript:void(0)" data-toggle="modal"
-                                                            data-target="#withdrawModal{{ $item->id }}"
-                                                            class="btn btn-primary mt-1 btn-xs"><span class="btn-label">
-                                                                <i class="fas fa-eye"></i>
-                                                            </span> {{ __('View') }}</a>
-                                                        @if (in_array((int) $item->status, [0, 3], true))
-                                                            <button type="button" data-toggle="modal" data-target="#paystackModal{{ $item->id }}" class="btn btn-primary mt-1 btn-xs">{{ __('Review payout release') }}</button>
-                                                            @if ((int) data_get($item->release_approval, 'expires_at') > now()->getTimestamp() && (int) data_get($item->release_approval, 'admin_id') !== (int) Auth::guard('admin')->id() && !$item->latestPayoutTransfer)
+                                                        @php
+                                                            $reviewable = in_array((int) $item->status, [\App\Models\Withdraw::STATUS_PENDING, \App\Models\Withdraw::STATUS_HELD], true);
+                                                            $hasCurrentApproval = (int) data_get($item->release_approval, 'expires_at') > now()->getTimestamp();
+                                                        @endphp
+                                                        <button type="button" data-toggle="modal" data-target="#withdrawModal{{ $item->id }}"
+                                                            class="btn btn-primary mt-1 btn-xs">
+                                                            {{ !$reviewable ? __('View withdrawal') : ($canApprovePayout && !$hasCurrentApproval ? __('Review & approve') : __('Review payout')) }}
+                                                        </button>
+                                                        @if ($reviewable)
+                                                            @if ($canManagePayout && $hasCurrentApproval && (int) data_get($item->release_approval, 'admin_id') !== (int) $payoutAdmin->id && !$item->latestPayoutTransfer)
                                                                 <button type="button" data-toggle="modal" data-target="#paidModal{{ $item->id }}" class="btn btn-success mt-1 btn-xs">{{ __('Record external payment') }}</button>
                                                             @endif
                                                             @if ((int) $item->status === 0)

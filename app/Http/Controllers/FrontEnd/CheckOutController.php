@@ -17,7 +17,6 @@ use App\Models\Event;
 use App\Models\Event\TicketContent;
 use App\Models\Language;
 use App\Services\PaymentGatewayPolicy;
-use App\Services\EventFeeCalculatorService;
 use App\Services\EventCheckoutQuoteService;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -418,7 +417,7 @@ class CheckOutController extends Controller
     return redirect()->route('check-out');
   }
 
-  public function checkout(EventFeeCalculatorService $feeCalculator, EventCheckoutQuoteService $quotes)
+  public function checkout(EventCheckoutQuoteService $quotes)
   {
     // FIX: Guard against direct URL access or expired session.
     // If $event is null the blade crashes on line 34 with "Attempt to read
@@ -436,7 +435,7 @@ class CheckOutController extends Controller
     }
 
     try {
-      $quotes->refreshSession((int) $event->id);
+      $quote = $quotes->refreshSession((int) $event->id);
     } catch (RuntimeException $exception) {
       return redirect()->route('event.details', [$event->slug, $event->id])
         ->with('error', $exception->getMessage());
@@ -447,49 +446,10 @@ class CheckOutController extends Controller
         ->with('error', 'We could not refresh your ticket selection. Please try again.');
     }
 
-    $selectedTickets = Session::get('selTickets') ?: [];
-    $subTotal = (float) Session::get('sub_total', 0);
-    $earlyBirdDiscount = max(0, (float) Session::get('total_early_bird_dicount', 0));
-    $discountableTotal = max(0, $subTotal - $earlyBirdDiscount);
-    $discount = min(max(0, (float) Session::get('discount', 0)), $discountableTotal);
-    $basicData = Basic::select('tax', 'commission', 'booking_fee_percentage')->first();
-    $paidQuantity = 0;
-
-    foreach ($selectedTickets as $selection) {
-      if ((float) ($selection['price'] ?? 0) > 0) {
-        $paidQuantity += max(0, (int) ($selection['qty'] ?? 0));
-      }
-    }
-
-    $quote = $feeCalculator->quotePercentage(
-      max(0, $discountableTotal - $discount),
-      $paidQuantity,
-      (float) ($basicData->booking_fee_percentage ?? 6),
-      (string) (Event::query()->whereKey($event->id)->value('fee_payer') ?: 'buyer')
-    );
-    $tax = $quote['attendee_booking_fees'];
-    $grandTotal = $quote['attendee_total'];
-    Session::put('commission', $quote['commission']);
-
-    // Payment controllers consume these server-owned values. Calculating them
-    // here prevents request fields from deciding whether an order is paid and
-    // keeps the amount shown in the review step identical to the gateway total.
-    Session::put('discount', $discount);
-    Session::put('tax', $tax);
-    Session::put('grand_total', $grandTotal);
-
-    $information['selTickets']              = $selectedTickets;
-    $information['total']                   = Session::get('total');
-    $information['sub_total']               = $subTotal;
-    $information['discount']                = $discount;
-    $information['tax']                     = $tax;
-    $information['grand_total']             = $grandTotal;
-    $information['quantity']                = Session::get('quantity');
-    $information['total_early_bird_dicount'] = $earlyBirdDiscount;
+    $information = $quote;
     $information['event']                   = $event;
     $information['online_gateways']         = Session::get('online_gateways');
     $information['offline_gateways']        = Session::get('offline_gateways');
-    $information['basicData']               = $basicData;
     $stripe                                 = OnlineGateway::where('keyword', 'stripe')->where('status', 1)->first();
     $stripe_info                            = $stripe ? (json_decode($stripe->information, true) ?: []) : [];
     $information['stripe_key']              = $stripe_info['key'] ?? '';

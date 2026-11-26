@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\BackEnd;
 
 use App\Http\Controllers\Controller;
+use App\Models\BasicSettings\Basic;
+use App\Services\AuditLogger;
 use App\Support\TicaCurrency;
 use App\Support\TicaPlatform;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -18,12 +21,17 @@ use Illuminate\View\View;
  */
 class TicaPlatformController extends Controller
 {
+  private const MAX_FIXED_FEE = '99999999.99';
+
   public function show(): View
   {
-    $basic = DB::table('basic_settings')->where('uniqid', 12345)->first();
+    $basic = Basic::query()->where('uniqid', 12345)->first();
 
     return view('backend.tica.platform-settings', [
       'basic' => $basic,
+      'fixedFee' => Basic::fixedBookingFee($basic),
+      'maxFixedFee' => self::MAX_FIXED_FEE,
+      'fixedFeeEditable' => $basic && Schema::hasColumn('basic_settings', 'booking_fee_fixed'),
       'platform' => TicaPlatform::all(),
       'features' => TicaPlatform::FEATURES,
       'currencies' => TicaCurrency::CURRENCIES,
@@ -37,6 +45,7 @@ class TicaPlatformController extends Controller
   {
     $validated = $request->validate([
       'booking_fee_percentage' => ['required', 'numeric', 'min:0', 'max:30'],
+      'booking_fee_fixed' => ['sometimes', 'required', 'numeric', 'decimal:0,2', 'min:0', 'max:' . self::MAX_FIXED_FEE],
       'default_fee_payer' => ['required', Rule::in(['buyer', 'organizer'])],
       'guest_checkout' => ['nullable', 'boolean'],
       'features' => ['nullable', 'array'],
@@ -60,7 +69,7 @@ class TicaPlatformController extends Controller
       'admin_approval_notice' => $validated['admin_approval_notice'] ?? null,
     ];
     // Present once the account-type update has run (2026_11_19_180000).
-    if (\Illuminate\Support\Facades\Schema::hasColumn('basic_settings', 'customer_organizer_upgrade')) {
+    if (Schema::hasColumn('basic_settings', 'customer_organizer_upgrade')) {
       $before = DB::table('basic_settings')->where('uniqid', 12345)->first(['customer_organizer_upgrade', 'customer_organizer_upgrade_approval']);
       $update['customer_organizer_upgrade'] = $request->boolean('customer_organizer_upgrade') ? 1 : 0;
       $update['customer_organizer_upgrade_approval'] = $request->boolean('customer_organizer_upgrade_approval') ? 1 : 0;
@@ -71,8 +80,24 @@ class TicaPlatformController extends Controller
         ]), null, false);
       }
     }
-    DB::table('basic_settings')->where('uniqid', 12345)->update($update);
-    TicaPlatform::save((array) ($validated['features'] ?? []), (array) ($validated['currencies'] ?? []), $validated['default_fee_payer']);
+    if (isset($validated['booking_fee_fixed'])) {
+      if (!Schema::hasColumn('basic_settings', 'booking_fee_fixed')) {
+        return back()->withInput()->withErrors(['booking_fee_fixed' => __('Apply the booking fee database update before saving the fixed fee.')]);
+      }
+      $update['booking_fee_fixed'] = round((float) $validated['booking_fee_fixed'], 2);
+    }
+
+    DB::transaction(function () use ($update, $validated): void {
+      $settings = Basic::query()->where('uniqid', 12345)->lockForUpdate()->firstOrFail();
+      DB::table('basic_settings')->where('id', $settings->id)->update($update);
+      TicaPlatform::save((array) ($validated['features'] ?? []), (array) ($validated['currencies'] ?? []), $validated['default_fee_payer']);
+
+      $previousFee = Basic::fixedBookingFee($settings);
+      if (isset($update['booking_fee_fixed']) && $previousFee !== $update['booking_fee_fixed']) {
+        AuditLogger::record('settings.booking_fixed_fee_changed', $settings,
+          ['booking_fee_fixed' => $previousFee], ['booking_fee_fixed' => $update['booking_fee_fixed']]);
+      }
+    }, 3);
 
     return redirect()->route('admin.tica.platform')->with('success', __('Platform settings saved. Organisers see the changes on their next page load.'));
   }

@@ -181,7 +181,6 @@ class TicaApiController extends Controller
     }
 
     $quote = app(CheckOutController::class)->checkout(
-      app(\App\Services\EventFeeCalculatorService::class),
       app(\App\Services\EventCheckoutQuoteService::class)
     );
     if ($quote instanceof RedirectResponse) {

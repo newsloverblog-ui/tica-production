@@ -198,6 +198,9 @@ body.tica-admin .ta-row small,body.tica-admin .ta-list small{display:block;color
 body.tica-admin .ta-pct{position:relative;width:140px;flex:none}
 body.tica-admin .ta-pct input{padding-right:34px!important;font-weight:700!important;font-size:18px!important;text-align:right}
 body.tica-admin .ta-pct span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--soft)}
+body.tica-admin .ta-fixed{width:180px;max-width:100%}
+body.tica-admin .ta-fixed span{left:14px;right:auto;pointer-events:none}
+body.tica-admin .ta-fixed input{padding-left:34px!important;padding-right:12px!important}
 body.tica-admin .ta-seg{display:inline-flex;flex:none;padding:4px;border-radius:999px;background:var(--tint);border:1px solid var(--line)}
 body.tica-admin .ta-seg label{margin:0}
 body.tica-admin .ta-seg input{position:absolute;opacity:0;pointer-events:none}

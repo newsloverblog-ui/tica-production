@@ -8,6 +8,17 @@ use PHPUnit\Framework\TestCase;
 
 class EventFeeCalculatorServiceTest extends TestCase
 {
+    public function test_absorbed_fee_is_capped_at_discounted_ticket_sales(): void
+    {
+        $calculator = new EventFeeCalculatorService();
+        $quote = $calculator->quotePercentage(30, 2, 6, 'organizer', 125.50);
+
+        $this->assertSame(30.0, $quote['commission']);
+        $this->assertSame(30.0, $quote['attendee_total']);
+        $this->assertSame(0.0, $quote['organizer_net']);
+        $this->assertSame(0.0, $calculator->quotePercentage(0, 2, 6, 'buyer', 125.50)['booking_fee']);
+    }
+
     public function test_minor_unit_quote_combines_flat_and_percentage_fee_without_float_money(): void
     {
         $quote = (new EventFeeCalculatorService())->quoteMinor(500000, 2, 10000, 600, 'customer');

@@ -61,7 +61,8 @@ class LifecycleMailServiceTest extends TestCase
         $html = view('emails.lifecycle', compact('message'))->render();
 
         $this->assertStringContainsString('tica', $html);
-        $this->assertStringContainsString('Booking fee (6% + ₦100 per paid ticket)', $html);
+        $this->assertStringContainsString('Booking fee', $html);
+        $this->assertStringContainsString('₦1,200', $html);
         $this->assertSame(2, substr_count($html, 'Ticket QR code'));
         $this->assertStringContainsString('Open tickets', $html);
         $this->assertStringContainsString('Add to calendar', $html);

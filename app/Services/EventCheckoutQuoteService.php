@@ -187,9 +187,16 @@ final class EventCheckoutQuoteService
         }
         $discount = round(max(0, (float) ($discount ?? 0)), 2);
 
-        $percentage = (float) (Basic::query()->value('booking_fee_percentage') ?? 6);
+        $settings = Basic::query()->first();
+        $percentage = (float) ($settings->booking_fee_percentage ?? 6);
         $ticketSales = round(max(0, $subtotal - $earlyBirdDiscount - $discount), 2);
-        $quote = $this->fees->quotePercentage($ticketSales, $paidQuantity, $percentage, (string) ($event->fee_payer ?: 'buyer'));
+        $quote = $this->fees->quotePercentage(
+            $ticketSales,
+            $paidQuantity,
+            $percentage,
+            (string) ($event->fee_payer ?: 'buyer'),
+            Basic::fixedBookingFee($settings),
+        );
 
         $result = [
             'selTickets' => $reviewed,

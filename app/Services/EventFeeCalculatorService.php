@@ -104,6 +104,9 @@ final class EventFeeCalculatorService
             ? round(($ticketSales * $percentage / 100) + ($paidQuantity * $fixedFeePerPaidTicket), 2)
             : 0.0;
         $organizerPays = $payer === 'organizer';
+        if ($organizerPays) {
+            $fee = min($fee, $ticketSales);
+        }
 
         return [
             'ticket_sales' => $ticketSales,

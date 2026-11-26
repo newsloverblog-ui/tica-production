@@ -3,7 +3,6 @@
 @php
   $symbol = \App\Support\TicaCurrency::symbol($base);
   $fee = (float) ($basic->booking_fee_percentage ?? 6);
-  $fixedFee = \App\Services\EventFeeCalculatorService::FIXED_FEE_PER_PAID_TICKET;
   $on = fn ($key) => (bool) ($platform['features'][$key] ?? true);
   $sections = [
     'ta-fees' => __('Booking fee and checkout'),
@@ -50,8 +49,19 @@
         </div>
 
         <div class="ta-row">
-          <div><span class="ta-l">{{ __('Fixed fee') }}</span><small>{{ __('Added once for every paid ticket. Free and fully discounted tickets have no fee.') }}</small></div>
-          <div class="ta-pct"><strong>{{ $symbol }}{{ number_format($fixedFee, 0) }}</strong><span>{{ __('per ticket') }}</span></div>
+          <div>
+            <label for="ta-fixed">{{ __('Fixed fee per paid ticket') }}</label>
+            <small id="ta-fixed-help">{{ __('Free and fully discounted orders have no fee. When the organiser absorbs the fee, it is capped at their ticket subtotal.') }}</small>
+            @unless ($fixedFeeEditable)
+              <small>{{ __('Apply the booking fee database update to edit this amount.') }}</small>
+            @endunless
+          </div>
+          <div class="ta-pct ta-fixed">
+            <span aria-hidden="true">{{ $symbol }}</span>
+            <input class="form-control" id="ta-fixed" name="booking_fee_fixed" type="number" min="0" max="{{ $maxFixedFee }}"
+              step="0.01" inputmode="decimal" value="{{ old('booking_fee_fixed', $fixedFee) }}"
+              aria-describedby="ta-fixed-help" @disabled(!$fixedFeeEditable) required>
+          </div>
         </div>
 
         <div class="ta-row">
@@ -176,16 +186,21 @@
 @section('script')
   <script>
     (function () {
-      var fee = document.getElementById('ta-fee'), sym = @json($symbol), flat = @json($fixedFee);
-      function money(n) { return sym + Math.round(n).toLocaleString('en-NG'); }
+      var fee = document.getElementById('ta-fee'), sym = @json($symbol), fixed = document.getElementById('ta-fixed');
+      function money(n) { return sym + n.toLocaleString('en-NG', {maximumFractionDigits: 2}); }
       function payer() { var c = document.querySelector('[name=default_fee_payer]:checked'); return c ? c.value : 'buyer'; }
       function draw() {
-        var pct = Math.max(0, Math.min(30, parseFloat(fee.value) || 0)), cut = 5000 * pct / 100 + flat, buyerPays = payer() === 'buyer';
+        var pct = Math.max(0, Math.min(30, parseFloat(fee.value) || 0));
+        var flat = Math.max(0, Math.min(Number(fixed.max), parseFloat(fixed.value) || 0));
+        var buyerPays = payer() === 'buyer';
+        var cut = Math.round((5000 * pct / 100 + flat) * 100) / 100;
+        if (!buyerPays) { cut = Math.min(5000, cut); }
         document.getElementById('ta-ex-buyer').textContent = @json(__('Buyer pays')) + ' ' + money(buyerPays ? 5000 + cut : 5000);
         document.getElementById('ta-ex-org').textContent = @json(__('Organiser gets')) + ' ' + money(buyerPays ? 5000 : 5000 - cut);
         document.getElementById('ta-ex-tica').textContent = @json(__('TICA earns')) + ' ' + money(cut);
       }
       fee.addEventListener('input', draw);
+      fixed.addEventListener('input', draw);
       [].forEach.call(document.querySelectorAll('[name=default_fee_payer]'), function (r) { r.addEventListener('change', draw); });
       var absorb = document.getElementById('ta-f-organizer_pays'), orgOpt = document.querySelector('[name=default_fee_payer][value=organizer]');
       function lock() { orgOpt.disabled = !absorb.checked; if (!absorb.checked && orgOpt.checked) { document.querySelector('[name=default_fee_payer][value=buyer]').checked = true; draw(); } }

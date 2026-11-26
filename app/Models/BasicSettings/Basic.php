@@ -2,6 +2,7 @@
 
 namespace App\Models\BasicSettings;
 
+use App\Services\EventFeeCalculatorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
@@ -24,6 +25,11 @@ class Basic extends Model
   protected $table = 'basic_settings';
 
   protected $casts = ['payout_automatic_release_enabled' => 'boolean'];
+
+  public static function fixedBookingFee(?self $settings): float
+  {
+    return (float) ($settings?->booking_fee_fixed ?? EventFeeCalculatorService::FIXED_FEE_PER_PAID_TICKET);
+  }
 
   /**
    * The attributes that are mass assignable.

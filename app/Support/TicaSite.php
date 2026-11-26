@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\BasicSettings\Basic;
-use App\Services\EventFeeCalculatorService;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -216,9 +215,12 @@ final class TicaSite
       $external = preg_match('#^https?://#i', $url) && !str_starts_with($url, url('/'));
       return '<a href="' . e($url) . '"' . ($external ? ' target="_blank" rel="noopener"' : '') . '>';
     }, $html);
-    $fee = rtrim(rtrim(number_format((float) (Basic::query()->value('booking_fee_percentage') ?? 6), 2), '0'), '.');
-    $flat = number_format(EventFeeCalculatorService::FIXED_FEE_PER_PAID_TICKET, 0);
-    $html = str_replace('{fee}', '<span data-fee-pct>' . $fee . '%</span> + ₦' . $flat, $html);
+    if (str_contains($html, '{fee}')) {
+      $settings = Basic::query()->first();
+      $fee = rtrim(rtrim(number_format((float) ($settings->booking_fee_percentage ?? 6), 2), '0'), '.');
+      $flat = rtrim(rtrim(number_format(Basic::fixedBookingFee($settings), 2), '0'), '.');
+      $html = str_replace('{fee}', $fee . '% + ' . e($settings->base_currency_symbol ?? '₦') . $flat, $html);
+    }
 
     return nl2br($html, false);
   }

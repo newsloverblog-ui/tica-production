@@ -91,6 +91,7 @@ class PayoutTransferServiceTest extends TestCase
         (require database_path('migrations/2026_11_02_180000_create_payout_disputes_table.php'))->up();
         (require database_path('migrations/2026_11_10_120000_add_security_hold_to_organizer_payout_accounts.php'))->up();
         [, $account, $withdrawal] = $this->payoutFixture();
+        $withdrawal->forceFill(['release_approval' => null])->save();
         Auth::guard('admin')->setUser(Admin::findOrFail(999));
         $controller = new class extends WithdrawController {
             public function getCurrencyInfo()
@@ -106,17 +107,27 @@ class PayoutTransferServiceTest extends TestCase
 
         $this->assertArrayNotHasKey('account_number', $destination->getAttributes());
         $this->assertStringContainsString('value="'.$fingerprint.'"', $html);
-        $this->assertStringContainsString('Approve release', $html);
+        $this->assertStringContainsString('Approve withdrawal', $html);
+        $this->assertStringContainsString(route('admin.withdraw.approve_release', $withdrawal->id), $html);
         $this->assertStringNotContainsString('Queue approved payout', $html);
 
+        $approve = Request::create(route('admin.withdraw.approve_release', $withdrawal->id), 'POST', ['review_fingerprint' => $fingerprint]);
+        $controller->approveRelease($approve, $withdrawal->id, app(PayoutTransferService::class));
+        $this->assertSame(999, $withdrawal->fresh()->release_approval['admin_id']);
+        $this->assertSame(Withdraw::STATUS_PENDING, (int) $withdrawal->fresh()->status);
+        $this->assertDatabaseCount('payout_transfers', 0);
+        $reviewed = view('backend.withdraw.history.view', $controller->index($request)->getData())->render();
+        $this->assertStringContainsString('A different authorized admin can release it', $reviewed);
+        $this->assertStringNotContainsString('Queue approved payout', $reviewed);
+
         Auth::guard('admin')->setUser(Admin::findOrFail(19));
-        $this->assertStringContainsString('Queue approved payout', view('backend.withdraw.history.view', $data)->render());
+        $this->assertStringContainsString('Queue approved payout', view('backend.withdraw.history.view', $controller->index($request)->getData())->render());
 
         $account->update(['status' => 'locked']);
         $blocked = view('backend.withdraw.history.view', $controller->index($request)->getData())->render();
-        $this->assertStringContainsString('Review payout release', $blocked);
-        $this->assertStringContainsString('The attached payout account needs verified status before release.', $blocked);
-        $this->assertStringNotContainsString('Approve release', $blocked);
+        $this->assertStringContainsString('Review withdrawal', $blocked);
+        $this->assertStringContainsString('The attached payout account needs verified status before approval.', $blocked);
+        $this->assertStringNotContainsString('Approve withdrawal', $blocked);
         $this->assertStringNotContainsString('Queue approved payout', $blocked);
     }
 

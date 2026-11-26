@@ -30,6 +30,7 @@ class WithdrawController extends Controller
       ->with([
         'latestPayoutTransfer',
         'latestPayoutDispute',
+        'organizer:id,kyc_status',
         'payoutAccount' => fn ($query) => $query->select([
           'id', 'public_id', 'organizer_id', 'bank_name', 'account_last4', 'currency', 'provider',
           'status', 'is_default', 'resolved_account_name', 'bank_code', 'account_number_hash', 'verified_at', 'hold_until',
@@ -43,7 +44,14 @@ class WithdrawController extends Controller
       ->get();
     $currencyInfo = $this->getCurrencyInfo();
     $payoutApprovalAvailable = Schema::hasColumn('withdraws', 'release_approval');
-    return view('backend.withdraw.history.index', compact('collection', 'currencyInfo', 'payoutDisputes', 'payoutApprovalAvailable'));
+    $payoutAdmin = Auth::guard('admin')->user();
+    $canManagePayout = (int) ($payoutAdmin?->status) === 1 && $payoutAdmin->hasPermission('Withdraw Method');
+    $canApprovePayout = $canManagePayout && $payoutAdmin->hasPermission('Transaction');
+
+    return view('backend.withdraw.history.index', compact(
+      'collection', 'currencyInfo', 'payoutDisputes', 'payoutApprovalAvailable',
+      'payoutAdmin', 'canManagePayout', 'canApprovePayout'
+    ));
   }
 
   public function export(Request $request, DataExportService $exports)
