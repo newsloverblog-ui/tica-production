@@ -39,7 +39,6 @@ class AdminOverview
       'base' => ['code' => $base, 'symbol' => TicaCurrency::symbol($base), 'position' => (string) (DB::table('basic_settings')->value('base_currency_symbol_position') ?: 'left')],
       'lifetime' => $this->lifetime(),
       'counts' => $this->platformCounts(),
-      'today' => $this->today(),
       'month' => $this->month(),
       'attention' => $this->attention(),
       'series' => $this->series(),
@@ -50,30 +49,18 @@ class AdminOverview
     ];
   }
 
-  /** Base-currency bookings: no currency recorded, or the base code. */
-  private function baseOnly($query)
-  {
-    $base = TicaCurrency::base();
-
-    return $query->where(fn ($q) => $q->whereNull('currencyText')->orWhere('currencyText', '')->orWhere('currencyText', $base));
-  }
-
   private function month(): array
   {
     $now = now();
     $start = $now->copy()->startOfMonth();
     $priorThrough = $now->copy()->subMonthNoOverflow();
     $priorStart = $priorThrough->copy()->startOfMonth();
-    $bookings = Booking::query()->whereBetween('created_at', [$start, $now]);
-    $paidBookings = $this->baseOnly((clone $bookings)->whereIn('paymentStatus', self::PAID));
     $ticketBookings = Booking::query()->whereIn('paymentStatus', self::COUNTED);
     $paidPayouts = Withdraw::query()->where('status', Withdraw::STATUS_PAID);
     $paidOn = DB::raw('COALESCE(paid_at, reviewed_at, updated_at)');
 
     return [
-      'from' => $start,
       'through' => $now,
-      'sales' => round((float) $paidBookings->sum(DB::raw(EventFinancialBreakdown::bookingCustomerPaidSql())), 2),
       'tickets' => (int) (clone $ticketBookings)->whereBetween('created_at', [$start, $now])->sum('quantity'),
       'prior_tickets' => (int) $ticketBookings->whereBetween('created_at', [$priorStart, $priorThrough])->sum('quantity'),
       'payouts' => round((float) (clone $paidPayouts)->whereBetween($paidOn, [$start, $now])->sum('amount'), 2),
@@ -104,20 +91,6 @@ class AdminOverview
       'organisers' => Organizer::query()->count(),
       'customers' => Customer::query()->count(),
       'admins' => Admin::query()->count(),
-    ];
-  }
-
-  private function today(): array
-  {
-    $bookings = Booking::query()->whereBetween('created_at', [today(), now()]);
-    $counted = (clone $bookings)->whereIn('paymentStatus', self::COUNTED)
-      ->selectRaw('COUNT(*) as orders, SUM(quantity) as tickets')->first();
-    $paid = $this->baseOnly($bookings->whereIn('paymentStatus', self::PAID));
-
-    return [
-      'orders' => (int) ($counted?->orders ?? 0),
-      'tickets' => (int) ($counted?->tickets ?? 0),
-      'sales' => round((float) $paid->sum(DB::raw(EventFinancialBreakdown::bookingCustomerPaidSql())), 2),
     ];
   }
 

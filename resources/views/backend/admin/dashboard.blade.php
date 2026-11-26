@@ -44,11 +44,6 @@
     'tickets' => $can('Event Bookings') ? [__('Tickets sold'), number_format($lifetime['tickets']), __('Paid and free tickets booked since launch.'), 'fa-ticket-alt', route('admin.event.booking'), $ticketChange] : null,
     'payouts' => $can('Withdraw Method') ? [__('Payouts issued'), $money($lifetime['payouts']), __('Total paid out to organisers in :currency.', ['currency' => $o['base']['code']]), 'fa-wallet', $payoutUrl, $payoutChange] : null,
   ]);
-  $monthStats = array_filter([
-    $can('Lifetime Earning') ? [__('Gross ticket sales'), $money($month['sales'])] : null,
-    $can('Event Bookings') ? [__('Tickets booked'), number_format($month['tickets'])] : null,
-    $can('Withdraw Method') ? [__('Payouts sent'), $money($month['payouts'])] : null,
-  ]);
   $glance = array_filter([
     $can('Event Management') ? [__('Events'), $counts['events'], $eventUrl] : null,
     $can('Event Management') ? [__('Categories'), $counts['categories'], route('admin.event_management.categories', ['language' => $defaultLang->code])] : null,
@@ -82,11 +77,6 @@
   $showSales = $can('Event Bookings', 'Transaction');
   $showEvents = $can('Event Management');
   $latestSales = end($o['series']);
-  $todayStats = array_filter([
-    $can('Event Bookings') ? [__('Confirmed orders'), number_format($o['today']['orders'])] : null,
-    $can('Event Bookings') ? [__('Tickets booked'), number_format($o['today']['tickets'])] : null,
-    $can('Lifetime Earning') ? [__('Buyer payments (:currency)', ['currency' => $o['base']['code']]), $money($o['today']['sales'])] : null,
-  ]);
 @endphp
 
 @section('content')
@@ -256,36 +246,6 @@
             <li><a href="{{ $href }}"><span>{{ $label }}</span><strong>{{ number_format($count) }}</strong></a></li>
           @endforeach
         </ul>
-      </section>
-    @endif
-
-    @if ($monthStats)
-      <section class="cd-card" aria-labelledby="cd-period-h">
-        <div class="cd-card-h">
-          <h2 id="cd-period-h">{{ __('Month to date') }}</h2>
-          <span class="cd-pill">
-            <time datetime="{{ $month['from']->toDateString() }}">{{ $month['from']->translatedFormat('j M') }}</time>
-            <span aria-hidden="true">–</span><span class="sr-only"> {{ __('to') }} </span>
-            <time datetime="{{ $month['through']->toDateString() }}">{{ $month['through']->translatedFormat('j M Y') }}</time>
-            <span aria-hidden="true"> · </span>{{ $o['base']['code'] }}
-          </span>
-        </div>
-        <dl class="cd-today">
-          @foreach ($monthStats as [$label, $value])
-            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
-          @endforeach
-        </dl>
-      </section>
-    @endif
-
-    @if ($todayStats)
-      <section class="cd-card" aria-labelledby="cd-today-h">
-        <div class="cd-card-h"><h2 id="cd-today-h">{{ __('Today') }}</h2></div>
-        <dl class="cd-today">
-          @foreach ($todayStats as [$label, $value])
-            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
-          @endforeach
-        </dl>
       </section>
     @endif
 
